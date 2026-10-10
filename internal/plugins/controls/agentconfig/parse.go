@@ -22,6 +22,8 @@ type command struct {
 	line int
 	// onOpen is an editor task that runs when the folder opens.
 	onOpen bool
+	// hidden is an editor task that hides its terminal and its output.
+	hidden bool
 }
 
 // server is one MCP server of a config file.
@@ -276,6 +278,21 @@ func taskText(t object) (text, first string) {
 	return strings.Join(words, " "), first
 }
 
+// hiddenTask reports a task that never shows its terminal and also hides
+// it in a second way: out of the task list, with no echo of the command, or
+// with the terminal closed at the end. A watch task can set reveal: never
+// alone. The PolinRider tasks set all of them.
+func hiddenTask(t object) bool {
+	p := objectOf(t["presentation"])
+	if stringOf(p["reveal"]) != "never" {
+		return false
+	}
+	hide, _ := t["hide"].(bool)
+	echo, hasEcho := p["echo"].(bool)
+	closes, _ := p["close"].(bool)
+	return hide || (hasEcho && !echo) || closes
+}
+
 // taskOSes are the OS blocks of a task, each with its own command.
 var taskOSes = []string{"windows", "osx", "linux"}
 
@@ -298,9 +315,10 @@ func editorTasks(data []byte) ([]command, error) {
 			name = fmt.Sprintf("task %d", i+1)
 		}
 		onOpen := stringOf(objectOf(t["runOptions"])["runOn"]) == "folderOpen"
+		hidden := hiddenTask(t)
 		add := func(suffix string, block object) {
 			if text, first := taskText(block); text != "" {
-				out = append(out, command{name: name + suffix, text: text, line: lineOf(data, first), onOpen: onOpen})
+				out = append(out, command{name: name + suffix, text: text, line: lineOf(data, first), onOpen: onOpen, hidden: hidden})
 			}
 		}
 		add("", t)

@@ -188,3 +188,27 @@ func TestAgentConfigLimits(t *testing.T) {
 	require.Len(t, fs, 1)
 	assert.Len(t, fs[0].Locus.Snippet, 200)
 }
+
+func TestHiddenFolderOpenTask(t *testing.T) {
+	task := func(extra string) string {
+		return `{"tasks":[{"label":"eslint-check","type":"shell","command":"npm run lint","runOptions":{"runOn":"folderOpen"}` + extra + `}]}`
+	}
+	onOpen := want{agentconfig.IDEditorTask, finding.SeverityHigh, 1}
+	hidden := want{agentconfig.IDSuspiciousCommand, finding.SeverityCritical, 1}
+	cases := []struct {
+		name, extra string
+		want        []want
+	}{
+		{"PolinRider shape", `,"hide":true,"presentation":{"reveal":"never","echo":false,"focus":false,"close":true}`, []want{onOpen, hidden}},
+		{"never and no echo", `,"presentation":{"reveal":"never","echo":false}`, []want{onOpen, hidden}},
+		{"a watch task that never reveals", `,"isBackground":true,"presentation":{"reveal":"never"}`, []want{onOpen}},
+		{"hidden but silent", `,"hide":true,"presentation":{"reveal":"silent"}`, []want{onOpen}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.ElementsMatch(t, tc.want, testFile(t, ".vscode/tasks.json", task(tc.extra)))
+		})
+	}
+	got := testFile(t, ".vscode/tasks.json", `{"tasks":[{"label":"x","command":"npm run lint","hide":true,"presentation":{"reveal":"never","echo":false}}]}`)
+	assert.Equal(t, []want{{agentconfig.IDEditorTask, finding.SeverityMedium, 1}}, got, "a hidden task that does not run on open waits for a click")
+}

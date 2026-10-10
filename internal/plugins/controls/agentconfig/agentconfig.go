@@ -203,7 +203,11 @@ func (c *Control) command(e *emitter, t agentfiles.Type, cmd command) {
 	} else {
 		e.add(IDAgentHook, finding.SeverityMedium, cmd.line, cmd.name, fmt.Sprintf("%s runs %s", cmd.name, short(cmd.text)), review)
 	}
-	c.suspicious(e, cmd.line, cmd.name, cmd.text)
+	reason := suspiciousReason(cmd.text, path.Base(path.Dir(e.path)))
+	if reason == "" && cmd.onOpen && cmd.hidden {
+		reason = "runs when the folder opens and hides its terminal"
+	}
+	c.suspicious(e, cmd.line, cmd.name, reason)
 }
 
 func (c *Control) server(e *emitter, s server) {
@@ -217,12 +221,11 @@ func (c *Control) server(e *emitter, s server) {
 	e.add(IDMCPServer, finding.SeverityMedium, s.line, s.name, title,
 		&finding.Remediation{Summary: "Check who publishes the server and what it can read. Pin the version of the package that it runs."})
 	if s.command != "" {
-		c.suspicious(e, s.line, s.name, s.command)
+		c.suspicious(e, s.line, s.name, suspiciousReason(s.command, path.Base(path.Dir(e.path))))
 	}
 }
 
-func (*Control) suspicious(e *emitter, line int, name, text string) {
-	reason := suspiciousReason(text, path.Base(path.Dir(e.path)))
+func (*Control) suspicious(e *emitter, line int, name, reason string) {
 	if reason == "" {
 		return
 	}
