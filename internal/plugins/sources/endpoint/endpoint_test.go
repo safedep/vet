@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -161,18 +162,22 @@ func TestCheckProjects(t *testing.T) {
 	dir := t.TempDir()
 	file := filepath.Join(dir, "f")
 	write(t, file, "x")
-	got, err := CheckProjects([]string{dir})
+	got, err := CheckProjects(dir, []string{dir})
 	require.NoError(t, err)
 	assert.Equal(t, []string{dir}, got)
 	t.Chdir(dir)
 	write(t, filepath.Join(dir, "code", "a"), "x")
-	got, err = CheckProjects([]string{"code"})
+	got, err = CheckProjects(dir, []string{"code"})
 	require.NoError(t, err)
 	assert.Equal(t, []string{filepath.Join(dir, "code")}, got, "a relative folder becomes absolute")
-	_, err = CheckProjects([]string{filepath.Join(dir, "missing")})
+	_, err = CheckProjects(dir, []string{filepath.Join(dir, "missing")})
 	assert.ErrorContains(t, err, "--projects")
-	_, err = CheckProjects([]string{file})
+	_, err = CheckProjects(dir, []string{file})
 	assert.ErrorContains(t, err, "not a folder")
+	if runtime.GOOS == "windows" {
+		_, err = CheckProjects(`Z:\Users\x`, []string{dir})
+		assert.ErrorContains(t, err, "not on volume")
+	}
 }
 
 func TestAuditRelativeProjects(t *testing.T) {

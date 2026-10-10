@@ -36,6 +36,14 @@ func TestEditorTasks(t *testing.T) {
 			},
 		},
 		{
+			name: "OS block with args only",
+			data: `{"tasks":[{"label":"x","command":"node","windows":{"args":["public/a.woff2"]}}]}`,
+			want: []command{
+				{name: "x", text: "node", line: 1},
+				{name: "x (windows)", text: "node public/a.woff2", line: 1},
+			},
+		},
+		{
 			name: "OS block with no command",
 			data: `{"tasks":[{"label":"x","command":"make","osx":{"options":{"cwd":"/"}}}]}`,
 			want: []command{{name: "x", text: "make", line: 1}},

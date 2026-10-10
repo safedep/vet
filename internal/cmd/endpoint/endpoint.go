@@ -3,6 +3,8 @@
 package endpoint
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/v2/internal/app"
@@ -16,7 +18,7 @@ const (
 	// CodeNeedsRoot is the error code of --all-users without root.
 	CodeNeedsRoot = "usage_needs_root"
 	// CodeProjects is the error code of a --projects folder that does not
-	// exist.
+	// exist or that the audit cannot read.
 	CodeProjects = "usage_projects_dir"
 )
 
@@ -58,8 +60,14 @@ and "vet report diff" compare the audits of a machine.`,
 				return app.UsageErrorCode(CodeNeedsRoot, "--all-users needs root",
 					"Run sudo vet endpoint audit --all-users, or drop --all-users to audit your own user.")
 			}
-			if _, err := endpoint.CheckProjects(src.Projects); err != nil {
-				return app.UsageErrorCode(CodeProjects, err.Error(), "Pass a folder that holds your repositories, such as --projects ~/code.")
+			if len(src.Projects) > 0 {
+				home, err := sys.Home()
+				if err != nil {
+					return fmt.Errorf("endpoint: home directory: %w", err)
+				}
+				if _, err := endpoint.CheckProjects(home, src.Projects); err != nil {
+					return app.UsageErrorCode(CodeProjects, err.Error(), "Pass a folder that holds your repositories, such as --projects ~/code.")
+				}
 			}
 			o.Kind = report.ScanKindEndpoint
 			o.Source = endpoint.New(src, sys)

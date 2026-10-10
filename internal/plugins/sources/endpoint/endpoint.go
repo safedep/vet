@@ -132,7 +132,7 @@ func (s *Source) artifact(ctx context.Context) (plugin.Artifact, error) {
 			files[filepath.FromSlash(f)] = true
 		}
 	}
-	projects, err := CheckProjects(s.opts.Projects)
+	projects, err := CheckProjects(homes[0], s.opts.Projects)
 	if err != nil {
 		return plugin.Artifact{}, err
 	}
@@ -319,10 +319,12 @@ func repository(dir string) bool {
 }
 
 // CheckProjects returns the absolute path of each --projects folder, or an
-// error for a folder that does not exist or is not a folder. The audit
+// error for a folder that does not exist, is not a folder, or is on another
+// volume than home. The audit
 // reads files by their path from the root of the file system, so a
 // relative path would match no file.
-func CheckProjects(dirs []string) ([]string, error) {
+func CheckProjects(home string, dirs []string) ([]string, error) {
+	vol := filepath.VolumeName(home)
 	out := make([]string, 0, len(dirs))
 	for _, dir := range dirs {
 		abs, err := filepath.Abs(dir)
@@ -335,6 +337,11 @@ func CheckProjects(dirs []string) ([]string, error) {
 		}
 		if !info.IsDir() {
 			return nil, fmt.Errorf("--projects %s: not a folder", dir)
+		}
+		// The audit reads one file system, the one of the home directory.
+		// On Windows a folder on another volume gives no finding at all.
+		if v := filepath.VolumeName(abs); !strings.EqualFold(v, vol) {
+			return nil, fmt.Errorf("--projects %s: the folder is not on volume %s of the home directory", dir, vol)
 		}
 		out = append(out, abs)
 	}

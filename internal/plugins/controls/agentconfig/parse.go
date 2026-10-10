@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"regexp"
 	"sort"
 	"strconv"
@@ -384,9 +385,18 @@ func editorTasks(data []byte) ([]command, error) {
 			}
 		}
 		add("", t)
+		top, _ := taskText(t)
 		for _, osName := range taskOSes {
-			if block := objectOf(t[osName]); block != nil {
-				add(" ("+osName+")", block)
+			block := objectOf(t[osName])
+			if block == nil {
+				continue
+			}
+			// The editor merges the OS block over the task, so a block with
+			// only args or options still changes what runs.
+			merged := maps.Clone(t)
+			maps.Copy(merged, block)
+			if text, _ := taskText(merged); text != top {
+				add(" ("+osName+")", merged)
 			}
 		}
 	}
