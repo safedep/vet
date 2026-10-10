@@ -145,14 +145,35 @@ func commandText(v any) []string {
 	return nil
 }
 
-// editorTasks reads the shell and process tasks of .vscode/tasks.json.
+// taskCommand is the command part of a task, or of one OS block of it.
+type taskCommand struct {
+	Command any   `json:"command"`
+	Args    []any `json:"args"`
+}
+
+// text joins the command and its arguments, or gives "".
+func (c taskCommand) text() string {
+	texts := commandText(c.Command)
+	if len(texts) == 0 {
+		return ""
+	}
+	if args := commandText(c.Args); len(args) > 0 {
+		return texts[0] + " " + args[0]
+	}
+	return texts[0]
+}
+
+// editorTasks reads the shell and process tasks of .vscode/tasks.json. A
+// task can set its own command in each OS block, and the editor runs the
+// one of the OS of the developer.
 func editorTasks(data []byte) ([]command, error) {
 	var doc struct {
 		Tasks []struct {
-			Label      string `json:"label"`
-			Type       string `json:"type"`
-			Command    any    `json:"command"`
-			Args       []any  `json:"args"`
+			taskCommand
+			Label      string       `json:"label"`
+			Windows    *taskCommand `json:"windows"`
+			OSX        *taskCommand `json:"osx"`
+			Linux      *taskCommand `json:"linux"`
 			RunOptions struct {
 				RunOn string `json:"runOn"`
 			} `json:"runOptions"`
@@ -163,21 +184,33 @@ func editorTasks(data []byte) ([]command, error) {
 	}
 	var out []command
 	for i, t := range doc.Tasks {
-		texts := commandText(t.Command)
-		if len(texts) == 0 {
-			continue
-		}
-		text := texts[0]
-		if args := commandText(t.Args); len(args) > 0 {
-			text += " " + args[0]
-		}
 		name := t.Label
 		if name == "" {
 			name = fmt.Sprintf("task %d", i+1)
 		}
-		out = append(out, command{name: name, text: text, line: lineOf(data, texts[0]), onOpen: t.RunOptions.RunOn == "folderOpen"})
+		onOpen := t.RunOptions.RunOn == "folderOpen"
+		blocks := []struct {
+			suffix string
+			c      *taskCommand
+		}{{"", &t.taskCommand}, {" (windows)", t.Windows}, {" (osx)", t.OSX}, {" (linux)", t.Linux}}
+		for _, b := range blocks {
+			if b.c == nil {
+				continue
+			}
+			if text := b.c.text(); text != "" {
+				out = append(out, command{name: name + b.suffix, text: text, line: lineOf(data, firstText(b.c.Command)), onOpen: onOpen})
+			}
+		}
 	}
 	return out, nil
+}
+
+// firstText returns the first command text of v, or "".
+func firstText(v any) string {
+	if texts := commandText(v); len(texts) > 0 {
+		return texts[0]
+	}
+	return ""
 }
 
 // claudeHooks reads the hook commands and the status line command of
