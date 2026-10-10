@@ -66,16 +66,18 @@ _Avoid_: internal package (see dependency confusion), project package
 
 **Manifest**:
 One file or input that declares packages: a lockfile, a dependency manifest, a workflow, an SBOM, an
-image, a PURL, the endpoint or an agent config file. `model.Manifest` holds its path, kind,
+image, a PURL, the endpoint, an agent config file or a file that hides code. `model.Manifest` holds its path, kind,
 extractor, packages and optional graph. Its id is `m-` plus 12 hex characters of the path and the
 extractor.
 _Avoid_: lockfile (when you mean any manifest), dependency file
 
 **Manifest kind**:
 What a manifest is: `lockfile`, `manifest`, `workflow`, `sbom`, `image`, `purl`, `endpoint`,
-`agent-config`, `installed`. `model.ManifestKind`. The value `manifest` means a file of declared
-dependencies with no lockfile, such as `package.json` in manifest mode. A `workflow` or `agent-config`
-manifest can hold no package, because its controls read the file. An `installed` manifest is the
+`agent-config`, `file`, `installed`. `model.ManifestKind`. The value `manifest` means a file of declared
+dependencies with no lockfile, such as `package.json` in manifest mode. A `workflow`, `agent-config` or
+`file` manifest can hold no package, because its controls read the file. A `file` manifest exists only
+for a file with a sign of hidden code: the extractor gives `scalibr.ErrNoManifest` for a clean file, so
+a clean file adds nothing to the report. An `installed` manifest is the
 metadata of a package on disk, such as `node_modules/left-pad/package.json`, or a Go binary.
 
 **Package selection**:
@@ -267,8 +269,8 @@ Package docs cite it as "control catalog, phase N".
 
 **Family**:
 The group of a control id for the report summary: `malware`, `vulnerability`, `cooldown`,
-`workflow`, `lockfile`, `agent-config`, `ai-bom`, `license`, `hygiene`, `reputation`, `policy`. The
-`policy` family holds the findings of package rules.
+`workflow`, `lockfile`, `agent-config`, `hidden-code`, `ai-bom`, `license`, `hygiene`, `reputation`,
+`policy`. The `policy` family holds the findings of package rules.
 `finding.Family`. A family is not a control name. The `hygiene` control emits the `license` family,
 for example.
 _Avoid_: category, type
@@ -512,6 +514,15 @@ A file that tells an AI agent or an editor to run commands or connect to servers
 settings and hooks, devcontainer files, git hooks, MCP configs and agent instruction files.
 `internal/plugins/internal/agentfiles` classifies them, and the `agent-config` control checks them.
 `agentfiles.HomeFiles` is the one list of the files that a home directory can hold.
+
+**Hidden code**:
+Code that a file hides from a person who reads it: code after a long run of spaces in a build config,
+a script in a file with the name of a font or an image, a payload in invisible Unicode characters, or
+a script that rewrites the git history. `internal/plugins/internal/hiddencode` classifies the files
+(`hiddencode.Class`) and finds each sign (`hiddencode.Signal`). The `code/hidden` extractor and the
+`hidden-code` control share it. `campaigns.yaml` holds the markers that name a known campaign, such as
+PolinRider, in a finding.
+_Avoid_: obfuscation (a payload can be plain code), steganography
 
 ## Tests
 
