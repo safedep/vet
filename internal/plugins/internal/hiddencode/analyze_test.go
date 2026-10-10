@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -99,8 +100,8 @@ func TestInvisible(t *testing.T) {
 		name, path, data string
 		want             []string
 	}{
-		{"GlassWorm shape", "src/index.js", decoderJS + "eval(Buffer.from(s(`" + payload + "`)).toString());\n", []string{IDUnicodeDecoder}},
-		{"payload with no decoder in the file", "src/index.js", "const x = `" + payload + "`;\n", []string{IDUnicodeDecoder}},
+		{"GlassWorm shape", "src/index.js", decoderJS + "eval(Buffer.from(s(`" + payload + "`)).toString());\n", []string{IDUnicodePayload}},
+		{"payload with no decoder in the file", "src/index.js", "const x = `" + payload + "`;\n", []string{IDUnicodePayload}},
 		{"zero-width run", "lib/a.py", "token = 'a\u200b\u200b\u200b\u200bb'\n", []string{IDInvisibleUnicode}},
 		{"Trojan Source", "src/auth.ts", "if (isAdmin) { \u202e} \u2066// check\u2069\n", []string{IDInvisibleUnicode}},
 		{"tag text in an agent file", "CLAUDE.md", "Run the tests.\U000E0049\U000E0067\U000E006E\U000E006F\U000E0072\U000E0065\n", []string{IDInvisibleUnicode}},
@@ -127,10 +128,10 @@ func TestInvisibleEvasion(t *testing.T) {
 		name, path, data string
 		want             []string
 	}{
-		{"a decoy run of zero-width spaces", "src/a.js", "const d = '" + strings.Repeat("\u200b", 601) + "';\nconst x = `" + payload + "`;\n", []string{IDUnicodeDecoder}},
-		{"a space before each selector", "src/a.js", "const x = `" + spaced + "`;\n", []string{IDUnicodeDecoder}},
-		{"one selector on each line", "src/a.js", perLine, []string{IDUnicodeDecoder}},
-		{"a payload in a built file", "dist/extension.js", "var x=`" + payload + "`;", []string{IDUnicodeDecoder}},
+		{"a decoy run of zero-width spaces", "src/a.js", "const d = '" + strings.Repeat("\u200b", 601) + "';\nconst x = `" + payload + "`;\n", []string{IDUnicodePayload}},
+		{"a space before each selector", "src/a.js", "const x = `" + spaced + "`;\n", []string{IDUnicodePayload}},
+		{"one selector on each line", "src/a.js", perLine, []string{IDUnicodePayload}},
+		{"a payload in a built file", "dist/extension.js", "var x=`" + payload + "`;", []string{IDUnicodePayload}},
 		{"a minified file with a run gives nothing else", "web/app.min.js", "var x='\u200b\u200b\u200b\u200b';", nil},
 		{"keycap emoji", "src/keys.ts", strings.Repeat("1\ufe0f\u20e3 ", 20), nil},
 		{"CJK variation sequences", "src/names.ts", strings.Repeat("\u845b\U000E0100", 20), nil},
@@ -280,4 +281,50 @@ func TestEntry(t *testing.T) {
 	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Entry, "node_modules/npm/lib/cli.js", []byte(big))))
 	padded := "module.exports = cli;" + strings.Repeat(" ", 200) + js + "\n"
 	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Entry, "node_modules/npm/lib/cli.js", []byte(padded))))
+}
+
+func TestAdversarialReview(t *testing.T) {
+	noToken := "[].constructor.constructor(decodeURIComponent('" + strings.Repeat("%63%6f", 40) + "'))()"
+	sel := selectors("console.log('hidden payload')")
+	var marked strings.Builder
+	for _, r := range sel {
+		marked.WriteString("\u200e")
+		marked.WriteRune(r)
+	}
+	polinrider := "@echo off\r\ndate %LAST_COMMIT_DATE%\r\ngit commit --amend -n --no-edit\r\ngit push origin +HEAD\r\n"
+	cases := []struct {
+		name, path, data string
+		want             []string
+	}{
+		{"a pad of tabs", "postcss.config.mjs", "export default config;" + strings.Repeat("\t", 60) + js, []string{IDPaddedCode}},
+		{"a payload with no common token", "next.config.js", "module.exports = c;" + strings.Repeat(" ", 280) + noToken, []string{IDPaddedCode}},
+		{"spaces between zero-width spaces", "next.config.js", "module.exports = c;" + strings.Repeat(" \u200b", 150) + js, []string{IDPaddedCode}},
+		{"blank braille in a comment", "next.config.js", "export default config; /*" + strings.Repeat("\u2800", 200) + "*/ " + js, []string{IDPaddedCode}},
+		{"a file under build", "build/utils.js", "exports.x = 1;" + strings.Repeat(" ", 280) + js, []string{IDPaddedCode}},
+		{"marks between the selectors", "src/a.js", "const x = `" + marked.String() + "`;\n", []string{IDUnicodePayload}},
+		{"a comment then binary then script in an image", "img/logo.png", "/*\x00\x01*/console.log(require('child_process'))", []string{IDDisguisedScript}},
+		{"indirect eval in a font", "fonts/a.woff2", "\x00\x01\x00\x00" + strings.Repeat("\x00", 600) + "(0,eval)(atob('eA=='))", []string{IDDisguisedScript}},
+		{"one token on each line of a dictionary", "a.dict", "const a = 1\nconst b = 2\nconst c = 3\n", []string{IDDisguisedScript}},
+		{"commit -n and push +HEAD", "tools/push.bat", polinrider, []string{IDHistoryRewrite}},
+		{"a Python rewrite script", "tools/push.py", "os.system('date -s \"' + d + '\"')\nos.system('git commit --amend --no-verify --no-edit')\nos.system('git push -f')\n", []string{IDHistoryRewrite}},
+
+		{"a fuzz dictionary entry", "fuzz/js.dict", "kw1=\"try{eval(\"\nkw2=\"=>{\"\n", nil},
+		{"a data URI", "img/a.png", "data:image/png;base64," + strings.Repeat("iVBORw0KGgo", 60), nil},
+		{"a gh-pages deploy", "scripts/deploy.sh", "git commit --amend --no-verify -m \"docs $(date +%F)\"\ngit push -f origin gh-pages\n", nil},
+		{"deep tab indentation", "src/a.ts", strings.Repeat("\t", 20) + "return x;\n", nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, ok := Classify(tc.path)
+			require.True(t, ok)
+			assert.Equal(t, tc.want, ids(Analyze(c, tc.path, []byte(tc.data))))
+		})
+	}
+}
+
+func TestEncodedIsLinear(t *testing.T) {
+	data := []byte(strings.Repeat(strings.Repeat("a", 255)+"-", 16<<10))
+	start := time.Now()
+	assert.False(t, encoded(data))
+	assert.Less(t, time.Since(start), time.Second)
 }

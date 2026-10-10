@@ -21,13 +21,13 @@ const (
 	IDPaddedCode       = "padded-code"
 	IDDisguisedScript  = "disguised-script"
 	IDInvisibleUnicode = "invisible-unicode"
-	IDUnicodeDecoder   = "unicode-payload"
+	IDUnicodePayload   = "unicode-payload"
 	IDHistoryRewrite   = "history-rewrite-script"
 )
 
 // IDs returns every control id of a signal.
 func IDs() []string {
-	return []string{IDPaddedCode, IDDisguisedScript, IDInvisibleUnicode, IDUnicodeDecoder, IDHistoryRewrite}
+	return []string{IDPaddedCode, IDDisguisedScript, IDInvisibleUnicode, IDUnicodePayload, IDHistoryRewrite}
 }
 
 // Signal is one sign of hidden code in a file.
@@ -67,7 +67,7 @@ func Read(r io.Reader, p string, c Class) ([]byte, error) {
 		return nil, err
 	}
 	head = head[:n]
-	if c == Asset && !text(head) && !fontExts[strings.ToLower(path.Ext(p))] {
+	if c == Asset && !text(head) && !fontExts[strings.ToLower(path.Ext(p))] && !commentStart(head) {
 		return head, nil
 	}
 	rest, err := io.ReadAll(io.LimitReader(r, MaxSize+1-int64(n)))
@@ -86,10 +86,7 @@ func Analyze(c Class, p string, data []byte) []Signal {
 	case Asset:
 		return named(disguised(p, data), data)
 	case Source:
-		if generated(p) {
-			return invisible(p, data)
-		}
-		return named(append(padded(data, false), invisible(p, data)...), data)
+		return named(append(append(padded(data, false), invisible(p, data)...), rewriteScript(data)...), data)
 	case Script:
 		return historyRewrite(p, data)
 	case Entry:
@@ -114,12 +111,14 @@ func oversizeEntry(data []byte) []Signal {
 var rewriteScriptNames = []string{"temp_auto_push.bat", "temp_interactive_push.bat"}
 
 var (
-	amend    = regexp.MustCompile(`\bcommit\b[^\n]*--amend\b`)
-	noVerify = regexp.MustCompile(`--no-verify\b`)
-	force    = regexp.MustCompile(`\bpush\b[^\n]*(\s-[a-zA-Z]*f[a-zA-Z]*\b|--force\b)`)
-	// clock is a change of the system clock or of the commit date, so the
-	// amended commit keeps the time of the original.
-	clock = regexp.MustCompile(`(?i)(^|[\s&|;(])(date|time)\s+[^\s/]|Set-Date|GIT_COMMITTER_DATE|LAST_COMMIT_DATE`)
+	amend = regexp.MustCompile(`\bcommit\b[^\n]*--amend\b`)
+	// noVerify is a commit with no hooks: --no-verify, or its short form -n.
+	noVerify = regexp.MustCompile(`\bcommit\b[^\n]*(--no-verify\b|\s-[a-zA-Z]*n\b)`)
+	// force is a forced push: -f, --force, or a refspec that starts with +.
+	force = regexp.MustCompile(`\bpush\b[^\n]*(\s-[a-zA-Z]*f[a-zA-Z]*\b|--force\b|\s\+[\w/.-]+)`)
+	// clock sets the system clock or the commit date, so the amended commit
+	// keeps the time of the original. A date in a commit message does not.
+	clock = regexp.MustCompile("(?im)(^|[&|;('\"`]\\s*)(date|time)\\s+(%|-s\\b|--set\\b|\\d)|Set-Date|GIT_COMMITTER_DATE=|LAST_COMMIT_DATE|faketime")
 )
 
 // historyRewrite finds the PolinRider script that rewrites the last commit
@@ -131,8 +130,8 @@ func historyRewrite(p string, data []byte) []Signal {
 	if slices.Contains(rewriteScriptNames, strings.ToLower(base)) {
 		return []Signal{{ID: IDHistoryRewrite, Line: 1, Title: "The file has the name of the PolinRider script that rewrites the last commit and force-pushes it"}}
 	}
-	lines := bytes.Split(data, []byte("\n"))
 	if base == ".gitignore" {
+		lines := bytes.Split(data, []byte("\n"))
 		entries := map[string]int{}
 		for i, l := range lines {
 			entries[strings.ToLower(strings.TrimPrefix(strings.TrimSpace(string(l)), "/"))] = i + 1
@@ -147,9 +146,16 @@ func historyRewrite(p string, data []byte) []Signal {
 		}
 		return nil
 	}
-	if !amend.Match(data) || !noVerify.Match(data) || !force.Match(data) || !clock.Match(data) {
+	return rewriteScript(data)
+}
+
+// rewriteScript finds a script that amends the last commit with no hooks,
+// keeps its date, and force-pushes it, in any language.
+func rewriteScript(data []byte) []Signal {
+	if !bytes.Contains(data, []byte("--amend")) || !amend.Match(data) || !noVerify.Match(data) || !force.Match(data) || !clock.Match(data) {
 		return nil
 	}
+	lines := bytes.Split(data, []byte("\n"))
 	line := 1
 	for i, l := range lines {
 		if amend.Match(l) {
@@ -174,15 +180,50 @@ var lfsPointer = []byte("version https://git-lfs.github.com/spec/")
 // scriptToken is a sign of JavaScript. Each one needs its punctuation, so a
 // word list or a fuzz dictionary that holds the word "function" is not a
 // script.
-var scriptToken = regexp.MustCompile(`require\s*\(|\beval\s*\(|\bFunction\s*\(|global\[|process\.(env|argv|platform)|child_process|=>\s*\{|\bfunction\s*\w*\s*\(|\btry\s*\{|\b(var|let|const)\s+[\w$]+\s*=|console\.\w+\(|_0x[0-9a-f]{4}|String\.fromCharCode|\batob\s*\(|Buffer\.from\(`)
+var scriptToken = regexp.MustCompile(`require\s*\(|\beval\s*\(|\bFunction\s*\(|global\[|process\.(env|argv|platform)|child_process|=>\s*\{|\bfunction\s*\w*\s*\(|\btry\s*\{|\b(var|let|const)\s+[\w$]+\s*=|console\.\w+\(|_0x[0-9a-f]{4}|String\.fromCharCode|\batob\s*\(|Buffer\.from\(|\bconstructor\b|decodeURIComponent\s*\(|globalThis\[|\bimport\s*\(`)
 
 // strongToken is a sign of a script in binary data. Compressed font data
 // holds none of them by chance.
-var strongToken = regexp.MustCompile(`require\s*\(\s*['"]|child_process|\beval\s*\(|\bnew Function\s*\(|process\.env\b`)
+var strongToken = regexp.MustCompile(`require\s*\(\s*['"]|child_process|\beval\s*\(|\(\s*0\s*,\s*eval\s*\)|\bnew Function\s*\(|process\.env\b|\batob\s*\(`)
 
-// encoded is a long run of hex or base64, as a hex payload that a loader
-// reads from a fake font.
-var encoded = regexp.MustCompile(`[0-9a-fA-F]{256,}|[A-Za-z0-9+/]{512,}={0,2}`)
+// encoded reports a long run of hex or base64, as a hex payload that a
+// loader reads from a fake font. A loop counts the runs, because a
+// repeated regular expression is slow on a long near miss.
+func encoded(data []byte) bool {
+	hexRun, b64Run := 0, 0
+	for _, c := range data {
+		switch {
+		case c >= '0' && c <= '9', c >= 'a' && c <= 'f', c >= 'A' && c <= 'F':
+			hexRun++
+			b64Run++
+		case c >= 'g' && c <= 'z', c >= 'G' && c <= 'Z', c == '+', c == '/':
+			hexRun = 0
+			b64Run++
+		default:
+			hexRun, b64Run = 0, 0
+		}
+		if hexRun >= 256 || b64Run >= 512 {
+			return true
+		}
+	}
+	return false
+}
+
+// commentStart reports data that starts with a JavaScript comment or a
+// shebang. node runs such a file even with binary bytes in the comment, and
+// a real font or image never starts so.
+func commentStart(data []byte) bool {
+	t := bytes.TrimLeftFunc(bytes.TrimPrefix(data, []byte("\xEF\xBB\xBF")), unicode.IsSpace)
+	return bytes.HasPrefix(t, []byte("/*")) || bytes.HasPrefix(t, []byte("//")) || bytes.HasPrefix(t, []byte("#!"))
+}
+
+// dictEntry is a line of a fuzz dictionary: a quoted value with an
+// optional name, as kw="function".
+var dictEntry = regexp.MustCompile(`^\s*([\w-]+\s*=\s*)?".*"\s*$`)
+
+// minScriptLines is the fewest lines of a dictionary with a script token
+// that make it a script, when no one line holds two tokens.
+const minScriptLines = 3
 
 // maxWordLine is the longest line of a dictionary that holds words. A fuzz
 // dictionary can have a line of a few hundred bytes.
@@ -202,27 +243,44 @@ func disguised(p string, data []byte) []Signal {
 		if !text(data) {
 			return nil
 		}
+		first, lines := 0, 0
 		for i, line := range bytes.Split(data, []byte("\n")) {
-			if n := len(scriptToken.FindAll(line, 2)); n >= 2 || (n == 1 && len(line) > maxWordLine) {
+			if dictEntry.Match(line) {
+				continue
+			}
+			n := len(scriptToken.FindAll(line, 2))
+			if n >= 2 || (n == 1 && len(line) > maxWordLine) {
 				return sig(i+1, fmt.Sprintf("The %s file holds a script, not a word list", ext))
 			}
+			if n == 1 {
+				if lines == 0 {
+					first = i + 1
+				}
+				lines++
+			}
+		}
+		if lines >= minScriptLines {
+			return sig(first, fmt.Sprintf("The %s file holds a script, not a word list", ext))
 		}
 		return nil
 	}
 	if !text(data) {
-		if fontExts[ext] && strongToken.Match(data) {
+		if (fontExts[ext] && strongToken.Match(data)) || (commentStart(data) && scriptToken.Match(data)) {
 			return sig(1, fmt.Sprintf("The %s file holds script code after its binary header", ext))
 		}
 		return nil
 	}
-	trimmed := bytes.TrimLeft(data, " \t\r\n\f\v")
-	if bytes.HasPrefix(data, lfsPointer) || (bytes.HasPrefix(trimmed, []byte("<")) && !bytes.HasPrefix(trimmed, []byte("<!--"))) {
+	trimmed := bytes.TrimLeftFunc(data, space)
+	if bytes.HasPrefix(data, lfsPointer) || bytes.HasPrefix(trimmed, []byte("data:")) ||
+		(bytes.HasPrefix(trimmed, []byte("<")) && !bytes.HasPrefix(trimmed, []byte("<!--"))) {
+		// A web page or a data URI that a download saved under the name of
+		// an image is not a script that node runs.
 		// A web page that a download saved under the name of an image is
 		// not a script that node runs.
 		return nil
 	}
 	lead := len(data) - len(trimmed)
-	if lead < minPad && !scriptToken.Match(data) && !encoded.Match(data) {
+	if lead < minPad && !scriptToken.Match(data) && !encoded(data) {
 		return nil
 	}
 	title := fmt.Sprintf("The file has a %s name but holds a script or an encoded payload, not a %s file", ext, ext[1:])
@@ -237,13 +295,25 @@ func disguised(p string, data []byte) []Signal {
 // a few spaces.
 const minPad = 100
 
-// space reports a character that JavaScript reads as white space: the
-// Unicode spaces, such as U+00A0 and U+3000, and the byte order mark.
-func space(r rune) bool { return unicode.IsSpace(r) || r == 0xFEFF }
+// space reports a character that shows as nothing: the white space of
+// JavaScript, such as U+00A0 and U+3000, a format character such as a
+// zero-width space, and the blank letters such as the Hangul filler and the
+// blank braille pattern. Inside a comment or between spaces, each one pads
+// a line as well as a space does.
+func space(r rune) bool {
+	switch r {
+	case 0x2800, 0x3164, 0x115F, 0x1160, 0xFFA0:
+		return true
+	}
+	return unicode.IsSpace(r) || unicode.Is(unicode.Cf, r)
+}
 
-// padRun finds a run of at least minPad white space characters followed by
-// more text on the line. It returns the byte offsets of the run and the
-// count of its characters.
+// tabWidth is the width of a tab in the editor, for the pad count.
+const tabWidth = 4
+
+// padRun finds a run of white space at least minPad columns wide followed
+// by more text on the line. It returns the byte offsets of the run and its
+// width.
 func padRun(line []byte) (start, end, count int, ok bool) {
 	runStart, n := 0, 0
 	for i := 0; i < len(line); {
@@ -253,6 +323,9 @@ func padRun(line []byte) (start, end, count int, ok bool) {
 				runStart = i
 			}
 			n++
+			if r == '\t' {
+				n += tabWidth - 1
+			}
 		} else {
 			if n >= minPad {
 				return runStart, i, n, true
@@ -398,6 +471,10 @@ func kindOf(r rune) invisibleKind {
 		return zeroWidth
 	case r >= 0x202A && r <= 0x202E, r >= 0x2066 && r <= 0x2069:
 		return bidi
+	case unicode.Is(unicode.Cf, r), r == 0x3164, r == 0x115F, r == 0x1160, r == 0xFFA0:
+		// A mark such as U+200E or a soft hyphen shows as nothing, so it
+		// cannot be the base of a selector.
+		return zeroWidth
 	}
 	return visible
 }
@@ -491,7 +568,7 @@ func invisible(p string, data []byte) []Signal {
 		if decoder.Match(data) {
 			title += ", and holds a decoder"
 		}
-		return append(out, Signal{ID: IDUnicodeDecoder, Line: payloadLine, Title: title, Visible: visibleLine(data, payloadLine)})
+		return append(out, Signal{ID: IDUnicodePayload, Line: payloadLine, Title: title, Visible: visibleLine(data, payloadLine)})
 	}
 	if built {
 		return nil

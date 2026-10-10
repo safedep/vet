@@ -49,7 +49,7 @@ var infos = []plugin.ControlInfo{
 		Attack:      true,
 	},
 	{
-		ID: hiddencode.IDUnicodeDecoder, Family: finding.FamilyHiddenCode, Severity: finding.SeverityCritical,
+		ID: hiddencode.IDUnicodePayload, Family: finding.FamilyHiddenCode, Severity: finding.SeverityCritical,
 		Title:       "Payload in invisible Unicode characters",
 		Description: "A file holds 16 or more variation selectors with no base character, or tag characters outside a flag emoji. Each one carries one byte of a payload, and an editor and a code review show nothing. Real text holds none. GlassWorm spreads this way, with the decoder in the same file or in another one.",
 		Attack:      true,
@@ -76,7 +76,7 @@ func (*Control) OptionsSchema() []byte { return optschema.Of(&Options{}) }
 var remediation = map[string]string{
 	hiddencode.IDPaddedCode:       "Do not build or open the project. Restore the file from a clean commit, and check the machines that built it.",
 	hiddencode.IDDisguisedScript:  "Do not open the folder in an editor or run it. Remove the file, find what runs it, and check the machines that opened the folder.",
-	hiddencode.IDUnicodeDecoder:   "Do not run or install the code. Remove the characters and the decoder, and check the machines that ran it.",
+	hiddencode.IDUnicodePayload:   "Do not run or install the code. Remove the characters and the decoder, and check the machines that ran it.",
 	hiddencode.IDInvisibleUnicode: "Show the file with the invisible characters visible, and remove each one that the text does not need.",
 	hiddencode.IDHistoryRewrite:   "Treat the machine that holds the script as infected. Compare each repository on it with its remote history, and rotate its credentials.",
 }

@@ -68,7 +68,7 @@ var sourceExts = map[string]bool{
 	".ts": true, ".mts": true, ".cts": true, ".tsx": true, ".py": true,
 }
 
-var scriptExts = map[string]bool{".bat": true, ".cmd": true, ".ps1": true, ".sh": true}
+var scriptExts = map[string]bool{".bat": true, ".cmd": true, ".ps1": true, ".sh": true, ".bash": true, ".zsh": true}
 
 // generatedDirs hold built or vendored code. A minified bundle has long
 // lines, runs of white space and odd characters, so vet checks it only for
