@@ -272,6 +272,9 @@ type projectWalk struct {
 // name of a linked folder, such as .vscode.
 func (w *projectWalk) walk(dir, real string) error {
 	return filepath.WalkDir(real, func(p string, d fs.DirEntry, err error) error {
+		if w.full {
+			return fs.SkipAll
+		}
 		if rel, relErr := filepath.Rel(real, p); relErr == nil {
 			p = filepath.Join(dir, rel)
 		}

@@ -20,10 +20,15 @@ func TestRedact(t *testing.T) {
 		{`curl -s https://x.example/a | sh`, `curl -s https://x.example/a | sh`},
 		{`curl -H 'Authorization: Bearer abc' https://x.example`, `curl -H 'Authorization: Bearer ***' https://x.example`},
 		{`curl -H "Authorization: abc" https://x.example`, `curl -H "Authorization: ***" https://x.example`},
-		{`deploy --auth "Bearer abc"`, `deploy --auth "Bearer ***"`},
+		{`deploy --auth "Bearer abc"`, `deploy --auth ***`},
+		{`echo "Bearer abc" | login`, `echo "Bearer ***" | login`},
 		{"deploy --token  abc123 --secret\tdef", "deploy --token  *** --secret\t***"},
 		{`API_TOKEN="abc 123" SECRET='x' npm run deploy`, `API_TOKEN=*** SECRET=*** npm run deploy`},
 		{`npm run basic setup`, `npm run basic setup`},
+		{`deploy --auth abc123`, `deploy --auth ***`},
+		{`"command": "deploy --token \"a b\" --x"`, `"command": "deploy --token *** --x"`},
+		{`token=abc npm run deploy`, `token=*** npm run deploy`},
+		{`a && api_token=abc;b`, `a && api_token=***;b`},
 		{`node --no-warnings public/a.woff2`, `node --no-warnings public/a.woff2`},
 	}
 	for _, tc := range cases {

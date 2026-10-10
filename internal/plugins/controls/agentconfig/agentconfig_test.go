@@ -316,6 +316,7 @@ func TestTitlesHoldNoSecret(t *testing.T) {
 		{"hook flag", ".claude/settings.json", `{"hooks":{"Stop":[{"hooks":[{"type":"command","command":"deploy --token=s3cret-value"}]}]}}`},
 		{"short header credential", ".vscode/tasks.json", `{"tasks":[{"label":"x","command":"curl -H 'Authorization: Bearer s3cret' https://x.example/a"}]}`},
 		{"flag with spaces", ".vscode/tasks.json", `{"tasks":[{"label":"x","command":"deploy --token     s3cret-value"}]}`},
+		{"escaped quoted flag", ".vscode/tasks.json", `{"tasks":[{"label":"x","command":"deploy --token \"s3cret value\""}]}`},
 		{"quoted variable", ".claude/settings.json", `{"hooks":{"Stop":[{"hooks":[{"type":"command","command":"API_TOKEN='s3cret-value' npm run deploy"}]}]}}`},
 	}
 	for _, tc := range cases {

@@ -147,7 +147,7 @@ func TestAuditProjects(t *testing.T) {
 	}
 	a := artifactOf(t, New(Options{Projects: []string{code}}, fakeSystem(home)))
 	var got []string
-	prefix := filepath.ToSlash(code)[1:] + "/"
+	prefix := under(t, a, code)
 	for _, f := range a.Include {
 		if rel, ok := strings.CutPrefix(f, prefix); ok {
 			got = append(got, rel)
@@ -207,7 +207,7 @@ func TestAuditProjectsLinks(t *testing.T) {
 	write(t, filepath.Join(code, "target", "next.config.mjs"), "x")
 	require.NoError(t, os.MkdirAll(filepath.Join(code, "target", ".git"), 0o700))
 	a := artifactOf(t, New(Options{Projects: []string{code}}, fakeSystem(home)))
-	prefix := filepath.ToSlash(code)[1:] + "/"
+	prefix := under(t, a, code)
 	var got []string
 	for _, f := range a.Include {
 		if rel, ok := strings.CutPrefix(f, prefix); ok {
@@ -225,7 +225,7 @@ func TestAuditProjectsReadsEachNameOfALinkedFolder(t *testing.T) {
 	require.NoError(t, os.Symlink("cfg", filepath.Join(code, "api", ".claude")))
 	require.NoError(t, os.Symlink("cfg", filepath.Join(code, "api", ".vscode")))
 	a := artifactOf(t, New(Options{Projects: []string{code}}, fakeSystem(home)))
-	assert.Contains(t, a.Include, filepath.ToSlash(code)[1:]+"/api/.vscode/tasks.json", ".claude comes first and must not hide .vscode")
+	assert.Contains(t, a.Include, under(t, a, code)+"api/.vscode/tasks.json", ".claude comes first and must not hide .vscode")
 }
 
 func TestAuditProjectsCapCountsLinkedFolders(t *testing.T) {
@@ -240,7 +240,7 @@ func TestAuditProjectsCapCountsLinkedFolders(t *testing.T) {
 	write(t, filepath.Join(code, "api", "next.config.mjs"), "x")
 	write(t, filepath.Join(code, "api", "vite.config.js"), "x")
 	a := artifactOf(t, New(Options{Projects: []string{code}}, fakeSystem(home)))
-	prefix := filepath.ToSlash(code)[1:] + "/"
+	prefix := under(t, a, code)
 	n := 0
 	for _, f := range a.Include {
 		if strings.HasPrefix(f, prefix) {
@@ -248,4 +248,13 @@ func TestAuditProjectsCapCountsLinkedFolders(t *testing.T) {
 		}
 	}
 	assert.Equal(t, 2, n, "the cap holds across the linked folders that the walk follows")
+}
+
+// under returns the path of dir in a.Include, with a trailing slash. The
+// audit names a file by its path from the root of its volume.
+func under(t *testing.T, a plugin.Artifact, dir string) string {
+	t.Helper()
+	rel, err := filepath.Rel(a.Path, dir)
+	require.NoError(t, err)
+	return filepath.ToSlash(rel) + "/"
 }
