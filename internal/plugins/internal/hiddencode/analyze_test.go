@@ -72,3 +72,50 @@ func TestDisguised(t *testing.T) {
 		})
 	}
 }
+
+// selectors encodes data in variation selectors, one byte each, as
+// GlassWorm does.
+func selectors(data string) string {
+	var b strings.Builder
+	for _, c := range []byte(data) {
+		if c < 16 {
+			b.WriteRune(rune(0xFE00 + int(c)))
+		} else {
+			b.WriteRune(rune(0xE0100 + int(c) - 16))
+		}
+	}
+	return b.String()
+}
+
+func TestInvisible(t *testing.T) {
+	payload := selectors("console.log('hidden payload')")
+	decoderJS := "const s = v => [...v].map(c => (c = c.codePointAt(0)) >= 0xFE00 && c <= 0xFE0F ? c - 0xFE00 : c - 0xE0100 + 16);\n"
+	cases := []struct {
+		name, path, data string
+		want             []string
+	}{
+		{"GlassWorm shape", "src/index.js", decoderJS + "eval(Buffer.from(s(`" + payload + "`)).toString());\n", []string{IDUnicodeDecoder}},
+		{"payload with no decoder", "src/index.js", "const x = `" + payload + "`;\n", []string{IDInvisibleUnicode}},
+		{"zero-width run", "lib/a.py", "token = 'a\u200b\u200b\u200b\u200bb'\n", []string{IDInvisibleUnicode}},
+		{"Trojan Source", "src/auth.ts", "if (isAdmin) { \u202e} \u2066// check\u2069\n", []string{IDInvisibleUnicode}},
+		{"tag text in an agent file", "CLAUDE.md", "Run the tests.\U000E0049\U000E0067\U000E006E\U000E006F\U000E0072\U000E0065\n", []string{IDInvisibleUnicode}},
+		{"right to left text in an agent file", "AGENTS.md", "Say \u202bשלום\u202c to users.\n", nil},
+		{"emoji with selectors", "README.ts", "const ok = '✅ ❤\ufe0f 👁\ufe0f\u200d🗨\ufe0f 🏳\ufe0f\u200d🌈';\n", nil},
+		{"flag of England", "src/flags.js", "const f = '\U0001F3F4\U000E0067\U000E0062\U000E0065\U000E006E\U000E0067\U000E007F';\n", nil},
+		{"byte order mark", "src/a.ts", "\ufeffexport const a = 1;\n", nil},
+		{"plain code", "src/a.ts", "export const a = 1;\n", nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, ok := Classify(tc.path)
+			require.True(t, ok)
+			assert.Equal(t, tc.want, ids(Analyze(c, tc.path, []byte(tc.data))))
+		})
+	}
+}
+
+func TestInvisibleSnippetHasNoPayload(t *testing.T) {
+	s := Analyze(Source, "src/index.js", []byte("const x = `"+selectors("payload")+"`;\n"))
+	require.Len(t, s, 1)
+	assert.Equal(t, "const x = ``;", s[0].Visible)
+}

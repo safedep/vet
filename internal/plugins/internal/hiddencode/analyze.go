@@ -8,6 +8,9 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"unicode/utf8"
+
+	"github.com/safedep/vet/v2/internal/plugins/internal/agentfiles"
 )
 
 // Control ids of the hidden-code findings. The control plugin owns the
@@ -66,9 +69,11 @@ func Read(fsys fs.FS, p string, c Class) (data []byte, err error) {
 func Analyze(c Class, p string, data []byte) []Signal {
 	switch c {
 	case Config:
-		return padded(data)
+		return append(padded(data), invisible(p, data)...)
 	case Asset:
 		return disguised(p, data)
+	case Source:
+		return invisible(p, data)
 	}
 	return nil
 }
@@ -179,4 +184,156 @@ func text(data []byte) bool {
 		}
 	}
 	return ctl*20 < len(data)
+}
+
+// invisibleKind is the kind of an invisible character.
+type invisibleKind int
+
+const (
+	visible invisibleKind = iota
+	// selector is a variation selector. GlassWorm puts one byte of a
+	// payload in each one.
+	selector
+	// tag is a Unicode tag character. It can spell hidden ASCII text.
+	tag
+	// zeroWidth is a zero-width space, joiner or no-break space.
+	zeroWidth
+	// bidi is a bidirectional control. It can show code in another order
+	// than the compiler reads it (Trojan Source, CVE-2021-42574).
+	bidi
+)
+
+func kindOf(r rune) invisibleKind {
+	switch {
+	case r >= 0xFE00 && r <= 0xFE0F, r >= 0xE0100 && r <= 0xE01EF:
+		return selector
+	case r >= 0xE0000 && r <= 0xE007F:
+		return tag
+	case r >= 0x200B && r <= 0x200D, r == 0x2060, r == 0xFEFF:
+		return zeroWidth
+	case r >= 0x202A && r <= 0x202E, r >= 0x2066 && r <= 0x2069:
+		return bidi
+	}
+	return visible
+}
+
+const (
+	// minRun is the shortest run of invisible characters that hides text.
+	// An emoji sequence uses at most two in a row.
+	minRun = 4
+	// minPayload is the shortest run of selectors or tags that carries a
+	// payload for a decoder.
+	minPayload = 16
+	// blackFlag starts a subdivision flag emoji, such as the flag of
+	// England, which spells its region in tag characters.
+	blackFlag = 0x1F3F4
+	cancelTag = 0xE007F
+)
+
+// decoder is a sign of code that turns invisible characters into a payload.
+var decoder = regexp.MustCompile(`(?i)codePointAt|fromCodePoint|0xfe0[0f]|0xe01[0-9a-f]{2}|\\u\{e01|\beval\s*\(|\bFunction\s*\(|\bexec\s*\(`)
+
+// invisible finds the longest run of invisible characters, and the first
+// bidi control of a code file. An agent instruction file can hold right to
+// left text, so only a run counts there.
+func invisible(p string, data []byte) []Signal {
+	if !mayHoldInvisible(data) {
+		return nil
+	}
+	t, isAgentFile := agentfiles.Classify(p)
+	code := !isAgentFile || t != agentfiles.Instructions
+	var longestLine, longest, longestPayload, bidiLine int
+	line, start, cur, payload := 1, 0, 0, 0
+	for i := 0; i < len(data); {
+		r, size := utf8.DecodeRune(data[i:])
+		i += size
+		if r == blackFlag {
+			i += flagTags(data[i:])
+		}
+		k := kindOf(r)
+		if r == 0xFEFF && i == size {
+			k = visible
+		}
+		if k == visible {
+			if cur > longest {
+				longestLine, longest, longestPayload = start, cur, payload
+			}
+			cur, payload = 0, 0
+			if r == '\n' {
+				line++
+			}
+			continue
+		}
+		if cur == 0 {
+			start = line
+		}
+		cur++
+		if k == selector || k == tag {
+			payload++
+		}
+		if k == bidi && code && bidiLine == 0 {
+			bidiLine = line
+		}
+	}
+	if cur > longest {
+		longestLine, longest, longestPayload = start, cur, payload
+	}
+	var out []Signal
+	if longest >= minRun {
+		id, title := IDInvisibleUnicode, fmt.Sprintf("Line %d holds a run of %d invisible characters", longestLine, longest)
+		if longestPayload >= minPayload && decoder.Match(data) {
+			id, title = IDUnicodeDecoder, fmt.Sprintf("Line %d hides a payload in %d invisible characters, and the file holds a decoder", longestLine, longest)
+		}
+		out = append(out, Signal{ID: id, Line: longestLine, Title: title, Visible: visibleLine(data, longestLine)})
+	}
+	if bidiLine > 0 {
+		out = append(out, Signal{
+			ID: IDInvisibleUnicode, Line: bidiLine, Visible: visibleLine(data, bidiLine),
+			Title: fmt.Sprintf("Line %d holds a bidirectional control that can show code in another order", bidiLine),
+		})
+	}
+	return out
+}
+
+// mayHoldInvisible is a fast check for the lead bytes of the invisible
+// characters in UTF-8: E2 for zero-width and bidi, EF for FE00-FEFF, F3 for
+// tags and the selector supplement.
+func mayHoldInvisible(data []byte) bool {
+	return bytes.IndexByte(data, 0xE2) >= 0 || bytes.IndexByte(data, 0xEF) >= 0 || bytes.IndexByte(data, 0xF3) >= 0
+}
+
+// flagTags returns the size of the tag characters of a subdivision flag
+// emoji after its black flag: up to 7 tags and the cancel tag. It returns 0
+// when the tags do not end with a cancel tag.
+func flagTags(data []byte) int {
+	n := 0
+	for count := 0; count < 8 && n < len(data); count++ {
+		r, size := utf8.DecodeRune(data[n:])
+		if kindOf(r) != tag {
+			return 0
+		}
+		n += size
+		if r == cancelTag {
+			return n
+		}
+	}
+	return 0
+}
+
+// visibleLine returns a line with no invisible character, cut to 200 bytes.
+func visibleLine(data []byte, n int) string {
+	lines := bytes.SplitN(data, []byte("\n"), n+1)
+	if n > len(lines) {
+		return ""
+	}
+	l := strings.Map(func(r rune) rune {
+		if kindOf(r) != visible {
+			return -1
+		}
+		return r
+	}, strings.TrimSpace(string(lines[n-1])))
+	if len(l) > 200 {
+		l = l[:197] + "..."
+	}
+	return l
 }

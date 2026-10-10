@@ -30,6 +30,8 @@ to its section.
 | [`dependency-cooldown`](#dependency-cooldown) | cooldown | high | Version inside the cooldown window |
 | [`padded-code`](#padded-code) | hidden-code | critical | Code hidden in a build config |
 | [`disguised-script`](#disguised-script) | hidden-code | critical | Script in a font, image or dictionary file |
+| [`unicode-decoder`](#unicode-decoder) | hidden-code | critical | Payload in invisible Unicode characters |
+| [`invisible-unicode`](#invisible-unicode) | hidden-code | high | Invisible Unicode characters |
 | [`install-scripts-added`](#install-scripts-added) | hygiene | high | New dependency with install scripts |
 | [`provenance-lost`](#provenance-lost) | hygiene | medium | Provenance lost on an upgrade |
 | [`deprecated-package`](#deprecated-package) | hygiene | medium | Deprecated package |
@@ -259,6 +261,18 @@ A build or tool config holds code after a long run of spaces or after its export
 **Script in a font, image or dictionary file.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
 
 A file with the name of a font, an image or a dictionary holds a script. A task or a loader runs it with node, so the folder looks like it holds only assets. Contagious Interview repositories ship such a fake font.
+
+### unicode-decoder
+
+**Payload in invisible Unicode characters.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
+
+A file holds a long run of variation selectors or tag characters, which carry one byte each, and code that decodes them. An editor and a code review show nothing. GlassWorm spreads this way.
+
+### invisible-unicode
+
+**Invisible Unicode characters.** Family `hidden-code`. Default severity high. Plugin `hidden-code`.
+
+A file holds a run of invisible characters, or code holds a bidirectional control. They can hide text from a reviewer, hide instructions from a person who reads an agent file, or show code in another order than the compiler reads it.
 
 ### install-scripts-added
 

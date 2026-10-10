@@ -47,6 +47,17 @@ var infos = []plugin.ControlInfo{
 		Description: "A file with the name of a font, an image or a dictionary holds a script. A task or a loader runs it with node, so the folder looks like it holds only assets. Contagious Interview repositories ship such a fake font.",
 		Attack:      true,
 	},
+	{
+		ID: hiddencode.IDUnicodeDecoder, Family: finding.FamilyHiddenCode, Severity: finding.SeverityCritical,
+		Title:       "Payload in invisible Unicode characters",
+		Description: "A file holds a long run of variation selectors or tag characters, which carry one byte each, and code that decodes them. An editor and a code review show nothing. GlassWorm spreads this way.",
+		Attack:      true,
+	},
+	{
+		ID: hiddencode.IDInvisibleUnicode, Family: finding.FamilyHiddenCode, Severity: finding.SeverityHigh,
+		Title:       "Invisible Unicode characters",
+		Description: "A file holds a run of invisible characters, or code holds a bidirectional control. They can hide text from a reviewer, hide instructions from a person who reads an agent file, or show code in another order than the compiler reads it.",
+	},
 }
 
 // Controls describes the control ids.
@@ -56,8 +67,10 @@ func (*Control) Controls() []plugin.ControlInfo { return infos }
 func (*Control) OptionsSchema() []byte { return optschema.Of(&Options{}) }
 
 var remediation = map[string]string{
-	hiddencode.IDPaddedCode:      "Do not build or open the project. Restore the file from a clean commit, and check the machines that built it.",
-	hiddencode.IDDisguisedScript: "Do not open the folder in an editor or run it. Remove the file, find what runs it, and check the machines that opened the folder.",
+	hiddencode.IDPaddedCode:       "Do not build or open the project. Restore the file from a clean commit, and check the machines that built it.",
+	hiddencode.IDDisguisedScript:  "Do not open the folder in an editor or run it. Remove the file, find what runs it, and check the machines that opened the folder.",
+	hiddencode.IDUnicodeDecoder:   "Do not run or install the code. Remove the characters and the decoder, and check the machines that ran it.",
+	hiddencode.IDInvisibleUnicode: "Show the file with the invisible characters visible, and remove each one that the text does not need.",
 }
 
 // Evaluate reads the file of the manifest and reports each sign of hidden
