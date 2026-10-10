@@ -270,7 +270,7 @@
   title: "hidden code: a PolinRider-style repository"
   category: controls
   tier: P1
-  guarantee: "vet scan of a repository with code after a run of spaces in a build config, a script in a .woff2 file, a .gitignore that hides temp_auto_push.bat, and a payload in variation selectors with a decoder gives padded-code, disguised-script, history-rewrite-script and unicode-decoder findings, and the attacks gate fails. The padded-code title names PolinRider, and its snippet holds no payload. A clean config and a real font give no finding."
+  guarantee: "vet scan of a repository with code after a run of spaces in a build config, a script in a .woff2 file, a .gitignore that hides temp_auto_push.bat, and a payload in variation selectors with a decoder gives padded-code, disguised-script, history-rewrite-script and unicode-payload findings, and the attacks gate fails. The padded-code title names PolinRider, and its snippet holds no payload. A clean config and a real font give no finding."
   labels: [hidden-code, attacks]
 - id: controls/hidden-code/pr-change
   title: "hidden code: a changed build config in pull request mode"

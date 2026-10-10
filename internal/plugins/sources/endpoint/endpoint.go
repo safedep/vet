@@ -132,7 +132,11 @@ func (s *Source) artifact(ctx context.Context) (plugin.Artifact, error) {
 			files[filepath.FromSlash(f)] = true
 		}
 	}
-	for _, dir := range s.opts.Projects {
+	projects, err := CheckProjects(s.opts.Projects)
+	if err != nil {
+		return plugin.Artifact{}, err
+	}
+	for _, dir := range projects {
 		if err := projectFiles(ctx, dir, files); err != nil {
 			return plugin.Artifact{}, err
 		}
@@ -208,6 +212,8 @@ func include(root string, files map[string]bool) []string {
 		}
 		rel, err := filepath.Rel(root, f)
 		if err != nil || strings.HasPrefix(rel, "..") {
+			// A file on another volume than the home directory, on Windows.
+			log.Warnf("endpoint: %s is outside %s, so vet does not check it", f, root)
 			continue
 		}
 		out = append(out, filepath.ToSlash(rel))
@@ -238,7 +244,7 @@ var projectSkipDirs = map[string]bool{
 	"__pycache__": true, ".gradle": true, "target": true, ".next": true, ".cache": true, ".npm": true,
 }
 
-// maxProjectFiles caps the files that --projects adds to one audit.
+// maxProjectFiles caps the files that --projects adds for one folder.
 const maxProjectFiles = 100000
 
 // projectFiles adds the files of the repositories under dir that can run
@@ -246,9 +252,6 @@ const maxProjectFiles = 100000
 // changes these files. The source files stay out, so a large folder of
 // repositories stays fast to audit.
 func projectFiles(ctx context.Context, dir string, files map[string]bool) error {
-	if err := CheckProjects([]string{dir}); err != nil {
-		return err
-	}
 	added := 0
 	return filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
 		if ctx.Err() != nil {
@@ -281,19 +284,27 @@ func projectFiles(ctx context.Context, dir string, files map[string]bool) error 
 	})
 }
 
-// CheckProjects returns an error for a --projects folder that does not
-// exist or is not a folder.
-func CheckProjects(dirs []string) error {
+// CheckProjects returns the absolute path of each --projects folder, or an
+// error for a folder that does not exist or is not a folder. The audit
+// reads files by their path from the root of the file system, so a
+// relative path would match no file.
+func CheckProjects(dirs []string) ([]string, error) {
+	out := make([]string, 0, len(dirs))
 	for _, dir := range dirs {
-		info, err := os.Stat(dir)
+		abs, err := filepath.Abs(dir)
 		if err != nil {
-			return fmt.Errorf("--projects %s: %w", dir, err)
+			return nil, fmt.Errorf("--projects %s: %w", dir, err)
+		}
+		info, err := os.Stat(abs)
+		if err != nil {
+			return nil, fmt.Errorf("--projects %s: %w", dir, err)
 		}
 		if !info.IsDir() {
-			return fmt.Errorf("--projects %s: not a folder", dir)
+			return nil, fmt.Errorf("--projects %s: not a folder", dir)
 		}
+		out = append(out, abs)
 	}
-	return nil
+	return out, nil
 }
 
 // projectFile reports a file of a repository that the agent-config or the

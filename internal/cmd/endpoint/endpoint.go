@@ -58,7 +58,7 @@ and "vet report diff" compare the audits of a machine.`,
 				return app.UsageErrorCode(CodeNeedsRoot, "--all-users needs root",
 					"Run sudo vet endpoint audit --all-users, or drop --all-users to audit your own user.")
 			}
-			if err := endpoint.CheckProjects(src.Projects); err != nil {
+			if _, err := endpoint.CheckProjects(src.Projects); err != nil {
 				return app.UsageErrorCode(CodeProjects, err.Error(), "Pass a folder that holds your repositories, such as --projects ~/code.")
 			}
 			o.Kind = report.ScanKindEndpoint
@@ -67,7 +67,7 @@ and "vet report diff" compare the audits of a machine.`,
 		},
 	}
 	c.Flags().BoolVar(&src.AllUsers, "all-users", false, "Audit every user on the machine. Needs root")
-	c.Flags().StringSliceVar(&src.Projects, "projects", nil, "Also check the repositories under this folder. Repeat it for more folders")
+	c.Flags().StringArrayVar(&src.Projects, "projects", nil, "Also check the repositories under this folder. Repeatable")
 	o.RegisterFlags(c)
 	return c
 }

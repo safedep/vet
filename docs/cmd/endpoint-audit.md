@@ -34,7 +34,9 @@ root: run it with `sudo`. Under sudo, vet keeps its state in the directories of 
 `--projects DIR` also checks the repositories under `DIR`. Repeat it for more folders. A worm such
 as PolinRider adds its loader to the build configs of each repository on an infected machine, and
 the audit finds each one. vet skips `node_modules`, `.git` and other folders that hold no file of
-the project, and it does not read the source files. A path that does not exist exits 2.
+the project, and it does not read the source files. It checks at most 100,000 files of each folder.
+A relative path is read from the current folder. A path that does not exist, or that is not a
+folder, exits 2.
 
 The target key is `endpoint:<hostname>`. `vet report show`, `vet report list` and
 `vet report diff` work on the audits of the machine as on the scans of a project. The gate,
@@ -61,6 +63,6 @@ sudo vet endpoint audit --all-users --report sarif=endpoint.sarif
 | --- | --- |
 | 0 | The audit completed, and the gate passed or no gate was set. |
 | 1 | The gate failed. |
-| 2 | A flag is not valid, `--all-users` runs without root, or a `--projects` folder does not exist. |
+| 2 | A flag is not valid, `--all-users` runs without root, or a `--projects` path is not a folder. |
 | 3 | A runtime error. |
 | 130 | A signal stopped the audit. It continues on the next run. |

@@ -13,7 +13,7 @@ stdout '"snippet":"export default config;"'
 stdout '"control_id":"disguised-script"'
 stdout '"path":"public/fonts/fa-solid-400.woff2"'
 stdout '"control_id":"history-rewrite-script"'
-stdout '"control_id":"unicode-decoder"'
+stdout '"control_id":"unicode-payload"'
 ! stdout 'next.config.js'
 ! stdout 'real.woff2'
 

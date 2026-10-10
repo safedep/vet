@@ -38,8 +38,8 @@ func New(cfg plugin.Config) (plugin.Control, error) {
 var infos = []plugin.ControlInfo{
 	{
 		ID: hiddencode.IDPaddedCode, Family: finding.FamilyHiddenCode, Severity: finding.SeverityCritical,
-		Title:       "Code hidden in a build config or an npm entry script",
-		Description: "A build or tool config holds code after a long run of spaces or after its export, so an editor shows a clean file. The config runs at each build, test or lint. An npm entry script of a global install is far larger than the published file, so it runs more at each npm command. PolinRider adds its loader in both ways.",
+		Title:       "Script hidden after a run of spaces",
+		Description: "A source file, a build config or an npm entry script holds a script after a long run of white space, so an editor shows a clean line. A config can also hide it after its export. A build config runs at each build, test or lint, and an npm entry script at each npm command. An npm entry script that is far larger than the published file is also a finding. PolinRider adds its loader in these ways.",
 		Attack:      true,
 	},
 	{
@@ -51,7 +51,7 @@ var infos = []plugin.ControlInfo{
 	{
 		ID: hiddencode.IDUnicodeDecoder, Family: finding.FamilyHiddenCode, Severity: finding.SeverityCritical,
 		Title:       "Payload in invisible Unicode characters",
-		Description: "A file holds a long run of variation selectors or tag characters, which carry one byte each, and code that decodes them. An editor and a code review show nothing. GlassWorm spreads this way.",
+		Description: "A file holds 16 or more variation selectors with no base character, or tag characters outside a flag emoji. Each one carries one byte of a payload, and an editor and a code review show nothing. Real text holds none. GlassWorm spreads this way, with the decoder in the same file or in another one.",
 		Attack:      true,
 	},
 	{

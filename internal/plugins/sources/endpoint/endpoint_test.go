@@ -161,9 +161,26 @@ func TestCheckProjects(t *testing.T) {
 	dir := t.TempDir()
 	file := filepath.Join(dir, "f")
 	write(t, file, "x")
-	assert.NoError(t, CheckProjects([]string{dir}))
-	assert.ErrorContains(t, CheckProjects([]string{filepath.Join(dir, "missing")}), "--projects")
-	assert.ErrorContains(t, CheckProjects([]string{file}), "not a folder")
+	got, err := CheckProjects([]string{dir})
+	require.NoError(t, err)
+	assert.Equal(t, []string{dir}, got)
+	t.Chdir(dir)
+	write(t, filepath.Join(dir, "code", "a"), "x")
+	got, err = CheckProjects([]string{"code"})
+	require.NoError(t, err)
+	assert.Equal(t, []string{filepath.Join(dir, "code")}, got, "a relative folder becomes absolute")
+	_, err = CheckProjects([]string{filepath.Join(dir, "missing")})
+	assert.ErrorContains(t, err, "--projects")
+	_, err = CheckProjects([]string{file})
+	assert.ErrorContains(t, err, "not a folder")
+}
+
+func TestAuditRelativeProjects(t *testing.T) {
+	home := machineHome(t, "review")
+	write(t, filepath.Join(home, "code", "api", "next.config.mjs"), "x")
+	t.Chdir(home)
+	a := artifactOf(t, New(Options{Projects: []string{"code"}}, fakeSystem(home)))
+	assert.Contains(t, a.Include, filepath.ToSlash(filepath.Join(home, "code", "api", "next.config.mjs"))[1:])
 }
 
 func TestAuditNPMEntryScripts(t *testing.T) {

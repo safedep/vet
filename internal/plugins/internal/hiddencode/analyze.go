@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"path"
 	"regexp"
+	"slices"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -20,7 +21,7 @@ const (
 	IDPaddedCode       = "padded-code"
 	IDDisguisedScript  = "disguised-script"
 	IDInvisibleUnicode = "invisible-unicode"
-	IDUnicodeDecoder   = "unicode-decoder"
+	IDUnicodeDecoder   = "unicode-payload"
 	IDHistoryRewrite   = "history-rewrite-script"
 )
 
@@ -81,18 +82,18 @@ func Read(r io.Reader, p string, c Class) ([]byte, error) {
 func Analyze(c Class, p string, data []byte) []Signal {
 	switch c {
 	case Config:
-		return named(append(append(oversizeConfig(data), padded(data)...), invisible(p, data)...), data)
+		return named(append(append(oversizeConfig(data), padded(data, true)...), invisible(p, data)...), data)
 	case Asset:
 		return named(disguised(p, data), data)
 	case Source:
 		if generated(p) {
 			return invisible(p, data)
 		}
-		return named(append(padded(data), invisible(p, data)...), data)
+		return named(append(padded(data, false), invisible(p, data)...), data)
 	case Script:
 		return historyRewrite(p, data)
 	case Entry:
-		return named(append(oversizeEntry(data), padded(data)...), data)
+		return named(append(oversizeEntry(data), padded(data, true)...), data)
 	}
 	return nil
 }
@@ -110,7 +111,7 @@ func oversizeEntry(data []byte) []Signal {
 
 // rewriteScripts are the file names of the PolinRider script that folds
 // its change into the last commit of the victim and force-pushes it.
-var rewriteScripts = map[string]bool{"temp_auto_push.bat": true, "temp_interactive_push.bat": true}
+var rewriteScriptNames = []string{"temp_auto_push.bat", "temp_interactive_push.bat"}
 
 var (
 	amend    = regexp.MustCompile(`\bcommit\b[^\n]*--amend\b`)
@@ -127,7 +128,7 @@ var (
 // message, so the force-push shows no new commit.
 func historyRewrite(p string, data []byte) []Signal {
 	base := path.Base(p)
-	if rewriteScripts[strings.ToLower(base)] {
+	if slices.Contains(rewriteScriptNames, strings.ToLower(base)) {
 		return []Signal{{ID: IDHistoryRewrite, Line: 1, Title: "The file has the name of the PolinRider script that rewrites the last commit and force-pushes it"}}
 	}
 	lines := bytes.Split(data, []byte("\n"))
@@ -136,7 +137,7 @@ func historyRewrite(p string, data []byte) []Signal {
 		for i, l := range lines {
 			entries[strings.ToLower(strings.TrimPrefix(strings.TrimSpace(string(l)), "/"))] = i + 1
 		}
-		for name := range rewriteScripts {
+		for _, name := range rewriteScriptNames {
 			if line, ok := entries[name]; ok {
 				return []Signal{{ID: IDHistoryRewrite, Line: line, Visible: name, Title: ".gitignore hides " + name + ", the PolinRider script that rewrites the last commit"}}
 			}
@@ -328,12 +329,15 @@ func paddedScript(line []byte, n int) (Signal, bool) {
 }
 
 // padded finds a script that a file hides after a long run of white space,
-// or that a config hides after its export.
-func padded(data []byte) []Signal {
+// or, when exports is true, after the export of a config.
+func padded(data []byte, exports bool) []Signal {
 	var out []Signal
 	for i, line := range bytes.Split(data, []byte("\n")) {
 		if s, ok := paddedScript(line, i+1); ok {
 			out = append(out, s)
+			continue
+		}
+		if !exports {
 			continue
 		}
 		loc := afterExport.FindIndex(line)

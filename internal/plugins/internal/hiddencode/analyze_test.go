@@ -221,6 +221,15 @@ func TestInvisibleSnippetHasNoPayload(t *testing.T) {
 	assert.Equal(t, "const x = ``;", s[0].Visible)
 }
 
+func TestHistoryRewriteIsStable(t *testing.T) {
+	data := []byte("temp_interactive_push.bat\ntemp_auto_push.bat\n")
+	first := Analyze(Script, ".gitignore", data)
+	for range 20 {
+		assert.Equal(t, first, Analyze(Script, ".gitignore", data))
+	}
+	assert.Equal(t, 2, first[0].Line, "the first name of the list wins, not the first line")
+}
+
 func TestHistoryRewrite(t *testing.T) {
 	polinrider := "@echo off\r\nfor /f %%i in ('git log -1 --format^=%%cd') do set LAST_COMMIT_DATE=%%i\r\ndate %LAST_COMMIT_DATE%\r\ngit add .\r\ngit commit --amend --no-edit --no-verify\r\ngit push -uf origin %CURRENT_BRANCH% --no-verify\r\n"
 	cases := []struct {

@@ -60,9 +60,6 @@ var scanMigrations = []string{
 		evaluated    INTEGER NOT NULL DEFAULT 0,
 		data         BLOB NOT NULL
 	)`,
-	// An extracted file replaces its manifests by artifact_key, so a scan
-	// of many files needs the index.
-	`CREATE INDEX vet_scan_manifests_artifact ON vet_scan_manifests (artifact_key)`,
 	`CREATE TABLE vet_scan_packages (
 		pkey        TEXT PRIMARY KEY,
 		ecosystem   TEXT NOT NULL,
@@ -106,7 +103,6 @@ var scanMigrations = []string{
 		suppressed    INTEGER NOT NULL,
 		data          BLOB NOT NULL
 	)`,
-	`CREATE INDEX vet_scan_findings_manifest ON vet_scan_findings (manifest_id)`,
 	`CREATE TABLE vet_scan_inventory (
 		seq  INTEGER PRIMARY KEY,
 		data BLOB NOT NULL
@@ -128,6 +124,10 @@ var scanMigrations = []string{
 		id   TEXT PRIMARY KEY,
 		data BLOB NOT NULL
 	)`,
+	// An extracted file replaces its manifests and their findings by
+	// artifact key, so a scan of many files needs these indexes.
+	`CREATE INDEX vet_scan_manifests_artifact ON vet_scan_manifests (artifact_key)`,
+	`CREATE INDEX vet_scan_findings_manifest ON vet_scan_findings (manifest_id)`,
 }
 
 const (
