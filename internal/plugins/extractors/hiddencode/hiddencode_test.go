@@ -23,7 +23,7 @@ func TestOnlyAFileWithASignIsAManifest(t *testing.T) {
 		require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte(data), 0o600))
 	}
 	write("next.config.js", "module.exports = {}\n")
-	write("postcss.config.mjs", "export default config;"+strings.Repeat(" ", 200)+"eval(x)\n")
+	write("postcss.config.mjs", "export default config;"+strings.Repeat(" ", 200)+"(function(){"+strings.Repeat("var _0xa1b2=1;", 20)+"})();\n")
 	exs := []filesystem.Extractor{hiddencode.New()}
 	for _, tc := range []struct {
 		path string

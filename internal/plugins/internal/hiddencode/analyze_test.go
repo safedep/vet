@@ -1,12 +1,17 @@
 package hiddencode
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// js is a hidden script of a realistic size: the PolinRider loader is
+// several KiB of obfuscated code.
+var js = "(function(){var _0xa1b2=function(){return 1};" + strings.Repeat("var _0xc3d4=_0xa1b2();", 10) + "})();"
 
 func ids(signals []Signal) []string {
 	var out []string
@@ -17,7 +22,7 @@ func ids(signals []Signal) []string {
 }
 
 func TestPadded(t *testing.T) {
-	payload := "global['_V']='8-st14';console.log(1)"
+	payload := "global['_V']='8-st14';" + js
 	cases := []struct {
 		name, data string
 		want       []string
@@ -38,10 +43,10 @@ func TestPadded(t *testing.T) {
 }
 
 func TestPaddedHidesThePayload(t *testing.T) {
-	s := Analyze(Config, "postcss.config.mjs", []byte("export default config;"+strings.Repeat(" ", 280)+"eval(x)"))
+	s := Analyze(Config, "postcss.config.mjs", []byte("export default config;"+strings.Repeat(" ", 280)+js))
 	require.Len(t, s, 1)
 	assert.Equal(t, "export default config;", s[0].Visible)
-	assert.Equal(t, "Code continues on line 1 after 280 spaces, with 7 bytes off screen", s[0].Title)
+	assert.Equal(t, fmt.Sprintf("Code continues on line 1 after 280 spaces, with %d bytes off screen", len(js)), s[0].Title)
 	assert.NotContains(t, s[0].Visible+s[0].Title, "eval")
 }
 
@@ -151,11 +156,13 @@ func TestPaddedEvasion(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			data := "export default {plugins:{}};" + tc.pad + "eval(x)\n"
+			data := "export default {plugins:{}};" + tc.pad + js + "\n"
 			assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Config, "postcss.config.mjs", []byte(data))))
 		})
 	}
-	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Source, "src/server.js", []byte("app.listen(3000);"+strings.Repeat(" ", 300)+"eval(x)\n"))), "any hand-written source file")
+	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Source, "src/server.js", []byte("app.listen(3000);"+strings.Repeat(" ", 300)+js+"\n"))), "any hand-written source file")
+	assert.Empty(t, Analyze(Source, "src/map.test.ts", []byte("  expect(x).toBe(`"+strings.Repeat(" ", 105)+"abc`)\n")), "an aligned value in a test")
+	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Config, "next.config.js", []byte("const a = 1;"+strings.Repeat(" ", 120)+"b"+strings.Repeat(" ", 280)+js))), "a script after the second run")
 	assert.Empty(t, Analyze(Source, "dist/bundle.js", []byte("a();"+strings.Repeat(" ", 300)+"b()\n")), "a built file")
 	assert.Empty(t, Analyze(Config, "postcss.config.mjs", []byte("export default config;"+strings.Repeat(" ", 280)+"\r\n")), "CRLF after trailing spaces")
 }
@@ -166,7 +173,8 @@ func TestAfterExport(t *testing.T) {
 		"export default config; /* prettier-ignore */":        false,
 		"module.exports = base; module.exports.extra = 1;":    false,
 		"module.exports = config;   ":                         false,
-		"module.exports = config; eval(x)":                    true,
+		"module.exports = config; " + js:                      true,
+		"export default plugin; })":                           false,
 	} {
 		assert.Equal(t, want, len(Analyze(Config, "next.config.js", []byte(data))) > 0, data)
 	}
@@ -239,10 +247,10 @@ func TestCampaign(t *testing.T) {
 	cases := []struct {
 		name, path, data, want string
 	}{
-		{"v1 marker", "postcss.config.mjs", "export default config;" + strings.Repeat(" ", 280) + `global['!']='8-270-2';var _$_1e42=(function(){})();`, "PolinRider"},
-		{"v2 marker", "tailwind.config.js", "module.exports = config;" + strings.Repeat(" ", 280) + `global['_V']='8-st14';global['r']=require;`, "PolinRider"},
+		{"v1 marker", "postcss.config.mjs", "export default config;" + strings.Repeat(" ", 280) + `global['!']='8-270-2';var _$_1e42=(function(){})();` + js, "PolinRider"},
+		{"v2 marker", "tailwind.config.js", "module.exports = config;" + strings.Repeat(" ", 280) + `global['_V']='8-st14';global['r']=require;` + js, "PolinRider"},
 		{"fake font with a seed", "fonts/a.woff2", "\t\t\tvar s=(\"rmcej%otb%\",2857687);", "PolinRider"},
-		{"no marker", "postcss.config.mjs", "export default config;" + strings.Repeat(" ", 280) + "eval(x)", ""},
+		{"no marker", "postcss.config.mjs", "export default config;" + strings.Repeat(" ", 280) + js, ""},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -261,6 +269,6 @@ func TestEntry(t *testing.T) {
 	assert.Empty(t, Analyze(Entry, "node_modules/npm/bin/npm-cli.js", []byte(clean)))
 	big := "module.exports = require('./npm')\n" + strings.Repeat("// x\n", 20000)
 	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Entry, "node_modules/npm/lib/cli.js", []byte(big))))
-	padded := "module.exports = cli;" + strings.Repeat(" ", 200) + "eval(x)\n"
+	padded := "module.exports = cli;" + strings.Repeat(" ", 200) + js + "\n"
 	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Entry, "node_modules/npm/lib/cli.js", []byte(padded))))
 }

@@ -13,8 +13,8 @@ stdout '"control_id":"padded-code"'
 stdout '"kind":"file","change":"MODIFIED"'
 
 -- repo/tailwind.config.js --
-module.exports = config;                                                                                                              console.log(1);
+module.exports = config;                                                                                                              (function(){var _0xa1b2=function(){return 1};var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();})();//1
 -- repo/postcss.config.mjs --
 export default { plugins: {} };
 -- infected.mjs --
-export default config;                                                                                                              console.log(2);
+export default config;                                                                                                              (function(){var _0xa1b2=function(){return 1};var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();})();//2

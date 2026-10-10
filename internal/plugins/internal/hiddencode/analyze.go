@@ -278,16 +278,62 @@ func oversizeConfig(data []byte) []Signal {
 	return []Signal{{ID: IDPaddedCode, Line: 1, Title: fmt.Sprintf("The config is larger than %d MiB. A real config is a few KiB", MaxSize>>20)}}
 }
 
-// padded finds code that a file hides after a long run of white space, or
-// that a config hides after its export.
+// minHidden is the shortest hidden part that counts. The PolinRider loader
+// is several KiB. A test fixture or an inline snapshot aligns a short value
+// after a long run of spaces.
+const minHidden = 200
+
+// lastScript returns the offset of the last script token or campaign
+// marker in data, or -1. One pass over a line serves every run on it, so a
+// line of many runs costs no more than one.
+func lastScript(data []byte) int {
+	last := -1
+	for _, loc := range scriptToken.FindAllIndex(data, -1) {
+		last = max(last, loc[0])
+	}
+	for _, c := range campaigns {
+		for _, m := range c.markers {
+			for _, loc := range m.FindAllIndex(data, -1) {
+				last = max(last, loc[0])
+			}
+		}
+	}
+	return last
+}
+
+// paddedScript finds a run of white space on a line that a hidden script
+// follows: at least minHidden bytes with a script token or a campaign
+// marker. A line can align a short value after one run and hide a script
+// after the next one, so it checks each run.
+func paddedScript(line []byte, n int) (Signal, bool) {
+	script := -2
+	for off := 0; off < len(line); {
+		start, end, count, ok := padRun(line[off:])
+		if !ok {
+			break
+		}
+		start, end = off+start, off+end
+		if script == -2 {
+			script = lastScript(line)
+		}
+		if len(line)-end >= minHidden && script >= end {
+			return Signal{
+				ID: IDPaddedCode, Line: n, Visible: string(bytes.TrimSpace(line[:start])),
+				Title: fmt.Sprintf("Code continues on line %d after %d spaces, with %d bytes off screen", n, count, len(line)-end),
+			}, true
+		}
+		off = end
+	}
+	return Signal{}, false
+}
+
+// padded finds a script that a file hides after a long run of white space,
+// or that a config hides after its export.
 func padded(data []byte) []Signal {
 	var out []Signal
 	for i, line := range bytes.Split(data, []byte("\n")) {
-		if start, end, n, ok := padRun(line); ok {
-			out = append(out, Signal{
-				ID: IDPaddedCode, Line: i + 1, Visible: string(bytes.TrimSpace(line[:start])),
-				Title: fmt.Sprintf("Code continues on line %d after %d spaces, with %d bytes off screen", i+1, n, len(line)-end),
-			})
+		if s, ok := paddedScript(line, i+1); ok {
+			out = append(out, s)
 			continue
 		}
 		loc := afterExport.FindIndex(line)
@@ -295,7 +341,7 @@ func padded(data []byte) []Signal {
 			continue
 		}
 		rest := bytes.TrimRight(line[loc[1]:], " \t\r")
-		if len(rest) == 0 || moreExport.Match(rest) {
+		if moreExport.Match(rest) || len(rest) < minHidden || lastScript(rest) < 0 {
 			continue
 		}
 		out = append(out, Signal{

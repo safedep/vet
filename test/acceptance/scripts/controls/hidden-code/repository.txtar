@@ -19,7 +19,7 @@ stdout '"control_id":"unicode-decoder"'
 
 -- repo/client/postcss.config.mjs --
 const config = { plugins: { tailwindcss: {} } };
-export default config;                                                                                                                                                                                                                                                                                        global['_V']='8-st14';console.log(1);
+export default config;                                                                                                                                                                                                                                                                                        global['_V']='8-st14';(function(){var _0xa1b2=function(){return 1};var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();})();//1
 -- repo/next.config.js --
 module.exports = { reactStrictMode: true };
 -- repo/public/fonts/fa-solid-400.woff2 --

@@ -12,7 +12,7 @@ stderr '--projects'
 
 -- home/code/payments-api/client/postcss.config.mjs --
 const config = { plugins: {} };
-export default config;                                                                                                                        console.log(1)
+export default config;                                                                                                                        (function(){var _0xa1b2=function(){return 1};var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();})();//1
 -- home/code/payments-api/.gitignore --
 node_modules
 temp_auto_push.bat

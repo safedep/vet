@@ -17,4 +17,4 @@ export default { plugins: {} };
 module.exports = { content: [] };
 -- infected.mjs --
 const config = { plugins: {} };
-export default config;                                                                                                              console.log(1);
+export default config;                                                                                                              (function(){var _0xa1b2=function(){return 1};var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();})();//1

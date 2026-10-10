@@ -1,6 +1,7 @@
 package hiddencode_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -15,6 +16,8 @@ import (
 	"github.com/safedep/vet/v2/plugin/plugintest"
 )
 
+var js = "(function(){var _0xa1b2=function(){return 1};" + strings.Repeat("var _0xc3d4=_0xa1b2();", 10) + "})();"
+
 func evaluate(t *testing.T, path, data string) []finding.Finding {
 	t.Helper()
 	c, err := hiddencode.New(plugin.MapConfig(nil))
@@ -24,7 +27,7 @@ func evaluate(t *testing.T, path, data string) []finding.Finding {
 }
 
 func TestPaddedCode(t *testing.T) {
-	fs := evaluate(t, "postcss.config.mjs", "const config = {};\nexport default config;"+strings.Repeat(" ", 280)+"eval(x)\n")
+	fs := evaluate(t, "postcss.config.mjs", "const config = {};\nexport default config;"+strings.Repeat(" ", 280)+js+"\n")
 	require.Len(t, fs, 1)
 	f := fs[0]
 	assert.Equal(t, "padded-code", f.ControlID)
@@ -32,7 +35,7 @@ func TestPaddedCode(t *testing.T) {
 	assert.Equal(t, finding.SeverityCritical, f.Severity)
 	assert.Equal(t, 2, f.Locus.StartLine)
 	assert.Equal(t, "export default config;", f.Locus.Snippet)
-	assert.NotContains(t, f.Locus.Snippet, "eval")
+	assert.NotContains(t, f.Locus.Snippet, "_0x")
 }
 
 func TestOtherKindsAreSkipped(t *testing.T) {
@@ -58,7 +61,7 @@ func TestHistoryRewriteScript(t *testing.T) {
 }
 
 func TestCampaignInTheTitle(t *testing.T) {
-	fs := evaluate(t, "postcss.config.mjs", "export default config;"+strings.Repeat(" ", 280)+"global['_V']='8-st14';eval(x)")
+	fs := evaluate(t, "postcss.config.mjs", "export default config;"+strings.Repeat(" ", 280)+"global['_V']='8-st14';"+js)
 	require.Len(t, fs, 1)
-	assert.Equal(t, "Code continues on line 1 after 280 spaces, with 29 bytes off screen. It matches PolinRider", fs[0].Title)
+	assert.Equal(t, fmt.Sprintf("Code continues on line 1 after 280 spaces, with %d bytes off screen. It matches PolinRider", len("global['_V']='8-st14';"+js)), fs[0].Title)
 }
