@@ -21,5 +21,5 @@ func TestCatalogIDsAreUnique(t *testing.T) {
 func TestAttackIDs(t *testing.T) {
 	ids, err := AttackIDs()
 	require.NoError(t, err)
-	assert.ElementsMatch(t, []string{"malware", "impostor-commit", "suspicious-command", "padded-code"}, ids)
+	assert.ElementsMatch(t, []string{"malware", "impostor-commit", "suspicious-command", "padded-code", "disguised-script"}, ids)
 }

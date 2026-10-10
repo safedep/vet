@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"path"
 	"regexp"
+	"strings"
 )
 
 // Control ids of the hidden-code findings. The control plugin owns the
@@ -65,8 +67,64 @@ func Analyze(c Class, p string, data []byte) []Signal {
 	switch c {
 	case Config:
 		return padded(data)
+	case Asset:
+		return disguised(p, data)
 	}
 	return nil
+}
+
+// magic are the first bytes of each binary asset type.
+var magic = map[string][][]byte{
+	".woff":  {[]byte("wOFF")},
+	".woff2": {[]byte("wOF2")},
+	".ttf":   {{0, 1, 0, 0}, []byte("true"), []byte("ttcf")},
+	".otf":   {[]byte("OTTO"), {0, 1, 0, 0}},
+	".png":   {[]byte("\x89PNG")},
+	".jpg":   {{0xFF, 0xD8, 0xFF}},
+	".jpeg":  {{0xFF, 0xD8, 0xFF}},
+	".gif":   {[]byte("GIF8")},
+	".ico":   {{0, 0, 1, 0}, {0, 0, 2, 0}},
+	".bmp":   {[]byte("BM")},
+	".webp":  {[]byte("RIFF")},
+}
+
+// lfsPointer starts a Git LFS pointer file, which stands in for a binary
+// asset in a checkout with no LFS.
+var lfsPointer = []byte("version https://git-lfs.github.com/spec/")
+
+// scriptToken is a sign of a script in a text asset, such as a dictionary
+// file, which holds one word on each line.
+var scriptToken = regexp.MustCompile(`require\(|eval\(|Function\(|global\[|process\.|child_process|=>|\bfunction\b|\bvar \w+\s*=`)
+
+// disguised finds a script in a font, an image or a dictionary file. The
+// Contagious Interview tasks run node on such a file, so the folder looks
+// like it holds only assets.
+func disguised(p string, data []byte) []Signal {
+	ext := strings.ToLower(path.Ext(p))
+	want, binary := magic[ext]
+	if !binary {
+		// A dictionary is text. A long line or a script token is not a word
+		// list.
+		for i, line := range bytes.Split(data, []byte("\n")) {
+			if len(line) > 500 || scriptToken.Match(line) {
+				return []Signal{{ID: IDDisguisedScript, Line: i + 1, Title: fmt.Sprintf("The %s file holds a script, not a word list", ext)}}
+			}
+		}
+		return nil
+	}
+	for _, m := range want {
+		if bytes.HasPrefix(data, m) {
+			return nil
+		}
+	}
+	if bytes.HasPrefix(data, lfsPointer) || !text(data) {
+		return nil
+	}
+	title := fmt.Sprintf("The file has a %s name but holds text, not a %s file", ext, ext[1:])
+	if tabs := len(data) - len(bytes.TrimLeft(data, " \t\r\n")); tabs > 0 {
+		title += fmt.Sprintf(", after %d leading spaces and tabs", tabs)
+	}
+	return []Signal{{ID: IDDisguisedScript, Line: 1, Title: title}}
 }
 
 // minPad is the shortest run of spaces or tabs that hides code. The

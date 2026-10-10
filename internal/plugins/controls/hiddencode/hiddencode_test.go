@@ -41,3 +41,11 @@ func TestOtherKindsAreSkipped(t *testing.T) {
 	m := &model.Manifest{ID: "m", Path: "postcss.config.mjs", Kind: model.ManifestKindAgentConfig, Root: fstest.MapFS{}}
 	assert.Empty(t, plugintest.TestControl(t, c, m, nil))
 }
+
+func TestDisguisedScript(t *testing.T) {
+	fs := evaluate(t, "public/fonts/fa-solid-400.woff2", strings.Repeat("\t", 273)+"console.log(1)")
+	require.Len(t, fs, 1)
+	assert.Equal(t, "disguised-script", fs[0].ControlID)
+	assert.Equal(t, finding.SeverityCritical, fs[0].Severity)
+	assert.Equal(t, "The file has a .woff2 name but holds text, not a woff2 file, after 273 leading spaces and tabs", fs[0].Title)
+}

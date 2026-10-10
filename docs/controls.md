@@ -29,6 +29,7 @@ to its section.
 | [`agent-config-unreadable`](#agent-config-unreadable) | agent-config | high | Agent or editor config that vet cannot read |
 | [`dependency-cooldown`](#dependency-cooldown) | cooldown | high | Version inside the cooldown window |
 | [`padded-code`](#padded-code) | hidden-code | critical | Code hidden in a build config |
+| [`disguised-script`](#disguised-script) | hidden-code | critical | Script in a font, image or dictionary file |
 | [`install-scripts-added`](#install-scripts-added) | hygiene | high | New dependency with install scripts |
 | [`provenance-lost`](#provenance-lost) | hygiene | medium | Provenance lost on an upgrade |
 | [`deprecated-package`](#deprecated-package) | hygiene | medium | Deprecated package |
@@ -252,6 +253,12 @@ The registry published the version less than the cooldown window ago. Most malic
 **Code hidden in a build config.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
 
 A build or tool config holds code after a long run of spaces or after its export, so an editor shows a clean file. The config runs at each build, test or lint. PolinRider adds its loader this way.
+
+### disguised-script
+
+**Script in a font, image or dictionary file.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
+
+A file with the name of a font, an image or a dictionary holds a script. A task or a loader runs it with node, so the folder looks like it holds only assets. Contagious Interview repositories ship such a fake font.
 
 ### install-scripts-added
 

@@ -41,6 +41,12 @@ var infos = []plugin.ControlInfo{
 		Description: "A build or tool config holds code after a long run of spaces or after its export, so an editor shows a clean file. The config runs at each build, test or lint. PolinRider adds its loader this way.",
 		Attack:      true,
 	},
+	{
+		ID: hiddencode.IDDisguisedScript, Family: finding.FamilyHiddenCode, Severity: finding.SeverityCritical,
+		Title:       "Script in a font, image or dictionary file",
+		Description: "A file with the name of a font, an image or a dictionary holds a script. A task or a loader runs it with node, so the folder looks like it holds only assets. Contagious Interview repositories ship such a fake font.",
+		Attack:      true,
+	},
 }
 
 // Controls describes the control ids.
@@ -50,7 +56,8 @@ func (*Control) Controls() []plugin.ControlInfo { return infos }
 func (*Control) OptionsSchema() []byte { return optschema.Of(&Options{}) }
 
 var remediation = map[string]string{
-	hiddencode.IDPaddedCode: "Do not build or open the project. Restore the file from a clean commit, and check the machines that built it.",
+	hiddencode.IDPaddedCode:      "Do not build or open the project. Restore the file from a clean commit, and check the machines that built it.",
+	hiddencode.IDDisguisedScript: "Do not open the folder in an editor or run it. Remove the file, find what runs it, and check the machines that opened the folder.",
 }
 
 // Evaluate reads the file of the manifest and reports each sign of hidden

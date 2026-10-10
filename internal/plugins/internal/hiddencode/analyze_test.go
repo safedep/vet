@@ -49,3 +49,26 @@ func TestPaddedTooLarge(t *testing.T) {
 	s := Analyze(Config, "next.config.js", make([]byte, MaxSize+1))
 	assert.Equal(t, []string{IDPaddedCode}, ids(s))
 }
+
+func TestDisguised(t *testing.T) {
+	cases := []struct {
+		name, path, data string
+		want             []string
+	}{
+		{"fake font with leading tabs", "public/fonts/fa-solid-400.woff2", strings.Repeat("\t", 421) + "try{}catch(err){};global['!']='8-270-2';", []string{IDDisguisedScript}},
+		{"fake png", "img/card4.png", "var a = 1;\n", []string{IDDisguisedScript}},
+		{"real woff2", "fonts/a.woff2", "wOF2\x00\x01\x00\x00\x00\x00", nil},
+		{"real png", "a.png", "\x89PNG\r\n\x1a\n\x00\x00", nil},
+		{"real ttf", "a.ttf", "\x00\x01\x00\x00\x00\x10", nil},
+		{"binary with an odd header", "a.jpg", "\x00\x10JFIF\x00\x01", nil},
+		{"git lfs pointer", "a.woff2", "version https://git-lfs.github.com/spec/v1\noid sha256:abc\nsize 12\n", nil},
+		{"dictionary of words", ".vscode/spellright.dict", "kubernetes\nnpm\nvet\n", nil},
+		{"dictionary that holds a script", ".vscode/spellright.dict", "words\nconst r = require('child_process');\n", []string{IDDisguisedScript}},
+		{"empty file", "a.woff", "", nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, ids(Analyze(Asset, tc.path, []byte(tc.data))))
+		})
+	}
+}
