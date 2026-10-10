@@ -91,8 +91,9 @@ const (
 	FamilyLockfile      Family = "lockfile"
 	FamilyAgentConfig   Family = "agent-config"
 	// FamilyHiddenCode holds the findings of code that a file hides: after
-	// a run of spaces, in a file that claims to be a font, or in invisible
-	// Unicode characters.
+	// a run of spaces, in a file that claims to be a font, in invisible
+	// Unicode characters, or in an npm entry script, and of a script that
+	// rewrites the git history.
 	FamilyHiddenCode Family = "hidden-code"
 	FamilyAIBOM      Family = "ai-bom"
 	FamilyLicense    Family = "license"

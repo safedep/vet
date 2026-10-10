@@ -264,7 +264,7 @@
   title: "agent config: a file that vet cannot parse"
   category: controls
   tier: P1
-  guarantee: "A .vscode/tasks.json with a syntax error gives a high agent-config-unreadable finding on the line of the error. The attacks gate passes."
+  guarantee: "A .vscode/tasks.json with a syntax error gives a high agent-config-unreadable finding on the line of the error. A malicious command on a line of the broken file still gives suspicious-command and fails the attacks gate. A broken file with no such command passes it."
   labels: [agent-config]
 - id: controls/hidden-code/repository
   title: "hidden code: a PolinRider-style repository"
@@ -284,6 +284,12 @@
   tier: P2
   guarantee: "In pull request mode, a build config with hidden code that the change keeps gives no finding. A change that adds hidden code to a clean config gives padded-code on a MODIFIED file manifest."
   labels: [hidden-code, pr-mode]
+- id: controls/hidden-code/trojan-source
+  title: "hidden code: a bidirectional control in code"
+  category: controls
+  tier: P2
+  guarantee: "A bidirectional control in a source file gives a high invisible-unicode finding. The attacks gate passes, and --fail-on high fails."
+  labels: [hidden-code]
 - id: controls/lockfile/integrity-changed
   title: "lockfile: integrity change with no version change"
   category: controls

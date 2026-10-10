@@ -284,13 +284,7 @@ func (e *emitter) unreadable(line int, discriminator, title string) {
 }
 
 // short cuts a command to its first 80 characters for a title.
-func short(s string) string {
-	s = strings.Join(strings.Fields(s), " ")
-	if len(s) > 80 {
-		return s[:77] + "..."
-	}
-	return s
-}
+func short(s string) string { return finding.Shorten(strings.Join(strings.Fields(s), " "), 80) }
 
 // emitter builds the file findings of one file, with the occurrence index
 // among identical snippets.
@@ -315,12 +309,9 @@ func (e *emitter) snippet(line int) snippet {
 	s, ok := e.snippets[line]
 	if !ok {
 		s.full = redact(strings.TrimSpace(e.lines[line-1]))
-		s.display = s.full
+		s.display = finding.Shorten(s.full, maxSnippet)
 		if len(s.full) > maxKeySnippet {
-			s.full = s.full[:maxKeySnippet]
-		}
-		if len(s.display) > maxSnippet {
-			s.display = s.display[:maxSnippet-3] + "..."
+			s.full = strings.ToValidUTF8(s.full[:maxKeySnippet], "")
 		}
 		e.snippets[line] = s
 	}

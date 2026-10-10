@@ -3,6 +3,8 @@ package agentconfig
 import (
 	"regexp"
 	"strings"
+
+	"github.com/safedep/vet/v2/internal/plugins/internal/hiddencode"
 )
 
 // pattern is one high-confidence sign of a malicious command.
@@ -27,13 +29,24 @@ var suspicious = []pattern{
 	{regexp.MustCompile(`(?i)\b(powershell|pwsh)(\.exe)?\b.*\s-e(nc|ncodedcommand)?\s+[A-Za-z0-9+/=]{16,}`), "runs an encoded PowerShell payload"},
 	{regexp.MustCompile(`(?i)\b(eval|exec)\b.*\b(atob|frombase64string|b64decode)\b`), "runs a decoded payload"},
 	{regexp.MustCompile(`(?i)\b(node|deno|bun|python3?|perl|ruby)(\.exe)?\s+(-e|-c|-p|--eval|--print)\b.*(buffer\.from|base64|atob|b64decode|fromcharcode|\\x[0-9a-f]{2})`), "runs an inline script that decodes a payload"},
-	{regexp.MustCompile(`(?i)\bnode(\.exe)?\s+(-\S+\s+)*["']?[^\s"']*\.(woff2?|ttf|otf|eot|png|jpe?g|gif|svg|ico|bmp|webp|dict|llf|txt|css|map|dat|bin)(["'\s;&|)]|$)`), "runs a file that is not a script with node"},
+	{regexp.MustCompile(`(?i)\bnode(\.exe)?\s+(-\S+\s+)*["']?[^\s"']*\.(` + notScripts() + `)(["'\s;&|)]|$)`), "runs a file that is not a script with node"},
 	{regexp.MustCompile(`https?://[a-z0-9-]+\.vercel\.app/settings/(mac|linux|win|windows)\b`), "fetches from a URL of the shape that PolinRider tasks use"},
 	{regexp.MustCompile(`\S[ \t]{50,}\S`), "hides part of the command after a run of spaces"},
 	{regexp.MustCompile(`/dev/tcp/`), "opens a raw network connection from the shell"},
 	{regexp.MustCompile(`(?i)\b(nc|ncat|netcat)\b.*\s-e\s`), "starts a reverse shell"},
 	{regexp.MustCompile(`(?i)(~|\$home|%userprofile%)[/\\]\.(ssh|aws|gnupg|kube|docker)\b`), "reads a credential directory"},
 	{regexp.MustCompile(`(?i)\.(npmrc|pypirc|netrc|git-credentials)\b`), "reads a credential file"},
+}
+
+// notScripts is the regular expression alternation of the extensions of
+// the files that node must not run: the assets that the hidden-code
+// controls check, and other data files.
+func notScripts() string {
+	exts := []string{"svg", "txt", "css", "map", "dat", "bin"}
+	for _, e := range hiddencode.AssetExts() {
+		exts = append(exts, regexp.QuoteMeta(strings.TrimPrefix(e, ".")))
+	}
+	return strings.Join(exts, "|")
 }
 
 // configFamily groups the config folders of a repository. Cursor reads the

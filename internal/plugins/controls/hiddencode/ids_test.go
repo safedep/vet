@@ -8,13 +8,16 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/internal/hiddencode"
 )
 
-// TestEachSignalHasAControl keeps the ids of the analysis and the control
-// descriptions in step. Evaluate looks up the description of each signal.
+// TestEachSignalHasAControl keeps the ids of the analysis and the controls
+// in step. Evaluate looks up the control of each signal.
 func TestEachSignalHasAControl(t *testing.T) {
 	var got []string
-	for _, i := range infos {
-		got = append(got, i.ID)
-		assert.NotEmpty(t, remediation[i.ID], i.ID)
+	for _, c := range controls {
+		got = append(got, c.ID)
+		assert.NotEmpty(t, c.remediation, c.ID)
 	}
-	assert.ElementsMatch(t, hiddencode.IDs(), got)
+	assert.ElementsMatch(t, []string{
+		hiddencode.IDPaddedCode, hiddencode.IDDisguisedScript, hiddencode.IDInvisibleUnicode,
+		hiddencode.IDUnicodePayload, hiddencode.IDHistoryRewrite,
+	}, got)
 }

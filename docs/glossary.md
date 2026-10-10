@@ -524,6 +524,16 @@ a script that rewrites the git history. `internal/plugins/internal/hiddencode` c
 PolinRider, in a finding.
 _Avoid_: obfuscation (a payload can be plain code), steganography
 
+**npm entry script**:
+A script of a global npm install that runs at each npm or npx command, such as `npm/lib/cli.js`.
+`hiddencode.Entry` and `hiddencode.EntryFiles`. `vet endpoint audit` checks the entry scripts of the
+global folders of the user, and of the machine with `--all-users`.
+
+**Project folder**:
+A folder that `vet endpoint audit --projects` walks for the repositories of a machine. The audit reads
+the agent and editor configs, build configs, assets and scripts of each one, and follows a linked
+config folder. `agentfiles.ConfigDirs` names the config folders.
+
 ## Tests
 
 **Golden file**:

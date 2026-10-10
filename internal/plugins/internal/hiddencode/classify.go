@@ -7,8 +7,10 @@
 package hiddencode
 
 import (
+	"maps"
 	"path"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/safedep/vet/v2/internal/plugins/internal/agentfiles"
@@ -57,11 +59,31 @@ var configFiles = map[string]bool{
 	"truffle.js": true, "truffle-config.js": true, "tailwind.js": true, "App.js": true,
 }
 
-var assetExts = map[string]bool{
-	".woff": true, ".woff2": true, ".ttf": true, ".otf": true, ".eot": true,
-	".png": true, ".jpg": true, ".jpeg": true, ".gif": true, ".ico": true, ".bmp": true, ".webp": true,
-	".dict": true, ".llf": true,
+// assetKind is the kind of an asset type.
+type assetKind int
+
+const (
+	// image is a binary image. vet reads its first bytes.
+	image assetKind = iota + 1
+	// font is a binary font. A font is small, so vet reads all of it.
+	font
+	// words is a text file of one word on each line, such as a dictionary.
+	words
+)
+
+// assetExts are the asset types, by extension, with their kind.
+var assetExts = map[string]assetKind{
+	".woff": font, ".woff2": font, ".ttf": font, ".otf": font, ".eot": font,
+	".png": image, ".jpg": image, ".jpeg": image, ".gif": image, ".ico": image, ".bmp": image, ".webp": image,
+	".dict": words, ".llf": words,
 }
+
+// AssetExts returns the extensions of the asset types, such as ".woff2",
+// in order.
+func AssetExts() []string { return slices.Sorted(maps.Keys(assetExts)) }
+
+// assetOf returns the kind of the asset type of a path, or 0.
+func assetOf(p string) assetKind { return assetExts[strings.ToLower(path.Ext(p))] }
 
 var sourceExts = map[string]bool{
 	".js": true, ".mjs": true, ".cjs": true, ".jsx": true, ".vue": true, ".svelte": true,
@@ -102,7 +124,7 @@ func Classify(p string) (c Class, ok bool) {
 	switch {
 	case configName.MatchString(base) || configFiles[base]:
 		return Config, true
-	case assetExts[ext]:
+	case assetExts[ext] != 0:
 		return Asset, true
 	case scriptExts[ext] || base == ".gitignore":
 		return Script, true

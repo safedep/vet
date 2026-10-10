@@ -12,6 +12,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/plugins/internal/agentfiles"
 )
 
@@ -24,11 +25,6 @@ const (
 	IDUnicodePayload   = "unicode-payload"
 	IDHistoryRewrite   = "history-rewrite-script"
 )
-
-// IDs returns every control id of a signal.
-func IDs() []string {
-	return []string{IDPaddedCode, IDDisguisedScript, IDInvisibleUnicode, IDUnicodePayload, IDHistoryRewrite}
-}
 
 // Signal is one sign of hidden code in a file.
 type Signal struct {
@@ -67,7 +63,7 @@ func Read(r io.Reader, p string, c Class) ([]byte, error) {
 		return nil, err
 	}
 	head = head[:n]
-	if c == Asset && !text(head) && !fontExts[strings.ToLower(path.Ext(p))] && !commentStart(head) {
+	if c == Asset && !text(head) && assetOf(p) != font && !commentStart(head) {
 		return head, nil
 	}
 	rest, err := io.ReadAll(io.LimitReader(r, MaxSize+1-int64(n)))
@@ -163,15 +159,8 @@ func rewriteScript(data []byte) []Signal {
 			break
 		}
 	}
-	return []Signal{{ID: IDHistoryRewrite, Line: line, Visible: string(bytes.TrimSpace(lines[line-1])), Title: "The script amends the last commit with no hooks, keeps its date, and force-pushes it"}}
+	return []Signal{{ID: IDHistoryRewrite, Line: line, Visible: finding.Shorten(string(bytes.TrimSpace(lines[line-1])), maxVisible), Title: "The script amends the last commit with no hooks, keeps its date, and force-pushes it"}}
 }
-
-// fontExts are the asset types that vet reads in full: a font is small.
-var fontExts = map[string]bool{".woff": true, ".woff2": true, ".ttf": true, ".otf": true, ".eot": true}
-
-// textExts are the asset types that hold text: a dictionary holds one word
-// on each line.
-var textExts = map[string]bool{".dict": true, ".llf": true}
 
 // lfsPointer starts a Git LFS pointer file, which stands in for a binary
 // asset in a checkout with no LFS.
@@ -239,7 +228,8 @@ func disguised(p string, data []byte) []Signal {
 	sig := func(line int, title string) []Signal {
 		return []Signal{{ID: IDDisguisedScript, Line: line, Title: title}}
 	}
-	if textExts[ext] {
+	kind := assetOf(p)
+	if kind == words {
 		if !text(data) {
 			return nil
 		}
@@ -265,7 +255,7 @@ func disguised(p string, data []byte) []Signal {
 		return nil
 	}
 	if !text(data) {
-		if (fontExts[ext] && strongToken.Match(data)) || (commentStart(data) && scriptToken.Match(data)) {
+		if (kind == font && strongToken.Match(data)) || (commentStart(data) && scriptToken.Match(data)) {
 			return sig(1, fmt.Sprintf("The %s file holds script code after its binary header", ext))
 		}
 		return nil
@@ -392,7 +382,7 @@ func paddedScript(line []byte, n int) (Signal, bool) {
 		}
 		if len(line)-end >= minHidden && script >= end {
 			return Signal{
-				ID: IDPaddedCode, Line: n, Visible: string(bytes.TrimSpace(line[:start])),
+				ID: IDPaddedCode, Line: n, Visible: finding.Shorten(string(bytes.TrimSpace(line[:start])), maxVisible),
 				Title: fmt.Sprintf("Code continues on line %d after %d spaces, with %d bytes off screen", n, count, len(line)-end),
 			}, true
 		}
@@ -422,7 +412,7 @@ func padded(data []byte, exports bool) []Signal {
 			continue
 		}
 		out = append(out, Signal{
-			ID: IDPaddedCode, Line: i + 1, Visible: string(bytes.TrimSpace(line[:loc[1]])),
+			ID: IDPaddedCode, Line: i + 1, Visible: finding.Shorten(string(bytes.TrimSpace(line[:loc[1]])), maxVisible),
 			Title: fmt.Sprintf("Code continues on line %d after the export of the config, with %d bytes", i+1, len(rest)),
 		})
 	}
@@ -625,8 +615,8 @@ func visibleLine(data []byte, n int) string {
 		}
 		return r
 	}, strings.TrimSpace(string(lines[n-1])))
-	if len(l) > 200 {
-		l = l[:197] + "..."
-	}
-	return l
+	return finding.Shorten(l, maxVisible)
 }
+
+// maxVisible is the longest visible text of a signal, in runes.
+const maxVisible = 200
