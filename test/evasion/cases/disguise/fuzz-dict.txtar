@@ -1,0 +1,7 @@
+# Near miss: a fuzz dictionary of JavaScript keywords
+want: none
+-- fuzz/js.dict --
+kw1="function"
+kw2="require("
+kw3="eval("
+kw4="=> {"

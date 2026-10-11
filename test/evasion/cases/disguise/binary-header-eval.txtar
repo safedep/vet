@@ -1,0 +1,4 @@
+# The woff2 signature, binary header bytes and then a script that decodes and runs a payload
+want: disguised-script
+-- public/fonts/fa-regular.woff2 --
+{% "wOF2\x00\x01\x00\x00\x00\x00\x10\x00" %}eval(atob('Y29uc29sZS5sb2coMSk='))

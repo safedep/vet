@@ -1,0 +1,6 @@
+# Near miss: a developer script that amends the last commit and force-pushes it
+want: none
+-- scripts/fixup.sh --
+#!/bin/sh
+git commit --amend --no-edit
+git push --force-with-lease

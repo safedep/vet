@@ -1,0 +1,4 @@
+# The woff2 magic bytes and then a script, with no NUL byte
+want: disguised-script
+-- public/fonts/fa-brands.woff2 --
+wOF2{% loader %}

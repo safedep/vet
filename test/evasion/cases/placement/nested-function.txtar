@@ -1,0 +1,8 @@
+# A loader inside a plugin function of the config, with no pad
+want: padded-code
+miss: the loader has no pad and is not after the export (FOU-497)
+have: none
+-- vite.config.js --
+export default {
+  plugins: [{ name: "x", configResolved() { {% loader %} } }],
+};

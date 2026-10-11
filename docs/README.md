@@ -19,3 +19,5 @@
   check.
 - [../test/acceptance/README.md](../test/acceptance/README.md): the acceptance suite, and how to
   add a guarantee.
+- [../test/evasion/README.md](../test/evasion/README.md): the evasion corpus of the attack
+  detections, and how to add a case.

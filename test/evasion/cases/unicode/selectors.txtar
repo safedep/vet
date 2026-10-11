@@ -1,0 +1,5 @@
+# A payload in 30 variation selectors after ASCII, with a decoder
+want: unicode-payload
+-- src/index.js --
+const s = "x{% selectors "console.log(1);console.log(1);" %}";
+const run = [...s].map((c) => c.codePointAt(0)).join(",");

@@ -1,0 +1,5 @@
+# A loader after five runs of 60 spaces, each run cut by a semicolon
+want: padded-code
+-- postcss.config.mjs --
+const config = { plugins: {} };
+export default config;{% repeat ";                                                            " 5 %}{% loader %}

@@ -1,0 +1,6 @@
+# Near miss: a webpack config that loads a plugin by a computed path
+want: none
+-- webpack.config.js --
+const path = require("path");
+const plugin = require(path.join(__dirname, "plugins", process.env.PLUGIN || "default"));
+module.exports = { plugins: [plugin] };

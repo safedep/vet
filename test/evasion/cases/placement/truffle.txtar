@@ -1,0 +1,4 @@
+# A loader after 280 spaces in truffle-config.js
+want: padded-code
+-- truffle-config.js --
+module.exports = config;{% repeat " " 280 %}{% loader %}

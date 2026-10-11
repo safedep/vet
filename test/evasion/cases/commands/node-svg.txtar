@@ -1,0 +1,14 @@
+# node runs a .svg file
+want: editor-task-command suspicious-command
+-- .vscode/tasks.json --
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "setup",
+      "type": "shell",
+      "command": "node public/logo.svg",
+      "runOptions": {"runOn": "folderOpen"}
+    }
+  ]
+}

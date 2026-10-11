@@ -1,0 +1,5 @@
+# A loader after a pad that a block comment holds
+want: padded-code
+-- postcss.config.mjs --
+const config = { plugins: {} };
+export default config; /*{% repeat " " 280 %}*/ {% loader %}

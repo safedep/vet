@@ -1,0 +1,4 @@
+# A loader after 280 spaces in App.js
+want: padded-code
+-- src/App.js --
+export default function App() { return null; }{% repeat " " 280 %}{% loader %}

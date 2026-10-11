@@ -1,0 +1,5 @@
+# A loader after 280 Hangul fillers
+want: padded-code
+-- postcss.config.mjs --
+const config = { plugins: {} };
+export default config;{% repeat "\u3164" 280 %}{% loader %}

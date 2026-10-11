@@ -1,0 +1,6 @@
+# A loader after an export of an object literal, with no pad
+want: padded-code
+miss: the export check needs a name after the export, not an object (FOU-497)
+have: none
+-- tailwind.config.js --
+module.exports = { content: [] }; {% loader %}

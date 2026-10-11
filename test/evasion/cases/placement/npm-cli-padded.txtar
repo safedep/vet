@@ -1,0 +1,5 @@
+# A loader after 280 spaces in the npm entry script
+want: padded-code
+source: endpoint
+-- .npm-global/lib/node_modules/npm/lib/cli.js --
+require('./cli/entry.js')(process);{% repeat " " 280 %}{% loader %}

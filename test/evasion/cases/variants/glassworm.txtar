@@ -1,0 +1,5 @@
+# GlassWorm: a payload in variation selectors that a short decoder runs
+want: unicode-payload
+-- extension.js --
+const p = "{% selectors "console.log(1);console.log(1);" %}";
+eval(Buffer.from([...p].map((c) => c.codePointAt(0) - 0xe0100 + 16)).toString());

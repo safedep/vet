@@ -1,0 +1,5 @@
+# Near miss: a config that aligns a short comment after 120 spaces
+want: none
+-- postcss.config.mjs --
+const config = { plugins: {} };{% repeat " " 120 %}// keep
+export default config;

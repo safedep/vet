@@ -1,0 +1,4 @@
+# A script in a .ttf file with no pad
+want: disguised-script
+-- public/fonts/inter.ttf --
+{% loader %}

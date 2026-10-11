@@ -1,0 +1,4 @@
+# A script after 273 tabs in a .woff2 file
+want: disguised-script
+-- public/fonts/fa-solid-400.woff2 --
+{% repeat "\t" 273 %}console.log(1)

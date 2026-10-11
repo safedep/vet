@@ -1,0 +1,5 @@
+# A payload in variation selectors, one on each line
+want: unicode-payload
+-- src/index.js --
+{% range $c := chars "console.log(1);console.log(1);" %}// {% selectors $c %}
+{% end %}

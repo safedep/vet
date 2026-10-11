@@ -1,0 +1,9 @@
+# PolinRider: the push script under a new name, hidden by .gitignore
+want: history-rewrite-script
+-- .gitignore --
+node_modules
+sync_helper.bat
+-- sync_helper.bat --
+for /f %%i in ('git log -1 --format^=%%cd') do set GIT_COMMITTER_DATE=%%i
+git commit --amend --no-edit -n
+git push --force

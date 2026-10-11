@@ -1,0 +1,5 @@
+# Near miss: an agent instruction file with one right-to-left mark gives no Unicode finding
+want: agent-instruction-change
+-- AGENTS.md --
+# Rules
+Write the Hebrew name as {% "\u200f" %}שלום.

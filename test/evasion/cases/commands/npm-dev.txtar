@@ -1,0 +1,14 @@
+# Near miss: a folder-open task that starts the dev server
+want: editor-task-command
+-- .vscode/tasks.json --
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "setup",
+      "type": "shell",
+      "command": "npm run dev",
+      "runOptions": {"runOn": "folderOpen"}
+    }
+  ]
+}

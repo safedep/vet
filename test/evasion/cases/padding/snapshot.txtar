@@ -1,0 +1,4 @@
+# Near miss: a test that aligns a short value after a long run of spaces
+want: none
+-- src/table.test.js --
+expect(render()).toBe(`| a |{% repeat " " 150 %}| b |`);
