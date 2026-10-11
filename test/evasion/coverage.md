@@ -7,23 +7,29 @@ detection, and commit the diff. See README.md.
 
 | Case | Expected | Actual | Result |
 | --- | --- | --- | --- |
-| `abs-path`: A download piped to /bin/sh | `editor-task-command`, `suspicious-command` | `editor-task-command` | miss: the pattern needs the shell name right after the pipe (FOU-496) |
+| `abs-path`: A download piped to /bin/sh | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
 | `args-split`: A download piped to sh in the args of bash -c | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
-| `backslash`: A download piped to \sh | `editor-task-command`, `suspicious-command` | `editor-task-command` | miss: the pattern does not remove shell escapes (FOU-496) |
+| `backslash`: A download piped to \sh | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
 | `base64-pipe`: A base64 payload decoded and piped to sh | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
 | `curl-pipe-sh`: A download piped to sh | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
-| `env-prefix`: A download piped to env sh | `editor-task-command`, `suspicious-command` | `editor-task-command` | miss: the pattern needs the shell name right after the pipe (FOU-496) |
+| `dynamic-no-shell`: Near miss: a command name built at run time with no pipe into a shell | `editor-task-command` | `editor-task-command` | pass |
+| `echo-sh`: Near miss: echo piped to sh with no download | `editor-task-command` | `editor-task-command` | pass |
+| `env-prefix`: A download piped to env sh | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
+| `export-var`: A download piped to a shell in an exported variable | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
 | `hook-download`: A git hook in .githooks that pipes a download to sh | `agent-hook-command`, `suspicious-command` | `agent-hook-command`, `suspicious-command` | pass |
 | `ifs`: A download piped to sh, with ${IFS} in place of spaces | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
+| `nested-c`: A download piped to sh inside bash -c inside sh -c | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
 | `node-font`: node runs a fake font | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
 | `node-fromcharcode`: An inline node script that builds a payload from char codes | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
 | `node-svg`: node runs a .svg file | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
 | `npm-dev`: Near miss: a folder-open task that starts the dev server | `editor-task-command` | `editor-task-command` | pass |
 | `padded-command`: A download after 80 spaces in the command | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
-| `printf-hex`: A download by a tool name that printf writes from hex | `editor-task-command`, `suspicious-command` | `editor-task-command` | miss: the pattern reads the text, not the command that the shell builds (FOU-496) |
-| `quote-split`: A download piped to s''h, with the shell name split by quotes | `editor-task-command`, `suspicious-command` | `editor-task-command` | miss: the pattern does not remove shell quotes (FOU-496) |
-| `variable-shell`: A download piped to a shell in a variable | `editor-task-command`, `suspicious-command` | `editor-task-command` | miss: the pattern does not expand shell variables (FOU-496) |
-| `variable-tool`: A download by a tool name in a variable | `editor-task-command`, `suspicious-command` | `editor-task-command` | miss: the pattern does not expand shell variables (FOU-496) |
+| `pipe-all`: A download piped to sh with \|& | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
+| `printf-hex`: A download by a tool name that printf writes from hex | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
+| `quote-split`: A download piped to s''h, with the shell name split by quotes | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
+| `sudo-flags`: A download piped to sudo -u root -E bash | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
+| `variable-shell`: A download piped to a shell in a variable | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
+| `variable-tool`: A download by a tool name in a variable | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
 | `wget-pipe-bash`: A download with wget piped to bash | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
 
 ## disguise
@@ -106,4 +112,4 @@ detection, and commit the diff. See README.md.
 | `polinrider-rewrite`: PolinRider: a script that amends the last commit, keeps its date and force-pushes it | `history-rewrite-script` | `history-rewrite-script` | pass |
 | `polinrider-task`: PolinRider: a hidden folder-open task runs node on a fake font | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | pass |
 
-Total: 73 cases, 55 pass, 0 fail, 18 known misses.
+Total: 79 cases, 68 pass, 0 fail, 11 known misses.

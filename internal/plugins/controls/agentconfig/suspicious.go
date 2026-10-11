@@ -59,17 +59,43 @@ var configScript = regexp.MustCompile(`(?i)\b(node|deno|bun|python3?|sh|bash|zsh
 
 // suspiciousReason returns why a command looks malicious, or "". dir is
 // the config folder of the file that holds the command, such as .vscode.
-// A task that runs a script of the agent folder, or a hook that runs a
-// script of the editor folder, starts a loader that the other folder
-// hides: each one starts the other if a developer removes one. A script of
-// the own folder, such as .claude/hooks/format.sh, is normal, and so is a
-// devcontainer or a user task that runs a script of .vscode.
+// The patterns read the text as written and each form of shellForms, so a
+// quote, an escape, a wrapper or a variable does not hide a pattern.
 func suspiciousReason(text, dir string) string {
+	forms, dynamic := shellForms(text)
+	texts := append([]string{text}, forms...)
+	for _, t := range texts {
+		if r := patternReason(t); r != "" {
+			return r
+		}
+	}
+	for _, t := range texts {
+		if r := crossFolderReason(t, dir); r != "" {
+			return r
+		}
+	}
+	if dynamic {
+		return "pipes to a shell from a command whose name the shell builds at run time"
+	}
+	return ""
+}
+
+func patternReason(text string) string {
 	for _, p := range suspicious {
 		if p.re.MatchString(text) {
 			return p.reason
 		}
 	}
+	return ""
+}
+
+// crossFolderReason reports a task that runs a script of the agent folder,
+// or a hook that runs a script of the editor folder. Such a command starts a
+// loader that the other folder hides: each one starts the other if a
+// developer removes one. A script of the own folder, such as
+// .claude/hooks/format.sh, is normal, and so is a devcontainer or a user
+// task that runs a script of .vscode.
+func crossFolderReason(text, dir string) string {
 	own, ok := configFamily[strings.ToLower(dir)]
 	if !ok {
 		return ""

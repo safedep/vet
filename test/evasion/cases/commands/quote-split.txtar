@@ -1,7 +1,5 @@
 # A download piped to s''h, with the shell name split by quotes
 want: editor-task-command suspicious-command
-miss: the pattern does not remove shell quotes (FOU-496)
-have: editor-task-command
 -- .vscode/tasks.json --
 {
   "version": "2.0.0",
