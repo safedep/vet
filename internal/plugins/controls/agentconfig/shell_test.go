@@ -51,6 +51,8 @@ func TestShellForms(t *testing.T) {
 		{"env -S with quotes", `curl x | env -S '"bash" -e'`, []string{"curl x | bash -e"}, false},
 		{"env -S with a wrapper", "curl x | env -S 'sudo -u root bash'", []string{"curl x | bash"}, false},
 		{"env -S with a variable", "curl x | env -S 'b${MID}sh'", []string{"curl x | b${mid}sh"}, true},
+		{"env -S with quotes and a variable", `curl x | env -S '"bash" ${ARG}'`, []string{"curl x | bash ${ARG}"}, false},
+		{"env -S with a default", "curl x | env -S '${X:-bash}'", []string{"curl x | ${x}"}, true},
 		{"process substitution", "bash < <(curl x)", []string{"curl x | bash", "bash"}, false},
 		{"here-string", `bash <<< "$(curl x)"`, []string{"curl x | bash", "bash"}, false},
 		{"source", "source <(curl x)", []string{"curl x | source", "source <(curl x)"}, false},

@@ -485,12 +485,16 @@ func unwrap(words []string) (rest []string, origin int) {
 
 // splitString splits the value of env -S into words with the quotes of the
 // shell, as bash -e for '"bash" -e'. env expands a variable in the value
-// at run time, so a value with $ keeps its words as written.
+// at run time, so a variable stays as ${NAME}, and a name built from it
+// counts as built at run time. IFS stays unset, so the split uses the
+// default separators.
 func splitString(value string) []string {
-	if strings.Contains(value, "$") {
-		return strings.Fields(value)
-	}
-	fields, err := shell.Fields(value, func(string) string { return "" })
+	fields, err := shell.Fields(value, func(name string) string {
+		if name == "IFS" {
+			return ""
+		}
+		return "${" + name + "}"
+	})
 	if err != nil {
 		return strings.Fields(value)
 	}
