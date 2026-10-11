@@ -264,7 +264,7 @@ A source file, a build config or an npm entry script holds a script after a long
 
 **Script in a font, image, dictionary, style sheet or source map.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
 
-A file with the name of a font, an image, a dictionary, an SVG image, a style sheet or a source map holds a script. A task or a loader runs it with node, so the folder looks like it holds only assets. Contagious Interview repositories ship such a fake font. vet parses an SVG image, a style sheet or a source map as JavaScript. A file that node can run, with a call and a script token, gives a finding. A real asset does not parse as JavaScript. A build with no CGO reads the start of the file and its script tokens.
+A file with the name of a font, an image, a dictionary, an SVG image, a style sheet or a source map holds a script. A task or a loader runs it with node, so the folder looks like it holds only assets. Contagious Interview repositories ship such a fake font. vet parses an SVG image, a style sheet or a source map as JavaScript. A file that node can run, with a call and a script token, gives a finding. A real asset does not parse as JavaScript. vet reads a text asset up to 32 MiB, and a larger one gives a diagnostic that vet did not check all of it. A build with no CGO reads the start of the file and its script tokens.
 
 ### unicode-payload
 

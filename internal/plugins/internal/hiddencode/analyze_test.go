@@ -226,13 +226,29 @@ func TestReadsAFontInFull(t *testing.T) {
 	assert.Len(t, got, headSize, "an image needs only its head")
 }
 
+func TestTextAssetPastTheSourceLimit(t *testing.T) {
+	big := "(function(){ require('x'); /*" + strings.Repeat("a", MaxSize) + "*/ })()"
+	data, err := Read(strings.NewReader(big), "theme.css", Asset)
+	require.NoError(t, err)
+	assert.Len(t, data, len(big), "vet reads a text asset in full")
+	require.NoError(t, Incomplete(Asset, "theme.css", data))
+	if dynamicCodeAvailable {
+		assert.Equal(t, []string{IDDisguisedScript}, ids(Analyze(Asset, "theme.css", data)))
+	}
+
+	data, err = Read(strings.NewReader(strings.Repeat("a", maxAssetSize+10)), "app.js.map", Asset)
+	require.NoError(t, err)
+	assert.Len(t, data, maxAssetSize+1)
+	assert.Error(t, Incomplete(Asset, "app.js.map", data))
+}
+
 func TestFontPastTheSourceLimit(t *testing.T) {
 	header := "wOF2\x00\x01" + strings.Repeat("\x00", 1000)
 	cases := []struct {
 		name, data string
 	}{
 		{"a payload after 4 MiB", header + strings.Repeat("\x00\x01", MaxSize/2) + strings.Repeat("0123456789abcdef", 64)},
-		{"a font over the limit", header + strings.Repeat("\x00", maxFontSize)},
+		{"a font over the limit", header + strings.Repeat("\x00", maxAssetSize)},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

@@ -61,8 +61,9 @@ func Open(fsys fs.FS, p string, c Class) (data []byte, err error) {
 }
 
 // Read reads the part of a file that Analyze needs: the first bytes of a
-// binary image, at most maxFontSize+1 bytes of a font, else at most
-// MaxSize+1 bytes. A script can sit after a binary header in a font.
+// binary image, at most maxAssetSize+1 bytes of a font or a text asset,
+// else at most MaxSize+1 bytes. A script can sit after a binary header in a
+// font.
 func Read(r io.Reader, p string, c Class) ([]byte, error) {
 	head := make([]byte, headSize)
 	n, err := io.ReadFull(r, head)
@@ -75,8 +76,8 @@ func Read(r io.Reader, p string, c Class) ([]byte, error) {
 		return head, nil
 	}
 	limit := int64(MaxSize)
-	if c == Asset && kind == font {
-		limit = maxFontSize
+	if c == Asset && (kind == font || kind == textAsset) {
+		limit = maxAssetSize
 	}
 	rest, err := io.ReadAll(io.LimitReader(r, limit+1-int64(n)))
 	if err != nil {
@@ -284,9 +285,9 @@ func disguised(p string, data []byte) []Signal {
 		}
 		return nil
 	}
-	// Read gives one byte past maxFontSize for a larger font.
-	if kind == font && len(data) > maxFontSize {
-		return []Signal{{ID: IDFontPayload, Line: 1, Title: fmt.Sprintf("The %s file is larger than %d MiB. vet reads no further, and a real font is smaller", ext, maxFontSize>>20)}}
+	// Read gives one byte past maxAssetSize for a larger font.
+	if kind == font && len(data) > maxAssetSize {
+		return []Signal{{ID: IDFontPayload, Line: 1, Title: fmt.Sprintf("The %s file is larger than %d MiB. vet reads no further, and a real font is smaller", ext, maxAssetSize>>20)}}
 	}
 	if !text(data) {
 		switch {
@@ -344,6 +345,10 @@ var textFormats = map[string]textFormat{
 // disguisedText finds a script in an SVG image, a style sheet or a source
 // map.
 func disguisedText(ext string, data []byte) []Signal {
+	// JSON runs no code, and a large source map is JSON, so it skips the parse.
+	if json.Valid(data) {
+		return nil
+	}
 	runs, parsed := runsAsScript(data)
 	if !parsed {
 		runs = textScript(ext, data)
@@ -352,6 +357,16 @@ func disguisedText(ext string, data []byte) []Signal {
 		return nil
 	}
 	return []Signal{{ID: IDDisguisedScript, Line: 1, Title: fmt.Sprintf("The %s file holds a script, not %s", ext, textFormats[ext].name)}}
+}
+
+// Incomplete returns an error for a text asset that is larger than vet
+// reads. node parses all of the file, so a check of its first part cannot
+// clear it, and the scan reports a diagnostic in place of a pass.
+func Incomplete(c Class, p string, data []byte) error {
+	if c != Asset || assetOf(p) != textAsset || len(data) <= maxAssetSize {
+		return nil
+	}
+	return fmt.Errorf("%s is larger than %d MiB, so vet did not check all of it for a hidden script", p, maxAssetSize>>20)
 }
 
 // textScript finds a script in a text asset with no JavaScript parser. A

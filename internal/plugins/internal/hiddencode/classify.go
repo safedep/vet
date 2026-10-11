@@ -147,10 +147,12 @@ func Classify(p string) (c Class, ok bool) {
 // known gap: vet does not check the part of a source file after MaxSize.
 const MaxSize = 4 << 20
 
-// maxFontSize is the largest font that vet reads in full. A loader can read
-// its payload from any part of a font, so vet reads all of it. A larger
-// font is a finding, as a larger config is.
-const maxFontSize = 32 << 20
+// maxAssetSize is the largest font or text asset that vet reads in full. A
+// loader can read its payload from any part of a font, and node parses all
+// of a text asset before it runs it, so a check of the first part is not
+// enough. A larger font is a finding, as a larger config is. A larger text
+// asset gives a diagnostic, because a large source map is common.
+const maxAssetSize = 32 << 20
 
 // headSize is the part of an asset that the check reads.
 const headSize = 512
