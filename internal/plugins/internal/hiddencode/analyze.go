@@ -342,10 +342,30 @@ func disguisedText(ext string, data []byte) []Signal {
 	if f.starts == nil {
 		need = minTokens
 	}
-	if len(scriptToken.FindAllIndex(data, need)) < need {
+	if scriptTokens(data, ext == ".css") < need {
 		return nil
 	}
 	return []Signal{{ID: IDDisguisedScript, Line: 1, Title: fmt.Sprintf("The %s file holds a script, not %s", ext, f.name)}}
+}
+
+// cssTokens are script tokens that a style sheet also writes: the
+// :import("...") of CSS Modules, the @function of Sass and a class name
+// such as .constructor.
+var cssTokens = regexp.MustCompile(`^(import|function|constructor)`)
+
+// scriptTokens counts the script tokens of data, up to minTokens. In a
+// style sheet it skips the tokens that CSS also writes.
+func scriptTokens(data []byte, css bool) int {
+	n := 0
+	for _, loc := range scriptToken.FindAllIndex(data, -1) {
+		if css && cssTokens.Match(data[loc[0]:loc[1]]) {
+			continue
+		}
+		if n++; n >= minTokens {
+			break
+		}
+	}
+	return n
 }
 
 // minPad is the shortest run of white space that hides code. The

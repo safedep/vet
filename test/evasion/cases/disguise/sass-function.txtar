@@ -1,0 +1,14 @@
+# Near miss: a style sheet with Sass functions
+want: none
+-- styles/grid.css --
+@function span($n) {
+  @return $n * $grid-width + ($n - 1) * $gutter;
+}
+@function gutter($n) {
+  @return $n * 2;
+}
+@function half($n) {
+  @return $n / 2;
+}
+@mixin extend($n) { width: span($n); }
+.col { @include extend(2); }

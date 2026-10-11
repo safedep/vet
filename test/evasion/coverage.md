@@ -40,6 +40,7 @@ detection, and commit the diff. See README.md.
 | `binary-header-hex`: The woff2 signature, binary header bytes and then a hex payload | `font-payload` | `font-payload` | pass |
 | `binary-header-loader`: The woff2 signature, binary header bytes and then a loader with no strong token | `font-payload` | `font-payload` | pass |
 | `cff-glyph-names`: Near miss: a font whose glyph names run with no separator, as in a CFF font | none | none | pass |
+| `css-modules`: Near miss: a CSS Modules sheet with :import rules and .constructor class names | none | none | pass |
 | `css`: A script in a .css file | `disguised-script` | `disguised-script` | pass |
 | `dict`: A script in a .dict file, one statement on each line | `disguised-script` | `disguised-script` | pass |
 | `font-hex`: A hex payload in a .woff file with no script token | `disguised-script` | `disguised-script` | pass |
@@ -52,6 +53,7 @@ detection, and commit the diff. See README.md.
 | `real-css`: Near miss: a style sheet with an embedded base64 font and a var() call | none | none | pass |
 | `real-font`: Near miss: a font that starts with the woff2 signature and holds only binary data | none | none | pass |
 | `real-source-map`: Near miss: a source map that holds the source of the code that it maps | none | none | pass |
+| `sass-function`: Near miss: a style sheet with Sass functions | none | none | pass |
 | `source-map`: A script in a .map file | `disguised-script` | `disguised-script` | pass |
 | `svg-script-element`: Near miss: an SVG image with a script element | none | none | pass |
 | `svg`: A script in a .svg file | `disguised-script` | `disguised-script` | pass |
@@ -122,4 +124,4 @@ detection, and commit the diff. See README.md.
 | `polinrider-rewrite`: PolinRider: a script that amends the last commit, keeps its date and force-pushes it | `history-rewrite-script` | `history-rewrite-script` | pass |
 | `polinrider-task`: PolinRider: a hidden folder-open task runs node on a fake font | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | pass |
 
-Total: 89 cases, 89 pass, 0 fail, 0 known misses.
+Total: 91 cases, 91 pass, 0 fail, 0 known misses.

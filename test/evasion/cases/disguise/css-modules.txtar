@@ -1,0 +1,17 @@
+# Near miss: a CSS Modules sheet with :import rules and .constructor class names
+want: none
+-- src/button.module.css --
+@import "./theme.module.css";
+:import("./colors.module.css") {
+  primary: primary;
+}
+:import(   /* a */   "./sizes.module.css"   ) {
+  gap: gap;
+}
+:import("./motion.module.css") {
+  fast: fast;
+}
+.button { color: primary; gap: gap; composes: base from "./base.module.css"; }
+.constructor { color: red; }
+.prototype .constructor { color: blue; }
+:global(.constructor) { margin: 0; }
