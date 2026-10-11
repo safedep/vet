@@ -1,0 +1,7 @@
+# Near miss: old IE style sheet hacks that call eval in expression()
+want: none
+-- vendor/ie.css --
+* html .fixed { position: absolute; }
+* html .fixed { _top: expression(eval(document.documentElement.scrollTop)); }
+* html .fixed { _left: expression(eval(document.documentElement.scrollLeft)); }
+* html .fixed { _width: expression(eval(document.documentElement.clientWidth)); }

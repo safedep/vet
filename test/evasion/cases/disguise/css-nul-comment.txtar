@@ -1,0 +1,4 @@
+# A script in a .css file with a NUL byte in a comment, so the file looks binary
+want: disguised-script
+-- styles/theme.css --
+/*{% "\x00" %}*/{% loader %}

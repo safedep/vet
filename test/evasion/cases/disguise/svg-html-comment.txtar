@@ -1,0 +1,5 @@
+# A script in a .svg file that starts with an HTML-like comment, which node reads as a comment
+want: disguised-script
+-- public/logo.svg --
+<!-- logo -->
+{% loader %}

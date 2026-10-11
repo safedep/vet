@@ -2,6 +2,7 @@ package hiddencode
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -69,7 +70,7 @@ func Read(r io.Reader, p string, c Class) ([]byte, error) {
 		return nil, err
 	}
 	head = head[:n]
-	if c == Asset && !text(head) && assetOf(p) != font && !commentStart(head) {
+	if kind := assetOf(p); c == Asset && !text(head) && kind != font && kind != textAsset && !commentStart(head) {
 		return head, nil
 	}
 	rest, err := io.ReadAll(io.LimitReader(r, MaxSize+1-int64(n)))
@@ -313,39 +314,55 @@ func disguised(p string, data []byte) []Signal {
 type textFormat struct {
 	name   string
 	starts []string
+	json   bool
 	tokens int
 	legal  *regexp.Regexp
 }
 
-// textFormats are the text asset types. A file that starts as its format
-// is in its format: an SVG with a script element is a legal image, and a
-// source map holds the source of the code that it maps. A style sheet has
-// no fixed start, so it needs more tokens, and it skips the tokens that
-// CSS also writes: the :import("...") of CSS Modules, the @function of Sass
-// and a class name such as .constructor.
+// textFormats are the text asset types. A file in its format passes: an SVG
+// with a script element is a legal image, and a source map holds the source
+// of the code that it maps. JSON runs no code, so a source map that is
+// valid JSON passes. A style sheet has no fixed start, so it needs more
+// tokens, and it skips the tokens that CSS also writes: the :import("...")
+// of CSS Modules, the @function of Sass and a class name such as
+// .constructor.
 var textFormats = map[string]textFormat{
 	".svg": {name: "an SVG image", starts: []string{"<"}, tokens: 2},
-	".map": {name: "a source map", starts: []string{"{", ")]}'"}, tokens: 2},
+	".map": {name: "a source map", starts: []string{")]}'"}, json: true, tokens: 2},
 	".css": {name: "a style sheet", tokens: minTokens, legal: regexp.MustCompile(`^(import|function|constructor)`)},
 }
 
 // disguisedText finds a script in an SVG image, a style sheet or a source
 // map.
 func disguisedText(ext string, data []byte) []Signal {
-	if !text(data) {
+	runs, parsed := runsAsScript(data)
+	if !parsed {
+		runs = textScript(ext, data)
+	}
+	if !runs {
 		return nil
 	}
+	return []Signal{{ID: IDDisguisedScript, Line: 1, Title: fmt.Sprintf("The %s file holds a script, not %s", ext, textFormats[ext].name)}}
+}
+
+// textScript finds a script in a text asset with no JavaScript parser. A
+// file that starts as its format passes. An attacker can start a script as
+// an SVG image, so a build with CGO parses the file in place of this check.
+func textScript(ext string, data []byte) bool {
+	if !text(data) {
+		return false
+	}
 	f := textFormats[ext]
+	if f.json && json.Valid(data) {
+		return false
+	}
 	trimmed := bytes.TrimLeftFunc(bytes.TrimPrefix(data, []byte("\xEF\xBB\xBF")), unicode.IsSpace)
 	for _, s := range f.starts {
 		if bytes.HasPrefix(trimmed, []byte(s)) {
-			return nil
+			return false
 		}
 	}
-	if scriptTokens(data, f.legal) < f.tokens {
-		return nil
-	}
-	return []Signal{{ID: IDDisguisedScript, Line: 1, Title: fmt.Sprintf("The %s file holds a script, not %s", ext, f.name)}}
+	return scriptTokens(data, f.legal) >= f.tokens
 }
 
 // scriptTokens counts the script tokens of data, up to minTokens. It skips

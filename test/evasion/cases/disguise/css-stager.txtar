@@ -1,0 +1,4 @@
+# A short stager in a .css file that decodes and runs a payload
+want: disguised-script
+-- styles/theme.css --
+eval(atob("Y29uc29sZS5sb2coMSk="))

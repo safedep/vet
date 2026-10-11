@@ -16,9 +16,14 @@ detection, and commit the diff. See README.md.
 | `dynamic-no-shell`: Near miss: a command name built at run time with no pipe into a shell | `editor-task-command` | `editor-task-command` | passes | pass |
 | `echo-sh`: Near miss: echo piped to sh with no download | `editor-task-command` | `editor-task-command` | passes | pass |
 | `env-prefix`: A download piped to env sh | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
+| `eval-printf`: eval of a command that printf builds | `editor-task-command`, `suspicious-command` | `editor-task-command` | passes | miss: the walk does not run printf to read the text that eval gets |
 | `export-var`: A download piped to a shell in an exported variable | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
+| `function-wrapper`: A download by a shell function that wraps curl | `editor-task-command`, `suspicious-command` | `editor-task-command` | passes | miss: the walk does not read the body of a function at its call |
+| `glob-shell`: A download piped to /bin/ba?h, a glob that the shell expands | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
+| `here-string`: A shell that reads a download through a here-string | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `hook-download`: A git hook in .githooks that pipes a download to sh | `agent-hook-command`, `suspicious-command` | `agent-hook-command`, `suspicious-command` | fails | pass |
 | `ifs`: A download piped to sh, with ${IFS} in place of spaces | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
+| `login-shell`: A download piped to the login shell in $SHELL | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `nested-c`: A download piped to sh inside bash -c inside sh -c | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `node-font`: node runs a fake font | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `node-fromcharcode`: An inline node script that builds a payload from char codes | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
@@ -27,10 +32,16 @@ detection, and commit the diff. See README.md.
 | `padded-command`: A download after 80 spaces in the command | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `pipe-all`: A download piped to sh with \|& | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `printf-hex`: A download by a tool name that printf writes from hex | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
+| `process-subst`: A shell that reads a download through a process substitution | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `quote-split`: A download piped to s''h, with the shell name split by quotes | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
+| `source-subst`: source of a download through a process substitution | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `sudo-flags`: A download piped to sudo -u root -E bash | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `sudo-n`: A download piped to sudo -n bash, where -n takes no value | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
+| `sudo-s`: A download piped to sudo -s, which runs a shell | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `time-p`: A download piped to time -p sh | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
+| `timeout`: A download piped to timeout 30 sh | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
+| `tool-path`: Near miss: a tool at a run-time path writes shell code that a shell runs | `editor-task-command` | `editor-task-command` | passes | pass |
+| `two-step`: A download to a file by a redirect, then sh runs the file | `editor-task-command`, `suspicious-command` | `editor-task-command` | passes | miss: the patterns do not join a redirect to a file and a later run of the file |
 | `variable-shell`: A download piped to a shell in a variable | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `variable-tool`: A download by a tool name in a variable | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `wget-pipe-bash`: A download with wget piped to bash | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
@@ -43,7 +54,11 @@ detection, and commit the diff. See README.md.
 | `binary-header-hex`: The woff2 signature, binary header bytes and then a hex payload | `font-payload` | `font-payload` | passes | pass |
 | `binary-header-loader`: The woff2 signature, binary header bytes and then a loader with no strong token | `font-payload` | `font-payload` | passes | pass |
 | `cff-glyph-names`: Near miss: a font whose glyph names run with no separator, as in a CFF font | none | none | passes | pass |
+| `css-comment-example`: Near miss: a style sheet whose header comment shows how to load it | none | none | passes | pass |
+| `css-ie-expression`: Near miss: old IE style sheet hacks that call eval in expression() | none | none | passes | pass |
 | `css-modules`: Near miss: a CSS Modules sheet with :import rules and .constructor class names | none | none | passes | pass |
+| `css-nul-comment`: A script in a .css file with a NUL byte in a comment, so the file looks binary | `disguised-script` | `disguised-script` | fails | pass |
+| `css-stager`: A short stager in a .css file that decodes and runs a payload | `disguised-script` | `disguised-script` | fails | pass |
 | `css`: A script in a .css file | `disguised-script` | `disguised-script` | fails | pass |
 | `dict`: A script in a .dict file, one statement on each line | `disguised-script` | `disguised-script` | fails | pass |
 | `font-hex`: A hex payload in a .woff file with no script token | `disguised-script` | `disguised-script` | fails | pass |
@@ -51,13 +66,17 @@ detection, and commit the diff. See README.md.
 | `font-text`: A script in a .ttf file with no pad | `disguised-script` | `disguised-script` | fails | pass |
 | `fuzz-dict`: Near miss: a fuzz dictionary of JavaScript keywords | none | none | passes | pass |
 | `lfs-pointer`: Near miss: a Git LFS pointer in place of a font | none | none | passes | pass |
+| `linker-map`: Near miss: a linker map file with C++ symbols | none | none | passes | pass |
 | `magic-then-text`: The woff2 magic bytes and then a script, with no NUL byte | `disguised-script` | `disguised-script` | fails | pass |
 | `png-comment`: A .png file that starts with a JavaScript comment, which node runs | `disguised-script` | `disguised-script` | fails | pass |
 | `real-css`: Near miss: a style sheet with an embedded base64 font and a var() call | none | none | passes | pass |
 | `real-font`: Near miss: a font that starts with the woff2 signature and holds only binary data | none | none | passes | pass |
 | `real-source-map`: Near miss: a source map that holds the source of the code that it maps | none | none | passes | pass |
 | `sass-function`: Near miss: a style sheet with Sass functions | none | none | passes | pass |
+| `source-map-empty-object`: A script in a .map file that starts with {} | `disguised-script` | `disguised-script` | fails | pass |
 | `source-map`: A script in a .map file | `disguised-script` | `disguised-script` | fails | pass |
+| `svg-html-comment`: A script in a .svg file that starts with an HTML-like comment, which node reads as a comment | `disguised-script` | `disguised-script` | fails | pass |
+| `svg-in-xml-comment`: A script in an XML comment of a well-formed .svg file, which node runs | `disguised-script` | `disguised-script` | fails | pass |
 | `svg-script-element`: Near miss: an SVG image with a script element | none | none | passes | pass |
 | `svg`: A script in a .svg file | `disguised-script` | `disguised-script` | fails | pass |
 | `xssi-source-map`: Near miss: a source map with the XSSI prefix | none | none | passes | pass |
@@ -127,4 +146,4 @@ detection, and commit the diff. See README.md.
 | `polinrider-rewrite`: PolinRider: a script that amends the last commit, keeps its date and force-pushes it | `history-rewrite-script` | `history-rewrite-script` | fails | pass |
 | `polinrider-task`: PolinRider: a hidden folder-open task runs node on a fake font | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | fails | pass |
 
-Total: 94 cases, 94 pass, 0 fail, 0 known misses.
+Total: 113 cases, 110 pass, 0 fail, 3 known misses.
