@@ -1,0 +1,7 @@
+# Near miss: a style sheet with an embedded base64 font and a var() call
+want: none
+-- styles/app.css --
+@font-face { font-family: "X"; src: url(data:font/woff2;base64,{% repeat "d09GMgABAAAAA+/" 80 %}) format("woff2"); }
+:root { --gap: 4px; }
+.grid { display: grid; gap: var(--gap); }
+/*# sourceMappingURL=app.css.map */

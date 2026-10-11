@@ -22,9 +22,20 @@ func withDynamic(want ...string) []string {
 	return want
 }
 
+// reported drops the parts of a split payload, which give no finding alone.
+func reported(signals []Signal) []Signal {
+	var out []Signal
+	for _, s := range signals {
+		if s.ID != PayloadPart {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
 func ids(signals []Signal) []string {
 	var out []string
-	for _, s := range signals {
+	for _, s := range reported(signals) {
 		out = append(out, s.ID)
 	}
 	return out
@@ -225,7 +236,7 @@ func TestReadsAFontInFull(t *testing.T) {
 }
 
 func TestInvisibleSnippetHasNoPayload(t *testing.T) {
-	s := Analyze(Source, "src/index.js", []byte("const x = `"+selectors("payload")+"`;\n"))
+	s := reported(Analyze(Source, "src/index.js", []byte("const x = `"+selectors("payload")+"`;\n")))
 	require.Len(t, s, 1)
 	assert.Equal(t, "const x = ``;", s[0].Visible)
 }
@@ -335,4 +346,28 @@ func TestEncodedIsLinear(t *testing.T) {
 	start := time.Now()
 	assert.False(t, encoded(data))
 	assert.Less(t, time.Since(start), time.Second)
+}
+
+func TestPayloadPart(t *testing.T) {
+	cases := []struct {
+		name, data string
+		want       int
+	}{
+		{"part of a payload", "const x = `" + selectors("console.log(1)") + "`;\n", len("console.log(1)")},
+		{"too few to be a part", "const x = `" + selectors("abc") + "`;\n", 0},
+		{"a whole payload is no part", "const x = `" + selectors("console.log(1);console.log(2);") + "`;\n", 0},
+		{"emoji", "const x = '\u2764\ufe0f\u2600\ufe0f\u2b50\ufe0f\u2764\ufe0f';\n", 0},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := 0
+			for _, s := range Analyze(Source, "src/a.js", []byte(tc.data)) {
+				if s.ID == PayloadPart {
+					got = s.Payload
+					assert.Equal(t, "const x = ``;", s.Visible, "the snippet holds no payload")
+				}
+			}
+			assert.Equal(t, tc.want, got)
+		})
+	}
 }

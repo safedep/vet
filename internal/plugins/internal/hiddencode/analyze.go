@@ -25,6 +25,12 @@ const (
 	IDUnicodePayload   = "unicode-payload"
 	IDHistoryRewrite   = "history-rewrite-script"
 	IDDynamicCode      = "dynamic-code"
+	IDFontPayload      = "font-payload"
+	IDSplitPayload     = "split-unicode-payload"
+	// PayloadPart is a part of a payload in invisible characters that is
+	// too small to report alone. It is no control id. The hidden-code
+	// control adds the parts of the files of a scan.
+	PayloadPart = "unicode-payload-part"
 )
 
 // Signal is one sign of hidden code in a file.
@@ -38,6 +44,8 @@ type Signal struct {
 	Visible string
 	// Campaign names a known campaign whose markers the file holds.
 	Campaign string
+	// Payload is the count of invisible characters that carry a payload.
+	Payload int
 }
 
 // Open reads the part of a file of fsys that Analyze needs. See Read.
@@ -179,25 +187,43 @@ var strongToken = regexp.MustCompile(`require\s*\(\s*['"]|child_process|\beval\s
 // encoded reports a long run of hex or base64, as a hex payload that a
 // loader reads from a fake font. A loop counts the runs, because a
 // repeated regular expression is slow on a long near miss.
-func encoded(data []byte) bool {
-	hexRun, b64Run := 0, 0
+func encoded(data []byte) bool { return encodedRun(data, 0) }
+
+// minBinarySymbols is the fewest + and / of a base64 run in binary data. A
+// CFF font stores its glyph names with no separator, as uni4E00uni4E01, so
+// a run of letters and digits alone is not a payload there. A base64
+// payload of 512 bytes holds about 16 of them.
+const minBinarySymbols = 4
+
+// encodedRun reports a run of 256 hex digits, or of 512 base64 digits with
+// at least symbols of + and /.
+func encodedRun(data []byte, symbols int) bool {
+	hexRun, b64Run, sym := 0, 0, 0
 	for _, c := range data {
 		switch {
 		case c >= '0' && c <= '9', c >= 'a' && c <= 'f', c >= 'A' && c <= 'F':
 			hexRun++
 			b64Run++
-		case c >= 'g' && c <= 'z', c >= 'G' && c <= 'Z', c == '+', c == '/':
+		case c == '+', c == '/':
+			hexRun = 0
+			b64Run++
+			sym++
+		case c >= 'g' && c <= 'z', c >= 'G' && c <= 'Z':
 			hexRun = 0
 			b64Run++
 		default:
-			hexRun, b64Run = 0, 0
+			hexRun, b64Run, sym = 0, 0, 0
 		}
-		if hexRun >= 256 || b64Run >= 512 {
+		if hexRun >= 256 || (b64Run >= 512 && sym >= symbols) {
 			return true
 		}
 	}
 	return false
 }
+
+// minTokens is the fewest script tokens that make a script in a file that
+// can hold a stray one, such as compressed font data or a style sheet.
+const minTokens = 3
 
 // commentStart reports data that starts with a JavaScript comment or a
 // shebang. node runs such a file even with binary bytes in the comment, and
@@ -230,6 +256,9 @@ func disguised(p string, data []byte) []Signal {
 		return []Signal{{ID: IDDisguisedScript, Line: line, Title: title}}
 	}
 	kind := assetOf(p)
+	if kind == textAsset {
+		return disguisedText(ext, data)
+	}
 	if kind == words {
 		if !text(data) {
 			return nil
@@ -256,8 +285,13 @@ func disguised(p string, data []byte) []Signal {
 		return nil
 	}
 	if !text(data) {
-		if (kind == font && strongToken.Match(data)) || (commentStart(data) && scriptToken.Match(data)) {
+		switch {
+		case (kind == font && strongToken.Match(data)) || (commentStart(data) && scriptToken.Match(data)):
 			return sig(1, fmt.Sprintf("The %s file holds script code after its binary header", ext))
+		case kind == font && len(scriptToken.FindAllIndex(data, minTokens)) >= minTokens:
+			return []Signal{{ID: IDFontPayload, Line: 1, Title: fmt.Sprintf("The %s file holds script tokens after its binary header", ext)}}
+		case kind == font && encodedRun(data, minBinarySymbols):
+			return []Signal{{ID: IDFontPayload, Line: 1, Title: fmt.Sprintf("The %s file holds an encoded payload after its binary header", ext)}}
 		}
 		return nil
 	}
@@ -277,6 +311,41 @@ func disguised(p string, data []byte) []Signal {
 		title += fmt.Sprintf(", after %d leading spaces and tabs", lead)
 	}
 	return sig(1, title)
+}
+
+// textFormats name the text asset types and the start of their format. A
+// file that starts so is in its format: an SVG with a script element is a
+// legal image, and a source map holds the source of the code that it maps.
+var textFormats = map[string]struct {
+	name   string
+	starts []string
+}{
+	".svg": {"an SVG image", []string{"<"}},
+	".map": {"a source map", []string{"{", ")]}'"}},
+	".css": {"a style sheet", nil},
+}
+
+// disguisedText finds a script in an SVG image, a style sheet or a source
+// map. A style sheet has no fixed start, so it needs more script tokens.
+func disguisedText(ext string, data []byte) []Signal {
+	if !text(data) {
+		return nil
+	}
+	f := textFormats[ext]
+	trimmed := bytes.TrimLeftFunc(bytes.TrimPrefix(data, []byte("\xEF\xBB\xBF")), unicode.IsSpace)
+	for _, s := range f.starts {
+		if bytes.HasPrefix(trimmed, []byte(s)) {
+			return nil
+		}
+	}
+	need := 2
+	if f.starts == nil {
+		need = minTokens
+	}
+	if len(scriptToken.FindAllIndex(data, need)) < need {
+		return nil
+	}
+	return []Signal{{ID: IDDisguisedScript, Line: 1, Title: fmt.Sprintf("The %s file holds a script, not %s", ext, f.name)}}
 }
 
 // minPad is the shortest run of white space that hides code. The
@@ -472,9 +541,13 @@ const (
 	// minRun is the shortest run of invisible characters that hides text.
 	// An emoji sequence uses at most two in a row.
 	minRun = 4
-	// minPayload is the fewest selectors with no base character, or tags
-	// outside a flag emoji, that carry a payload. Real text has none.
-	minPayload = 16
+	// MinPayload is the fewest selectors with no base character, or tags
+	// outside a flag emoji, that carry a payload. Real text has none. The
+	// parts of a payload that files split count to it too.
+	MinPayload = 16
+	// minPart is the fewest payload characters of a part. A file with
+	// fewer gives no part, so stray selectors in text add nothing.
+	minPart = 4
 	// blackFlag starts a subdivision flag emoji, such as the flag of
 	// England, which spells its region in tag characters.
 	blackFlag = 0x1F3F4
@@ -552,15 +625,18 @@ func invisible(p string, data []byte) []Signal {
 		longestLine, longest = start, cur
 	}
 	var out []Signal
-	if payload >= minPayload {
+	if payload >= MinPayload {
 		title := fmt.Sprintf("The file hides a payload in %d invisible characters, from line %d", payload, payloadLine)
 		if decoder.Match(data) {
 			title += ", and holds a decoder"
 		}
-		return append(out, Signal{ID: IDUnicodePayload, Line: payloadLine, Title: title, Visible: visibleLine(data, payloadLine)})
+		return append(out, Signal{ID: IDUnicodePayload, Line: payloadLine, Title: title, Visible: visibleLine(data, payloadLine), Payload: payload})
+	}
+	if payload >= minPart {
+		out = append(out, Signal{ID: PayloadPart, Line: payloadLine, Visible: visibleLine(data, payloadLine), Payload: payload})
 	}
 	if built {
-		return nil
+		return out
 	}
 	if longest >= minRun {
 		out = append(out, Signal{

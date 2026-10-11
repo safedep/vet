@@ -1,0 +1,7 @@
+# Near miss: an SVG image with a script element
+want: none
+-- public/chart.svg --
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">
+  <script>var n = document.querySelectorAll('rect').length; console.log(n);</script>
+  <rect width="10" height="10"/>
+</svg>

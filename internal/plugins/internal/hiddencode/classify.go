@@ -69,6 +69,9 @@ const (
 	font
 	// words is a text file of one word on each line, such as a dictionary.
 	words
+	// textAsset is a text format that holds no script: an SVG image, a
+	// style sheet or a source map. A task can still run one with node.
+	textAsset
 )
 
 // assetExts are the asset types, by extension, with their kind.
@@ -76,6 +79,7 @@ var assetExts = map[string]assetKind{
 	".woff": font, ".woff2": font, ".ttf": font, ".otf": font, ".eot": font,
 	".png": image, ".jpg": image, ".jpeg": image, ".gif": image, ".ico": image, ".bmp": image, ".webp": image,
 	".dict": words, ".llf": words,
+	".svg": textAsset, ".css": textAsset, ".map": textAsset,
 }
 
 // AssetExts returns the extensions of the asset types, such as ".woff2",

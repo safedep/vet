@@ -29,9 +29,11 @@ to its section.
 | [`agent-config-unreadable`](#agent-config-unreadable) | agent-config | high | Agent or editor config that vet cannot read |
 | [`dependency-cooldown`](#dependency-cooldown) | cooldown | high | Version inside the cooldown window |
 | [`padded-code`](#padded-code) | hidden-code | critical | Script hidden after a run of spaces |
-| [`disguised-script`](#disguised-script) | hidden-code | critical | Script in a font, image or dictionary file |
+| [`disguised-script`](#disguised-script) | hidden-code | critical | Script in a font, image, dictionary, style sheet or source map |
 | [`unicode-payload`](#unicode-payload) | hidden-code | critical | Payload in invisible Unicode characters |
 | [`dynamic-code`](#dynamic-code) | hidden-code | high | Build config or npm entry script that runs dynamic code |
+| [`font-payload`](#font-payload) | hidden-code | high | Encoded payload or script tokens in a binary font |
+| [`split-unicode-payload`](#split-unicode-payload) | hidden-code | high | Payload in invisible Unicode characters split across files |
 | [`invisible-unicode`](#invisible-unicode) | hidden-code | high | Invisible Unicode characters |
 | [`history-rewrite-script`](#history-rewrite-script) | hidden-code | critical | Script that rewrites the git history |
 | [`install-scripts-added`](#install-scripts-added) | hygiene | high | New dependency with install scripts |
@@ -260,9 +262,9 @@ A source file, a build config or an npm entry script holds a script after a long
 
 ### disguised-script
 
-**Script in a font, image or dictionary file.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
+**Script in a font, image, dictionary, style sheet or source map.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
 
-A file with the name of a font, an image or a dictionary holds a script. A task or a loader runs it with node, so the folder looks like it holds only assets. Contagious Interview repositories ship such a fake font.
+A file with the name of a font, an image, a dictionary, an SVG image, a style sheet or a source map holds a script. A task or a loader runs it with node, so the folder looks like it holds only assets. Contagious Interview repositories ship such a fake font. An SVG that starts as XML and a source map that starts as JSON are in their format and give no finding.
 
 ### unicode-payload
 
@@ -275,6 +277,18 @@ A file holds 16 or more variation selectors with no base character, or tag chara
 **Build config or npm entry script that runs dynamic code.** Family `hidden-code`. Default severity high. Plugin `hidden-code`.
 
 A build config or an npm entry script calls eval or the Function constructor, runs code with the vm module, loads a module by a name that it builds at run time, puts require on the global object, or starts a process with a command that it builds at run time. A config only declares settings, and a loader needs one of these to run its payload. vet reads the syntax tree, so a renamed require or a string table does not hide it. A build with no CGO skips the check.
+
+### font-payload
+
+**Encoded payload or script tokens in a binary font.** Family `hidden-code`. Default severity high. Plugin `hidden-code`.
+
+A font holds a long run of hex or base64, or several script tokens, after its binary header. node cannot run such a file, but a loader can read a payload from it. The control warns until a false-positive run on real fonts shows that it can fail the attacks gate.
+
+### split-unicode-payload
+
+**Payload in invisible Unicode characters split across files.** Family `hidden-code`. Default severity high. Plugin `hidden-code`.
+
+Files that each hold 4 or more variation selectors with no base character, or tag characters outside a flag emoji, hold 16 or more together. A loader can read a payload from several files, each one under the limit of one file. The control warns until a false-positive run shows that it can fail the attacks gate.
 
 ### invisible-unicode
 

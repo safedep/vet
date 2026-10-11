@@ -1,0 +1,6 @@
+# A payload in variation selectors split across two files, with a letter before each selector so no file has a run
+want: split-unicode-payload
+-- src/a.js --
+export const a = "{% range $c := chars "console.log(" %}x{% selectors $c %}{% end %}";
+-- src/b.js --
+export const b = "{% range $c := chars "1);done;" %}x{% selectors $c %}{% end %}";

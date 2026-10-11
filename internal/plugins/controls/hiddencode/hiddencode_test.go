@@ -1,6 +1,7 @@
 package hiddencode_test
 
 import (
+	"context"
 	"fmt"
 	"slices"
 	"strings"
@@ -66,4 +67,50 @@ func TestCampaignInTheTitle(t *testing.T) {
 	i := slices.IndexFunc(fs, func(f finding.Finding) bool { return f.ControlID == "padded-code" })
 	require.GreaterOrEqual(t, i, 0)
 	assert.Equal(t, fmt.Sprintf("Code continues on line 1 after 280 spaces, with %d bytes off screen. It matches PolinRider", len("global['_V']='8-st14';"+js)), fs[i].Title)
+}
+
+func hide(s string) string {
+	var b strings.Builder
+	for _, c := range []byte(s) {
+		b.WriteRune(0xE0100 + rune(c) - 16)
+	}
+	return b.String()
+}
+
+func TestSplitPayload(t *testing.T) {
+	cases := []struct {
+		name  string
+		files map[string]string
+		want  []string
+	}{
+		{"two parts over the limit", map[string]string{"src/a.js": "x" + hide("console.log("), "src/b.js": "x" + hide("1);done;")}, []string{"src/a.js", "src/b.js"}},
+		{"two parts under the limit", map[string]string{"src/a.js": "x" + hide("conso"), "src/b.js": "x" + hide("le.lo")}, nil},
+		{"one part", map[string]string{"src/a.js": "x" + hide("console.log(1)")}, nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, err := hiddencode.New(plugin.MapConfig(nil))
+			require.NoError(t, err)
+			root := fstest.MapFS{}
+			for p, data := range tc.files {
+				root[p] = &fstest.MapFile{Data: []byte("const s = '" + data + "';\n")}
+			}
+			for p := range tc.files {
+				_, err := c.Evaluate(context.Background(), &model.Manifest{ID: p, Path: p, Kind: model.ManifestKindFile, Root: root}, nil)
+				require.NoError(t, err)
+			}
+			fs, err := c.(plugin.ApplicationControl).EvaluateApplication(context.Background(), nil)
+			require.NoError(t, err)
+			var got []string
+			for _, f := range fs {
+				assert.Equal(t, "split-unicode-payload", f.ControlID)
+				assert.NotContains(t, f.Locus.Snippet, "\U000E0100")
+				got = append(got, f.Subject.File.Path)
+			}
+			assert.Equal(t, tc.want, got)
+			again, err := c.(plugin.ApplicationControl).EvaluateApplication(context.Background(), nil)
+			require.NoError(t, err)
+			assert.Empty(t, again, "the next scan starts with no parts")
+		})
+	}
 }

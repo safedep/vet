@@ -1,0 +1,6 @@
+# Near miss: two files with 3 stray selectors each
+want: none
+-- src/a.js --
+export const a = "a{% "\ufe0f" %}b{% "\ufe0f" %}c{% "\ufe0f" %}";
+-- src/b.js --
+export const b = "a{% "\ufe0f" %}b{% "\ufe0f" %}c{% "\ufe0f" %}";

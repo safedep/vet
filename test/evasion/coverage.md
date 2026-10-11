@@ -37,9 +37,10 @@ detection, and commit the diff. See README.md.
 | Case | Expected | Actual | Result |
 | --- | --- | --- | --- |
 | `binary-header-eval`: The woff2 signature, binary header bytes and then a script that decodes and runs a payload | `disguised-script` | `disguised-script` | pass |
-| `binary-header-hex`: The woff2 signature, binary header bytes and then a hex payload | `disguised-script` | none | miss: vet reads a binary font only for strong script tokens, not for an encoded payload |
-| `binary-header-loader`: The woff2 signature, binary header bytes and then a loader with no strong token | `disguised-script` | none | miss: vet reads a binary font only for strong script tokens |
-| `css`: A script in a .css file | `disguised-script` | none | miss: vet does not read .css files for hidden code |
+| `binary-header-hex`: The woff2 signature, binary header bytes and then a hex payload | `font-payload` | `font-payload` | pass |
+| `binary-header-loader`: The woff2 signature, binary header bytes and then a loader with no strong token | `font-payload` | `font-payload` | pass |
+| `cff-glyph-names`: Near miss: a font whose glyph names run with no separator, as in a CFF font | none | none | pass |
+| `css`: A script in a .css file | `disguised-script` | `disguised-script` | pass |
 | `dict`: A script in a .dict file, one statement on each line | `disguised-script` | `disguised-script` | pass |
 | `font-hex`: A hex payload in a .woff file with no script token | `disguised-script` | `disguised-script` | pass |
 | `font-tabs`: A script after 273 tabs in a .woff2 file | `disguised-script` | `disguised-script` | pass |
@@ -48,9 +49,13 @@ detection, and commit the diff. See README.md.
 | `lfs-pointer`: Near miss: a Git LFS pointer in place of a font | none | none | pass |
 | `magic-then-text`: The woff2 magic bytes and then a script, with no NUL byte | `disguised-script` | `disguised-script` | pass |
 | `png-comment`: A .png file that starts with a JavaScript comment, which node runs | `disguised-script` | `disguised-script` | pass |
+| `real-css`: Near miss: a style sheet with an embedded base64 font and a var() call | none | none | pass |
 | `real-font`: Near miss: a font that starts with the woff2 signature and holds only binary data | none | none | pass |
-| `source-map`: A script in a .map file | `disguised-script` | none | miss: vet does not read .map files for hidden code |
-| `svg`: A script in a .svg file | `disguised-script` | none | miss: vet does not read .svg files for hidden code |
+| `real-source-map`: Near miss: a source map that holds the source of the code that it maps | none | none | pass |
+| `source-map`: A script in a .map file | `disguised-script` | `disguised-script` | pass |
+| `svg-script-element`: Near miss: an SVG image with a script element | none | none | pass |
+| `svg`: A script in a .svg file | `disguised-script` | `disguised-script` | pass |
+| `xssi-source-map`: Near miss: a source map with the XSSI prefix | none | none | pass |
 
 ## padding
 
@@ -95,8 +100,10 @@ detection, and commit the diff. See README.md.
 | `emoji`: Near miss: emoji with variation selectors, and a keycap | none | none | pass |
 | `flag`: Near miss: the flag of England, which spells its region in tag characters | none | none | pass |
 | `rtl-instructions`: Near miss: an agent instruction file with one right-to-left mark gives no Unicode finding | `agent-instruction-change` | `agent-instruction-change` | pass |
+| `selectors-few-split`: Near miss: two files with 3 stray selectors each | none | none | pass |
 | `selectors-no-decoder`: A payload in 30 variation selectors with no decoder in the file | `unicode-payload` | `unicode-payload` | pass |
-| `selectors-split-files`: A payload in variation selectors, split across two files of 15 each | `unicode-payload` | `invisible-unicode` | miss: vet counts the payload in each file, and each file holds 15 selectors |
+| `selectors-split-files`: A payload in variation selectors, split across two files of 15 each | `invisible-unicode`, `split-unicode-payload` | `invisible-unicode`, `split-unicode-payload` | pass |
+| `selectors-split-spread`: A payload in variation selectors split across two files, with a letter before each selector so no file has a run | `split-unicode-payload` | `split-unicode-payload` | pass |
 | `selectors-spread`: A payload in variation selectors, one on each line | `unicode-payload` | `unicode-payload` | pass |
 | `selectors`: A payload in 30 variation selectors after ASCII, with a decoder | `unicode-payload` | `unicode-payload` | pass |
 | `tags-in-instructions`: Hidden text in tag characters in an agent instruction file | `agent-instruction-change`, `unicode-payload` | `agent-instruction-change`, `unicode-payload` | pass |
@@ -115,4 +122,4 @@ detection, and commit the diff. See README.md.
 | `polinrider-rewrite`: PolinRider: a script that amends the last commit, keeps its date and force-pushes it | `history-rewrite-script` | `history-rewrite-script` | pass |
 | `polinrider-task`: PolinRider: a hidden folder-open task runs node on a fake font | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | pass |
 
-Total: 82 cases, 76 pass, 0 fail, 6 known misses.
+Total: 89 cases, 89 pass, 0 fail, 0 known misses.

@@ -42,7 +42,7 @@ var suspicious = []pattern{
 // the files that node must not run: the assets that the hidden-code
 // controls check, and other data files.
 func notScripts() string {
-	exts := []string{"svg", "txt", "css", "map", "dat", "bin"}
+	exts := []string{"txt", "dat", "bin"}
 	for _, e := range hiddencode.AssetExts() {
 		exts = append(exts, regexp.QuoteMeta(strings.TrimPrefix(e, ".")))
 	}

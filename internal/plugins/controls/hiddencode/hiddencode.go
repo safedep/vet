@@ -9,6 +9,8 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"strings"
+	"sync"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/plugins/internal/hiddencode"
@@ -24,7 +26,18 @@ const Name = "hidden-code"
 type Options struct{}
 
 // Control evaluates the files that can hide code.
-type Control struct{}
+type Control struct {
+	mu sync.Mutex
+	// parts are the parts of split payloads that Evaluate found in this
+	// scan. EvaluateApplication adds them and clears the list.
+	parts []part
+}
+
+// part is a part of a payload in invisible characters in one file.
+type part struct {
+	path string
+	s    hiddencode.Signal
+}
 
 // New builds the control.
 func New(cfg plugin.Config) (plugin.Control, error) {
@@ -54,8 +67,8 @@ var controls = []control{
 	{
 		plugin.ControlInfo{
 			ID: hiddencode.IDDisguisedScript, Family: finding.FamilyHiddenCode, Severity: finding.SeverityCritical,
-			Title:       "Script in a font, image or dictionary file",
-			Description: "A file with the name of a font, an image or a dictionary holds a script. A task or a loader runs it with node, so the folder looks like it holds only assets. Contagious Interview repositories ship such a fake font.",
+			Title:       "Script in a font, image, dictionary, style sheet or source map",
+			Description: "A file with the name of a font, an image, a dictionary, an SVG image, a style sheet or a source map holds a script. A task or a loader runs it with node, so the folder looks like it holds only assets. Contagious Interview repositories ship such a fake font. An SVG that starts as XML and a source map that starts as JSON are in their format and give no finding.",
 			Attack:      true,
 		},
 		"Do not open the folder in an editor or run it. Remove the file, find what runs it, and check the machines that opened the folder.",
@@ -76,6 +89,22 @@ var controls = []control{
 			Description: "A build config or an npm entry script calls eval or the Function constructor, runs code with the vm module, loads a module by a name that it builds at run time, puts require on the global object, or starts a process with a command that it builds at run time. A config only declares settings, and a loader needs one of these to run its payload. vet reads the syntax tree, so a renamed require or a string table does not hide it. A build with no CGO skips the check.",
 		},
 		"Read the code at the line. Remove it if the config does not need it, and restore the file from a clean commit if you did not write it.",
+	},
+	{
+		plugin.ControlInfo{
+			ID: hiddencode.IDFontPayload, Family: finding.FamilyHiddenCode, Severity: finding.SeverityHigh,
+			Title:       "Encoded payload or script tokens in a binary font",
+			Description: "A font holds a long run of hex or base64, or several script tokens, after its binary header. node cannot run such a file, but a loader can read a payload from it. The control warns until a false-positive run on real fonts shows that it can fail the attacks gate.",
+		},
+		"Compare the font with the file from its publisher. Remove it if it differs, and find the code that reads it.",
+	},
+	{
+		plugin.ControlInfo{
+			ID: hiddencode.IDSplitPayload, Family: finding.FamilyHiddenCode, Severity: finding.SeverityHigh,
+			Title:       "Payload in invisible Unicode characters split across files",
+			Description: "Files that each hold 4 or more variation selectors with no base character, or tag characters outside a flag emoji, hold 16 or more together. A loader can read a payload from several files, each one under the limit of one file. The control warns until a false-positive run shows that it can fail the attacks gate.",
+		},
+		"Show the files with the invisible characters visible. Remove the characters and the code that reads them.",
 	},
 	{
 		plugin.ControlInfo{
@@ -112,8 +141,63 @@ func (*Control) Controls() []plugin.ControlInfo { return infos }
 func (*Control) OptionsSchema() []byte { return optschema.Of(&Options{}) }
 
 // Evaluate reads the file of the manifest and reports each sign of hidden
-// code.
-func (*Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State) ([]finding.Finding, error) {
+// code. A part of a split payload waits for EvaluateApplication.
+func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State) ([]finding.Finding, error) {
+	signals, err := signalsOf(m)
+	if err != nil {
+		return nil, err
+	}
+	seen := map[string]int{}
+	var out []finding.Finding
+	for _, s := range signals {
+		if s.ID == hiddencode.PayloadPart {
+			c.mu.Lock()
+			c.parts = append(c.parts, part{m.Path, s})
+			c.mu.Unlock()
+			continue
+		}
+		title := s.Title
+		if s.Campaign != "" {
+			title += ". It matches " + s.Campaign
+		}
+		out = append(out, fileFinding(m.Path, s, title, seen))
+	}
+	return out, nil
+}
+
+// EvaluateApplication adds the parts of a payload in invisible characters
+// across the files of the scan. A loader can read a payload from several
+// files, each one under the limit of one file. When the parts reach the
+// limit, each file that holds a part gets a finding. The engine keeps no
+// file system for a stored manifest, so Evaluate collects the parts.
+// known gap: a scan that continues after a stop has no parts of the files
+// that it evaluated before the stop. The next full scan finds them.
+func (c *Control) EvaluateApplication(context.Context, plugin.State) ([]finding.Finding, error) {
+	c.mu.Lock()
+	parts := c.parts
+	c.parts = nil
+	c.mu.Unlock()
+	total := 0
+	for _, p := range parts {
+		total += p.s.Payload
+	}
+	if len(parts) < 2 || total < hiddencode.MinPayload {
+		return nil, nil
+	}
+	slices.SortFunc(parts, func(a, b part) int { return strings.Compare(a.path, b.path) })
+	out := make([]finding.Finding, 0, len(parts))
+	for _, p := range parts {
+		s := p.s
+		s.ID = hiddencode.IDSplitPayload
+		title := fmt.Sprintf("The file holds %d of the %d invisible characters of a payload that %d files split, from line %d", s.Payload, total, len(parts), s.Line)
+		out = append(out, fileFinding(p.path, s, title, map[string]int{}))
+	}
+	return out, nil
+}
+
+// signalsOf reads the file of a manifest and returns its signs of hidden
+// code. A manifest of another kind gives none.
+func signalsOf(m *model.Manifest) ([]hiddencode.Signal, error) {
 	if m.Kind != model.ManifestKindFile || m.Root == nil {
 		return nil, nil
 	}
@@ -125,26 +209,23 @@ func (*Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State) (
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", m.Path, err)
 	}
-	seen := map[string]int{}
-	var out []finding.Finding
-	for _, s := range hiddencode.Analyze(c, m.Path, data) {
-		info := controlOf(s.ID)
-		title := s.Title
-		if s.Campaign != "" {
-			title += ". It matches " + s.Campaign
-		}
-		k := s.ID + "\x00" + finding.NormalizeSnippet(s.Visible)
-		occ := seen[k]
-		seen[k]++
-		f := finding.ForFile(finding.Meta{
-			ControlID: s.ID, Family: info.Family, Severity: info.Severity, Confidence: finding.ConfidenceHigh,
-			Title: title, Description: info.Description,
-		}, finding.Locus{Path: m.Path, StartLine: s.Line, EndLine: s.Line, Snippet: s.Visible},
-			finding.Key{Discriminator: s.ID, Occurrence: occ})
-		f.Remediation = &finding.Remediation{Summary: info.remediation}
-		out = append(out, f)
-	}
-	return out, nil
+	return hiddencode.Analyze(c, m.Path, data), nil
+}
+
+// fileFinding returns the finding of a signal on a file. seen counts the
+// signals of one id and snippet, so that each one has its own id.
+func fileFinding(path string, s hiddencode.Signal, title string, seen map[string]int) finding.Finding {
+	info := controlOf(s.ID)
+	k := s.ID + "\x00" + finding.NormalizeSnippet(s.Visible)
+	occ := seen[k]
+	seen[k]++
+	f := finding.ForFile(finding.Meta{
+		ControlID: s.ID, Family: info.Family, Severity: info.Severity, Confidence: finding.ConfidenceHigh,
+		Title: title, Description: info.Description,
+	}, finding.Locus{Path: path, StartLine: s.Line, EndLine: s.Line, Snippet: s.Visible},
+		finding.Key{Discriminator: s.ID, Occurrence: occ})
+	f.Remediation = &finding.Remediation{Summary: info.remediation}
+	return f
 }
 
 // controlOf returns the control of the id of a signal. A test keeps each
