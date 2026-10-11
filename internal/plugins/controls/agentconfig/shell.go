@@ -19,7 +19,17 @@ const (
 // shellNames are the shells that run the text on their input or in -c.
 var shellNames = map[string]bool{
 	"sh": true, "bash": true, "zsh": true, "dash": true, "ksh": true,
+	"fish": true, "csh": true, "tcsh": true,
 	"cmd": true, "powershell": true, "pwsh": true,
+}
+
+// sources run a script file in the current shell, as in source <(curl x).
+var sources = map[string]bool{"source": true, ".": true}
+
+// downloaders fetch a file from the network.
+var downloaders = map[string]bool{
+	"curl": true, "wget": true, "iwr": true, "irm": true,
+	"invoke-webrequest": true, "invoke-restmethod": true,
 }
 
 // wrappers run the command that follows their own options, as in
@@ -27,39 +37,73 @@ var shellNames = map[string]bool{
 var wrappers = map[string]bool{
 	"env": true, "sudo": true, "doas": true, "exec": true, "command": true,
 	"nohup": true, "nice": true, "time": true, "busybox": true,
+	"timeout": true, "setsid": true, "stdbuf": true, "xargs": true,
 }
 
 // wrapperValueFlags are the options of each wrapper that take the next
 // word, as in sudo -u root sh. The same letter takes no word in another
 // wrapper: sudo -n sh is not sudo with the user sh.
 var wrapperValueFlags = map[string]map[string]bool{
-	"env":  {"-u": true, "-C": true, "-S": true},
-	"sudo": {"-u": true, "-g": true, "-C": true, "-p": true, "-U": true, "-h": true, "-D": true, "-R": true, "-T": true},
-	"doas": {"-u": true, "-C": true},
-	"exec": {"-a": true},
-	"nice": {"-n": true},
+	"env":     {"-u": true, "-C": true, "-S": true},
+	"sudo":    {"-u": true, "-g": true, "-C": true, "-p": true, "-U": true, "-h": true, "-D": true, "-R": true, "-T": true},
+	"doas":    {"-u": true, "-C": true},
+	"exec":    {"-a": true},
+	"nice":    {"-n": true},
+	"timeout": {"-s": true, "-k": true},
+	"stdbuf":  {"-i": true, "-o": true, "-e": true},
+	"xargs":   {"-I": true, "-L": true, "-n": true, "-P": true, "-d": true, "-E": true, "-s": true, "-a": true},
 }
+
+// wrapperArgs are the words that a wrapper takes after its options, as the
+// duration of timeout 30 sh.
+var wrapperArgs = map[string]int{"timeout": 1}
+
+// shellFlags make sudo run a shell, as in curl x | sudo -s.
+var shellFlags = map[string]bool{"-s": true, "-i": true}
 
 // shellForms parses a command as a shell script and returns each statement
 // in the plain form that the patterns read. The form removes quotes and
 // escapes, reads the base name of a command path, drops wrappers such as env
 // and sudo, puts in the value of a variable that the script sets to a
-// constant, and adds the script of sh -c. So "S=sh; curl x | $S" gives
-// "curl x | sh". dynamic reports a pipeline into a shell whose first command
-// name the shell builds at run time, as in $(printf '\x63url') x | sh. A
-// command that does not parse gives no form.
+// constant, and adds the script of sh -c and of a here-document. A shell
+// that reads a substitution gives a pipe: sh < <(curl x) gives
+// "curl x | sh". So "S=sh; curl x | $S" gives "curl x | sh". dynamic
+// reports a pipeline into a shell from a command whose name the shell
+// builds at run time, as in $(printf '\x63url') x | sh, or a pipeline from
+// a download into such a command, as in curl x | $SHELL. A command that
+// does not parse gives no form.
 func shellForms(text string) (forms []string, dynamic bool) {
-	w := shellWalk{vars: map[string]string{}}
+	w := shellWalk{vars: varEnv{}}
 	w.script(text)
 	return w.forms, w.dynamic
 }
 
 type shellWalk struct {
 	src     string
-	vars    map[string]string
+	vars    varEnv
 	forms   []string
 	dynamic bool
 	depth   int
+}
+
+// varEnv holds the variables that the script sets to a constant. It reads
+// the map in place, so a script of many settings stays linear.
+type varEnv map[string]string
+
+func (e varEnv) Get(name string) expand.Variable {
+	v, ok := e[name]
+	if !ok {
+		return expand.Variable{}
+	}
+	return expand.Variable{Set: true, Kind: expand.String, Str: v}
+}
+
+func (e varEnv) Each(f func(string, expand.Variable) bool) {
+	for k := range e {
+		if !f(k, e.Get(k)) {
+			return
+		}
+	}
 }
 
 func (w *shellWalk) script(text string) {
@@ -83,23 +127,17 @@ func (w *shellWalk) script(text string) {
 func (w *shellWalk) stmt(st *syntax.Stmt) string {
 	switch c := st.Cmd.(type) {
 	case *syntax.CallExpr:
-		return w.call(c)
+		return w.call(st, c)
 	case *syntax.DeclClause:
 		for _, a := range c.Args {
 			w.assign(a)
 		}
 		return ""
 	case *syntax.BinaryCmd:
-		x, y := w.stmt(c.X), w.stmt(c.Y)
-		if (c.Op == syntax.Pipe || c.Op == syntax.PipeAll) && w.dynamicInto(c) {
-			w.dynamic = true
+		if isPipe(c.Op) {
+			return w.pipe(pipeline(c))
 		}
-		op := c.Op.String()
-		if c.Op == syntax.PipeAll {
-			// |& is a pipe that also sends stderr. The patterns read |.
-			op = "|"
-		}
-		return strings.TrimSpace(x + " " + op + " " + y)
+		return strings.TrimSpace(w.stmt(c.X) + " " + c.Op.String() + " " + w.stmt(c.Y))
 	case *syntax.TimeClause:
 		if c.Stmt == nil {
 			return ""
@@ -145,7 +183,7 @@ func (w *shellWalk) assign(a *syntax.Assign) {
 	delete(w.vars, a.Name.Value)
 }
 
-func (w *shellWalk) call(c *syntax.CallExpr) string {
+func (w *shellWalk) call(st *syntax.Stmt, c *syntax.CallExpr) string {
 	if len(c.Args) == 0 {
 		for _, a := range c.Assigns {
 			w.assign(a)
@@ -159,14 +197,74 @@ func (w *shellWalk) call(c *syntax.CallExpr) string {
 	if known && shellNames[words[0]] {
 		for i := 1; i+1 < len(words); i++ {
 			if shellScriptFlag(words[i]) {
-				w.depth++
-				w.script(words[i+1])
-				w.depth--
+				w.nested(words[i+1])
 				break
 			}
 		}
 	}
+	if known && (shellNames[words[0]] || sources[words[0]]) {
+		w.feeds(st, c, words[0])
+	}
 	return strings.Join(words, " ")
+}
+
+func (w *shellWalk) nested(script string) {
+	w.depth++
+	w.script(script)
+	w.depth--
+}
+
+// feeds reads the scripts that a shell gets from a redirect or a process
+// substitution: sh < <(curl x), bash <<< "$(curl x)", source <(curl x) and
+// a here-document. A substitution gives the form "curl x | sh".
+func (w *shellWalk) feeds(st *syntax.Stmt, c *syntax.CallExpr, shell string) {
+	for _, r := range st.Redirs {
+		if r.Hdoc != nil {
+			w.nested(w.hereDoc(r))
+			continue
+		}
+		w.substitutions(r.Word, shell, true)
+	}
+	for _, a := range c.Args[1:] {
+		w.substitutions(a, shell, false)
+	}
+}
+
+// hereDoc returns the body of a here-document. The node ends after the
+// closing word, so the last line goes.
+func (w *shellWalk) hereDoc(r *syntax.Redirect) string {
+	body := strings.TrimRight(w.source(r.Hdoc), "\n")
+	if i := strings.LastIndexByte(body, '\n'); i >= 0 && strings.TrimSpace(body[i+1:]) == w.delimiter(r.Word) {
+		return body[:i]
+	}
+	return body
+}
+
+// substitutions adds a form for each process substitution of a word, and
+// for each command substitution too when cmd is true. A command
+// substitution in an argument is a value, not a script.
+func (w *shellWalk) substitutions(word *syntax.Word, shell string, cmd bool) {
+	if word == nil {
+		return
+	}
+	syntax.Walk(word, func(n syntax.Node) bool {
+		var stmts []*syntax.Stmt
+		switch x := n.(type) {
+		case *syntax.ProcSubst:
+			stmts = x.Stmts
+		case *syntax.CmdSubst:
+			if !cmd {
+				return false
+			}
+			stmts = x.Stmts
+		default:
+			return true
+		}
+		if form := w.list(stmts); form != "" {
+			w.forms = append(w.forms, form+" | "+shell)
+		}
+		return false
+	})
 }
 
 // command returns the words of a call with no wrappers. known reports that
@@ -187,11 +285,37 @@ func (w *shellWalk) command(c *syntax.CallExpr) (words []string, known bool) {
 	if len(rest) == 0 {
 		return nil, false
 	}
-	known = plain[len(words)-len(rest)]
-	if known {
+	i := len(words) - len(rest)
+	switch {
+	case i == len(words):
+		return rest, true
+	case plain[i]:
 		rest[0] = commandName(rest[0])
+		// The shell expands a glob or a brace in a command name, as in
+		// /bin/ba?h, so the name is not known.
+		known = !strings.ContainsAny(rest[0], "*?[{")
+	default:
+		// A run-time path to a named tool, as in $HOME/bin/tool, names
+		// the tool.
+		if base, ok := literalBase(c.Args[i]); ok {
+			rest[0], known = commandName(base), true
+		}
 	}
 	return rest, known
+}
+
+// literalBase returns the base name of a command path whose last part is
+// plain text after a slash, as tool for $(go env GOPATH)/bin/tool.
+func literalBase(word *syntax.Word) (string, bool) {
+	lit, ok := word.Parts[len(word.Parts)-1].(*syntax.Lit)
+	if !ok {
+		return "", false
+	}
+	i := strings.LastIndex(lit.Value, "/")
+	if i < 0 || i == len(lit.Value)-1 {
+		return "", false
+	}
+	return lit.Value[i+1:], true
 }
 
 // literal expands a word that holds only text and variables that the
@@ -217,11 +341,7 @@ func (w *shellWalk) literal(word *syntax.Word) (string, bool) {
 	if !known {
 		return "", false
 	}
-	env := make([]string, 0, len(w.vars))
-	for k, v := range w.vars {
-		env = append(env, k+"="+v)
-	}
-	v, err := expand.Literal(&expand.Config{Env: expand.ListEnviron(env...)}, word)
+	v, err := expand.Literal(&expand.Config{Env: w.vars}, word)
 	return v, err == nil
 }
 
@@ -233,28 +353,36 @@ func (w *shellWalk) source(n syntax.Node) string {
 	return w.src[start:end]
 }
 
-// dynamicInto reports a pipeline whose last command is a shell and one of
-// whose commands has a name that the shell builds at run time.
-func (w *shellWalk) dynamicInto(c *syntax.BinaryCmd) bool {
-	stages := pipeline(c)
-	last, ok := callOf(stages[len(stages)-1])
-	if !ok {
-		return false
-	}
-	if words, known := w.command(last); !known || !shellNames[words[0]] {
-		return false
-	}
-	for _, st := range stages[:len(stages)-1] {
-		call, ok := callOf(st)
-		if !ok || len(call.Args) == 0 {
-			continue
+// pipe returns the form of a pipeline. |& is a pipe that also sends
+// stderr, and the patterns read |. It sets dynamic for a pipeline into a
+// shell from a command whose name the shell builds at run time, and for a
+// pipeline from a download into such a command.
+func (w *shellWalk) pipe(stages []*syntax.Stmt) string {
+	forms := make([]string, 0, len(stages))
+	var names []string
+	var known []bool
+	for _, st := range stages {
+		if form := w.stmt(st); form != "" {
+			forms = append(forms, form)
 		}
-		if _, known := w.command(call); !known {
-			return true
+		if c, ok := callOf(st); ok && len(c.Args) > 0 {
+			if words, k := w.command(c); len(words) > 0 {
+				names, known = append(names, words[0]), append(known, k)
+			}
 		}
 	}
-	return false
+	if n := len(names); n > 1 {
+		intoShell, intoBuilt := known[n-1] && shellNames[names[n-1]], !known[n-1]
+		for i := range n - 1 {
+			if (intoShell && !known[i]) || (intoBuilt && known[i] && downloaders[names[i]]) {
+				w.dynamic = true
+			}
+		}
+	}
+	return strings.Join(forms, " | ")
 }
+
+func isPipe(op syntax.BinCmdOperator) bool { return op == syntax.Pipe || op == syntax.PipeAll }
 
 // callOf returns the call of a statement, also inside time.
 func callOf(st *syntax.Stmt) (*syntax.CallExpr, bool) {
@@ -265,12 +393,17 @@ func callOf(st *syntax.Stmt) (*syntax.CallExpr, bool) {
 	return c, ok
 }
 
-// pipeline returns the commands of a pipeline in order.
+// pipeline returns the commands of a pipeline in order. A pipeline of n
+// commands nests n-1 deep, so the walk keeps a stack, not a recursion that
+// copies each level.
 func pipeline(c *syntax.BinaryCmd) []*syntax.Stmt {
 	var out []*syntax.Stmt
-	for _, st := range []*syntax.Stmt{c.X, c.Y} {
-		if b, ok := st.Cmd.(*syntax.BinaryCmd); ok && (b.Op == syntax.Pipe || b.Op == syntax.PipeAll) {
-			out = append(out, pipeline(b)...)
+	stack := []*syntax.Stmt{c.Y, c.X}
+	for len(stack) > 0 {
+		st := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		if b, ok := st.Cmd.(*syntax.BinaryCmd); ok && isPipe(b.Op) {
+			stack = append(stack, b.Y, b.X)
 			continue
 		}
 		out = append(out, st)
@@ -284,18 +417,25 @@ func shellScriptFlag(word string) bool {
 	return len(word) > 1 && word[0] == '-' && word[1] != '-' && strings.Contains(word[1:], "c")
 }
 
-// unwrap drops the wrappers at the start of a command, with their options
-// and their variable settings.
+// unwrap drops the wrappers at the start of a command, with their options,
+// their variable settings and their arguments. sudo -s with no command
+// runs a shell, so it gives sh.
 func unwrap(words []string) []string {
 	for len(words) > 0 && wrappers[commandName(words[0])] {
-		takesValue := wrapperValueFlags[commandName(words[0])]
+		name := commandName(words[0])
 		words = words[1:]
+		shell := false
 		for len(words) > 0 && (strings.HasPrefix(words[0], "-") || strings.Contains(words[0], "=")) {
-			if takesValue[words[0]] && len(words) > 1 {
+			shell = shell || (name == "sudo" && shellFlags[words[0]])
+			if wrapperValueFlags[name][words[0]] && len(words) > 1 {
 				words = words[1:]
 			}
 			words = words[1:]
 		}
+		if len(words) == 0 && shell {
+			return []string{"sh"}
+		}
+		words = words[min(wrapperArgs[name], len(words)):]
 	}
 	return words
 }
@@ -305,4 +445,11 @@ func unwrap(words []string) []string {
 func commandName(word string) string {
 	name := path.Base(strings.ReplaceAll(word, `\`, "/"))
 	return strings.TrimSuffix(strings.ToLower(name), ".exe")
+}
+
+func (w *shellWalk) delimiter(word *syntax.Word) string {
+	if v, ok := w.literal(word); ok {
+		return v
+	}
+	return w.source(word)
 }

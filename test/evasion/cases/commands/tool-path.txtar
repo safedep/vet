@@ -1,0 +1,14 @@
+# Near miss: a tool at a run-time path writes shell code that a shell runs
+want: editor-task-command
+-- .vscode/tasks.json --
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "setup",
+      "type": "shell",
+      "command": "$(go env GOPATH)/bin/tool completion bash | bash",
+      "runOptions": {"runOn": "folderOpen"}
+    }
+  ]
+}

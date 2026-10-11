@@ -17,7 +17,7 @@ type pattern struct {
 // controls read (control catalog, phase 4). Each one is rare in a normal
 // project config.
 var suspicious = []pattern{
-	{regexp.MustCompile(`(?i)\b(curl|wget|iwr|irm|invoke-webrequest|invoke-restmethod)\b[^|;&]*\|\s*(sudo\s+)?((ba|z|da|k)?sh|cmd(\.exe)?|powershell(\.exe)?|pwsh)\b`), "downloads a script and pipes it to a shell"},
+	{regexp.MustCompile(`(?i)\b(curl|wget|iwr|irm|invoke-webrequest|invoke-restmethod)\b[^|;&]*\|\s*(sudo\s+)?(((ba|z|da|k|c|tc)?sh|fish|source|cmd(\.exe)?|powershell(\.exe)?|pwsh)\b|\.(\s|$))`), "downloads a script and pipes it to a shell"},
 	{regexp.MustCompile(`(?i)\b(curl|wget)\b[^;&|]*\s(-[a-zA-Z]*[oO]|--output|--output-document)\s*\S+.*(&&|;|\|\||&)\s*(sudo\s+)?((ba|z|da|k)?sh\b|python3?\b|node\b|perl\b|ruby\b|chmod\s+\+?[0-7]*x|\./|/tmp/|"?[\w./\\-]+\.(bat|cmd|ps1|exe|sh)\b)`), "downloads a file and runs it"},
 	{regexp.MustCompile(`(?i)\b(curl|wget|iwr|irm|invoke-webrequest|invoke-restmethod)\b[^;&]*\|\s*(iex|invoke-expression)\b`), "runs the output of a download in PowerShell"},
 	{regexp.MustCompile(`(?i)\b(ba|z|da|k)?sh\s+<\(\s*(curl|wget)\b`), "runs the output of a download"},
@@ -25,7 +25,7 @@ var suspicious = []pattern{
 	{regexp.MustCompile(`(?i)\b(curl|wget)\b[^|;&]*\|\s*(python3?|node|perl|ruby)\b`), "downloads a script and pipes it to an interpreter"},
 	{regexp.MustCompile(`(?i)\b(bash|sh|zsh)\s+-c\s+["']?\$\(\s*(curl|wget)\b`), "runs the output of a download"},
 	{regexp.MustCompile(`(?i)\b(iex|invoke-expression)\b.*\b(iwr|irm|invoke-webrequest|invoke-restmethod|downloadstring)\b`), "runs the output of a download in PowerShell"},
-	{regexp.MustCompile(`(?i)\bbase64\s+(-d|--decode|-D)\b`), "decodes a base64 payload"},
+	{regexp.MustCompile(`(?i)\bbase64\s+(-\w*[dD]\w*|--decode)\b`), "decodes a base64 payload"},
 	{regexp.MustCompile(`(?i)\b(powershell|pwsh)(\.exe)?\b.*\s-e(nc|ncodedcommand)?\s+[A-Za-z0-9+/=]{16,}`), "runs an encoded PowerShell payload"},
 	{regexp.MustCompile(`(?i)\b(eval|exec)\b.*\b(atob|frombase64string|b64decode)\b`), "runs a decoded payload"},
 	{regexp.MustCompile(`(?i)\b(node|deno|bun|python3?|perl|ruby)(\.exe)?\s+(-e|-c|-p|--eval|--print)\b.*(buffer\.from|base64|atob|b64decode|fromcharcode|\\x[0-9a-f]{2})`), "runs an inline script that decodes a payload"},
@@ -75,7 +75,7 @@ func suspiciousReason(text, dir string) string {
 		}
 	}
 	if dynamic {
-		return "pipes to a shell from a command whose name the shell builds at run time"
+		return "builds a command name at run time in a pipe from a download or into a shell"
 	}
 	return ""
 }
