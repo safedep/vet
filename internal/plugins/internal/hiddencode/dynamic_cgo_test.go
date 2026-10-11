@@ -32,6 +32,8 @@ func TestDynamicCode(t *testing.T) {
 		{"a template with no substitution", "vite.config.js", "execSync(`git rev-parse HEAD`)", nil},
 		{"a local plugin path", "webpack.config.js", "require(path.join(__dirname, 'plugins', name))", nil},
 		{"a relative import", "vite.config.mjs", "await import('./' + name)", nil},
+		{"a path that the path module builds", "webpack.js", "import(path.resolve(path.dirname(pkgPath), bin))", nil},
+		{"a path from require.resolve", "webpack.js", "require(require.resolve(name + '/package.json'))", nil},
 		{"a path in a variable", "cli.js", "require(cliEntry)", nil},
 		{"a regular expression exec", "vite.config.js", "/a/.exec(s)", nil},
 		{"eval in a string", "webpack.config.js", "module.exports = { devtool: 'eval-source-map' }", nil},

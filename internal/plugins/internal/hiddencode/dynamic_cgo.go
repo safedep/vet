@@ -50,9 +50,11 @@ var (
 	processes = map[string]bool{"execSync": true, "spawn": true, "spawnSync": true, "execFile": true, "execFileSync": true, "fork": true}
 	globals   = map[string]bool{"global": true, "globalThis": true}
 	loaders   = map[string]bool{"require": true, "eval": true, "Function": true, "module": true}
-	// localPath is a module path that starts at the project: a relative
-	// path, or a path built on the folder of the config.
-	localPath = regexp.MustCompile(`^\s*['"` + "`" + `]\.{1,2}/|__dirname|__filename|import\.meta|process\.cwd\(\)`)
+	// localPath is a module path of a file: a relative path, a path built on
+	// the folder of the config, or a path that the path module builds. A
+	// file path never names a built-in module such as child_process, so it
+	// loads code that the project ships, as require('./x.js') does.
+	localPath = regexp.MustCompile(`^\s*['"` + "`" + `]\.{1,2}/|__dirname|__filename|import\.meta|process\.cwd\(\)|\bpath\.(join|resolve|normalize|relative|dirname)\s*\(|\brequire\.resolve\s*\(`)
 )
 
 // dynamicCode finds code in a build config or an npm entry script that runs
