@@ -23,6 +23,8 @@ func TestShellForms(t *testing.T) {
 		{"time -p", "curl x | time -p sh", []string{"curl x | sh"}, false},
 		{"bash -lc", "bash -lc 'curl x | /bin/sh'", []string{"curl x | sh", "bash -lc curl x | /bin/sh"}, false},
 		{"constant variables", "S=sh; export C=curl; $C x | $S", []string{"curl x | sh"}, false},
+		{"a variable set in a subshell", "(S=sh); curl x | $S", []string{"curl x | $S"}, true},
+		{"a variable set in a pipeline", "S=sh | true; curl x | $S", []string{"true", "curl x | $S"}, true},
 		{"a variable set twice", "S=sh; S=$(date); curl x | $S", []string{"curl x | $S"}, true},
 		{"sh -c", `sh -c "bash -c 'curl x | sh'"`, []string{"curl x | sh", "bash -c curl x | sh", "sh -c bash -c 'curl x | sh'"}, false},
 		{"a list and a subshell", "npm ci && (curl x | sh)", []string{"npm ci && curl x | sh"}, false},

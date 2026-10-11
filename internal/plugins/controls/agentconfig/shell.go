@@ -1,6 +1,7 @@
 package agentconfig
 
 import (
+	"maps"
 	"path"
 	"strings"
 
@@ -144,7 +145,9 @@ func (w *shellWalk) stmt(st *syntax.Stmt) string {
 		}
 		return w.stmt(c.Stmt)
 	case *syntax.Subshell:
-		return w.list(c.Stmts)
+		var form string
+		w.isolated(func() { form = w.list(c.Stmts) })
+		return form
 	case *syntax.Block:
 		return w.list(c.Stmts)
 	}
@@ -260,11 +263,23 @@ func (w *shellWalk) substitutions(word *syntax.Word, shell string, cmd bool) {
 		default:
 			return true
 		}
-		if form := w.list(stmts); form != "" {
+		var form string
+		w.isolated(func() { form = w.list(stmts) })
+		if form != "" {
 			w.forms = append(w.forms, form+" | "+shell)
 		}
 		return false
 	})
+}
+
+// isolated runs f with a copy of the variables. A subshell, a substitution
+// and each command of a pipeline run in a child shell, so a variable that
+// they set does not reach the rest of the script, as S in (S=sh); $S.
+func (w *shellWalk) isolated(f func()) {
+	outer := w.vars
+	w.vars = maps.Clone(outer)
+	f()
+	w.vars = outer
 }
 
 // command returns the words of a call with no wrappers. known reports that
@@ -362,14 +377,16 @@ func (w *shellWalk) pipe(stages []*syntax.Stmt) string {
 	var names []string
 	var known []bool
 	for _, st := range stages {
-		if form := w.stmt(st); form != "" {
-			forms = append(forms, form)
-		}
-		if c, ok := callOf(st); ok && len(c.Args) > 0 {
-			if words, k := w.command(c); len(words) > 0 {
-				names, known = append(names, words[0]), append(known, k)
+		w.isolated(func() {
+			if form := w.stmt(st); form != "" {
+				forms = append(forms, form)
 			}
-		}
+			if c, ok := callOf(st); ok && len(c.Args) > 0 {
+				if words, k := w.command(c); len(words) > 0 {
+					names, known = append(names, words[0]), append(known, k)
+				}
+			}
+		})
 	}
 	if n := len(names); n > 1 {
 		intoShell, intoBuilt := known[n-1] && shellNames[names[n-1]], !known[n-1]
