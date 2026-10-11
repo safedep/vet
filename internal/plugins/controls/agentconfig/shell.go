@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"mvdan.cc/sh/v3/expand"
+	"mvdan.cc/sh/v3/shell"
 	"mvdan.cc/sh/v3/syntax"
 )
 
@@ -138,6 +139,9 @@ func (w *shellWalk) script(text string) {
 
 func (w *shellWalk) stmt(st *syntax.Stmt) string {
 	switch c := st.Cmd.(type) {
+	case nil:
+		// A statement of redirects alone, as <file, has no command.
+		return ""
 	case *syntax.CallExpr:
 		return w.call(st, c)
 	case *syntax.DeclClause:
@@ -307,13 +311,12 @@ func (w *shellWalk) command(c *syntax.CallExpr) (words []string, known bool) {
 			words[i] = w.source(a)
 		}
 	}
-	rest := unwrap(words)
+	rest, i := unwrap(words)
 	if len(rest) == 0 {
 		return nil, false
 	}
-	i := len(words) - len(rest)
 	switch {
-	case i == len(words):
+	case i < 0:
 		return rest, true
 	case plain[i]:
 		rest[0] = commandName(rest[0])
@@ -446,34 +449,47 @@ func shellScriptFlag(word string) bool {
 }
 
 // unwrap drops the wrappers at the start of a command, with their options,
-// their variable settings and their arguments. sudo -s with no command
-// runs a shell, so it gives sh.
-func unwrap(words []string) []string {
-	for len(words) > 0 && wrappers[commandName(words[0])] {
-		name := commandName(words[0])
-		words = words[1:]
+// their variable settings and their arguments. origin is the index of the
+// word that holds the command name: the value of env -S splits into many
+// words. sudo -s with no command runs a shell, so it gives sh and origin -1.
+func unwrap(words []string) (rest []string, origin int) {
+	i := 0
+	for i < len(words) && wrappers[commandName(words[i])] {
+		name := commandName(words[i])
+		i++
 		shell := false
-		for len(words) > 0 && (strings.HasPrefix(words[0], "-") || strings.Contains(words[0], "=")) {
-			flag, value, inline := strings.Cut(words[0], "=")
+		for i < len(words) && (strings.HasPrefix(words[i], "-") || strings.Contains(words[i], "=")) {
+			flag, value, inline := strings.Cut(words[i], "=")
 			if name == "env" && splitFlags[flag] {
-				if !inline && len(words) > 1 {
-					value, words = words[1], words[1:]
+				if !inline && i+1 < len(words) {
+					i++
+					value = words[i]
 				}
-				words = append(strings.Fields(value), words[1:]...)
-				break
+				rest, _ = unwrap(append(splitString(value), words[i+1:]...))
+				return rest, i
 			}
-			shell = shell || (name == "sudo" && shellFlags[words[0]])
-			if wrapperValueFlags[name][words[0]] && len(words) > 1 {
-				words = words[1:]
+			shell = shell || (name == "sudo" && shellFlags[words[i]])
+			if wrapperValueFlags[name][words[i]] && i+1 < len(words) {
+				i++
 			}
-			words = words[1:]
+			i++
 		}
-		if len(words) == 0 && shell {
-			return []string{"sh"}
+		if i == len(words) && shell {
+			return []string{"sh"}, -1
 		}
-		words = words[min(wrapperArgs[name], len(words)):]
+		i += min(wrapperArgs[name], len(words)-i)
 	}
-	return words
+	return words[i:], i
+}
+
+// splitString splits the value of env -S into words with the quotes of the
+// shell, as bash -e for '"bash" -e'.
+func splitString(value string) []string {
+	fields, err := shell.Fields(value, func(string) string { return "" })
+	if err != nil {
+		return strings.Fields(value)
+	}
+	return fields
 }
 
 // commandName returns the base name of a command path, in the lower case,

