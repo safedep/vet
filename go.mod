@@ -28,7 +28,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.16.3
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/fatih/color v1.18.0
-	github.com/github/go-spdx/v2 v2.4.0
+	github.com/github/go-spdx/v2 v2.7.0
 	github.com/go-git/go-git/v5 v5.19.2
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/gofri/go-github-ratelimit v1.1.1
