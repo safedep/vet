@@ -5,6 +5,7 @@ package hiddencode
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,6 +19,10 @@ func TestDynamicCode(t *testing.T) {
 		{"eval", "vite.config.js", "eval(atob('eA=='))", []string{"eval(...)"}},
 		{"indirect eval", "vite.config.js", "(0, eval)(x)", []string{"eval(...)"}},
 		{"eval on the global object", "vite.config.js", "globalThis.eval(x)", []string{"eval(...)"}},
+		{"indirect eval with a comment", "vite.config.js", "(0, eval /* x */)('1')", []string{"eval(...)"}},
+		{"eval by a string key", "vite.config.js", "globalThis['eval']('1')", []string{"eval(...)"}},
+		{"require on a global in parentheses", "vite.config.js", "(global).r = require", []string{"global[...] = ..."}},
+		{"renamed require in parentheses", "vite.config.js", "const r = (require); r(x)", []string{"x = require"}},
 		{"Function constructor", "vite.config.js", "new Function(x)()", []string{"Function(...)"}},
 		{"Function call", "vite.config.js", "Function(x)()", []string{"Function(...)"}},
 		{"Function through constructor", "vite.config.js", "[].constructor.constructor(x)()", []string{"Function(...)"}},
@@ -60,6 +65,37 @@ func TestDynamicCode(t *testing.T) {
 				got = append(got, s.Visible)
 			}
 			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestDynamicCodeLongCallChain(t *testing.T) {
+	data := []byte("x" + strings.Repeat("()", 300_000))
+	start := time.Now()
+	dynamicCode(Config, "vite.config.js", data)
+	assert.Less(t, time.Since(start), 10*time.Second)
+}
+
+func TestRunsAsScript(t *testing.T) {
+	cases := []struct {
+		name, data string
+		want       bool
+	}{
+		{"a script", "require('x')", true},
+		{"after an HTML-like comment", "<!-- logo -->\nrequire('x')", true},
+		{"after an empty object", "{}\nrequire('x')", true},
+		{"a NUL byte in a comment", "/*\x00*/require('x')", true},
+		{"an SVG image", `<svg xmlns="http://www.w3.org/2000/svg"><script>require('x')</script></svg>`, false},
+		{"a source map", `{"version":3,"sourcesContent":["require('x')"]}`, false},
+		{"IE style sheet hacks", "* html .x { _top: expression(eval(document.body.scrollTop)); }", false},
+		{"a comment with an example", "/* const x = require('y') */\n.a { color: red }", false},
+		{"no call", "const x = 1", false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			runs, parsed := runsAsScript([]byte(tc.data))
+			assert.True(t, parsed)
+			assert.Equal(t, tc.want, runs)
 		})
 	}
 }

@@ -3,6 +3,7 @@
 package hiddencode
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"path"
@@ -13,8 +14,9 @@ import (
 	"github.com/smacker/go-tree-sitter/typescript/typescript"
 )
 
-// dynamicCodeAvailable reports that this build reads configs for dynamic
-// code. The check parses JavaScript with tree-sitter, which needs CGO.
+// dynamicCodeAvailable reports that this build parses JavaScript. The
+// dynamic-code check and the script check of text assets use tree-sitter,
+// which needs CGO.
 const dynamicCodeAvailable = true
 
 // dynamicKind is one way for code to run code that a reader cannot see.
@@ -68,11 +70,8 @@ func dynamicCode(c Class, p string, data []byte) []Signal {
 	case ".ts", ".mts", ".cts":
 		lang = typescript.GetLanguage()
 	}
-	parser := sitter.NewParser()
-	defer parser.Close()
-	parser.SetLanguage(lang)
-	tree, err := parser.ParseCtx(context.Background(), nil, data)
-	if err != nil {
+	tree := parse(lang, data)
+	if tree == nil {
 		return nil
 	}
 	defer tree.Close()
@@ -82,10 +81,10 @@ func dynamicCode(c Class, p string, data []byte) []Signal {
 		what = "The npm entry script"
 	}
 	w := dynamicWalk{src: data, modules: map[string]bool{}, runners: map[string]bool{}}
-	w.walk(tree.RootNode(), w.bind)
+	walk(tree.RootNode(), w.bind)
 	found := map[dynamicKind]bool{}
 	var out []Signal
-	w.walk(tree.RootNode(), func(n *sitter.Node) {
+	walk(tree.RootNode(), func(n *sitter.Node) {
 		if k := w.kindOf(n); k != 0 && !found[k] {
 			found[k] = true
 			line := int(n.StartPoint().Row) + 1
@@ -105,7 +104,49 @@ type dynamicWalk struct {
 	runners map[string]bool
 }
 
-func (w *dynamicWalk) walk(root *sitter.Node, visit func(*sitter.Node)) {
+func parse(lang *sitter.Language, data []byte) *sitter.Tree {
+	parser := sitter.NewParser()
+	defer parser.Close()
+	parser.SetLanguage(lang)
+	tree, err := parser.ParseCtx(context.Background(), nil, data)
+	if err != nil {
+		return nil
+	}
+	return tree
+}
+
+// runsAsScript reports a text asset that node can run: it parses as
+// JavaScript with no error, calls a function and holds a script token.
+// node runs a required file of any name as JavaScript, but a style sheet,
+// an SVG image or a source map does not parse as JavaScript with a call.
+// tree-sitter reads an SVG image as JSX, which node does not run. node
+// accepts a NUL byte in a comment, and tree-sitter stops at one, so a NUL
+// byte becomes a space.
+func runsAsScript(data []byte) (runs, parsed bool) {
+	if scriptTokens(data, nil) == 0 {
+		return false, true
+	}
+	tree := parse(javascript.GetLanguage(), bytes.ReplaceAll(data, []byte{0}, []byte{' '}))
+	if tree == nil {
+		return false, true
+	}
+	defer tree.Close()
+	if tree.RootNode().HasError() {
+		return false, true
+	}
+	calls, jsx := false, false
+	walk(tree.RootNode(), func(n *sitter.Node) {
+		switch t := n.Type(); {
+		case strings.HasPrefix(t, "jsx_"):
+			jsx = true
+		case t == "call_expression", t == "new_expression":
+			calls = true
+		}
+	})
+	return calls && !jsx, true
+}
+
+func walk(root *sitter.Node, visit func(*sitter.Node)) {
 	stack := []*sitter.Node{root}
 	for len(stack) > 0 {
 		n := stack[len(stack)-1]
@@ -136,7 +177,7 @@ func (w *dynamicWalk) bind(n *sitter.Node) {
 		if !isProcessName(stringValue(n.ChildByFieldName("source"), w.src)) {
 			return
 		}
-		w.walk(n, func(c *sitter.Node) {
+		walk(n, func(c *sitter.Node) {
 			switch c.Type() {
 			case "import_specifier":
 				name := c.ChildByFieldName("alias")
@@ -163,7 +204,7 @@ func (w *dynamicWalk) bindPattern(name *sitter.Node) {
 		w.modules[w.text(name)] = true
 		return
 	}
-	w.walk(name, func(c *sitter.Node) {
+	walk(name, func(c *sitter.Node) {
 		switch c.Type() {
 		case "shorthand_property_identifier_pattern":
 			w.runners[w.text(c)] = true
@@ -175,7 +216,7 @@ func (w *dynamicWalk) bindPattern(name *sitter.Node) {
 
 // isProcessModule reports require('child_process') or its node: form.
 func (w *dynamicWalk) isProcessModule(n *sitter.Node) bool {
-	if n == nil || n.Type() != "call_expression" || w.text(n.ChildByFieldName("function")) != "require" {
+	if n == nil || n.Type() != "call_expression" || !w.is(n.ChildByFieldName("function"), "require") {
 		return false
 	}
 	return isProcessName(stringValue(firstArg(n.ChildByFieldName("arguments")), w.src))
@@ -194,7 +235,7 @@ func (w *dynamicWalk) kindOf(n *sitter.Node) dynamicKind {
 		switch name := callee(fn, w.src); {
 		case name == "eval":
 			return dynEval
-		case name == "Function", strings.HasSuffix(w.text(fn), "constructor.constructor"):
+		case name == "Function", w.constructorChain(fn):
 			return dynFunction
 		case vmRun[name] && fn.Type() == "member_expression":
 			return dynVM
@@ -211,14 +252,14 @@ func (w *dynamicWalk) kindOf(n *sitter.Node) dynamicKind {
 		}
 	case "assignment_expression":
 		left, right := n.ChildByFieldName("left"), n.ChildByFieldName("right")
-		if left == nil || right == nil || !globals[w.text(left.ChildByFieldName("object"))] {
+		if left == nil || right == nil || !globals[w.name(unparen(left.ChildByFieldName("object")))] {
 			return 0
 		}
-		if loaders[w.text(right)] || (left.Type() == "subscript_expression" && !isString(left.ChildByFieldName("index"))) {
+		if loaders[w.name(unparen(right))] || (left.Type() == "subscript_expression" && !isString(left.ChildByFieldName("index"))) {
 			return dynGlobal
 		}
 	case "variable_declarator":
-		if v := n.ChildByFieldName("value"); v != nil && v.Type() == "identifier" && loaders[w.text(v)] {
+		if v := unparen(n.ChildByFieldName("value")); v != nil && v.Type() == "identifier" && loaders[w.name(v)] {
 			return dynAlias
 		}
 	}
@@ -234,9 +275,18 @@ func (w *dynamicWalk) runsProcess(fn *sitter.Node, name string) bool {
 		return w.runners[name] || namedRunner[name]
 	case "member_expression":
 		obj := fn.ChildByFieldName("object")
-		return processes[name] && (w.modules[w.text(obj)] || w.isProcessModule(obj)) || namedRunner[name]
+		return processes[name] && (w.modules[w.name(obj)] || w.isProcessModule(obj)) || namedRunner[name]
 	}
 	return false
+}
+
+// constructorChain reports x.constructor.constructor, which is Function.
+func (w *dynamicWalk) constructorChain(fn *sitter.Node) bool {
+	if fn.Type() != "member_expression" || !w.is(fn.ChildByFieldName("property"), "constructor") {
+		return false
+	}
+	obj := fn.ChildByFieldName("object")
+	return obj != nil && obj.Type() == "member_expression" && w.is(obj.ChildByFieldName("property"), "constructor")
 }
 
 // isFilePath reports a module path that names a file: a relative path, a
@@ -255,7 +305,7 @@ func (w *dynamicWalk) isFilePath(n *sitter.Node) bool {
 		return w.isFilePath(n.ChildByFieldName("left"))
 	case "call_expression":
 		fn := n.ChildByFieldName("function")
-		if fn == nil || fn.Type() != "member_expression" || w.text(fn.ChildByFieldName("object")) != "path" {
+		if fn == nil || fn.Type() != "member_expression" || !w.is(fn.ChildByFieldName("object"), "path") {
 			return false
 		}
 		switch w.text(fn.ChildByFieldName("property")) {
@@ -263,14 +313,15 @@ func (w *dynamicWalk) isFilePath(n *sitter.Node) bool {
 			return true
 		case "join":
 			first := firstArg(n.ChildByFieldName("arguments"))
-			return fileRoots[w.text(first)] || w.isFilePath(first)
+			return fileRoots[w.name(first)] || w.isFilePath(first)
 		}
 	}
 	return false
 }
 
-// callee returns the name that a call calls: eval for eval(x), (0, eval)(x)
-// and globalThis.eval(x), and the property for a member call.
+// callee returns the name that a call calls: eval for eval(x), (0, eval)(x),
+// globalThis.eval(x) and globalThis['eval'](x), and the property for a
+// member call.
 func callee(fn *sitter.Node, src []byte) string {
 	for fn != nil {
 		switch fn.Type() {
@@ -278,14 +329,50 @@ func callee(fn *sitter.Node, src []byte) string {
 			return fn.Content(src)
 		case "member_expression":
 			fn = fn.ChildByFieldName("property")
+		case "subscript_expression":
+			return stringValue(fn.ChildByFieldName("index"), src)
 		case "parenthesized_expression", "sequence_expression":
-			// (0, eval) calls the last expression of the list.
-			fn = fn.NamedChild(int(fn.NamedChildCount()) - 1)
+			fn = lastExpression(fn)
 		default:
 			return ""
 		}
 	}
 	return ""
+}
+
+// lastExpression returns the last expression of a list, as eval in
+// (0, eval /* x */). A comment is a named child too.
+func lastExpression(n *sitter.Node) *sitter.Node {
+	for i := int(n.NamedChildCount()) - 1; i >= 0; i-- {
+		if c := n.NamedChild(i); c.Type() != "comment" {
+			return c
+		}
+	}
+	return nil
+}
+
+func unparen(n *sitter.Node) *sitter.Node {
+	for n != nil && n.Type() == "parenthesized_expression" {
+		n = lastExpression(n)
+	}
+	return n
+}
+
+// maxName is the longest node that the check reads as a name. A copy of
+// the text of each callee makes a long chain of calls, as x()()(), take
+// minutes.
+const maxName = 64
+
+// name returns the text of a short node, or "".
+func (w *dynamicWalk) name(n *sitter.Node) string {
+	if n == nil || n.EndByte()-n.StartByte() > maxName {
+		return ""
+	}
+	return n.Content(w.src)
+}
+
+func (w *dynamicWalk) is(n *sitter.Node, s string) bool {
+	return n != nil && int(n.EndByte()-n.StartByte()) == len(s) && n.Content(w.src) == s
 }
 
 func firstArg(args *sitter.Node) *sitter.Node {
