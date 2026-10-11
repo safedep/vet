@@ -12,6 +12,7 @@ detection, and commit the diff. See README.md.
 | `backslash`: A download piped to \sh | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `base64-pipe`: A base64 payload decoded and piped to sh | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `bash-lc`: A download piped to /bin/sh inside bash -lc | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
+| `command-subst`: A download piped to /bin/sh inside a command substitution of echo | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `curl-pipe-sh`: A download piped to sh | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `dynamic-no-shell`: Near miss: a command name built at run time with no pipe into a shell | `editor-task-command` | `editor-task-command` | passes | pass |
 | `echo-sh`: Near miss: echo piped to sh with no download | `editor-task-command` | `editor-task-command` | passes | pass |
@@ -147,4 +148,4 @@ detection, and commit the diff. See README.md.
 | `polinrider-rewrite`: PolinRider: a script that amends the last commit, keeps its date and force-pushes it | `history-rewrite-script` | `history-rewrite-script` | fails | pass |
 | `polinrider-task`: PolinRider: a hidden folder-open task runs node on a fake font | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | fails | pass |
 
-Total: 114 cases, 111 pass, 0 fail, 3 known misses.
+Total: 115 cases, 112 pass, 0 fail, 3 known misses.

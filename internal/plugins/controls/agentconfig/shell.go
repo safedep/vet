@@ -194,6 +194,7 @@ func (w *shellWalk) assign(a *syntax.Assign) {
 	if a.Name == nil {
 		return
 	}
+	w.substituted(a.Value)
 	if v, ok := w.literal(a.Value); ok && a.Value != nil {
 		w.vars[a.Name.Value] = v
 		return
@@ -202,11 +203,20 @@ func (w *shellWalk) assign(a *syntax.Assign) {
 }
 
 func (w *shellWalk) call(st *syntax.Stmt, c *syntax.CallExpr) string {
+	for _, r := range st.Redirs {
+		w.substituted(r.Word)
+	}
 	if len(c.Args) == 0 {
 		for _, a := range c.Assigns {
 			w.assign(a)
 		}
 		return ""
+	}
+	for _, a := range c.Assigns {
+		w.substituted(a.Value)
+	}
+	for _, a := range c.Args {
+		w.substituted(a)
 	}
 	words, known := w.command(c)
 	if len(words) == 0 {
@@ -224,6 +234,34 @@ func (w *shellWalk) call(st *syntax.Stmt, c *syntax.CallExpr) string {
 		w.feeds(st, c, words[0])
 	}
 	return strings.Join(words, " ")
+}
+
+// substituted adds the forms of the commands that a substitution of a word
+// runs, as curl x | sh in echo "$(curl x | sh)". Each substitution runs in a
+// child shell, so its variables stay in it.
+func (w *shellWalk) substituted(word *syntax.Word) {
+	if word == nil {
+		return
+	}
+	syntax.Walk(word, func(n syntax.Node) bool {
+		var stmts []*syntax.Stmt
+		switch x := n.(type) {
+		case *syntax.CmdSubst:
+			stmts = x.Stmts
+		case *syntax.ProcSubst:
+			stmts = x.Stmts
+		default:
+			return true
+		}
+		w.isolated(func() {
+			for _, st := range stmts {
+				if form := w.stmt(st); form != "" {
+					w.forms = append(w.forms, form)
+				}
+			}
+		})
+		return false
+	})
 }
 
 func (w *shellWalk) nested(script string) {
