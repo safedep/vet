@@ -1,6 +1,7 @@
 # A loader on the line after the export, with no pad
 want: padded-code
 miss: the loader has no pad and is not on the line of the export (FOU-497)
+have: none
 -- postcss.config.mjs --
 const config = { plugins: {} };
 export default config;

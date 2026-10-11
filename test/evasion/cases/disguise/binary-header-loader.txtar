@@ -1,5 +1,6 @@
-# A real woff2 header and then a loader with no strong token
+# The woff2 signature, binary header bytes and then a loader with no strong token
 want: disguised-script
 miss: vet reads a binary font only for strong script tokens
+have: none
 -- public/fonts/fa-light.woff2 --
 {% "wOF2\x00\x01\x00\x00\x00\x00\x10\x00" %}{% loader %}

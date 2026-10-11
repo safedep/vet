@@ -42,6 +42,9 @@ type evasionCase struct {
 	// miss is why the detections do not catch the case yet. It is empty
 	// for a case that they must catch.
 	miss string
+	// have is what the scan gives for a known miss today. The test checks
+	// it, so a known miss cannot lose a finding that it had.
+	have []string
 	// source is "endpoint" for a case that vet endpoint audit reads, with
 	// the files under the home folder. It is empty for a directory scan.
 	source string
@@ -58,17 +61,26 @@ const sourceEndpoint = "endpoint"
 // LF. A case writes a CR with {% "\r" %}.
 func parseCase(group, name string, data []byte) (evasionCase, error) {
 	data = bytes.ReplaceAll(data, []byte("\r\n"), []byte("\n"))
+	if !utf8.Valid(data) {
+		return evasionCase{}, fmt.Errorf("%s/%s: the case is not valid UTF-8: write each raw byte as an escape, such as {%% \"\\xff\" %%}", group, name)
+	}
 	if i := bytes.IndexFunc(data, unseen); i >= 0 {
 		return evasionCase{}, fmt.Errorf("%s/%s: byte %d is a character that a reader cannot see: write it as an escape, such as {%% \"\\u200b\" %%}", group, name, i)
 	}
 	a := txtar.Parse(data)
 	c := evasionCase{group: group, name: name, files: a.Files}
+	hasWant, hasHave := false, false
 	for _, line := range strings.Split(string(a.Comment), "\n") {
 		key, value, ok := strings.Cut(line, ":")
 		value = strings.TrimSpace(value)
+		if ok && (key == "want" || key == "have") && value == "" {
+			return c, fmt.Errorf("%s/%s: the %s line is empty: write the control ids, or none", group, name, key)
+		}
 		switch {
 		case ok && key == "want":
-			c.want = strings.Fields(value)
+			c.want, hasWant = idList(value), true
+		case ok && key == "have":
+			c.have, hasHave = idList(value), true
 		case ok && key == "miss":
 			c.miss = value
 		case ok && key == "source":
@@ -84,18 +96,33 @@ func parseCase(group, name string, data []byte) (evasionCase, error) {
 	switch {
 	case c.summary == "":
 		return c, fmt.Errorf("%s/%s: the case has no summary line", group, name)
-	case len(c.want) == 0:
+	case !hasWant:
 		return c, fmt.Errorf("%s/%s: the case has no want line", group, name)
 	case len(c.files) == 0:
 		return c, fmt.Errorf("%s/%s: the case has no file", group, name)
 	case c.source != "" && c.source != sourceEndpoint:
 		return c, fmt.Errorf("%s/%s: unknown source %q", group, name, c.source)
+	case c.miss != "" && !hasHave:
+		return c, fmt.Errorf("%s/%s: a known miss needs a have line with what the scan gives today", group, name)
+	case c.miss == "" && hasHave:
+		return c, fmt.Errorf("%s/%s: only a known miss has a have line", group, name)
 	}
-	if slices.Equal(c.want, []string{none}) {
-		c.want = nil
+	for _, f := range c.files {
+		if !filepath.IsLocal(filepath.FromSlash(f.Name)) {
+			return c, fmt.Errorf("%s/%s: the file %q is not inside the case", group, name, f.Name)
+		}
 	}
-	slices.Sort(c.want)
 	return c, nil
+}
+
+// idList reads a list of control ids, or none.
+func idList(value string) []string {
+	v := strings.Fields(value)
+	if slices.Equal(v, []string{none}) {
+		return nil
+	}
+	slices.Sort(v)
+	return v
 }
 
 func loadCases(t *testing.T) []evasionCase {
@@ -265,7 +292,11 @@ func TestEvasionCorpus(t *testing.T) {
 				assert.Equal(t, c.want, got, c.summary)
 				return
 			}
-			assert.False(t, caught, "the detections now catch this known miss: remove its miss line")
+			if caught {
+				assert.Fail(t, "the detections now catch this known miss: remove its miss and have lines")
+				return
+			}
+			assert.Equal(t, c.have, got, "the findings of this known miss changed: fix the regression, or update its have line")
 		})
 		if c.group != group {
 			if group != "" {
@@ -300,27 +331,33 @@ func ids(v []string) string {
 	return "`" + strings.Join(v, "`, `") + "`"
 }
 
-func TestParseCaseRejectsUnseen(t *testing.T) {
+func TestParseCase(t *testing.T) {
+	head := "# s\nwant: none\n"
 	cases := []struct {
-		name, body string
-		ok         bool
+		name, data, err string
 	}{
-		{"nul", "a\x00b", false},
-		{"escape", "a\x1bb", false},
-		{"lone carriage return", "a\rb", false},
-		{"zero-width space", "a\u200bb", false},
-		{"crlf line ends", "a\r\nb", true},
-		{"tab", "a\tb", true},
-		{"visible letters", "שלום", true},
+		{"nul", head + "-- a.js --\na\x00b\n", "cannot see"},
+		{"escape", head + "-- a.js --\na\x1bb\n", "cannot see"},
+		{"lone carriage return", head + "-- a.js --\na\rb\n", "cannot see"},
+		{"zero-width space", head + "-- a.js --\na\u200bb\n", "cannot see"},
+		{"invalid UTF-8", head + "-- a.js --\na\xffb\n", "not valid UTF-8"},
+		{"path outside the case", head + "-- ../a.js --\nx\n", "not inside the case"},
+		{"absolute path", head + "-- /tmp/a.js --\nx\n", "not inside the case"},
+		{"miss with no have line", head + "miss: r\n-- a.js --\nx\n", "needs a have line"},
+		{"empty want line", "# s\nwant:\n-- a.js --\nx\n", "want line is empty"},
+		{"have line with no miss", head + "have: none\n-- a.js --\nx\n", "only a known miss"},
+		{"crlf line ends", head + "-- a.js --\r\na\r\n", ""},
+		{"tab", head + "-- a.js --\na\tb\n", ""},
+		{"visible letters", head + "-- a.js --\nשלום\n", ""},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := parseCase("g", "c", []byte("# s\nwant: none\n-- a.js --\n"+tc.body+"\n"))
-			if tc.ok {
+			_, err := parseCase("g", "c", []byte(tc.data))
+			if tc.err == "" {
 				assert.NoError(t, err)
 				return
 			}
-			assert.ErrorContains(t, err, "cannot see")
+			assert.ErrorContains(t, err, tc.err)
 		})
 	}
 }

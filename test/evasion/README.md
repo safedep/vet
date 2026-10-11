@@ -14,6 +14,7 @@ UPDATE_GOLDEN=1 go test ./test/evasion/ -count=1  # rewrite coverage.md
 
 - Copy only the shape of an attack: the file name, the position, the padding, the encoding and the
   spelling. Never download, clone, paste or run a real sample.
+- Keep each file name inside the case folder. The test rejects `../` and absolute paths.
 - Each URL is `https://x.example/...`. Each payload is harmless, such as `console.log(1)` or the
   `{% loader %}` of the runner.
 - Add near misses too. A near miss is a clean file that looks like the attack, such as a config that
@@ -28,6 +29,7 @@ A case is a `txtar` file under `cases/<group>/`. The comment section holds:
 | `# <summary>` | One line that says what the case does. The table shows it. |
 | `want: <ids>` | The exact control ids that the scan must give, or `none`. |
 | `miss: <reason>` | Optional. The detections do not catch the case yet, and this is why. Name the issue that fixes it. |
+| `have: <ids>` | Only with `miss`. The control ids that the scan gives today, or `none`. |
 | `source: endpoint` | Optional. `vet endpoint audit` reads the case, with the files under the home folder. |
 
 ```
@@ -38,8 +40,8 @@ export default config;{% repeat "\u00a0" 280 %}{% loader %}
 ```
 
 A file body is a Go template with the delimiters `{%` and `%}`. It writes the bytes that a reader
-cannot see or type. Write each invisible character as an escape. The test rejects a case file that
-holds one, because a reviewer cannot see it.
+cannot see or type. Write each invisible character and each raw byte as an escape. The test rejects a
+case file that holds one, or that is not valid UTF-8, because a reviewer cannot see it.
 
 | Template | Writes |
 | --- | --- |
@@ -53,15 +55,15 @@ holds one, because a reviewer cannot see it.
 ## A miss and a hard assertion
 
 A case with no `miss` line is a hard assertion: the test fails when the scan gives other findings.
-A case with a `miss` line does not fail the test, and the table shows the miss. When a detection
-starts to catch a known miss, the test fails until you remove the `miss` line. So the table always
-matches the code.
+A known miss is a hard assertion on its `have` line. So a change that takes a finding away from a
+known miss fails the test too. When a detection starts to catch a known miss, the test fails until
+you remove the `miss` and `have` lines. So the table always matches the code.
 
 A pull request that changes a detection commits the `coverage.md` diff. The diff shows the cases that
 the change catches and the cases that it loses.
 
 ## From a report to a case
 
-When a user reports an attack that vet misses, write the shape of the report as a case with a `miss`
-line. Add it to the group of the technique, or start a group. Link the issue that fixes it in the
-reason.
+When a user reports an attack that vet misses, write the shape of the report as a case with `miss`
+and `have` lines. Add it to the group of the technique, or start a group. Link the issue that fixes
+it in the reason.

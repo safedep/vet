@@ -549,8 +549,9 @@ script path), a tier (`P0` an incident if it breaks, `P1` important, `P2` tracke
 **Evasion corpus**:
 The synthetic cases in `test/evasion/cases/` that copy the shape of an attack and the shapes that an
 attacker can change. `TestEvasionCorpus` scans each case and writes `test/evasion/coverage.md`. A
-**known miss** is a case with a `miss` line: the detections do not catch it yet. A **near miss** is a
-clean case that looks like an attack and must give no finding.
+**known miss** is a case with a `miss` line: the detections do not catch it yet. Its `have` line
+holds what the scan gives today. A **near miss** is a clean case that looks like an attack and must
+give no finding.
 
 **Conformance check**:
 A test in `plugin/plugintest` that a plugin of each kind must pass, such as `TestControl` or

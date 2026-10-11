@@ -30,9 +30,9 @@ detection, and commit the diff. See README.md.
 
 | Case | Expected | Actual | Result |
 | --- | --- | --- | --- |
-| `binary-header-eval`: A real woff2 header and then a script that decodes and runs a payload | `disguised-script` | `disguised-script` | pass |
-| `binary-header-hex`: A real woff2 header and then a hex payload | `disguised-script` | none | miss: vet reads a binary font only for strong script tokens, not for an encoded payload |
-| `binary-header-loader`: A real woff2 header and then a loader with no strong token | `disguised-script` | none | miss: vet reads a binary font only for strong script tokens |
+| `binary-header-eval`: The woff2 signature, binary header bytes and then a script that decodes and runs a payload | `disguised-script` | `disguised-script` | pass |
+| `binary-header-hex`: The woff2 signature, binary header bytes and then a hex payload | `disguised-script` | none | miss: vet reads a binary font only for strong script tokens, not for an encoded payload |
+| `binary-header-loader`: The woff2 signature, binary header bytes and then a loader with no strong token | `disguised-script` | none | miss: vet reads a binary font only for strong script tokens |
 | `css`: A script in a .css file | `disguised-script` | none | miss: vet does not read .css files for hidden code |
 | `dict`: A script in a .dict file, one statement on each line | `disguised-script` | `disguised-script` | pass |
 | `font-hex`: A hex payload in a .woff file with no script token | `disguised-script` | `disguised-script` | pass |
@@ -42,7 +42,7 @@ detection, and commit the diff. See README.md.
 | `lfs-pointer`: Near miss: a Git LFS pointer in place of a font | none | none | pass |
 | `magic-then-text`: The woff2 magic bytes and then a script, with no NUL byte | `disguised-script` | `disguised-script` | pass |
 | `png-comment`: A .png file that starts with a JavaScript comment, which node runs | `disguised-script` | `disguised-script` | pass |
-| `real-font`: Near miss: a font with a real binary header and binary data | none | none | pass |
+| `real-font`: Near miss: a font that starts with the woff2 signature and holds only binary data | none | none | pass |
 | `source-map`: A script in a .map file | `disguised-script` | none | miss: vet does not read .map files for hidden code |
 | `svg`: A script in a .svg file | `disguised-script` | none | miss: vet does not read .svg files for hidden code |
 

@@ -1,6 +1,7 @@
 # A download piped to \sh
 want: editor-task-command suspicious-command
 miss: the pattern does not remove shell escapes (FOU-496)
+have: editor-task-command
 -- .vscode/tasks.json --
 {
   "version": "2.0.0",
