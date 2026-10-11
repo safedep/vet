@@ -276,7 +276,7 @@ A file holds 16 or more variation selectors with no base character, or tag chara
 
 **Build config or npm entry script that runs dynamic code.** Family `hidden-code`. Default severity high. Plugin `hidden-code`.
 
-A build config or an npm entry script calls eval or the Function constructor, runs code with the vm module, loads a module by a name that it builds at run time, puts require on the global object, or starts a process with a command that it builds at run time. A config only declares settings, and a loader needs one of these to run its payload. vet reads the syntax tree, so a renamed require or a string table does not hide it. A build with no CGO skips the check.
+A build config or an npm entry script calls eval or the Function constructor, runs code with the vm module, loads a module by a name that it builds at run time, puts require, eval or Function on the global object or under another name, or starts a process with a command that it builds at run time. A config only declares settings, and a loader needs one of these to run its payload. vet reads the syntax tree, so a renamed require or a string table does not hide it. A build with no CGO skips the check. The control warns until a false-positive run on real configs shows that it can fail the attacks gate.
 
 ### font-payload
 

@@ -125,7 +125,8 @@ type Control interface {
 
 // ApplicationControl is a control that also checks the application as a
 // whole, once for each scan, after the manifests. Its findings have an
-// application subject, such as a new capability of the code.
+// application subject, such as a new capability of the code, or a file
+// subject for a sign that spans files, such as a payload that files split.
 type ApplicationControl interface {
 	EvaluateApplication(ctx context.Context, s State) ([]finding.Finding, error)
 }

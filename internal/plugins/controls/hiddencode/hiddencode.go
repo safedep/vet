@@ -33,10 +33,12 @@ type Control struct {
 	parts []part
 }
 
-// part is a part of a payload in invisible characters in one file.
+// part is a part of a split payload in one file, with the change of the
+// file in pull request mode.
 type part struct {
-	path string
-	s    hiddencode.Signal
+	path   string
+	change model.Change
+	s      hiddencode.Signal
 }
 
 // New builds the control.
@@ -86,7 +88,7 @@ var controls = []control{
 		plugin.ControlInfo{
 			ID: hiddencode.IDDynamicCode, Family: finding.FamilyHiddenCode, Severity: finding.SeverityHigh,
 			Title:       "Build config or npm entry script that runs dynamic code",
-			Description: "A build config or an npm entry script calls eval or the Function constructor, runs code with the vm module, loads a module by a name that it builds at run time, puts require on the global object, or starts a process with a command that it builds at run time. A config only declares settings, and a loader needs one of these to run its payload. vet reads the syntax tree, so a renamed require or a string table does not hide it. A build with no CGO skips the check.",
+			Description: "A build config or an npm entry script calls eval or the Function constructor, runs code with the vm module, loads a module by a name that it builds at run time, puts require, eval or Function on the global object or under another name, or starts a process with a command that it builds at run time. A config only declares settings, and a loader needs one of these to run its payload. vet reads the syntax tree, so a renamed require or a string table does not hide it. A build with no CGO skips the check. The control warns until a false-positive run on real configs shows that it can fail the attacks gate.",
 		},
 		"Read the code at the line. Remove it if the config does not need it, and restore the file from a clean commit if you did not write it.",
 	},
@@ -150,9 +152,9 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 	seen := map[string]int{}
 	var out []finding.Finding
 	for _, s := range signals {
-		if s.ID == hiddencode.PayloadPart {
+		if s.ID == hiddencode.IDSplitPayload {
 			c.mu.Lock()
-			c.parts = append(c.parts, part{m.Path, s})
+			c.parts = append(c.parts, part{m.Path, m.Change, s})
 			c.mu.Unlock()
 			continue
 		}
@@ -167,30 +169,32 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 
 // EvaluateApplication adds the parts of a payload in invisible characters
 // across the files of the scan. A loader can read a payload from several
-// files, each one under the limit of one file. When the parts reach the
-// limit, each file that holds a part gets a finding. The engine keeps no
+// files, each one under the limit of one file. When the parts make one
+// payload, each file that holds a part gets a finding. In pull request mode
+// only a file that the change adds or edits gets one. The engine keeps no
 // file system for a stored manifest, so Evaluate collects the parts.
-// known gap: a scan that continues after a stop has no parts of the files
-// that it evaluated before the stop. The next full scan finds them.
 func (c *Control) EvaluateApplication(context.Context, plugin.State) ([]finding.Finding, error) {
 	c.mu.Lock()
 	parts := c.parts
 	c.parts = nil
 	c.mu.Unlock()
+	hidden := make([]int, len(parts))
 	total := 0
-	for _, p := range parts {
-		total += p.s.Payload
+	for i, p := range parts {
+		hidden[i] = p.s.Hidden
+		total += p.s.Hidden
 	}
-	if len(parts) < 2 || total < hiddencode.MinPayload {
+	if !hiddencode.SplitPayload(hidden) {
 		return nil, nil
 	}
 	slices.SortFunc(parts, func(a, b part) int { return strings.Compare(a.path, b.path) })
-	out := make([]finding.Finding, 0, len(parts))
+	var out []finding.Finding
 	for _, p := range parts {
-		s := p.s
-		s.ID = hiddencode.IDSplitPayload
-		title := fmt.Sprintf("The file holds %d of the %d invisible characters of a payload that %d files split, from line %d", s.Payload, total, len(parts), s.Line)
-		out = append(out, fileFinding(p.path, s, title, map[string]int{}))
+		if p.change != model.ChangeNone && !p.change.Introduces() {
+			continue
+		}
+		title := fmt.Sprintf("The file holds %d of the %d invisible characters of a payload that %d files split, from line %d", p.s.Hidden, total, len(parts), p.s.Line)
+		out = append(out, fileFinding(p.path, p.s, title, map[string]int{}))
 	}
 	return out, nil
 }

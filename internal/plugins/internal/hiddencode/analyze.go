@@ -27,10 +27,6 @@ const (
 	IDDynamicCode      = "dynamic-code"
 	IDFontPayload      = "font-payload"
 	IDSplitPayload     = "split-unicode-payload"
-	// PayloadPart is a part of a payload in invisible characters that is
-	// too small to report alone. It is no control id. The hidden-code
-	// control adds the parts of the files of a scan.
-	PayloadPart = "unicode-payload-part"
 )
 
 // Signal is one sign of hidden code in a file.
@@ -44,8 +40,9 @@ type Signal struct {
 	Visible string
 	// Campaign names a known campaign whose markers the file holds.
 	Campaign string
-	// Payload is the count of invisible characters that carry a payload.
-	Payload int
+	// Hidden is the count of invisible characters of a split payload part.
+	// The hidden-code control adds the parts of the files of a scan.
+	Hidden int
 }
 
 // Open reads the part of a file of fsys that Analyze needs. See Read.
@@ -87,15 +84,15 @@ func Read(r io.Reader, p string, c Class) ([]byte, error) {
 func Analyze(c Class, p string, data []byte) []Signal {
 	switch c {
 	case Config:
-		return named(append(append(append(oversizeConfig(data), padded(data, true)...), invisible(p, data)...), dynamicCode(c, p, data)...), data)
+		return named(slices.Concat(oversizeConfig(data), padded(data, true), invisible(p, data), dynamicCode(c, p, data)), data)
 	case Asset:
 		return named(disguised(p, data), data)
 	case Source:
-		return named(append(append(padded(data, false), invisible(p, data)...), rewriteScript(data)...), data)
+		return named(slices.Concat(padded(data, false), invisible(p, data), rewriteScript(data)), data)
 	case Script:
 		return historyRewrite(p, data)
 	case Entry:
-		return named(append(append(oversizeEntry(data), padded(data, true)...), dynamicCode(c, p, data)...), data)
+		return named(slices.Concat(oversizeEntry(data), padded(data, true), dynamicCode(c, p, data)), data)
 	}
 	return nil
 }
@@ -184,20 +181,17 @@ var scriptToken = regexp.MustCompile(`require\s*\(|\beval\s*\(|\bFunction\s*\(|g
 // holds none of them by chance.
 var strongToken = regexp.MustCompile(`require\s*\(\s*['"]|child_process|\beval\s*\(|\(\s*0\s*,\s*eval\s*\)|\bnew Function\s*\(|process\.env\b|\batob\s*\(`)
 
-// encoded reports a long run of hex or base64, as a hex payload that a
-// loader reads from a fake font. A loop counts the runs, because a
-// repeated regular expression is slow on a long near miss.
-func encoded(data []byte) bool { return encodedRun(data, 0) }
-
 // minBinarySymbols is the fewest + and / of a base64 run in binary data. A
 // CFF font stores its glyph names with no separator, as uni4E00uni4E01, so
 // a run of letters and digits alone is not a payload there. A base64
 // payload of 512 bytes holds about 16 of them.
 const minBinarySymbols = 4
 
-// encodedRun reports a run of 256 hex digits, or of 512 base64 digits with
-// at least symbols of + and /.
-func encodedRun(data []byte, symbols int) bool {
+// encoded reports a long run of hex or base64, as a hex payload that a
+// loader reads from a fake font: 256 hex digits, or 512 base64 digits with
+// at least symbols of + and /. A loop counts the runs, because a repeated
+// regular expression is slow on a long near miss.
+func encoded(data []byte, symbols int) bool {
 	hexRun, b64Run, sym := 0, 0, 0
 	for _, c := range data {
 		switch {
@@ -288,9 +282,9 @@ func disguised(p string, data []byte) []Signal {
 		switch {
 		case (kind == font && strongToken.Match(data)) || (commentStart(data) && scriptToken.Match(data)):
 			return sig(1, fmt.Sprintf("The %s file holds script code after its binary header", ext))
-		case kind == font && len(scriptToken.FindAllIndex(data, minTokens)) >= minTokens:
+		case kind == font && scriptTokens(data, nil) >= minTokens:
 			return []Signal{{ID: IDFontPayload, Line: 1, Title: fmt.Sprintf("The %s file holds script tokens after its binary header", ext)}}
-		case kind == font && encodedRun(data, minBinarySymbols):
+		case kind == font && encoded(data, minBinarySymbols):
 			return []Signal{{ID: IDFontPayload, Line: 1, Title: fmt.Sprintf("The %s file holds an encoded payload after its binary header", ext)}}
 		}
 		return nil
@@ -303,7 +297,7 @@ func disguised(p string, data []byte) []Signal {
 		return nil
 	}
 	lead := len(data) - len(trimmed)
-	if lead < minPad && !scriptToken.Match(data) && !encoded(data) {
+	if lead < minPad && !scriptToken.Match(data) && !encoded(data, 0) {
 		return nil
 	}
 	title := fmt.Sprintf("The file has a %s name but holds a script or an encoded payload, not a %s file", ext, ext[1:])
@@ -313,20 +307,30 @@ func disguised(p string, data []byte) []Signal {
 	return sig(1, title)
 }
 
-// textFormats name the text asset types and the start of their format. A
-// file that starts so is in its format: an SVG with a script element is a
-// legal image, and a source map holds the source of the code that it maps.
-var textFormats = map[string]struct {
+// textFormat is a text asset type: the start of its format, the script
+// tokens that a script of that name holds, and the tokens that the format
+// also writes.
+type textFormat struct {
 	name   string
 	starts []string
-}{
-	".svg": {"an SVG image", []string{"<"}},
-	".map": {"a source map", []string{"{", ")]}'"}},
-	".css": {"a style sheet", nil},
+	tokens int
+	legal  *regexp.Regexp
+}
+
+// textFormats are the text asset types. A file that starts as its format
+// is in its format: an SVG with a script element is a legal image, and a
+// source map holds the source of the code that it maps. A style sheet has
+// no fixed start, so it needs more tokens, and it skips the tokens that
+// CSS also writes: the :import("...") of CSS Modules, the @function of Sass
+// and a class name such as .constructor.
+var textFormats = map[string]textFormat{
+	".svg": {name: "an SVG image", starts: []string{"<"}, tokens: 2},
+	".map": {name: "a source map", starts: []string{"{", ")]}'"}, tokens: 2},
+	".css": {name: "a style sheet", tokens: minTokens, legal: regexp.MustCompile(`^(import|function|constructor)`)},
 }
 
 // disguisedText finds a script in an SVG image, a style sheet or a source
-// map. A style sheet has no fixed start, so it needs more script tokens.
+// map.
 func disguisedText(ext string, data []byte) []Signal {
 	if !text(data) {
 		return nil
@@ -338,27 +342,22 @@ func disguisedText(ext string, data []byte) []Signal {
 			return nil
 		}
 	}
-	need := 2
-	if f.starts == nil {
-		need = minTokens
-	}
-	if scriptTokens(data, ext == ".css") < need {
+	if scriptTokens(data, f.legal) < f.tokens {
 		return nil
 	}
 	return []Signal{{ID: IDDisguisedScript, Line: 1, Title: fmt.Sprintf("The %s file holds a script, not %s", ext, f.name)}}
 }
 
-// cssTokens are script tokens that a style sheet also writes: the
-// :import("...") of CSS Modules, the @function of Sass and a class name
-// such as .constructor.
-var cssTokens = regexp.MustCompile(`^(import|function|constructor)`)
-
-// scriptTokens counts the script tokens of data, up to minTokens. In a
-// style sheet it skips the tokens that CSS also writes.
-func scriptTokens(data []byte, css bool) int {
+// scriptTokens counts the script tokens of data, up to minTokens. It skips
+// the tokens that legal matches, when legal is not nil.
+func scriptTokens(data []byte, legal *regexp.Regexp) int {
+	limit := minTokens
+	if legal != nil {
+		limit = -1
+	}
 	n := 0
-	for _, loc := range scriptToken.FindAllIndex(data, -1) {
-		if css && cssTokens.Match(data[loc[0]:loc[1]]) {
+	for _, loc := range scriptToken.FindAllIndex(data, limit) {
+		if legal != nil && legal.Match(data[loc[0]:loc[1]]) {
 			continue
 		}
 		if n++; n >= minTokens {
@@ -561,10 +560,10 @@ const (
 	// minRun is the shortest run of invisible characters that hides text.
 	// An emoji sequence uses at most two in a row.
 	minRun = 4
-	// MinPayload is the fewest selectors with no base character, or tags
+	// minPayload is the fewest selectors with no base character, or tags
 	// outside a flag emoji, that carry a payload. Real text has none. The
 	// parts of a payload that files split count to it too.
-	MinPayload = 16
+	minPayload = 16
 	// minPart is the fewest payload characters of a part. A file with
 	// fewer gives no part, so stray selectors in text add nothing.
 	minPart = 4
@@ -645,15 +644,15 @@ func invisible(p string, data []byte) []Signal {
 		longestLine, longest = start, cur
 	}
 	var out []Signal
-	if payload >= MinPayload {
+	if payload >= minPayload {
 		title := fmt.Sprintf("The file hides a payload in %d invisible characters, from line %d", payload, payloadLine)
 		if decoder.Match(data) {
 			title += ", and holds a decoder"
 		}
-		return append(out, Signal{ID: IDUnicodePayload, Line: payloadLine, Title: title, Visible: visibleLine(data, payloadLine), Payload: payload})
+		return append(out, Signal{ID: IDUnicodePayload, Line: payloadLine, Title: title, Visible: visibleLine(data, payloadLine)})
 	}
 	if payload >= minPart {
-		out = append(out, Signal{ID: PayloadPart, Line: payloadLine, Visible: visibleLine(data, payloadLine), Payload: payload})
+		out = append(out, Signal{ID: IDSplitPayload, Line: payloadLine, Visible: visibleLine(data, payloadLine), Hidden: payload})
 	}
 	if built {
 		return out
@@ -715,3 +714,14 @@ func visibleLine(data []byte, n int) string {
 
 // maxVisible is the longest visible text of a signal, in runes.
 const maxVisible = 200
+
+// SplitPayload reports parts of a split payload, as the Hidden counts of
+// their signals, that make one payload: two or more parts with minPayload
+// characters or more together.
+func SplitPayload(hidden []int) bool {
+	total := 0
+	for _, h := range hidden {
+		total += h
+	}
+	return len(hidden) >= 2 && total >= minPayload
+}
