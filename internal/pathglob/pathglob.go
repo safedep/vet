@@ -9,22 +9,26 @@ import (
 )
 
 // Match reports whether p matches pattern: the whole path, its base name,
-// or a folder of the path, as test/fixtures for test/fixtures/a/b.js. A
-// pattern uses the syntax of path.Match. A trailing /** names the folder,
-// as in test/fixtures/**. A finding with no file has no path, and no
-// pattern matches it.
+// a folder of the path, or the base name of a folder, as test/fixtures for
+// test/fixtures/a/b.js and fixtures for src/fixtures/x.js. The scan walk
+// tests each folder on the way down, so a pattern matches the same files
+// here and in scan.exclude. A pattern uses the syntax of path.Match. A
+// trailing /** names a folder, as in test/fixtures/**. A finding with no
+// file has no path, and no pattern matches it.
 func Match(pattern, p string) bool {
 	if p == "" {
 		return false
 	}
 	pattern = strings.TrimSuffix(strings.TrimSuffix(pattern, "/**"), "/")
-	if ok, _ := path.Match(pattern, p); ok {
-		return true
+	for q := p; q != "." && q != "/"; q = path.Dir(q) {
+		if ok, _ := path.Match(pattern, q); ok {
+			return true
+		}
+		if ok, _ := path.Match(pattern, path.Base(q)); ok {
+			return true
+		}
 	}
-	if ok, _ := path.Match(pattern, path.Base(p)); ok {
-		return true
-	}
-	return strings.HasPrefix(p, pattern+"/")
+	return false
 }
 
 // Valid reports whether pattern has the syntax of path.Match, with / to

@@ -21,6 +21,10 @@ func TestMatch(t *testing.T) {
 		{"test", "src/test.js", false},
 		{"*.js", "src/a.ts", false},
 		{"*", "", false},
+		{"fixtures", "src/fixtures/x.js", true},
+		{"fixtures/*/**", "fixtures/a/nested/x.js", true},
+		{"test/*", "test/a/b/c.js", true},
+		{"fixtures", "src/fixtures-old/x.js", false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.pattern+" "+tc.path, func(t *testing.T) {
