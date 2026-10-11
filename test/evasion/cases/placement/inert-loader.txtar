@@ -1,0 +1,5 @@
+# Near miss: obfuscated code in a config that runs no dynamic code, loads no module and sets no global
+want: none
+-- vite.config.js --
+export default {};
+{% loader %}

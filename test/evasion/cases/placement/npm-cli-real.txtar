@@ -1,0 +1,8 @@
+# Near miss: the npm entry script as npm ships it
+want: none
+source: endpoint
+-- .npm-global/lib/node_modules/npm/lib/cli.js --
+const validateEngines = require('./cli/validate-engines.js')
+const cliEntry = require('node:path').resolve(__dirname, 'cli/entry.js')
+
+module.exports = (process) => validateEngines(process, () => require(cliEntry))

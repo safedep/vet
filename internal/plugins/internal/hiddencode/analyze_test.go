@@ -14,6 +14,14 @@ import (
 // several KiB of obfuscated code.
 var js = "(function(){var _0xa1b2=function(){return 1};" + strings.Repeat("var _0xc3d4=_0xa1b2();", 10) + "})();"
 
+// withDynamic adds dynamic-code to want in a build that has the check.
+func withDynamic(want ...string) []string {
+	if DynamicCodeAvailable {
+		return append(want, IDDynamicCode)
+	}
+	return want
+}
+
 func ids(signals []Signal) []string {
 	var out []string
 	for _, s := range signals {
@@ -28,9 +36,9 @@ func TestPadded(t *testing.T) {
 		name, data string
 		want       []string
 	}{
-		{"PolinRider shape", "const config = { plugins: {} };\nexport default config;" + strings.Repeat(" ", 280) + payload + "\n", []string{IDPaddedCode}},
-		{"tabs", "module.exports = {}" + strings.Repeat("\t", 120) + payload, []string{IDPaddedCode}},
-		{"code after the export", "module.exports = config; " + payload, []string{IDPaddedCode}},
+		{"PolinRider shape", "const config = { plugins: {} };\nexport default config;" + strings.Repeat(" ", 280) + payload + "\n", withDynamic(IDPaddedCode)},
+		{"tabs", "module.exports = {}" + strings.Repeat("\t", 120) + payload, withDynamic(IDPaddedCode)},
+		{"code after the export", "module.exports = config; " + payload, withDynamic(IDPaddedCode)},
 		{"clean Next.js config", "/** @type {import('next').NextConfig} */\nconst nextConfig = {\n  reactStrictMode: true,\n};\n\nexport default nextConfig;\n", nil},
 		{"clean Tailwind config", "module.exports = {\n  content: ['./src/**/*.{js,ts,jsx,tsx}'],\n  theme: { extend: {} },\n  plugins: [],\n}\n", nil},
 		{"aligned comment", "  plugins: [],          // no plugins\n", nil},
@@ -297,7 +305,7 @@ func TestAdversarialReview(t *testing.T) {
 		want             []string
 	}{
 		{"a pad of tabs", "postcss.config.mjs", "export default config;" + strings.Repeat("\t", 60) + js, []string{IDPaddedCode}},
-		{"a payload with no common token", "next.config.js", "module.exports = c;" + strings.Repeat(" ", 280) + noToken, []string{IDPaddedCode}},
+		{"a payload with no common token", "next.config.js", "module.exports = c;" + strings.Repeat(" ", 280) + noToken, withDynamic(IDPaddedCode)},
 		{"spaces between zero-width spaces", "next.config.js", "module.exports = c;" + strings.Repeat(" \u200b", 150) + js, []string{IDPaddedCode}},
 		{"blank braille in a comment", "next.config.js", "export default config; /*" + strings.Repeat("\u2800", 200) + "*/ " + js, []string{IDPaddedCode}},
 		{"a file under build", "build/utils.js", "exports.x = 1;" + strings.Repeat(" ", 280) + js, []string{IDPaddedCode}},

@@ -162,14 +162,20 @@ func unseen(r rune) bool {
 }
 
 // loader is a synthetic obfuscated loader with the tokens of a real one. It
-// runs nothing.
+// runs no dynamic code, so it cannot act.
 var loader = "(function(){var _0xa1b2=function(){return 1};" + strings.Repeat("var _0xc3d4=_0xa1b2();", 10) + "})();"
+
+// dynamicLoader does what a real loader must do to act: it puts require on
+// the global object and builds a function from a decoded string. Its
+// payload is console.log(1).
+var dynamicLoader = "global['r']=require;(function(){var _0xa1b2=Function(atob('Y29uc29sZS5sb2coMSk='));" + strings.Repeat("var _0xc3d4=_0xa1b2;", 8) + "_0xa1b2();})();"
 
 // funcs write the bytes that a reader cannot see or type in a case file.
 var funcs = template.FuncMap{
-	"repeat": strings.Repeat,
-	"chars":  func(s string) []string { return strings.Split(s, "") },
-	"loader": func() string { return loader },
+	"repeat":        strings.Repeat,
+	"chars":         func(s string) []string { return strings.Split(s, "") },
+	"loader":        func() string { return loader },
+	"dynamicloader": func() string { return dynamicLoader },
 	// selectors hides text in variation selectors, one byte in each, as
 	// GlassWorm does.
 	"selectors": func(s string) string {

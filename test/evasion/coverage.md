@@ -57,7 +57,7 @@ detection, and commit the diff. See README.md.
 | Case | Expected | Actual | Result |
 | --- | --- | --- | --- |
 | `aligned-comment`: Near miss: a config that aligns a short comment after 120 spaces | none | none | pass |
-| `blank-lines`: A loader 300 blank lines below the export | `padded-code` | none | miss: the pad check reads one line at a time (FOU-497) |
+| `blank-lines`: A loader 300 blank lines below the export | `dynamic-code` | `dynamic-code` | pass |
 | `hangul-filler`: A loader after 280 Hangul fillers | `padded-code` | `padded-code` | pass |
 | `ideographic`: A loader after 280 ideographic spaces | `padded-code` | `padded-code` | pass |
 | `mixed`: A loader after a pad of spaces, tabs and no-break spaces in turn | `padded-code` | `padded-code` | pass |
@@ -75,12 +75,15 @@ detection, and commit the diff. See README.md.
 | --- | --- | --- | --- |
 | `app-js`: A loader after 280 spaces in App.js | `padded-code` | `padded-code` | pass |
 | `before-export`: A loader after 280 spaces on a line before the export | `padded-code` | `padded-code` | pass |
-| `export-object`: A loader after an export of an object literal, with no pad | `padded-code` | none | miss: the export check needs a name after the export, not an object (FOU-497) |
+| `export-object`: A loader after an export of an object literal, with no pad | `dynamic-code` | `dynamic-code` | pass |
+| `git-hash-config`: Near miss: a config that reads the git hash with a literal command and loads a local plugin | none | none | pass |
 | `in-comment`: A loader after a pad that a block comment holds | `padded-code` | `padded-code` | pass |
-| `nested-function`: A loader inside a plugin function of the config, with no pad | `padded-code` | none | miss: the loader has no pad and is not after the export (FOU-497) |
-| `next-line`: A loader on the line after the export, with no pad | `padded-code` | none | miss: the loader has no pad and is not on the line of the export (FOU-497) |
+| `inert-loader`: Near miss: obfuscated code in a config that runs no dynamic code, loads no module and sets no global | none | none | pass |
+| `nested-function`: A loader inside a plugin function of the config, with no pad | `dynamic-code` | `dynamic-code` | pass |
+| `next-line`: A loader on the line after the export, with no pad | `dynamic-code` | `dynamic-code` | pass |
 | `npm-cli-padded`: A loader after 280 spaces in the npm entry script | `padded-code` | `padded-code` | pass |
-| `npm-cli-small`: A small loader on its own line in the npm entry script | `padded-code` | none | miss: the loader has no pad and the file is under the size limit (FOU-497) |
+| `npm-cli-real`: Near miss: the npm entry script as npm ships it | none | none | pass |
+| `npm-cli-small`: A small loader on its own line in the npm entry script | `dynamic-code` | `dynamic-code` | pass |
 | `plugin-require`: Near miss: a webpack config that loads a plugin by a computed path | none | none | pass |
 | `truffle`: A loader after 280 spaces in truffle-config.js | `padded-code` | `padded-code` | pass |
 
@@ -106,10 +109,10 @@ detection, and commit the diff. See README.md.
 | --- | --- | --- | --- |
 | `amend-alias`: Near miss: a developer script that amends the last commit and force-pushes it | none | none | pass |
 | `glassworm`: GlassWorm: a payload in variation selectors that a short decoder runs | `unicode-payload` | `unicode-payload` | pass |
-| `polinrider-config`: PolinRider: a loader after spaces in a build config, and the push script hidden by .gitignore | `history-rewrite-script`, `padded-code` | `history-rewrite-script`, `padded-code` | pass |
+| `polinrider-config`: PolinRider: a loader after spaces in a build config, and the push script hidden by .gitignore | `dynamic-code`, `history-rewrite-script`, `padded-code` | `dynamic-code`, `history-rewrite-script`, `padded-code` | pass |
 | `polinrider-os-task`: PolinRider: a folder-open task with a command for each OS, the bad one only on Linux | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | pass |
 | `polinrider-renamed-rewrite`: PolinRider: the push script under a new name, hidden by .gitignore | `history-rewrite-script` | `history-rewrite-script` | pass |
 | `polinrider-rewrite`: PolinRider: a script that amends the last commit, keeps its date and force-pushes it | `history-rewrite-script` | `history-rewrite-script` | pass |
 | `polinrider-task`: PolinRider: a hidden folder-open task runs node on a fake font | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | pass |
 
-Total: 79 cases, 68 pass, 0 fail, 11 known misses.
+Total: 82 cases, 76 pass, 0 fail, 6 known misses.

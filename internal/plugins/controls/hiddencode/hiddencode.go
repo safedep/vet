@@ -71,6 +71,14 @@ var controls = []control{
 	},
 	{
 		plugin.ControlInfo{
+			ID: hiddencode.IDDynamicCode, Family: finding.FamilyHiddenCode, Severity: finding.SeverityHigh,
+			Title:       "Build config or npm entry script that runs dynamic code",
+			Description: "A build config or an npm entry script calls eval or the Function constructor, runs code with the vm module, loads a module by a name that it builds at run time, puts require on the global object, or starts a process with a command that it builds at run time. A config only declares settings, and a loader needs one of these to run its payload. vet reads the syntax tree, so a renamed require or a string table does not hide it. A build with no CGO skips the check.",
+		},
+		"Read the code at the line. Remove it if the config does not need it, and restore the file from a clean commit if you did not write it.",
+	},
+	{
+		plugin.ControlInfo{
 			ID: hiddencode.IDInvisibleUnicode, Family: finding.FamilyHiddenCode, Severity: finding.SeverityHigh,
 			Title:       "Invisible Unicode characters",
 			Description: "A file holds a run of invisible characters, or code holds a bidirectional control. They can hide text from a reviewer, hide instructions from a person who reads an agent file, or show code in another order than the compiler reads it.",

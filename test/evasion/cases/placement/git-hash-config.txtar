@@ -1,0 +1,10 @@
+# Near miss: a config that reads the git hash with a literal command and loads a local plugin
+want: none
+-- vite.config.ts --
+import { execSync } from 'node:child_process'
+import path from 'node:path'
+
+const hash = execSync('git rev-parse --short HEAD').toString().trim()
+const local = require(path.join(__dirname, 'plugins', process.env.PLUGIN || 'default'))
+
+export default { define: { __HASH__: JSON.stringify(hash) }, plugins: [local] }

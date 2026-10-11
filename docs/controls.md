@@ -31,6 +31,7 @@ to its section.
 | [`padded-code`](#padded-code) | hidden-code | critical | Script hidden after a run of spaces |
 | [`disguised-script`](#disguised-script) | hidden-code | critical | Script in a font, image or dictionary file |
 | [`unicode-payload`](#unicode-payload) | hidden-code | critical | Payload in invisible Unicode characters |
+| [`dynamic-code`](#dynamic-code) | hidden-code | high | Build config or npm entry script that runs dynamic code |
 | [`invisible-unicode`](#invisible-unicode) | hidden-code | high | Invisible Unicode characters |
 | [`history-rewrite-script`](#history-rewrite-script) | hidden-code | critical | Script that rewrites the git history |
 | [`install-scripts-added`](#install-scripts-added) | hygiene | high | New dependency with install scripts |
@@ -268,6 +269,12 @@ A file with the name of a font, an image or a dictionary holds a script. A task 
 **Payload in invisible Unicode characters.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
 
 A file holds 16 or more variation selectors with no base character, or tag characters outside a flag emoji. Each one carries one byte of a payload, and an editor and a code review show nothing. Real text holds none. GlassWorm spreads this way, with the decoder in the same file or in another one.
+
+### dynamic-code
+
+**Build config or npm entry script that runs dynamic code.** Family `hidden-code`. Default severity high. Plugin `hidden-code`.
+
+A build config or an npm entry script calls eval or the Function constructor, runs code with the vm module, loads a module by a name that it builds at run time, puts require on the global object, or starts a process with a command that it builds at run time. A config only declares settings, and a loader needs one of these to run its payload. vet reads the syntax tree, so a renamed require or a string table does not hide it. A build with no CGO skips the check.
 
 ### invisible-unicode
 

@@ -2,6 +2,7 @@ package hiddencode_test
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -62,6 +63,7 @@ func TestHistoryRewriteScript(t *testing.T) {
 
 func TestCampaignInTheTitle(t *testing.T) {
 	fs := evaluate(t, "postcss.config.mjs", "export default config;"+strings.Repeat(" ", 280)+"global['_V']='8-st14';"+js)
-	require.Len(t, fs, 1)
-	assert.Equal(t, fmt.Sprintf("Code continues on line 1 after 280 spaces, with %d bytes off screen. It matches PolinRider", len("global['_V']='8-st14';"+js)), fs[0].Title)
+	i := slices.IndexFunc(fs, func(f finding.Finding) bool { return f.ControlID == "padded-code" })
+	require.GreaterOrEqual(t, i, 0)
+	assert.Equal(t, fmt.Sprintf("Code continues on line 1 after 280 spaces, with %d bytes off screen. It matches PolinRider", len("global['_V']='8-st14';"+js)), fs[i].Title)
 }

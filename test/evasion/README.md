@@ -10,6 +10,8 @@ go test ./test/evasion/ -count=1                  # check the cases and the tabl
 UPDATE_GOLDEN=1 go test ./test/evasion/ -count=1  # rewrite coverage.md
 ```
 
+The `dynamic-code` cases need a build with CGO, because the check parses JavaScript with tree-sitter.
+
 ## Rules for a case
 
 - Copy only the shape of an attack: the file name, the position, the padding, the encoding and the
@@ -47,7 +49,8 @@ case file that holds one, or that is not valid UTF-8, because a reviewer cannot 
 | --- | --- |
 | `{% "\u200b\x00" %}` | A Go string constant, with any escape |
 | `{% repeat " " 280 %}` | A string 280 times |
-| `{% loader %}` | A synthetic obfuscated loader that runs nothing |
+| `{% loader %}` | A synthetic obfuscated loader that runs no dynamic code, so it cannot act |
+| `{% dynamicloader %}` | A loader that does what a real one must do: it puts `require` on the global object and builds a function from a decoded string. Its payload is `console.log(1)` |
 | `{% selectors "text" %}` | The text in variation selectors, one byte in each |
 | `{% tags "text" %}` | The text in Unicode tag characters |
 | `{% range $c := chars "text" %}...{% end %}` | One step for each character |

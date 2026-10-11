@@ -24,6 +24,7 @@ const (
 	IDInvisibleUnicode = "invisible-unicode"
 	IDUnicodePayload   = "unicode-payload"
 	IDHistoryRewrite   = "history-rewrite-script"
+	IDDynamicCode      = "dynamic-code"
 )
 
 // Signal is one sign of hidden code in a file.
@@ -78,7 +79,7 @@ func Read(r io.Reader, p string, c Class) ([]byte, error) {
 func Analyze(c Class, p string, data []byte) []Signal {
 	switch c {
 	case Config:
-		return named(append(append(oversizeConfig(data), padded(data, true)...), invisible(p, data)...), data)
+		return named(append(append(append(oversizeConfig(data), padded(data, true)...), invisible(p, data)...), dynamicCode(c, p, data)...), data)
 	case Asset:
 		return named(disguised(p, data), data)
 	case Source:
@@ -86,7 +87,7 @@ func Analyze(c Class, p string, data []byte) []Signal {
 	case Script:
 		return historyRewrite(p, data)
 	case Entry:
-		return named(append(oversizeEntry(data), padded(data, true)...), data)
+		return named(append(append(oversizeEntry(data), padded(data, true)...), dynamicCode(c, p, data)...), data)
 	}
 	return nil
 }
