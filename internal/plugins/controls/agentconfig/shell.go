@@ -320,9 +320,10 @@ func (w *shellWalk) command(c *syntax.CallExpr) (words []string, known bool) {
 		return rest, true
 	case plain[i]:
 		rest[0] = commandName(rest[0])
-		// The shell expands a glob or a brace in a command name, as in
-		// /bin/ba?h, so the name is not known.
-		known = !strings.ContainsAny(rest[0], "*?[{")
+		// The shell expands a glob, a brace or a variable in a command
+		// name, as in /bin/ba?h or env -S 'b${MID}sh', so the name is not
+		// known.
+		known = !strings.ContainsAny(rest[0], "*?[{$")
 	default:
 		// A run-time path to a named tool, as in $HOME/bin/tool, names
 		// the tool.
@@ -483,8 +484,12 @@ func unwrap(words []string) (rest []string, origin int) {
 }
 
 // splitString splits the value of env -S into words with the quotes of the
-// shell, as bash -e for '"bash" -e'.
+// shell, as bash -e for '"bash" -e'. env expands a variable in the value
+// at run time, so a value with $ keeps its words as written.
 func splitString(value string) []string {
+	if strings.Contains(value, "$") {
+		return strings.Fields(value)
+	}
 	fields, err := shell.Fields(value, func(string) string { return "" })
 	if err != nil {
 		return strings.Fields(value)
