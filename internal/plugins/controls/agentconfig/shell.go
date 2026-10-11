@@ -29,8 +29,16 @@ var wrappers = map[string]bool{
 	"nohup": true, "nice": true, "time": true, "busybox": true,
 }
 
-// wrapperValueFlags are the wrapper options that take the next word.
-var wrapperValueFlags = map[string]bool{"-u": true, "-g": true, "-C": true, "-n": true, "-p": true, "-U": true}
+// wrapperValueFlags are the options of each wrapper that take the next
+// word, as in sudo -u root sh. The same letter takes no word in another
+// wrapper: sudo -n sh is not sudo with the user sh.
+var wrapperValueFlags = map[string]map[string]bool{
+	"env":  {"-u": true, "-C": true, "-S": true},
+	"sudo": {"-u": true, "-g": true, "-C": true, "-p": true, "-U": true, "-h": true, "-D": true, "-R": true, "-T": true},
+	"doas": {"-u": true, "-C": true},
+	"exec": {"-a": true},
+	"nice": {"-n": true},
+}
 
 // shellForms parses a command as a shell script and returns each statement
 // in the plain form that the patterns read. The form removes quotes and
@@ -92,6 +100,11 @@ func (w *shellWalk) stmt(st *syntax.Stmt) string {
 			op = "|"
 		}
 		return strings.TrimSpace(x + " " + op + " " + y)
+	case *syntax.TimeClause:
+		if c.Stmt == nil {
+			return ""
+		}
+		return w.stmt(c.Stmt)
 	case *syntax.Subshell:
 		return w.list(c.Stmts)
 	case *syntax.Block:
@@ -145,7 +158,7 @@ func (w *shellWalk) call(c *syntax.CallExpr) string {
 	}
 	if known && shellNames[words[0]] {
 		for i := 1; i+1 < len(words); i++ {
-			if words[i] == "-c" {
+			if shellScriptFlag(words[i]) {
 				w.depth++
 				w.script(words[i+1])
 				w.depth--
@@ -224,7 +237,7 @@ func (w *shellWalk) source(n syntax.Node) string {
 // whose commands has a name that the shell builds at run time.
 func (w *shellWalk) dynamicInto(c *syntax.BinaryCmd) bool {
 	stages := pipeline(c)
-	last, ok := stages[len(stages)-1].Cmd.(*syntax.CallExpr)
+	last, ok := callOf(stages[len(stages)-1])
 	if !ok {
 		return false
 	}
@@ -232,7 +245,7 @@ func (w *shellWalk) dynamicInto(c *syntax.BinaryCmd) bool {
 		return false
 	}
 	for _, st := range stages[:len(stages)-1] {
-		call, ok := st.Cmd.(*syntax.CallExpr)
+		call, ok := callOf(st)
 		if !ok || len(call.Args) == 0 {
 			continue
 		}
@@ -241,6 +254,15 @@ func (w *shellWalk) dynamicInto(c *syntax.BinaryCmd) bool {
 		}
 	}
 	return false
+}
+
+// callOf returns the call of a statement, also inside time.
+func callOf(st *syntax.Stmt) (*syntax.CallExpr, bool) {
+	if t, ok := st.Cmd.(*syntax.TimeClause); ok && t.Stmt != nil {
+		st = t.Stmt
+	}
+	c, ok := st.Cmd.(*syntax.CallExpr)
+	return c, ok
 }
 
 // pipeline returns the commands of a pipeline in order.
@@ -256,13 +278,20 @@ func pipeline(c *syntax.BinaryCmd) []*syntax.Stmt {
 	return out
 }
 
+// shellScriptFlag reports -c, alone or in a group of short options, as in
+// bash -lc 'script' or sh -ec 'script'.
+func shellScriptFlag(word string) bool {
+	return len(word) > 1 && word[0] == '-' && word[1] != '-' && strings.Contains(word[1:], "c")
+}
+
 // unwrap drops the wrappers at the start of a command, with their options
 // and their variable settings.
 func unwrap(words []string) []string {
 	for len(words) > 0 && wrappers[commandName(words[0])] {
+		takesValue := wrapperValueFlags[commandName(words[0])]
 		words = words[1:]
 		for len(words) > 0 && (strings.HasPrefix(words[0], "-") || strings.Contains(words[0], "=")) {
-			if wrapperValueFlags[words[0]] && len(words) > 1 {
+			if takesValue[words[0]] && len(words) > 1 {
 				words = words[1:]
 			}
 			words = words[1:]
