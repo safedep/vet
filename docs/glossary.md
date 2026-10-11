@@ -363,9 +363,8 @@ _Avoid_: verdict (the result of a malware analysis), policy rule (the rule itsel
 
 **Attacks gate**:
 The gate of `--fail-on attacks`. It fails on an unsuppressed finding of an attack control, and each
-other finding warns. `plugin.ControlInfo.Attack` marks the attack controls: `malware`,
-`impostor-commit` and `suspicious-command`. `controls.AttackIDs` lists them. It is the default gate
-of the vet GitHub Action.
+other finding warns. `plugin.ControlInfo.Attack` marks the attack controls, and `controls.AttackIDs` lists them.
+`docs/policy.md` shows the list. It is the default gate of the vet GitHub Action.
 _Avoid_: malware-only mode, safe mode
 
 ## Reports and output
