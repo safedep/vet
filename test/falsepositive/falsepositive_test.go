@@ -40,9 +40,12 @@ func checkout(t *testing.T, r repo) string {
 		root = t.TempDir()
 	}
 	dir := filepath.Join(root, r.Name+"-"+r.Commit[:12])
-	// A failed clone leaves a .git folder with no checkout, so a cached
-	// folder counts only when its HEAD is the pinned commit.
-	if head, err := exec.Command("git", "-C", dir, "rev-parse", "HEAD").Output(); err == nil && strings.TrimSpace(string(head)) == r.Commit {
+	// A failed clone leaves a .git folder with no checkout, and a local edit
+	// changes what the scan reads. So a cached folder counts only when its
+	// HEAD is the pinned commit and its tree is clean.
+	head, headErr := exec.Command("git", "-C", dir, "rev-parse", "HEAD").Output()
+	status, statusErr := exec.Command("git", "-C", dir, "status", "--porcelain", "--untracked-files=all", "--ignored").Output()
+	if headErr == nil && statusErr == nil && strings.TrimSpace(string(head)) == r.Commit && len(status) == 0 {
 		return dir
 	}
 	require.NoError(t, os.RemoveAll(dir))

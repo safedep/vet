@@ -284,6 +284,7 @@ func disguised(p string, data []byte) []Signal {
 		}
 		return nil
 	}
+	// Read gives one byte past maxFontSize for a larger font.
 	if kind == font && len(data) > maxFontSize {
 		return []Signal{{ID: IDFontPayload, Line: 1, Title: fmt.Sprintf("The %s file is larger than %d MiB. vet reads no further, and a real font is smaller", ext, maxFontSize>>20)}}
 	}

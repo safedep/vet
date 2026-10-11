@@ -106,3 +106,20 @@ func TestDynamicCodeTitle(t *testing.T) {
 	assert.Equal(t, 2, s[0].Line)
 	assert.Equal(t, "The npm entry script puts require, eval or Function, or a key that it computes, on the global object on line 2", s[0].Title)
 }
+
+func FuzzDynamicCode(f *testing.F) {
+	for _, s := range []string{
+		"global['r']=require;(function(){var f=Function(atob('eA=='));f();})();",
+		"(0, eval /* x */)('1')",
+		"const { exec: run } = require('child_process'); run(atob(c))",
+		"require(path.join(__dirname, x))",
+		"<!-- x -->\nrequire('x')",
+		"x()()()",
+	} {
+		f.Add(s)
+	}
+	f.Fuzz(func(t *testing.T, text string) {
+		dynamicCode(Config, "vite.config.js", []byte(text))
+		runsAsScript([]byte(text))
+	})
+}
