@@ -33,7 +33,7 @@ require (
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/gofri/go-github-ratelimit v1.1.1
 	github.com/gojek/heimdall v5.0.2+incompatible
-	github.com/gojek/heimdall/v7 v7.1.0
+	github.com/gojek/heimdall/v7 v7.3.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/cel-go v0.27.0
 	github.com/google/go-github/v70 v70.0.0
@@ -257,7 +257,6 @@ require (
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gohugoio/hashstructure v0.6.0 // indirect
-	github.com/gojek/valkyrie v0.0.0-20190210220504-8f62c1e7ba45 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v1.0.0 // indirect

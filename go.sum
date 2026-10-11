@@ -662,10 +662,8 @@ github.com/gohugoio/hashstructure v0.6.0 h1:7wMB/2CfXoThFYhdWRGv3u3rUM761Cq29CxU
 github.com/gohugoio/hashstructure v0.6.0/go.mod h1:lapVLk9XidheHG1IQ4ZSbyYrXcaILU1ZEP/+vno5rBQ=
 github.com/gojek/heimdall v5.0.2+incompatible h1:S9IJNuRErtH5MZ7Aps10haoTAoxy9Q0E0bYIjJZT7Vg=
 github.com/gojek/heimdall v5.0.2+incompatible/go.mod h1:caFYHVXyKSrgUJgtgHM+KJZGyI1wWxghxu7aFPLVfI8=
-github.com/gojek/heimdall/v7 v7.1.0 h1:cRLPuNS7OtSKx/ssp6Oj7fR1rBb4YsoraJnldHIUyNs=
-github.com/gojek/heimdall/v7 v7.1.0/go.mod h1:9pAPt5ENFLsc5B/09qL93HqC6HRHTXgCvTbOn5Xu0zY=
-github.com/gojek/valkyrie v0.0.0-20190210220504-8f62c1e7ba45 h1:jrnJW3T+GsaQCD26fe6ERlNpgLB5HlekzBU4lOscr80=
-github.com/gojek/valkyrie v0.0.0-20190210220504-8f62c1e7ba45/go.mod h1:QzhUKaYKJmcbTnCYCAVQrroCOY7vOOI8cSQ4NbuhYf0=
+github.com/gojek/heimdall/v7 v7.3.1 h1:N/B8ocxQLvJsy1sfZ+M8hZZ7O/ZYO8ajAlHLXnQDjOo=
+github.com/gojek/heimdall/v7 v7.3.1/go.mod h1:DATyhe9wyCiBTvuKqfKewhgfB059LO2/WJvFuUbVzIY=
 github.com/golang-jwt/jwt/v5 v5.3.1 h1:kYf81DTWFe7t+1VvL7eS+jKFVWaUnK9cB1qbwn63YCY=
 github.com/golang-jwt/jwt/v5 v5.3.1/go.mod h1:fxCRLWMO43lRc8nhHWY6LGqRcf+1gQWArsqaEUEa5bE=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
