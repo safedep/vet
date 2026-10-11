@@ -1,6 +1,7 @@
 # A build config that puts require on the global object and builds a
 # function from a string gives a dynamic-code finding. The control warns:
 # the attacks gate passes. The snippet names the kind, not the payload.
+[!cgo] skip 'dynamic-code needs a vet built with CGO'
 cd repo
 exec vet scan . --mode plain -o json --fail-on attacks
 stdout '"control_id":"dynamic-code","family":"hidden-code","severity":"high"'

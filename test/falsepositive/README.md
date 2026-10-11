@@ -6,7 +6,7 @@ the other hidden-code and agent-config findings, so a reviewer sees the noise of
 warns.
 
 ```bash
-go test -tags falsepositive -count=1 -timeout 60m ./test/falsepositive/
+go test -tags falsepositive -count=1 -timeout 50m ./test/falsepositive/
 VET_FP_CACHE=/tmp/vet-fp VET_FP_REPORT=/tmp/vet-fp.md go test -tags falsepositive -count=1 ./test/falsepositive/
 ```
 

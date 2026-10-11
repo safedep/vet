@@ -80,10 +80,8 @@ func Scan(t *testing.T, src plugin.Source) []*finding.Finding {
 func ControlIDs(fs []*finding.Finding) []string {
 	var ids []string
 	for _, f := range fs {
-		if !slices.Contains(ids, f.ControlID) {
-			ids = append(ids, f.ControlID)
-		}
+		ids = append(ids, f.ControlID)
 	}
 	slices.Sort(ids)
-	return ids
+	return slices.Compact(ids)
 }

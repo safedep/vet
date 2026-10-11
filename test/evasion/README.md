@@ -3,7 +3,8 @@
 The evasion corpus measures how the attack detections of vet hold up when an attacker changes the
 shape of an attack. Each case is a small synthetic repository. `TestEvasionCorpus` scans each case
 with the built-in extractors and controls, and with no enricher and no network. It writes the result
-to [coverage.md](coverage.md).
+to [coverage.md](coverage.md). The Gate column shows if `--fail-on attacks` fails on the case. The
+test needs a build with CGO, because the `dynamic-code` cases need it.
 
 ```bash
 go test ./test/evasion/ -count=1                  # check the cases and the table

@@ -63,7 +63,7 @@ func TestParseErrors(t *testing.T) {
 		{
 			name: "bad suppressions",
 			doc:  "version: 2\nsuppressions:\n  - reason: x\n  - control: c\n  - purl: 'not a purl'\n    reason: x\n  - control: c\n    reason: x\n    expires: next week\n",
-			want: []string{"suppressions[0]: set id, purl, path or control", "suppressions[1]: reason is empty", "suppressions[2]: parse PURL", `suppressions[3]: expires is "next week"`},
+			want: []string{"suppressions[0]: set id, purl or control", "suppressions[1]: reason is empty", "suppressions[2]: parse PURL", `suppressions[3]: expires is "next week"`},
 		},
 	}
 	for _, tc := range cases {
@@ -440,13 +440,15 @@ func TestPackageIsGlob(t *testing.T) {
 }
 
 func TestPathSuppressionNeedsAControl(t *testing.T) {
-	for _, tc := range []struct{ s, err string }{
-		{"path: test/fixtures", `path "test/fixtures" needs control too`},
-		{"path: test/[\n    control: padded-code", `path "test/[" is not a valid pattern`},
+	for _, tc := range []struct{ name, s, err string }{
+		{"no control", "path: test/fixtures", `path "test/fixtures" needs control too`},
+		{"bad pattern", "path: test/[\n    control: padded-code", `path "test/[" is not a valid pattern`},
 	} {
-		_, err := Parse("p.yml", []byte("version: 2\nsuppressions:\n  - reason: r\n    "+tc.s+"\n"))
-		require.Error(t, err, tc.s)
-		assert.Contains(t, err.Error(), tc.err)
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := Parse("p.yml", []byte("version: 2\nsuppressions:\n  - reason: r\n    "+tc.s+"\n"))
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tc.err)
+		})
 	}
 }
 

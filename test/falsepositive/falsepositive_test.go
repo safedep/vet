@@ -34,6 +34,7 @@ type repo struct {
 // VET_FP_CACHE keeps the checkouts between runs.
 func checkout(t *testing.T, r repo) string {
 	t.Helper()
+	require.Len(t, r.Commit, 40, "%s: pin a full commit hash", r.Name)
 	root := os.Getenv("VET_FP_CACHE")
 	if root == "" {
 		root = t.TempDir()
@@ -58,7 +59,9 @@ func checkout(t *testing.T, r repo) string {
 
 // TestFalsePositives scans each clean project. An attack finding fails the
 // test. The other findings of the hidden-code and agent-config families go
-// to the table, so a reviewer sees the noise of a control that warns.
+// to the table, so a reviewer sees the noise of a control that warns. The
+// table leaves out the other families, such as the vulnerabilities of a
+// project, because they are not detections of hidden code.
 // VET_FP_REPORT names a file for the table.
 func TestFalsePositives(t *testing.T) {
 	data, err := os.ReadFile("repos.yaml")
@@ -75,16 +78,14 @@ func TestFalsePositives(t *testing.T) {
 			fs := scantest.Scan(t, scantest.Directory(t, checkout(t, r)))
 			var attack, other []string
 			for _, f := range fs {
-				if f.Family != finding.FamilyHiddenCode && f.Family != finding.FamilyAgentConfig {
-					continue
-				}
 				line := fmt.Sprintf("`%s` %s", f.ControlID, f.Path())
-				if slices.Contains(attacks, f.ControlID) {
+				switch {
+				case slices.Contains(attacks, f.ControlID):
 					attack = append(attack, line)
 					assert.Failf(t, "an attack finding on a clean project", "%s: %s", line, f.Title)
-					continue
+				case f.Family == finding.FamilyHiddenCode || f.Family == finding.FamilyAgentConfig:
+					other = append(other, line)
 				}
-				other = append(other, line)
 			}
 			fmt.Fprintf(&table, "| %s | %s | %s |\n", r.Name, cell(attack), cell(other))
 		})

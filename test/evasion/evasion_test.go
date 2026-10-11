@@ -22,6 +22,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/safedep/vet/v2/internal/golden"
+	"github.com/safedep/vet/v2/internal/hiddentext"
+	"github.com/safedep/vet/v2/internal/plugins/controls"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/test/internal/scantest"
 )
@@ -168,27 +170,8 @@ var funcs = template.FuncMap{
 	"chars":         func(s string) []string { return strings.Split(s, "") },
 	"loader":        func() string { return loader },
 	"dynamicloader": func() string { return dynamicLoader },
-	// selectors hides text in variation selectors, one byte in each, as
-	// GlassWorm does.
-	"selectors": func(s string) string {
-		var b strings.Builder
-		for _, c := range []byte(s) {
-			if c < 16 {
-				b.WriteRune(0xFE00 + rune(c))
-			} else {
-				b.WriteRune(0xE0100 + rune(c) - 16)
-			}
-		}
-		return b.String()
-	},
-	// tags spells ASCII text in Unicode tag characters.
-	"tags": func(s string) string {
-		var b strings.Builder
-		for _, c := range s {
-			b.WriteRune(0xE0000 + c)
-		}
-		return b.String()
-	},
+	"selectors":     hiddentext.Selectors,
+	"tags":          hiddentext.Tags,
 }
 
 // expand writes the files of a case under dir. A file body is a template
@@ -229,6 +212,11 @@ func source(t *testing.T, c evasionCase, dir string) plugin.Source {
 // test, but a known miss that the detections now catch does, so that its
 // author removes the miss line. coverage.md records the result.
 func TestEvasionCorpus(t *testing.T) {
+	if !withCGO {
+		t.Skip("the dynamic-code cases need a vet built with CGO")
+	}
+	attacks, err := controls.AttackIDs()
+	require.NoError(t, err)
 	cases := loadCases(t)
 	var table bytes.Buffer
 	table.WriteString("# Evasion corpus coverage\n\n" +
@@ -257,7 +245,7 @@ func TestEvasionCorpus(t *testing.T) {
 				table.WriteString("\n")
 			}
 			group = c.group
-			fmt.Fprintf(&table, "## %s\n\n| Case | Expected | Actual | Result |\n| --- | --- | --- | --- |\n", group)
+			fmt.Fprintf(&table, "## %s\n\n| Case | Expected | Actual | Gate | Result |\n| --- | --- | --- | --- | --- |\n", group)
 		}
 		result := "pass"
 		switch {
@@ -270,7 +258,11 @@ func TestEvasionCorpus(t *testing.T) {
 		default:
 			passes++
 		}
-		fmt.Fprintf(&table, "| `%s`: %s | %s | %s | %s |\n", c.name, cell(c.summary), ids(c.want), ids(got), cell(result))
+		gate := "passes"
+		if slices.ContainsFunc(got, func(id string) bool { return slices.Contains(attacks, id) }) {
+			gate = "fails"
+		}
+		fmt.Fprintf(&table, "| `%s`: %s | %s | %s | %s | %s |\n", c.name, cell(c.summary), ids(c.want), ids(got), gate, cell(result))
 	}
 	fmt.Fprintf(&table, "\nTotal: %d cases, %d pass, %d fail, %d known misses.\n", passes+fails+misses, passes, fails, misses)
 	golden.Assert(t, "coverage.md", table.Bytes())

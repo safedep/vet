@@ -175,14 +175,9 @@ func toResult(f *finding.Finding) result {
 }
 
 func locationOf(f *finding.Finding) *location {
-	path, line := "", 0
-	switch {
-	case f.Locus != nil && f.Locus.Path != "":
-		path, line = f.Locus.Path, f.Locus.StartLine
-	case f.Subject.Package != nil:
-		path = f.Subject.Package.ManifestPath
-	case f.Subject.Manifest != nil:
-		path = f.Subject.Manifest.Path
+	path, line := f.Path(), 0
+	if f.Locus != nil {
+		line = f.Locus.StartLine
 	}
 	if path == "" {
 		return nil

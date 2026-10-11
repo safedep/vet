@@ -6,7 +6,7 @@ exec vet scan . --mode plain -o json --fail-on attacks --policy $WORK/policy.yml
 stdout '"control_id":"padded-code"'
 stdout '"suppression":\{"reason":"Samples of the hidden-code tests."'
 stderr 'Gate passed'
-cp $WORK/infected.mjs src/postcss.config.mjs
+cp test/fixtures/postcss.config.mjs src/postcss.config.mjs
 execexit 1 vet scan . --mode plain -o json --fail-on attacks --policy $WORK/policy.yml
 stdout '"path":"src/postcss.config.mjs"'
 
@@ -20,5 +20,3 @@ suppressions:
 export default config;                                                                                                              (function(){var _0xa1b2=function(){return 1};var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();})();//1
 -- repo/src/postcss.config.mjs --
 export default { plugins: {} };
--- infected.mjs --
-export default config;                                                                                                              (function(){var _0xa1b2=function(){return 1};var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();})();//1

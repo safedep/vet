@@ -518,7 +518,12 @@ settings and hooks, devcontainer files, git hooks, MCP configs and agent instruc
 **Hidden code**:
 Code that a file hides from a person who reads it: code after a long run of spaces in a build config,
 a script in a file with the name of a font or an image, a payload in invisible Unicode characters, or
-a script that rewrites the git history. `internal/plugins/internal/hiddencode` classifies the files
+a script that rewrites the git history. A text asset (`.svg`, `.css`, `.map`) hides a script when it
+does not start as its format. A font payload is encoded data or script text in a binary font. A
+split payload puts its invisible characters in many files, each under the limit of one file. Dynamic
+code is a build config or an npm entry script that runs code that a reader cannot see, such as
+`eval` or `require` of a computed name. It needs a vet built with CGO, and a build without CGO
+skips it. `internal/plugins/internal/hiddencode` classifies the files
 (`hiddencode.Class`) and finds each sign (`hiddencode.Signal`). The `code/hidden` extractor and the
 `hidden-code` control share it. `campaigns.yaml` holds the markers that name a known campaign, such as
 PolinRider, in a finding.

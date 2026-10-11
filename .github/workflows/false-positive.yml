@@ -15,7 +15,7 @@ on:
     - cron: "41 4 * * 1"
 
 concurrency:
-  group: false-positive-${{ github.ref }}
+  group: false-positive-${{ inputs.ref || github.ref }}
   cancel-in-progress: false
 
 permissions:

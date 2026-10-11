@@ -212,7 +212,7 @@ func parse(name string, data []byte) (*Policy, error) {
 func (s *Suppression) check() error {
 	var errs []error
 	if s.ID == "" && s.PURL == "" && s.Control == "" && s.Path == "" {
-		errs = append(errs, errors.New("set id, purl, path or control"))
+		errs = append(errs, errors.New("set id, purl or control"))
 	}
 	switch {
 	case s.Path != "" && !pathglob.Valid(s.Path):

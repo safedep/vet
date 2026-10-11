@@ -154,7 +154,7 @@ A rule reads three variables. `vet policy schema get` prints their JSON Schema.
 | `title` | The text of the finding |
 | `change` | In pull request mode, the change that caused the finding |
 | `subject_kind` | `package`, `workflow` or another subject |
-| `path` | The file of the finding |
+| `path` | The file of the finding. For a package, the path of its manifest |
 
 **`package`** (absent for a finding with no package, such as a workflow finding)
 
@@ -295,12 +295,14 @@ and exits 0.
 
 <!-- controls:attacks:end -->
 
-Each other finding warns. A new detection with a risk of false positives starts as a control that
-warns. It becomes an attack control after a false-positive run on clean projects, so the gate does
-not block your build on its first day. Use it to block attacks on the first day,
-before you fix old findings. `vet policy control list -o json` marks the attack controls with
-`attack: true`. The report holds the gate in `trailer.gate`: the outcome, the policy, the rules that
-failed and the finding ids.
+Each other finding warns. Use `--fail-on attacks` to block attacks on the first day, before you fix
+old findings. `vet policy control list -o json` marks the attack controls with `attack: true`. The
+report holds the gate in `trailer.gate`: the outcome, the policy, the rules that failed and the
+finding ids.
+
+A new detection with a risk of false positives starts as a control that warns. It becomes an attack
+control after a false-positive run on clean projects. Thus a new detection does not block your
+build on its first day.
 
 Each finding says what the gate did with it. The PR comment, the step summary, the terminal table
 and the markdown report show "Blocked by" or "Warned by" with the rules and the `--fail-on` value.
