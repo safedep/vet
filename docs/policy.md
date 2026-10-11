@@ -77,7 +77,7 @@ vet scan --base-ref origin/main --policy vet-policy.yml
 | `suppressions[].id` | one of `id`, `purl`, `control` | A finding id, such as `f-e8b1a3df1a3b5c13` |
 | `suppressions[].purl` | one of `id`, `purl`, `control` | A package. With no version, it matches every version |
 | `suppressions[].control` | one of `id`, `purl`, `control` | A control id, such as `dependency-cooldown` |
-| `suppressions[].path` | no, and it needs `control` | The file of a finding: the whole path, its base name or a folder, as in `scan.exclude`. For a package, the path of its manifest |
+| `suppressions[].path` | no, and it needs `control` | The file of a finding: the whole path, its base name or a folder, as in `scan.exclude`. Use `/` between folders. A pattern with no `/` matches the base name in each folder. A trailing `/**` names a folder. For a package, the path of its manifest |
 | `suppressions[].reason` | yes | Why the finding is acceptable. A reviewer reads it |
 | `suppressions[].expires` | no | A date (`2026-12-31`) or an RFC 3339 time. A date means 00:00 UTC |
 
