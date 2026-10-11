@@ -57,10 +57,11 @@ const sourceEndpoint = "endpoint"
 // CRLF, which would change the bytes of the case, so the line ends become
 // LF. A case writes a CR with {% "\r" %}.
 func parseCase(group, name string, data []byte) (evasionCase, error) {
+	data = bytes.ReplaceAll(data, []byte("\r\n"), []byte("\n"))
 	if i := bytes.IndexFunc(data, unseen); i >= 0 {
 		return evasionCase{}, fmt.Errorf("%s/%s: byte %d is a character that a reader cannot see: write it as an escape, such as {%% \"\\u200b\" %%}", group, name, i)
 	}
-	a := txtar.Parse(bytes.ReplaceAll(data, []byte("\r\n"), []byte("\n")))
+	a := txtar.Parse(data)
 	c := evasionCase{group: group, name: name, files: a.Files}
 	for _, line := range strings.Split(string(a.Comment), "\n") {
 		key, value, ok := strings.Cut(line, ":")
@@ -124,7 +125,7 @@ func loadCases(t *testing.T) []evasionCase {
 // next to it. A reviewer cannot see it in a case file.
 func unseen(r rune) bool {
 	if r < utf8.RuneSelf {
-		return false
+		return (r < ' ' && r != '\t' && r != '\n') || r == 0x7F
 	}
 	switch r {
 	case 0x115F, 0x1160, 0x2800, 0x3164, 0xFFA0:
@@ -297,4 +298,29 @@ func ids(v []string) string {
 		return none
 	}
 	return "`" + strings.Join(v, "`, `") + "`"
+}
+
+func TestParseCaseRejectsUnseen(t *testing.T) {
+	cases := []struct {
+		name, body string
+		ok         bool
+	}{
+		{"nul", "a\x00b", false},
+		{"escape", "a\x1bb", false},
+		{"lone carriage return", "a\rb", false},
+		{"zero-width space", "a\u200bb", false},
+		{"crlf line ends", "a\r\nb", true},
+		{"tab", "a\tb", true},
+		{"visible letters", "שלום", true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := parseCase("g", "c", []byte("# s\nwant: none\n-- a.js --\n"+tc.body+"\n"))
+			if tc.ok {
+				assert.NoError(t, err)
+				return
+			}
+			assert.ErrorContains(t, err, "cannot see")
+		})
+	}
 }
