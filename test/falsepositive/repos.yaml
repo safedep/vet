@@ -1,0 +1,43 @@
+# Clean projects for the false-positive run, each one at a fixed commit.
+# Each one stresses a detection with files that look like an attack. Move a
+# commit only in a change that records the result before and after.
+- name: vite
+  url: https://github.com/vitejs/vite
+  commit: 3b72997d42e7dd2b31898d0e68461e3025e836b6
+  why: Build configs in TypeScript and JavaScript, and test fixtures of the build.
+- name: tailwindcss
+  url: https://github.com/tailwindlabs/tailwindcss
+  commit: de2255ba3f3a9bbcfb2955711bcf8dece43db14e
+  why: Tailwind and PostCSS configs, style sheets.
+- name: font-awesome
+  url: https://github.com/FortAwesome/Font-Awesome
+  commit: 14c65a3747d0f3b751f15831fc719236aea8729d
+  why: Real fonts, SVG images and style sheets.
+- name: bootstrap
+  url: https://github.com/twbs/bootstrap
+  commit: 7ec940cb583fa8ba8065e2ae8d42d55bba34b9da
+  why: Built style sheets and source maps.
+- name: prettier
+  url: https://github.com/prettier/prettier
+  commit: 9b47fe6c74994edf85fb4660e3c66b364c784eb2
+  why: Test fixtures with odd white space, Unicode and long lines.
+- name: vscode-extension-samples
+  url: https://github.com/microsoft/vscode-extension-samples
+  commit: 65c1c44800eeac6fb065a54823ee5ae62c79540a
+  why: Many .vscode/tasks.json files and extension configs.
+- name: husky
+  url: https://github.com/typicode/husky
+  commit: 3f0023dc10d7003d70f2e31aa56300eab80e76d6
+  why: Git hooks and the scripts that install them.
+- name: gemoji
+  url: https://github.com/github/gemoji
+  commit: fadaeaf1f1a9be82b321316a6c5502e43138b2f6
+  why: Emoji with variation selectors and flag tags.
+- name: webpack
+  url: https://github.com/webpack/webpack
+  commit: 9b55eda460d89bbb027f43b746ea7f3f2328531a
+  why: Webpack configs that load plugins by a computed path, and test cases that call eval.
+- name: eslint
+  url: https://github.com/eslint/eslint
+  commit: 48d5cc47e43478670ccf95a74f7a73e8408152b5
+  why: Lint configs and fixtures of source code.

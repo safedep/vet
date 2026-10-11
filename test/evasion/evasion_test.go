@@ -6,7 +6,6 @@ package evasion
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io/fs"
 	"os"
@@ -22,16 +21,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/safedep/vet/v2/internal/endpoint/inventory"
-	"github.com/safedep/vet/v2/internal/engine"
 	"github.com/safedep/vet/v2/internal/golden"
-	"github.com/safedep/vet/v2/internal/plugins/controls"
-	"github.com/safedep/vet/v2/internal/plugins/extractors"
-	"github.com/safedep/vet/v2/internal/plugins/sources"
-	"github.com/safedep/vet/v2/internal/plugins/sources/endpoint"
-	"github.com/safedep/vet/v2/internal/state"
-	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/test/internal/scantest"
 )
 
 // evasionCase is one case of the corpus.
@@ -223,57 +215,13 @@ func expand(dir string, files []txtar.File) error {
 	return nil
 }
 
-type allEnabled struct{}
-
-func (allEnabled) PluginEnabled(string, bool) bool     { return true }
-func (allEnabled) PluginOrigin(string, string) string  { return "" }
-func (allEnabled) PluginOptions(string) map[string]any { return map[string]any{} }
-
 // source returns the source of a case whose files are under dir.
 func source(t *testing.T, c evasionCase, dir string) plugin.Source {
 	t.Helper()
 	if c.source == sourceEndpoint {
-		return endpoint.New(endpoint.Options{}, endpoint.System{
-			Hostname: func() (string, error) { return "evasion", nil },
-			Home:     func() (string, error) { return dir, nil },
-			Scanners: func() ([]inventory.Scanner, error) { return nil, nil },
-		})
+		return scantest.Endpoint(dir)
 	}
-	src, err := sources.New(dir, sources.Options{})
-	require.NoError(t, err)
-	return src
-}
-
-// scan runs the extractors and the controls of a default scan on src, with
-// no enricher, and returns the sorted control ids of the findings.
-func scan(t *testing.T, src plugin.Source) []string {
-	t.Helper()
-	ctx := context.Background()
-	built, err := controls.Build(allEnabled{})
-	require.NoError(t, err)
-	cs := make([]engine.Control, 0, len(built))
-	for _, c := range built {
-		cs = append(cs, engine.Control{ID: c.Name, Plugin: c.Plugin})
-	}
-	store, err := state.Open(ctx, state.Options{StateDir: t.TempDir()})
-	require.NoError(t, err)
-	defer func() { assert.NoError(t, store.Close()) }()
-	res, err := engine.Run(ctx, engine.Options{
-		Store: store, Source: src, Controls: cs,
-		Extractors:  func(plugin.ArtifactKind) ([]plugin.Extractor, error) { return extractors.For(model.PackagesDeclared) },
-		OptionsHash: "evasion", VetVersion: "test", BatchSize: 10,
-	})
-	require.NoError(t, err)
-	defer func() { assert.NoError(t, res.Scan.Close()) }()
-	var ids []string
-	for f, err := range res.Scan.Findings(ctx, plugin.FindingQuery{}) {
-		require.NoError(t, err)
-		if !slices.Contains(ids, f.ControlID) {
-			ids = append(ids, f.ControlID)
-		}
-	}
-	slices.Sort(ids)
-	return ids
+	return scantest.Directory(t, dir)
 }
 
 // TestEvasionCorpus scans each case. A case with no miss line must give
@@ -291,7 +239,7 @@ func TestEvasionCorpus(t *testing.T) {
 	for _, c := range cases {
 		dir := t.TempDir()
 		require.NoError(t, expand(dir, c.files), "%s/%s", c.group, c.name)
-		got := scan(t, source(t, c, dir))
+		got := scantest.ControlIDs(scantest.Scan(t, source(t, c, dir)))
 		caught := slices.Equal(got, c.want)
 		t.Run(c.group+"/"+c.name, func(t *testing.T) {
 			if c.miss == "" {

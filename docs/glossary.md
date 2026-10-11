@@ -553,6 +553,11 @@ attacker can change. `TestEvasionCorpus` scans each case and writes `test/evasio
 holds what the scan gives today. A **near miss** is a clean case that looks like an attack and must
 give no finding.
 
+**False-positive run**:
+The scan of the clean projects that `test/falsepositive/repos.yaml` pins at fixed commits. It fails on
+each attack finding. A new detection with a risk of false positives warns until a clean run makes it
+an attack control. The workflow `false-positive.yml` runs it, because it needs the network.
+
 **Conformance check**:
 A test in `plugin/plugintest` that a plugin of each kind must pass, such as `TestControl` or
 `TestSink`. `plugintest.MemState` and `plugintest.SampleReport` are the in-memory scan and the sample
