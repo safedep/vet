@@ -4,6 +4,8 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,6 +33,7 @@ func machineHome(t *testing.T, skill string) string {
 	write(t, filepath.Join(home, ".claude", "skills", skill, "SKILL.md"), "---\nname: "+skill+"\ndescription: A test skill.\n---\n")
 	write(t, filepath.Join(home, ".vscode", "extensions", "extensions.json"), `[{"identifier": {"id": "ms-python.python"}, "version": "2023.20.0"}]`)
 	write(t, filepath.Join(home, ".vscode", "tasks.json"), `{"version": "2.0.0", "tasks": []}`)
+	write(t, filepath.Join(home, ".config", "Code", "User", "tasks.json"), `{"version": "2.0.0", "tasks": []}`)
 	write(t, filepath.Join(home, ".npm-global", "lib", "node_modules", "left-pad", "package.json"), `{"name": "left-pad", "version": "1.3.0"}`)
 	write(t, filepath.Join(home, ".npm-global", "lib", "node_modules", "@types", "node", "package.json"), `{"name": "@types/node", "version": "20.1.0"}`)
 	return home
@@ -89,6 +92,7 @@ func TestAuditOneUser(t *testing.T) {
 		return filepath.ToSlash(r)
 	}
 	assert.Contains(t, a.Include, rel(filepath.Join(home, ".vscode", "tasks.json")))
+	assert.Contains(t, a.Include, rel(filepath.Join(home, ".config", "Code", "User", "tasks.json")))
 	assert.Contains(t, a.Include, rel(filepath.Join(home, ".cursor", "mcp.json")))
 	for _, f := range a.Include {
 		_, err := os.Stat(filepath.Join(a.Path, filepath.FromSlash(f)))
@@ -130,4 +134,127 @@ func TestOneUserReadsNoSystemRoot(t *testing.T) {
 		return nil
 	}
 	artifactOf(t, New(Options{}, sys))
+}
+
+func TestAuditProjects(t *testing.T) {
+	home := machineHome(t, "review")
+	code := filepath.Join(home, "code")
+	for _, f := range []string{
+		"api/next.config.mjs", "api/.vscode/tasks.json", "api/public/fonts/a.woff2", "api/.gitignore",
+		"api/src/index.ts", "api/node_modules/x/postcss.config.js", "web/client/tailwind.config.js", "web/.git/hooks/pre-commit",
+	} {
+		write(t, filepath.Join(code, filepath.FromSlash(f)), "x")
+	}
+	a := artifactOf(t, New(Options{Projects: []string{code}}, fakeSystem(home)))
+	var got []string
+	prefix := under(t, a, code)
+	for _, f := range a.Include {
+		if rel, ok := strings.CutPrefix(f, prefix); ok {
+			got = append(got, rel)
+		}
+	}
+	assert.ElementsMatch(t, []string{
+		"api/next.config.mjs", "api/.vscode/tasks.json", "api/public/fonts/a.woff2", "api/.gitignore", "web/client/tailwind.config.js",
+	}, got, "the source files, node_modules and .git stay out")
+}
+
+func TestCheckProjects(t *testing.T) {
+	dir := t.TempDir()
+	file := filepath.Join(dir, "f")
+	write(t, file, "x")
+	got, err := CheckProjects(dir, []string{dir})
+	require.NoError(t, err)
+	assert.Equal(t, []string{dir}, got)
+	t.Chdir(dir)
+	write(t, filepath.Join(dir, "code", "a"), "x")
+	got, err = CheckProjects(dir, []string{"code"})
+	require.NoError(t, err)
+	assert.Equal(t, []string{filepath.Join(dir, "code")}, got, "a relative folder becomes absolute")
+	_, err = CheckProjects(dir, []string{filepath.Join(dir, "missing")})
+	assert.ErrorContains(t, err, "--projects")
+	_, err = CheckProjects(dir, []string{file})
+	assert.ErrorContains(t, err, "not a folder")
+	if runtime.GOOS == "windows" {
+		_, err = CheckProjects(`Z:\Users\x`, []string{dir})
+		assert.ErrorContains(t, err, "not on volume")
+	}
+}
+
+func TestAuditRelativeProjects(t *testing.T) {
+	home := machineHome(t, "review")
+	write(t, filepath.Join(home, "code", "api", "next.config.mjs"), "x")
+	t.Chdir(home)
+	a := artifactOf(t, New(Options{Projects: []string{"code"}}, fakeSystem(home)))
+	assert.Contains(t, a.Include, filepath.ToSlash(filepath.Join(home, "code", "api", "next.config.mjs"))[1:])
+}
+
+func TestAuditNPMEntryScripts(t *testing.T) {
+	home := machineHome(t, "review")
+	cli := filepath.Join(home, ".npm-global", "lib", "node_modules", "npm", "lib", "cli.js")
+	write(t, cli, "module.exports = require('./npm')\n")
+	a := artifactOf(t, New(Options{}, fakeSystem(home)))
+	rel, err := filepath.Rel(a.Path, cli)
+	require.NoError(t, err)
+	assert.Contains(t, a.Include, filepath.ToSlash(rel))
+}
+
+func TestAuditProjectsLinks(t *testing.T) {
+	home := machineHome(t, "review")
+	code := filepath.Join(home, "code")
+	write(t, filepath.Join(code, "api", "cfg", "tasks.json"), "x")
+	require.NoError(t, os.Symlink("cfg", filepath.Join(code, "api", ".vscode")))
+	require.NoError(t, os.Symlink("..", filepath.Join(code, "api", "cfg", ".claude")))
+	write(t, filepath.Join(code, "target", "next.config.mjs"), "x")
+	require.NoError(t, os.MkdirAll(filepath.Join(code, "target", ".git"), 0o700))
+	a := artifactOf(t, New(Options{Projects: []string{code}}, fakeSystem(home)))
+	prefix := under(t, a, code)
+	var got []string
+	for _, f := range a.Include {
+		if rel, ok := strings.CutPrefix(f, prefix); ok {
+			got = append(got, rel)
+		}
+	}
+	assert.ElementsMatch(t, []string{"api/.vscode/tasks.json", "target/next.config.mjs"}, got,
+		"a linked config folder is read once, and a repository named target is not skipped")
+}
+
+func TestAuditProjectsReadsEachNameOfALinkedFolder(t *testing.T) {
+	home := machineHome(t, "review")
+	code := filepath.Join(home, "code")
+	write(t, filepath.Join(code, "api", "cfg", "tasks.json"), "x")
+	require.NoError(t, os.Symlink("cfg", filepath.Join(code, "api", ".claude")))
+	require.NoError(t, os.Symlink("cfg", filepath.Join(code, "api", ".vscode")))
+	a := artifactOf(t, New(Options{Projects: []string{code}}, fakeSystem(home)))
+	assert.Contains(t, a.Include, under(t, a, code)+"api/.vscode/tasks.json", ".claude comes first and must not hide .vscode")
+}
+
+func TestAuditProjectsCapCountsLinkedFolders(t *testing.T) {
+	old := maxProjectFiles
+	maxProjectFiles = 2
+	t.Cleanup(func() { maxProjectFiles = old })
+	home := machineHome(t, "review")
+	code := filepath.Join(home, "code")
+	write(t, filepath.Join(code, "api", "cfg", "tasks.json"), "x")
+	require.NoError(t, os.Symlink("cfg", filepath.Join(code, "api", ".claude")))
+	require.NoError(t, os.Symlink("cfg", filepath.Join(code, "api", ".vscode")))
+	write(t, filepath.Join(code, "api", "next.config.mjs"), "x")
+	write(t, filepath.Join(code, "api", "vite.config.js"), "x")
+	a := artifactOf(t, New(Options{Projects: []string{code}}, fakeSystem(home)))
+	prefix := under(t, a, code)
+	n := 0
+	for _, f := range a.Include {
+		if strings.HasPrefix(f, prefix) {
+			n++
+		}
+	}
+	assert.Equal(t, 2, n, "the cap holds across the linked folders that the walk follows")
+}
+
+// under returns the path of dir in a.Include, with a trailing slash. The
+// audit names a file by its path from the root of its volume.
+func under(t *testing.T, a plugin.Artifact, dir string) string {
+	t.Helper()
+	rel, err := filepath.Rel(a.Path, dir)
+	require.NoError(t, err)
+	return filepath.ToSlash(rel) + "/"
 }

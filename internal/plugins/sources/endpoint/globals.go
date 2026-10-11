@@ -20,11 +20,22 @@ func userGlobalRoots(home string) []string {
 		filepath.Join(home, ".npm-global", "lib", "node_modules"),
 		filepath.Join(home, "AppData", "Roaming", "npm", "node_modules"),
 	}
-	nvm, err := filepath.Glob(filepath.Join(home, ".nvm", "versions", "node", "*", "lib", "node_modules"))
-	if err != nil {
-		log.Debugf("endpoint: list nvm versions: %v", err)
+	// The Node version managers keep one global folder for each version.
+	for _, pattern := range []string{
+		filepath.Join(home, ".nvm", "versions", "node", "*", "lib", "node_modules"),
+		filepath.Join(home, ".volta", "tools", "image", "node", "*", "lib", "node_modules"),
+		filepath.Join(home, ".local", "share", "fnm", "node-versions", "*", "installation", "lib", "node_modules"),
+		filepath.Join(home, "Library", "Application Support", "fnm", "node-versions", "*", "installation", "lib", "node_modules"),
+		filepath.Join(home, ".asdf", "installs", "nodejs", "*", "lib", "node_modules"),
+		filepath.Join(home, ".local", "share", "mise", "installs", "node", "*", "lib", "node_modules"),
+	} {
+		found, err := filepath.Glob(pattern)
+		if err != nil {
+			log.Debugf("endpoint: list %s: %v", pattern, err)
+		}
+		roots = append(roots, found...)
 	}
-	return append(roots, nvm...)
+	return roots
 }
 
 // systemGlobalRoots lists the machine-wide npm global package directories.

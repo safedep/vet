@@ -49,8 +49,7 @@ type lockEntry interface {
 // enricher has data for it.
 func ToManifest(in Converted) (*model.Manifest, []error) {
 	kind := kindOf(in.Extractor)
-	fileOnly := kind == model.ManifestKindWorkflow || kind == model.ManifestKindAgentConfig
-	if len(in.Inventory.Packages) == 0 && !fileOnly {
+	if len(in.Inventory.Packages) == 0 && !fileOnly(kind) {
 		return nil, nil
 	}
 	m := &model.Manifest{
@@ -90,7 +89,7 @@ func ToManifest(in Converted) (*model.Manifest, []error) {
 		if kind == model.ManifestKindWorkflow {
 			m.Ecosystem = model.EcosystemGitHubActions
 		}
-		if fileOnly {
+		if fileOnly(kind) {
 			return m, errs
 		}
 		return nil, errs

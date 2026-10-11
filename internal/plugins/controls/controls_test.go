@@ -43,9 +43,9 @@ func TestBuild(t *testing.T) {
 		want    []string
 		wantErr string
 	}{
-		{name: "defaults", want: []string{"agent-config", "dependency-cooldown", "hygiene", "license", "lockfile", "malware", "reputation", "vulnerability", "workflow"}},
-		{name: "disabled", s: settings{enabled: map[string]bool{"malware": false}}, want: []string{"agent-config", "dependency-cooldown", "hygiene", "license", "lockfile", "reputation", "vulnerability", "workflow"}},
-		{name: "options", s: settings{options: map[string]map[string]any{"malware": {"trust_automated_analysis": true}}}, want: []string{"agent-config", "dependency-cooldown", "hygiene", "license", "lockfile", "malware", "reputation", "vulnerability", "workflow"}},
+		{name: "defaults", want: []string{"agent-config", "dependency-cooldown", "hidden-code", "hygiene", "license", "lockfile", "malware", "reputation", "vulnerability", "workflow"}},
+		{name: "disabled", s: settings{enabled: map[string]bool{"malware": false}}, want: []string{"agent-config", "dependency-cooldown", "hidden-code", "hygiene", "license", "lockfile", "reputation", "vulnerability", "workflow"}},
+		{name: "options", s: settings{options: map[string]map[string]any{"malware": {"trust_automated_analysis": true}}}, want: []string{"agent-config", "dependency-cooldown", "hidden-code", "hygiene", "license", "lockfile", "malware", "reputation", "vulnerability", "workflow"}},
 		{name: "bad options", s: settings{options: map[string]map[string]any{"lockfile": {"nope": 1}}}, wantErr: "plugins.lockfile.options"},
 		{name: "bad license", s: settings{options: map[string]map[string]any{"license": {"deny": []any{"GPL"}}}}, wantErr: `plugins.license.options: license: deny: ["GPL"]`},
 	}

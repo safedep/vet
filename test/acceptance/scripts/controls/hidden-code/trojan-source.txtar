@@ -1,0 +1,11 @@
+# A bidirectional control in code gives a high invisible-unicode finding.
+# It is not an attack, so the attacks gate passes, and --fail-on high
+# fails.
+cd repo
+exec vet scan . --mode plain -o json --fail-on attacks
+stdout '"control_id":"invisible-unicode","family":"hidden-code","severity":"high"'
+execexit 1 vet scan . --mode plain -o json --fail-on high
+
+-- repo/src/auth.ts --
+const isAdmin = false;
+if (isAdmin) { ‮ } ⁦// check⁩

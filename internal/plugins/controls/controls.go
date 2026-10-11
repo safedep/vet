@@ -7,6 +7,7 @@ import (
 
 	"github.com/safedep/vet/v2/internal/plugins/controls/agentconfig"
 	"github.com/safedep/vet/v2/internal/plugins/controls/cooldown"
+	"github.com/safedep/vet/v2/internal/plugins/controls/hiddencode"
 	"github.com/safedep/vet/v2/internal/plugins/controls/hygiene"
 	"github.com/safedep/vet/v2/internal/plugins/controls/license"
 	"github.com/safedep/vet/v2/internal/plugins/controls/lockfile"
@@ -29,6 +30,7 @@ func Builtin() []Spec {
 	return []Spec{
 		{Name: agentconfig.Name, New: agentconfig.New},
 		{Name: cooldown.Name, New: cooldown.New},
+		{Name: hiddencode.Name, New: hiddencode.New},
 		{Name: hygiene.Name, New: hygiene.New},
 		{Name: license.Name, New: license.New},
 		{Name: lockfile.Name, New: lockfile.New},

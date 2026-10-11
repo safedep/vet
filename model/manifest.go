@@ -20,6 +20,10 @@ const (
 	// ManifestKindAgentConfig is an agent or editor config file. It holds
 	// no package. The agentconfig control reads the file.
 	ManifestKindAgentConfig ManifestKind = "agent-config"
+	// ManifestKindFile is one file that the hidden-code controls read as a
+	// whole, such as a build config or a font file. It holds no package.
+	// vet adds it only for a file that shows a sign of hidden code.
+	ManifestKindFile ManifestKind = "file"
 	// ManifestKindInstalled is the metadata of a package on disk, such as
 	// node_modules/left-pad/package.json, or a binary that records its
 	// modules.

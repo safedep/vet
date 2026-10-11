@@ -206,9 +206,15 @@ finds malware that SafeDep Threat Intel learns about after a merge:
 ```yaml
 on:
   pull_request:
+  push:
+    branches: [main]
   schedule:
     - cron: "17 4 * * 1"
 ```
+
+Add `push` on the default branch too. A worm such as PolinRider runs on an infected developer
+machine. It amends the last commit of the developer and force-pushes it, so no pull request shows
+the change. The push run scans the full checkout, and the attacks gate fails on the hidden code.
 
 ## SARIF
 

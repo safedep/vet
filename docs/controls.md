@@ -25,7 +25,14 @@ to its section.
 | [`mcp-server-added`](#mcp-server-added) | agent-config | medium | MCP server in an agent config |
 | [`agent-instruction-change`](#agent-instruction-change) | agent-config | info | Agent instruction file |
 | [`suspicious-command`](#suspicious-command) | agent-config | critical | Suspicious command in an agent or editor config |
+| [`editor-autorun-enabled`](#editor-autorun-enabled) | agent-config | high | Editor setting turns off a safety check |
+| [`agent-config-unreadable`](#agent-config-unreadable) | agent-config | high | Agent or editor config that vet cannot read |
 | [`dependency-cooldown`](#dependency-cooldown) | cooldown | high | Version inside the cooldown window |
+| [`padded-code`](#padded-code) | hidden-code | critical | Script hidden after a run of spaces |
+| [`disguised-script`](#disguised-script) | hidden-code | critical | Script in a font, image or dictionary file |
+| [`unicode-payload`](#unicode-payload) | hidden-code | critical | Payload in invisible Unicode characters |
+| [`invisible-unicode`](#invisible-unicode) | hidden-code | high | Invisible Unicode characters |
+| [`history-rewrite-script`](#history-rewrite-script) | hidden-code | critical | Script that rewrites the git history |
 | [`install-scripts-added`](#install-scripts-added) | hygiene | high | New dependency with install scripts |
 | [`provenance-lost`](#provenance-lost) | hygiene | medium | Provenance lost on an upgrade |
 | [`deprecated-package`](#deprecated-package) | hygiene | medium | Deprecated package |
@@ -226,11 +233,53 @@ An instruction file tells a coding agent what to do in the project. Review it li
 
 A command that an editor, an agent or a git hook runs looks malicious: it runs a downloaded script, decodes a payload or reads credentials.
 
+### editor-autorun-enabled
+
+**Editor setting turns off a safety check.** Family `agent-config`. Default severity high. Plugin `agent-config`.
+
+A setting lets tasks run with no prompt, hides the terminal of a task, or turns off workspace trust. An attacker sets it so that a folder-open task runs unseen.
+
+### agent-config-unreadable
+
+**Agent or editor config that vet cannot read.** Family `agent-config`. Default severity high. Plugin `agent-config`.
+
+vet cannot parse the file, or the file is too large to read, so vet cannot check what it runs. An editor or an agent can still run it, and an attacker can break or pad a file to hide a command.
+
 ### dependency-cooldown
 
 **Version inside the cooldown window.** Family `cooldown`. Default severity high. Plugin `dependency-cooldown`.
 
 The registry published the version less than the cooldown window ago. Most malicious versions are found and removed in the first days.
+
+### padded-code
+
+**Script hidden after a run of spaces.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
+
+A source file, a build config or an npm entry script holds a script after a long run of white space, so an editor shows a clean line. A config can also hide it after its export. A build config runs at each build, test or lint, and an npm entry script at each npm command. An npm entry script that is far larger than the published file is also a finding. PolinRider adds its loader in these ways.
+
+### disguised-script
+
+**Script in a font, image or dictionary file.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
+
+A file with the name of a font, an image or a dictionary holds a script. A task or a loader runs it with node, so the folder looks like it holds only assets. Contagious Interview repositories ship such a fake font.
+
+### unicode-payload
+
+**Payload in invisible Unicode characters.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
+
+A file holds 16 or more variation selectors with no base character, or tag characters outside a flag emoji. Each one carries one byte of a payload, and an editor and a code review show nothing. Real text holds none. GlassWorm spreads this way, with the decoder in the same file or in another one.
+
+### invisible-unicode
+
+**Invisible Unicode characters.** Family `hidden-code`. Default severity high. Plugin `hidden-code`.
+
+A file holds a run of invisible characters, or code holds a bidirectional control. They can hide text from a reviewer, hide instructions from a person who reads an agent file, or show code in another order than the compiler reads it.
+
+### history-rewrite-script
+
+**Script that rewrites the git history.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
+
+A script amends the last commit with no hooks, keeps its date, and force-pushes it, or .gitignore hides such a script. PolinRider uses it to fold its change into the last real commit of each repository on an infected machine, so the history shows no new commit.
 
 ### install-scripts-added
 

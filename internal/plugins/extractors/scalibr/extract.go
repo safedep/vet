@@ -15,6 +15,12 @@ import (
 	"github.com/safedep/vet/v2/model"
 )
 
+// ErrNoManifest is the error of an extractor of a file-only kind for a
+// file that needs no manifest, such as a build config with no sign of
+// hidden code. Extract skips the file with no error, so a clean file adds
+// nothing to the report.
+var ErrNoManifest = errors.New("scalibr: the file needs no manifest")
+
 // File is one file of a target.
 type File struct {
 	// Root is the target on disk.
@@ -70,6 +76,9 @@ func Extract(ctx context.Context, in Input, exs []filesystem.Extractor) ([]*mode
 	var errs []error
 	for _, e := range exs {
 		inv, err := extractOne(ctx, e, fsys, f, info)
+		if errors.Is(err, ErrNoManifest) {
+			continue
+		}
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: %s: %w", e.Name(), f.Path, err))
 			if len(inv.Packages) == 0 {

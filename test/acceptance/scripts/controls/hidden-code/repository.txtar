@@ -1,0 +1,35 @@
+# A repository in the shape of a PolinRider infection: a build config with
+# code after a run of spaces and a PolinRider marker, a fake font with
+# leading tabs, a .gitignore that hides the push script, and a payload in
+# variation selectors with a decoder. Each one fails the attacks gate. The
+# snippet of the build config shows no payload. A clean config and a real
+# font give no finding.
+cd repo
+execexit 1 vet scan . --mode plain -o json --fail-on attacks
+stdout '"control_id":"padded-code","family":"hidden-code","severity":"critical"'
+stdout 'It matches PolinRider'
+stdout '"snippet":"export default config;"'
+! stdout 'global\[.._V'
+stdout '"control_id":"disguised-script"'
+stdout '"path":"public/fonts/fa-solid-400.woff2"'
+stdout '"control_id":"history-rewrite-script"'
+stdout '"control_id":"unicode-payload"'
+! stdout 'next.config.js'
+! stdout 'real.woff2'
+
+-- repo/client/postcss.config.mjs --
+const config = { plugins: { tailwindcss: {} } };
+export default config;                                                                                                                                                                                                                                                                                        global['_V']='8-st14';(function(){var _0xa1b2=function(){return 1};var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();})();//1
+-- repo/next.config.js --
+module.exports = { reactStrictMode: true };
+-- repo/public/fonts/fa-solid-400.woff2 --
+										console.log(1)
+-- repo/public/fonts/real.woff2 --
+wOF2 binary font data
+-- repo/.gitignore --
+node_modules
+temp_auto_push.bat
+config.bat
+-- repo/src/index.js --
+const s = v => [...v].map(c => c.codePointAt(0) - 0xFE00);
+eval(Buffer.from(s(`︀︁︂︃︄︅︆︇︈︉︊︋︌︍︎️︀︁︂︃`)).toString());

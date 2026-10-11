@@ -210,6 +210,15 @@ func WriteBlob(f *object.File, dst string) error {
 // Git can check a file out with CRLF line ends and store it with LF
 // (core.autocrlf), so the file also matches when its LF form does.
 func SameBlob(fsys fs.FS, rel string, base plumbing.Hash) (bool, error) {
+	// Git keeps a symbolic link as a blob of its target path, and the scan
+	// reads the link through. The same link text can point at a target
+	// that the change modified, and the base blob does not say, so a link
+	// counts as changed. vet reports more, never less.
+	if rl, ok := fsys.(fs.ReadLinkFS); ok {
+		if _, err := rl.ReadLink(rel); err == nil {
+			return false, nil
+		}
+	}
 	data, err := fs.ReadFile(fsys, rel)
 	if err != nil {
 		return false, err

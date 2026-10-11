@@ -2,10 +2,17 @@ package agentconfig
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"maps"
+	"regexp"
+	"slices"
 	"sort"
+	"strconv"
 	"strings"
+	"unicode/utf16"
 
 	"gopkg.in/yaml.v3"
 )
@@ -19,6 +26,15 @@ type command struct {
 	line int
 	// onOpen is an editor task that runs when the folder opens.
 	onOpen bool
+	// hidden is an editor task that hides its terminal and its output.
+	hidden bool
+}
+
+// setting is one editor setting that turns off a safety check.
+type setting struct {
+	key   string
+	title string
+	line  int
 }
 
 // server is one MCP server of a config file.
@@ -29,9 +45,96 @@ type server struct {
 	line    int
 }
 
-// stripJSONC removes the comments and the trailing commas of a JSON with
-// comments file, such as the VS Code and devcontainer files.
+// The parsers decode into generic values and read each field with a type
+// check. A typed decode stops at the first value of a wrong type, so one
+// bad value would hide the commands of the whole file. Map keys also match
+// exactly, as they do in the editor. encoding/json matches struct fields
+// with no case, so a decoy "COMMAND" key would win over "command".
+type object = map[string]any
+
+// objectOf returns v as an object. yaml.v3 decodes a mapping with a key
+// that is not a string, such as 1:, to map[any]any, so the keys become
+// strings.
+func objectOf(v any) object {
+	switch o := v.(type) {
+	case map[string]any:
+		return o
+	case map[any]any:
+		out := make(object, len(o))
+		for k, e := range o {
+			out[fmt.Sprint(k)] = e
+		}
+		return out
+	}
+	return nil
+}
+
+func listOf(v any) []any { l, _ := v.([]any); return l }
+
+func stringOf(v any) string { s, _ := v.(string); return s }
+
+// sortedKeys returns the keys of o in order.
+func sortedKeys(o object) []string {
+	keys := make([]string, 0, len(o))
+	for k := range o {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+// parseError is a syntax error with its line in the file.
+type parseError struct {
+	line int
+	err  error
+}
+
+func (e *parseError) Error() string { return e.err.Error() }
+
+func (e *parseError) Unwrap() error { return e.err }
+
+// errorLine returns the line of a parse error, or 1.
+func errorLine(err error) int {
+	var pe *parseError
+	if errors.As(err, &pe) {
+		return pe.line
+	}
+	return 1
+}
+
+var bom = []byte("\xEF\xBB\xBF")
+
+// utf8Text returns a UTF-16 file with a byte order mark as UTF-8. The
+// editors read such a file, so vet reads it too. Other data comes back as
+// it is.
+func utf8Text(data []byte) []byte {
+	var order binary.ByteOrder
+	switch {
+	case bytes.HasPrefix(data, []byte{0xFF, 0xFE}):
+		order = binary.LittleEndian
+	case bytes.HasPrefix(data, []byte{0xFE, 0xFF}):
+		order = binary.BigEndian
+	default:
+		return data
+	}
+	units := make([]uint16, 0, len(data)/2)
+	for i := 2; i+1 < len(data); i += 2 {
+		units = append(units, order.Uint16(data[i:]))
+	}
+	return []byte(string(utf16.Decode(units)))
+}
+
+// stripJSONC removes the byte order mark, the comments and the trailing
+// commas of a JSON with comments file, such as the VS Code and devcontainer
+// files. It keeps each line break, so a line in the result is the same line
+// in the file.
 func stripJSONC(data []byte) []byte {
+	return stripTrailingCommas(stripComments(bytes.TrimPrefix(data, bom)))
+}
+
+// scanJSON calls each for each byte outside a string, and copies each byte
+// of a string as it is. each returns how many bytes it took.
+func scanJSON(data []byte, each func(out *bytes.Buffer, i int) int) []byte {
 	var out bytes.Buffer
 	inString, escaped := false, false
 	for i := 0; i < len(data); i++ {
@@ -48,42 +151,86 @@ func stripJSONC(data []byte) []byte {
 			}
 			continue
 		}
-		switch {
-		case c == '"':
+		if c == '"' {
 			inString = true
 			out.WriteByte(c)
-		case c == '/' && i+1 < len(data) && data[i+1] == '/':
-			for i < len(data) && data[i] != '\n' {
-				i++
-			}
-			out.WriteByte('\n')
-		case c == '/' && i+1 < len(data) && data[i+1] == '*':
-			end := bytes.Index(data[i+2:], []byte("*/"))
-			if end < 0 {
-				i = len(data)
-				continue
-			}
-			// Keep the line breaks, so the line numbers stay right.
-			out.Write(bytes.Repeat([]byte("\n"), bytes.Count(data[i:i+2+end+2], []byte("\n"))))
-			i += 2 + end + 1
-		case c == ',':
-			j := i + 1
-			for j < len(data) && strings.ContainsRune(" \t\r\n", rune(data[j])) {
-				j++
-			}
-			if j < len(data) && (data[j] == '}' || data[j] == ']') {
-				continue
-			}
-			out.WriteByte(c)
-		default:
-			out.WriteByte(c)
+			continue
 		}
+		i += each(&out, i) - 1
 	}
 	return out.Bytes()
 }
 
-func decodeJSONC(data []byte, v any) error {
-	return json.Unmarshal(stripJSONC(data), v)
+func stripComments(data []byte) []byte {
+	return scanJSON(data, func(out *bytes.Buffer, i int) int {
+		switch {
+		case bytes.HasPrefix(data[i:], []byte("//")):
+			end := bytes.IndexByte(data[i:], '\n')
+			if end < 0 {
+				return len(data) - i
+			}
+			return end
+		case bytes.HasPrefix(data[i:], []byte("/*")):
+			end := bytes.Index(data[i+2:], []byte("*/"))
+			n := len(data) - i
+			if end >= 0 {
+				n = end + 4
+			}
+			out.Write(bytes.Repeat([]byte("\n"), bytes.Count(data[i:i+n], []byte("\n"))))
+			return n
+		}
+		out.WriteByte(data[i])
+		return 1
+	})
+}
+
+func stripTrailingCommas(data []byte) []byte {
+	return scanJSON(data, func(out *bytes.Buffer, i int) int {
+		if data[i] == ',' {
+			rest := bytes.TrimLeft(data[i+1:], " \t\r\n")
+			if len(rest) > 0 && (rest[0] == '}' || rest[0] == ']') {
+				return 1
+			}
+		}
+		out.WriteByte(data[i])
+		return 1
+	})
+}
+
+// decodeJSONC decodes a JSON with comments file into a generic value. An
+// empty file holds nothing and gives nil.
+func decodeJSONC(data []byte) (any, error) {
+	clean := stripJSONC(data)
+	if len(bytes.TrimSpace(clean)) == 0 {
+		return nil, nil
+	}
+	var v any
+	if err := json.Unmarshal(clean, &v); err != nil {
+		line := 1
+		var se *json.SyntaxError
+		if errors.As(err, &se) && se.Offset > 0 && se.Offset <= int64(len(clean)) {
+			line = bytes.Count(clean[:se.Offset], []byte("\n")) + 1
+		}
+		return nil, &parseError{line: line, err: err}
+	}
+	return v, nil
+}
+
+var yamlLine = regexp.MustCompile(`^yaml: line (\d+):`)
+
+// decodeYAML decodes a YAML file into a generic value.
+func decodeYAML(data []byte) (any, error) {
+	var v any
+	if err := yaml.Unmarshal(data, &v); err != nil {
+		line := 1
+		if m := yamlLine.FindStringSubmatch(err.Error()); m != nil {
+			if n, convErr := strconv.Atoi(m[1]); convErr == nil {
+				line = n
+			}
+		}
+		return nil, &parseError{line: line, err: err}
+	}
+	return v, nil
 }
 
 // lineOf returns the line of the first occurrence of the JSON form of s,
@@ -131,13 +278,8 @@ func commandText(v any) []string {
 		}
 		return []string{strings.Join(parts, " ")}
 	case map[string]any:
-		keys := make([]string, 0, len(c))
-		for k := range c {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
 		var out []string
-		for _, k := range keys {
+		for _, k := range sortedKeys(c) {
 			out = append(out, commandText(c[k])...)
 		}
 		return out
@@ -145,37 +287,159 @@ func commandText(v any) []string {
 	return nil
 }
 
-// editorTasks reads the shell and process tasks of .vscode/tasks.json.
-func editorTasks(data []byte) ([]command, error) {
-	var doc struct {
-		Tasks []struct {
-			Label      string `json:"label"`
-			Type       string `json:"type"`
-			Command    any    `json:"command"`
-			Args       []any  `json:"args"`
-			RunOptions struct {
-				RunOn string `json:"runOn"`
-			} `json:"runOptions"`
-		} `json:"tasks"`
+// taskWord is one word of a task command or of its args: a string, or a
+// quoted string as {"value": "...", "quoting": "strong"}.
+func taskWord(v any) string {
+	if o := objectOf(v); o != nil {
+		v = o["value"]
 	}
-	if err := decodeJSONC(data, &doc); err != nil {
+	switch w := v.(type) {
+	case string:
+		return w
+	case []any:
+		parts := make([]string, 0, len(w))
+		for _, p := range w {
+			if s := stringOf(p); s != "" {
+				parts = append(parts, s)
+			}
+		}
+		return strings.Join(parts, " ")
+	}
+	return ""
+}
+
+// taskText joins the command and the args of a task, or of one OS block of
+// a task.
+func taskText(t object) (text, first string) {
+	first = taskWord(t["command"])
+	if script := stringOf(t["script"]); strings.TrimSpace(first) == "" && script != "" {
+		// An npm task runs a script of package.json.
+		first = script
+		return "npm run " + script, first
+	}
+	if strings.TrimSpace(first) == "" {
+		return "", ""
+	}
+	// The shell of a task runs the command with its own arguments, which
+	// can hold the payload.
+	shell := objectOf(objectOf(t["options"])["shell"])
+	words := []string{}
+	if exe := stringOf(shell["executable"]); exe != "" {
+		words = append(words, exe)
+		for _, a := range listOf(shell["args"]) {
+			words = append(words, stringOf(a))
+		}
+	}
+	words = append(words, first)
+	for _, a := range listOf(t["args"]) {
+		if w := taskWord(a); w != "" {
+			words = append(words, w)
+		}
+	}
+	return strings.Join(words, " "), first
+}
+
+// hiddenTask reports a task that does not show its terminal and also hides
+// it in a second way: out of the task list, with no echo of the command, or
+// with the terminal closed at the end. A watch task can set reveal: never
+// or silent alone. The PolinRider tasks set all of them.
+func hiddenTask(t object) bool {
+	p := objectOf(t["presentation"])
+	if r := stringOf(p["reveal"]); r != "never" && r != "silent" {
+		return false
+	}
+	hide, _ := t["hide"].(bool)
+	echo, hasEcho := p["echo"].(bool)
+	closes, _ := p["close"].(bool)
+	return hide || (hasEcho && !echo) || closes
+}
+
+// taskOSes are the OS blocks of a task, each with its own command.
+var taskOSes = []string{"windows", "osx", "linux"}
+
+// mergedKeys are the task keys whose objects the editor merges key by key
+// with the outer level, in place of a full replace.
+var mergedKeys = map[string]bool{"options": true, "shell": true, "env": true, "presentation": true}
+
+// overlay returns a copy of base with the keys of top on top, as the editor
+// merges an OS block over a task and a task over the root of tasks.json.
+// The args of both levels add up, outer first.
+func overlay(base, top object) object {
+	out := maps.Clone(base)
+	if out == nil {
+		out = object{}
+	}
+	for k, v := range top {
+		if sub, outer := objectOf(v), objectOf(out[k]); mergedKeys[k] && sub != nil && outer != nil {
+			v = overlay(outer, sub)
+		}
+		if k == "args" {
+			v = append(slices.Clone(listOf(out[k])), listOf(v)...)
+		}
+		out[k] = v
+	}
+	return out
+}
+
+// inherited returns the keys of a root object or a root OS block that each
+// task of tasks.json inherits. A task with no command runs the root command.
+func inherited(o object) object {
+	out := object{}
+	for _, k := range []string{"command", "args", "options", "presentation"} {
+		if v, ok := o[k]; ok {
+			out[k] = v
+		}
+	}
+	return out
+}
+
+// editorTasks reads the shell and process tasks of .vscode/tasks.json. The
+// editor runs each task with the options and presentation of the root, and
+// with the OS block of the developer merged on top. So vet reads one
+// command for each OS whose merged task differs from the plain task.
+func editorTasks(data []byte) ([]command, error) {
+	doc, err := decodeJSONC(data)
+	if err != nil {
 		return nil, err
 	}
+	root := objectOf(doc)
+	base := inherited(root)
 	var out []command
-	for i, t := range doc.Tasks {
-		texts := commandText(t.Command)
-		if len(texts) == 0 {
+	for i, v := range listOf(root["tasks"]) {
+		if len(out) > maxCommands {
+			break
+		}
+		t := objectOf(v)
+		if t == nil {
 			continue
 		}
-		text := texts[0]
-		if args := commandText(t.Args); len(args) > 0 {
-			text += " " + args[0]
-		}
-		name := t.Label
+		name := stringOf(t["label"])
 		if name == "" {
 			name = fmt.Sprintf("task %d", i+1)
 		}
-		out = append(out, command{name: name, text: text, line: lineOf(data, texts[0]), onOpen: t.RunOptions.RunOn == "folderOpen"})
+		onOpen := stringOf(objectOf(t["runOptions"])["runOn"]) == "folderOpen"
+		seen := map[command]bool{}
+		add := func(suffix string, task object) {
+			text, first := taskText(task)
+			if text == "" {
+				return
+			}
+			c := command{text: text, onOpen: onOpen, hidden: hiddenTask(task)}
+			if seen[c] {
+				return
+			}
+			seen[c] = true
+			c.name, c.line = name+suffix, lineOf(data, first)
+			out = append(out, c)
+		}
+		add("", overlay(base, t))
+		for _, osName := range taskOSes {
+			rootOS, taskOS := objectOf(root[osName]), objectOf(t[osName])
+			if rootOS == nil && taskOS == nil {
+				continue
+			}
+			add(" ("+osName+")", overlay(overlay(overlay(base, inherited(rootOS)), t), taskOS))
+		}
 	}
 	return out, nil
 }
@@ -183,42 +447,33 @@ func editorTasks(data []byte) ([]command, error) {
 // claudeHooks reads the hook commands and the status line command of
 // .claude/settings.json.
 func claudeHooks(data []byte) ([]command, error) {
-	var doc struct {
-		Hooks map[string][]struct {
-			Matcher string `json:"matcher"`
-			Hooks   []struct {
-				Type    string `json:"type"`
-				Command string `json:"command"`
-			} `json:"hooks"`
-		} `json:"hooks"`
-		StatusLine struct {
-			Command string `json:"command"`
-		} `json:"statusLine"`
-	}
-	if err := decodeJSONC(data, &doc); err != nil {
+	doc, err := decodeJSONC(data)
+	if err != nil {
 		return nil, err
 	}
-	events := make([]string, 0, len(doc.Hooks))
-	for e := range doc.Hooks {
-		events = append(events, e)
-	}
-	sort.Strings(events)
+	root := objectOf(doc)
+	hooks := objectOf(root["hooks"])
 	var out []command
-	for _, e := range events {
-		for _, m := range doc.Hooks[e] {
-			for _, h := range m.Hooks {
-				if strings.TrimSpace(h.Command) == "" {
+	for _, event := range sortedKeys(hooks) {
+		if len(out) > maxCommands {
+			break
+		}
+		for _, mv := range listOf(hooks[event]) {
+			m := objectOf(mv)
+			for _, hv := range listOf(m["hooks"]) {
+				c := stringOf(objectOf(hv)["command"])
+				if strings.TrimSpace(c) == "" {
 					continue
 				}
-				name := e
-				if m.Matcher != "" {
-					name += " " + m.Matcher
+				name := event
+				if matcher := stringOf(m["matcher"]); matcher != "" {
+					name += " " + matcher
 				}
-				out = append(out, command{name: name, text: h.Command, line: lineOf(data, h.Command)})
+				out = append(out, command{name: name, text: c, line: lineOf(data, c)})
 			}
 		}
 	}
-	if c := strings.TrimSpace(doc.StatusLine.Command); c != "" {
+	if c := strings.TrimSpace(stringOf(objectOf(root["statusLine"])["command"])); c != "" {
 		out = append(out, command{name: "statusLine", text: c, line: lineOf(data, c)})
 	}
 	return out, nil
@@ -228,66 +483,67 @@ var lifecycle = []string{"initializeCommand", "onCreateCommand", "updateContentC
 
 // devContainer reads the lifecycle commands of devcontainer.json.
 func devContainer(data []byte) ([]command, error) {
-	var doc map[string]any
-	if err := decodeJSONC(data, &doc); err != nil {
+	doc, err := decodeJSONC(data)
+	if err != nil {
 		return nil, err
 	}
+	root := objectOf(doc)
 	var out []command
 	for _, key := range lifecycle {
-		for _, text := range commandText(doc[key]) {
+		for _, text := range commandText(root[key]) {
 			out = append(out, command{name: key, text: text, line: lineOf(data, text)})
 		}
 	}
 	return out, nil
 }
 
-// gitHook reads the command lines of a husky hook script.
+// huskySource is the line of a husky v8 hook that sources the husky helper.
+var huskySource = regexp.MustCompile(`^(\.|source)\s+["']?\$\(dirname\b.*_/husky\.sh`)
+
+// gitHook reads the command lines of a git hook script. A line that ends
+// with a backslash goes on in the next line, so the two are one command.
 func gitHook(data []byte) []command {
 	var out []command
-	for i, l := range strings.Split(string(data), "\n") {
-		l = strings.TrimSpace(l)
-		if l == "" || strings.HasPrefix(l, "#") || strings.Contains(l, "husky.sh") {
+	lines := strings.Split(string(data), "\n")
+	for i := 0; i < len(lines) && len(out) <= maxCommands; i++ {
+		start := i
+		l := strings.TrimSpace(lines[i])
+		for strings.HasSuffix(l, "\\") && i+1 < len(lines) {
+			i++
+			l = strings.TrimSuffix(l, "\\") + " " + strings.TrimSpace(lines[i])
+		}
+		if l == "" || strings.HasPrefix(l, "#") || huskySource.MatchString(l) {
 			continue
 		}
-		out = append(out, command{name: "hook", text: l, line: i + 1})
+		out = append(out, command{name: "hook", text: l, line: start + 1})
 	}
 	return out
 }
 
-// lefthook reads the run commands of lefthook.yml.
+// lefthook reads the run commands of lefthook.yml. A top-level key that is
+// not a hook, such as min_version or colors, holds no command.
 func lefthook(data []byte) ([]command, error) {
-	var doc map[string]struct {
-		Commands map[string]struct {
-			Run string `yaml:"run"`
-		} `yaml:"commands"`
-		Jobs []struct {
-			Name string `yaml:"name"`
-			Run  string `yaml:"run"`
-		} `yaml:"jobs"`
-	}
-	if err := yaml.Unmarshal(data, &doc); err != nil {
+	doc, err := decodeYAML(data)
+	if err != nil {
 		return nil, err
 	}
-	hooks := make([]string, 0, len(doc))
-	for h := range doc {
-		hooks = append(hooks, h)
-	}
-	sort.Strings(hooks)
+	root := objectOf(doc)
 	var out []command
-	for _, h := range hooks {
-		names := make([]string, 0, len(doc[h].Commands))
-		for n := range doc[h].Commands {
-			names = append(names, n)
+	for _, h := range sortedKeys(root) {
+		if len(out) > maxCommands {
+			break
 		}
-		sort.Strings(names)
-		for _, n := range names {
-			if run := strings.TrimSpace(doc[h].Commands[n].Run); run != "" {
+		hook := objectOf(root[h])
+		cmds := objectOf(hook["commands"])
+		for _, n := range sortedKeys(cmds) {
+			if run := strings.TrimSpace(stringOf(objectOf(cmds[n])["run"])); run != "" {
 				out = append(out, command{name: h + " " + n, text: run, line: lineOf(data, run)})
 			}
 		}
-		for i, j := range doc[h].Jobs {
-			if run := strings.TrimSpace(j.Run); run != "" {
-				name := j.Name
+		for i, jv := range listOf(hook["jobs"]) {
+			j := objectOf(jv)
+			if run := strings.TrimSpace(stringOf(j["run"])); run != "" {
+				name := stringOf(j["name"])
 				if name == "" {
 					name = fmt.Sprintf("job %d", i+1)
 				}
@@ -299,45 +555,161 @@ func lefthook(data []byte) ([]command, error) {
 }
 
 // mcpServers reads the servers of an MCP config: mcpServers in the agent
-// files, servers in .vscode/mcp.json.
+// files, servers in .vscode/mcp.json. A file can hold both keys, and a
+// client can read either, so vet reads each entry of each key. A merge
+// would let a harmless entry hide a malicious entry of the same name.
 func mcpServers(data []byte) ([]server, error) {
-	type entry struct {
-		Command   string   `json:"command"`
-		Args      []string `json:"args"`
-		URL       string   `json:"url"`
-		ServerURL string   `json:"serverUrl"`
-		HTTPURL   string   `json:"httpUrl"`
-	}
-	var doc struct {
-		MCPServers map[string]entry `json:"mcpServers"`
-		Servers    map[string]entry `json:"servers"`
-	}
-	if err := decodeJSONC(data, &doc); err != nil {
+	doc, err := decodeJSONC(data)
+	if err != nil {
 		return nil, err
 	}
-	all := map[string]entry{}
-	for n, e := range doc.Servers {
-		all[n] = e
-	}
-	for n, e := range doc.MCPServers {
-		all[n] = e
-	}
-	names := make([]string, 0, len(all))
-	for n := range all {
-		names = append(names, n)
-	}
-	sort.Strings(names)
+	root := objectOf(doc)
+	clean := stripJSONC(data)
 	var out []server
-	for _, n := range names {
-		e := all[n]
-		url := e.URL
-		for _, u := range []string{e.ServerURL, e.HTTPURL} {
-			if url == "" {
-				url = u
+	for _, key := range []string{"mcpServers", "servers"} {
+		section := objectOf(root[key])
+		for _, n := range sortedKeys(section) {
+			if len(out) > maxCommands {
+				return out, nil
 			}
+			e := objectOf(section[n])
+			url := ""
+			for _, k := range []string{"url", "serverUrl", "httpUrl"} {
+				if url == "" {
+					url = stringOf(e[k])
+				}
+			}
+			words := []string{stringOf(e["command"])}
+			for _, a := range listOf(e["args"]) {
+				words = append(words, stringOf(a))
+			}
+			cmd := strings.TrimSpace(strings.Join(words, " "))
+			line := keyLine(clean, key, n)
+			if line == 0 {
+				line = lineOf(data, n)
+			}
+			out = append(out, server{name: n, command: cmd, url: url, line: line})
 		}
-		cmd := strings.TrimSpace(strings.Join(append([]string{e.Command}, e.Args...), " "))
-		out = append(out, server{name: n, command: cmd, url: url, line: lineOf(data, n)})
+	}
+	return out, nil
+}
+
+// keyLine returns the line of the key at path in the JSON text clean, or 0.
+// It reads the JSON tokens, so a key in a comment or in a string does not
+// match. Of two keys of one name, the last one counts, as in the decoded
+// value. stripJSONC keeps the lines of a file, so the line is the line in
+// the file.
+func keyLine(clean []byte, path ...string) int {
+	dec := json.NewDecoder(bytes.NewReader(clean))
+	if t, err := dec.Token(); err != nil || t != json.Delim('{') {
+		return 0
+	}
+	line, err := lastKeyLine(dec, clean, path)
+	if err != nil {
+		return 0
+	}
+	return line
+}
+
+// lastKeyLine reads the rest of an object from dec and returns the line of
+// the last key at path in it.
+func lastKeyLine(dec *json.Decoder, clean []byte, path []string) (int, error) {
+	line := 0
+	for dec.More() {
+		t, err := dec.Token()
+		if err != nil {
+			return 0, err
+		}
+		if t != path[0] {
+			if err := skipValue(dec); err != nil {
+				return 0, err
+			}
+			continue
+		}
+		if len(path) == 1 {
+			line = bytes.Count(clean[:dec.InputOffset()], []byte("\n")) + 1
+			if err := skipValue(dec); err != nil {
+				return 0, err
+			}
+			continue
+		}
+		t, err = dec.Token()
+		if err != nil {
+			return 0, err
+		}
+		switch t {
+		case json.Delim('{'):
+			if line, err = lastKeyLine(dec, clean, path[1:]); err != nil {
+				return 0, err
+			}
+		case json.Delim('['):
+			if err := skipRest(dec); err != nil {
+				return 0, err
+			}
+			line = 0
+		default:
+			line = 0
+		}
+	}
+	_, err := dec.Token()
+	return line, err
+}
+
+// skipValue reads one value from dec.
+func skipValue(dec *json.Decoder) error {
+	t, err := dec.Token()
+	if err != nil {
+		return err
+	}
+	if t == json.Delim('{') || t == json.Delim('[') {
+		return skipRest(dec)
+	}
+	return nil
+}
+
+// skipRest reads the rest of an object or an array from dec, up to its
+// closing token.
+func skipRest(dec *json.Decoder) error {
+	for depth := 1; depth > 0; {
+		t, err := dec.Token()
+		if err != nil {
+			return err
+		}
+		switch t {
+		case json.Delim('{'), json.Delim('['):
+			depth++
+		case json.Delim('}'), json.Delim(']'):
+			depth--
+		}
+	}
+	return nil
+}
+
+// unsafeSettings are the editor settings that turn off a safety check, with
+// the values that do it and why.
+var unsafeSettings = []struct {
+	key    string
+	unsafe func(v any) bool
+	title  string
+}{
+	{"task.allowAutomaticTasks", func(v any) bool { return v == "on" || v == true }, "Setting task.allowAutomaticTasks lets a folder-open task run with no prompt"},
+	{"terminal.integrated.hideOnStartup", func(v any) bool { return v == "always" }, "Setting terminal.integrated.hideOnStartup hides the terminal of a task"},
+	{"security.workspace.trust.enabled", func(v any) bool { return v == false }, "Setting security.workspace.trust.enabled turns off workspace trust"},
+}
+
+// editorSettings reads the settings of an editor settings.json that turn
+// off a safety check.
+func editorSettings(data []byte) ([]setting, error) {
+	doc, err := decodeJSONC(data)
+	if err != nil {
+		return nil, err
+	}
+	root := objectOf(doc)
+	var out []setting
+	for _, u := range unsafeSettings {
+		if v, ok := root[u.key]; ok && u.unsafe(v) {
+			out = append(out, setting{key: u.key, title: u.title, line: lineOf(data, `"`+u.key+`"`)})
+		}
 	}
 	return out, nil
 }
