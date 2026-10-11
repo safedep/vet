@@ -96,7 +96,7 @@ var controls = []control{
 		plugin.ControlInfo{
 			ID: hiddencode.IDFontPayload, Family: finding.FamilyHiddenCode, Severity: finding.SeverityHigh,
 			Title:       "Encoded payload or script tokens in a binary font",
-			Description: "A font holds a long run of hex or base64, or several script tokens, after its binary header. node cannot run such a file, but a loader can read a payload from it. The control warns until a false-positive run on real fonts shows that it can fail the attacks gate.",
+			Description: "A font holds a long run of hex or base64, or several script tokens, after its binary header. node cannot run such a file, but a loader can read a payload from it. vet reads a font up to 32 MiB, and a larger font is a finding too. The control warns until a false-positive run on real fonts shows that it can fail the attacks gate.",
 		},
 		"Compare the font with the file from its publisher. Remove it if it differs, and find the code that reads it.",
 	},

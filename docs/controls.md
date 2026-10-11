@@ -282,7 +282,7 @@ A build config or an npm entry script calls eval or the Function constructor, ru
 
 **Encoded payload or script tokens in a binary font.** Family `hidden-code`. Default severity high. Plugin `hidden-code`.
 
-A font holds a long run of hex or base64, or several script tokens, after its binary header. node cannot run such a file, but a loader can read a payload from it. The control warns until a false-positive run on real fonts shows that it can fail the attacks gate.
+A font holds a long run of hex or base64, or several script tokens, after its binary header. node cannot run such a file, but a loader can read a payload from it. vet reads a font up to 32 MiB, and a larger font is a finding too. The control warns until a false-positive run on real fonts shows that it can fail the attacks gate.
 
 ### split-unicode-payload
 

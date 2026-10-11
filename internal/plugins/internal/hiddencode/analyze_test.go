@@ -226,6 +226,25 @@ func TestReadsAFontInFull(t *testing.T) {
 	assert.Len(t, got, headSize, "an image needs only its head")
 }
 
+func TestFontPastTheSourceLimit(t *testing.T) {
+	header := "wOF2\x00\x01" + strings.Repeat("\x00", 1000)
+	cases := []struct {
+		name, data string
+	}{
+		{"a payload after 4 MiB", header + strings.Repeat("\x00\x01", MaxSize/2) + strings.Repeat("0123456789abcdef", 64)},
+		{"a font over the limit", header + strings.Repeat("\x00", maxFontSize)},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			data, err := Read(strings.NewReader(tc.data), "a.woff2", Asset)
+			require.NoError(t, err)
+			signals := Analyze(Asset, "a.woff2", data)
+			require.Len(t, signals, 1)
+			assert.Equal(t, IDFontPayload, signals[0].ID)
+		})
+	}
+}
+
 func TestInvisibleSnippetHasNoPayload(t *testing.T) {
 	s := reported(Analyze(Source, "src/index.js", []byte("const x = `"+hiddentext.Selectors("payload")+"`;\n")))
 	require.Len(t, s, 1)

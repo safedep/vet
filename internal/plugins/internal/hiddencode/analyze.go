@@ -61,8 +61,8 @@ func Open(fsys fs.FS, p string, c Class) (data []byte, err error) {
 }
 
 // Read reads the part of a file that Analyze needs: the first bytes of a
-// binary image, else at most MaxSize+1 bytes. A font is small, and a
-// script can sit after a binary header in it, so vet reads all of it.
+// binary image, at most maxFontSize+1 bytes of a font, else at most
+// MaxSize+1 bytes. A script can sit after a binary header in a font.
 func Read(r io.Reader, p string, c Class) ([]byte, error) {
 	head := make([]byte, headSize)
 	n, err := io.ReadFull(r, head)
@@ -70,10 +70,15 @@ func Read(r io.Reader, p string, c Class) ([]byte, error) {
 		return nil, err
 	}
 	head = head[:n]
-	if kind := assetOf(p); c == Asset && !text(head) && kind != font && kind != textAsset && !commentStart(head) {
+	kind := assetOf(p)
+	if c == Asset && !text(head) && kind != font && kind != textAsset && !commentStart(head) {
 		return head, nil
 	}
-	rest, err := io.ReadAll(io.LimitReader(r, MaxSize+1-int64(n)))
+	limit := int64(MaxSize)
+	if c == Asset && kind == font {
+		limit = maxFontSize
+	}
+	rest, err := io.ReadAll(io.LimitReader(r, limit+1-int64(n)))
 	if err != nil {
 		return nil, err
 	}
@@ -278,6 +283,9 @@ func disguised(p string, data []byte) []Signal {
 			return sig(first, fmt.Sprintf("The %s file holds a script, not a word list", ext))
 		}
 		return nil
+	}
+	if kind == font && len(data) > maxFontSize {
+		return []Signal{{ID: IDFontPayload, Line: 1, Title: fmt.Sprintf("The %s file is larger than %d MiB. vet reads no further, and a real font is smaller", ext, maxFontSize>>20)}}
 	}
 	if !text(data) {
 		switch {
