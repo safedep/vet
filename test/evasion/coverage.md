@@ -36,6 +36,7 @@ detection, and commit the diff. See README.md.
 | `quote-split`: A download piped to s''h, with the shell name split by quotes | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `source-subst`: source of a download through a process substitution | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `sudo-flags`: A download piped to sudo -u root -E bash | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
+| `sudo-long`: A download piped to sudo --user root bash, with a long option that takes a value | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `sudo-n`: A download piped to sudo -n bash, where -n takes no value | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `sudo-s`: A download piped to sudo -s, which runs a shell | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `time-p`: A download piped to time -p sh | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
@@ -146,4 +147,4 @@ detection, and commit the diff. See README.md.
 | `polinrider-rewrite`: PolinRider: a script that amends the last commit, keeps its date and force-pushes it | `history-rewrite-script` | `history-rewrite-script` | fails | pass |
 | `polinrider-task`: PolinRider: a hidden folder-open task runs node on a fake font | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | fails | pass |
 
-Total: 113 cases, 110 pass, 0 fail, 3 known misses.
+Total: 114 cases, 111 pass, 0 fail, 3 known misses.

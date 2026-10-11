@@ -45,15 +45,26 @@ var wrappers = map[string]bool{
 // word, as in sudo -u root sh. The same letter takes no word in another
 // wrapper: sudo -n sh is not sudo with the user sh.
 var wrapperValueFlags = map[string]map[string]bool{
-	"env":     {"-u": true, "-C": true, "-S": true},
-	"sudo":    {"-u": true, "-g": true, "-C": true, "-p": true, "-U": true, "-h": true, "-D": true, "-R": true, "-T": true},
+	"env": {"-u": true, "-C": true, "--unset": true, "--chdir": true},
+	"sudo": {
+		"-u": true, "-g": true, "-C": true, "-p": true, "-U": true, "-h": true, "-D": true, "-R": true, "-T": true,
+		"--user": true, "--group": true, "--close-from": true, "--prompt": true, "--other-user": true,
+		"--host": true, "--chdir": true, "--chroot": true, "--command-timeout": true,
+	},
 	"doas":    {"-u": true, "-C": true},
 	"exec":    {"-a": true},
-	"nice":    {"-n": true},
-	"timeout": {"-s": true, "-k": true},
-	"stdbuf":  {"-i": true, "-o": true, "-e": true},
-	"xargs":   {"-I": true, "-L": true, "-n": true, "-P": true, "-d": true, "-E": true, "-s": true, "-a": true},
+	"nice":    {"-n": true, "--adjustment": true},
+	"timeout": {"-s": true, "-k": true, "--signal": true, "--kill-after": true},
+	"stdbuf":  {"-i": true, "-o": true, "-e": true, "--input": true, "--output": true, "--error": true},
+	"xargs": {
+		"-I": true, "-L": true, "-n": true, "-P": true, "-d": true, "-E": true, "-s": true, "-a": true,
+		"--max-lines": true, "--max-args": true, "--max-procs": true, "--delimiter": true, "--arg-file": true,
+	},
 }
+
+// splitFlags make env split their value into the command, as in
+// env -S 'bash -e'.
+var splitFlags = map[string]bool{"-S": true, "--split-string": true}
 
 // wrapperArgs are the words that a wrapper takes after its options, as the
 // duration of timeout 30 sh.
@@ -443,6 +454,14 @@ func unwrap(words []string) []string {
 		words = words[1:]
 		shell := false
 		for len(words) > 0 && (strings.HasPrefix(words[0], "-") || strings.Contains(words[0], "=")) {
+			flag, value, inline := strings.Cut(words[0], "=")
+			if name == "env" && splitFlags[flag] {
+				if !inline && len(words) > 1 {
+					value, words = words[1], words[1:]
+				}
+				words = append(strings.Fields(value), words[1:]...)
+				break
+			}
 			shell = shell || (name == "sudo" && shellFlags[words[0]])
 			if wrapperValueFlags[name][words[0]] && len(words) > 1 {
 				words = words[1:]
