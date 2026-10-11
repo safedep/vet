@@ -1,0 +1,13 @@
+# A build config that puts require on the global object and builds a
+# function from a string gives a dynamic-code finding. The control warns:
+# the attacks gate passes. The snippet names the kind, not the payload.
+cd repo
+exec vet scan . --mode plain -o json --fail-on attacks
+stdout '"control_id":"dynamic-code","family":"hidden-code","severity":"high"'
+stdout '"snippet":"global\[...\] = ..."'
+! stdout 'Y29uc29sZS5sb2coMSk'
+stderr 'Gate passed'
+
+-- repo/postcss.config.mjs --
+export default { plugins: {} };
+global['r']=require;(function(){var f=Function(atob('Y29uc29sZS5sb2coMSk='));f();})();

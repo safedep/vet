@@ -242,6 +242,18 @@
   tier: P0
   guarantee: "A package that the stub marks malicious gives a critical finding, and --policy with a malware gate exits 1."
   labels: [controls]
+- id: controls/agent-config/shell-forms
+  title: "agent config: shell forms of a malicious command"
+  category: controls
+  tier: P0
+  guarantee: "suspicious-command reads a task command with a shell parser. A download piped to /bin/sh, to env sh or to a shell in a variable fails the attacks gate."
+  labels: [controls, gate]
+- id: controls/hidden-code/dynamic-code
+  title: "hidden code: dynamic code in a build config"
+  category: controls
+  tier: P1
+  guarantee: "A build config that runs dynamic code gives a high dynamic-code finding that warns. The attacks gate passes, and the snippet holds no payload."
+  labels: [controls, gate]
 - id: controls/suppression/visible
   title: "suppression: visible"
   category: controls
