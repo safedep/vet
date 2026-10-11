@@ -1,0 +1,24 @@
+# A path suppression with a control hides the findings of that control in a
+# folder of test samples from the gate. The findings stay in the report. A
+# finding of the same control outside the folder still fails the gate.
+cd repo
+exec vet scan . --mode plain -o json --fail-on attacks --policy $WORK/policy.yml
+stdout '"control_id":"padded-code"'
+stdout '"suppression":\{"reason":"Samples of the hidden-code tests."'
+stderr 'Gate passed'
+cp $WORK/infected.mjs src/postcss.config.mjs
+execexit 1 vet scan . --mode plain -o json --fail-on attacks --policy $WORK/policy.yml
+stdout '"path":"src/postcss.config.mjs"'
+
+-- policy.yml --
+version: 2
+suppressions:
+  - path: test/fixtures
+    control: padded-code
+    reason: Samples of the hidden-code tests.
+-- repo/test/fixtures/postcss.config.mjs --
+export default config;                                                                                                              (function(){var _0xa1b2=function(){return 1};var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();})();//1
+-- repo/src/postcss.config.mjs --
+export default { plugins: {} };
+-- infected.mjs --
+export default config;                                                                                                              (function(){var _0xa1b2=function(){return 1};var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();})();//1

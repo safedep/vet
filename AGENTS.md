@@ -48,6 +48,7 @@ helper or a list. Each row is the one place for its concern.
 | Global flags, exit codes, usage errors | `internal/app` |
 | Scan state, scan files, enrichment cache | `internal/state` |
 | Wiring of one scan from the config | `internal/runner` |
+| A path pattern of `scan.exclude` or of a policy suppression | `internal/pathglob` |
 | A token in a git URL | `git.Redact` in `internal/plugins/sources/git` |
 | GitHub token and client | `internal/github` |
 | The CI platform and the change that it builds, the adapters that write to it, and the setup files of `vet ci` | `internal/ci` |

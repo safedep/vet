@@ -63,7 +63,7 @@ func TestParseErrors(t *testing.T) {
 		{
 			name: "bad suppressions",
 			doc:  "version: 2\nsuppressions:\n  - reason: x\n  - control: c\n  - purl: 'not a purl'\n    reason: x\n  - control: c\n    reason: x\n    expires: next week\n",
-			want: []string{"suppressions[0]: set id, purl or control", "suppressions[1]: reason is empty", "suppressions[2]: parse PURL", `suppressions[3]: expires is "next week"`},
+			want: []string{"suppressions[0]: set id, purl, path or control", "suppressions[1]: reason is empty", "suppressions[2]: parse PURL", `suppressions[3]: expires is "next week"`},
 		},
 	}
 	for _, tc := range cases {
@@ -94,7 +94,7 @@ func TestYAMLErrorsNameTheFileAndTheLine(t *testing.T) {
 		{
 			name: "unknown suppression field",
 			doc:  "version: 2\nsuppressions:\n  - control: c\n    why: x\n",
-			want: `bad.yml line 4: "why" is not a field of a suppression. A suppression has id, purl, control, reason and expires.`,
+			want: `bad.yml line 4: "why" is not a field of a suppression. A suppression has id, purl, path, control, reason and expires.`,
 		},
 		{
 			name: "two errors",
@@ -218,6 +218,8 @@ func TestApplySuppressionSelectors(t *testing.T) {
 	f, pkg := packageFinding("malware", finding.SeverityCritical, "evil", "1.0.0", nil)
 	file := finding.ForFile(finding.Meta{ControlID: "unpinned-action", Family: finding.FamilyWorkflow, Severity: finding.SeverityMedium, Title: "t"},
 		finding.Locus{Path: "ci.yml", StartLine: 3, Snippet: "uses: a/b@v1"}, finding.Key{Discriminator: "a/b"})
+	fixture := finding.ForFile(finding.Meta{ControlID: "padded-code", Family: finding.FamilyHiddenCode, Severity: finding.SeverityCritical, Title: "t"},
+		finding.Locus{Path: "test/fixtures/postcss.config.mjs", StartLine: 1}, finding.Key{Discriminator: "padded-code"})
 	cases := []struct {
 		name string
 		s    string
@@ -234,6 +236,11 @@ func TestApplySuppressionSelectors(t *testing.T) {
 		{name: "control and purl", s: "control: malware\n    purl: pkg:npm/evil@2.0.0", f: f},
 		{name: "purl on a file finding", s: "purl: pkg:npm/evil", f: &file},
 		{name: "control on a file finding", s: "control: unpinned-action", f: &file, want: true},
+		{name: "path and control", s: "path: ci.yml\n    control: unpinned-action", f: &file, want: true},
+		{name: "path of a folder", s: "path: test/fixtures\n    control: padded-code", f: &fixture, want: true},
+		{name: "path of another file", s: "path: release.yml\n    control: unpinned-action", f: &file},
+		{name: "path with another control", s: "path: test/fixtures\n    control: dynamic-code", f: &fixture},
+		{name: "path of the manifest of a package", s: "path: package-lock.json\n    control: malware", f: f, want: true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -429,6 +436,17 @@ func TestPackageIsGlob(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, tc.want, got)
 		})
+	}
+}
+
+func TestPathSuppressionNeedsAControl(t *testing.T) {
+	for _, tc := range []struct{ s, err string }{
+		{"path: test/fixtures", `path "test/fixtures" needs control too`},
+		{"path: test/[\n    control: padded-code", `path "test/[" is not a valid pattern`},
+	} {
+		_, err := Parse("p.yml", []byte("version: 2\nsuppressions:\n  - reason: r\n    "+tc.s+"\n"))
+		require.Error(t, err, tc.s)
+		assert.Contains(t, err.Error(), tc.err)
 	}
 }
 

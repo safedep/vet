@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"path"
+
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/safedep/vet/v2/internal/gitbase"
+	"github.com/safedep/vet/v2/internal/pathglob"
 	"github.com/safedep/vet/v2/internal/plugins/extractors"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/installed"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/scalibr"
@@ -254,22 +255,9 @@ func skipDir(a plugin.Artifact, name string, readsInstalled bool) bool {
 	return name != "node_modules" || !readsInstalled
 }
 
-// excluded matches a path against the exclude patterns. A pattern matches
-// the whole path, its base name, or a directory prefix of the path.
+// excluded matches a path against the exclude patterns.
 func (r *run) excluded(p string) bool {
-	for _, pat := range r.o.Exclude {
-		pat = strings.TrimSuffix(pat, "/")
-		if ok, _ := path.Match(pat, p); ok {
-			return true
-		}
-		if ok, _ := path.Match(pat, path.Base(p)); ok {
-			return true
-		}
-		if strings.HasPrefix(p, pat+"/") {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(r.o.Exclude, func(pat string) bool { return pathglob.Match(pat, p) })
 }
 
 func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, rel string, info fs.FileInfo, exs []plugin.Extractor, d *delta) error {

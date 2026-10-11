@@ -13,6 +13,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/pathglob"
 	"github.com/safedep/vet/v2/internal/weburl"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
@@ -84,7 +85,10 @@ type Suppression struct {
 	// PURL matches the package of a finding. A PURL with no version
 	// matches every version. A name with *, ? or [ is a glob, as in
 	// pkg:golang/buf.build/gen/go/acme/*.
-	PURL    string `yaml:"purl,omitempty"`
+	PURL string `yaml:"purl,omitempty"`
+	// Path matches the file of a finding, as scan.exclude does: the whole
+	// path, its base name or a folder of it. It needs Control.
+	Path    string `yaml:"path,omitempty"`
 	Control string `yaml:"control,omitempty"`
 	Reason  string `yaml:"reason"`
 	// Expires is a date (2026-11-01) or a time (RFC 3339). The suppression
@@ -207,8 +211,16 @@ func parse(name string, data []byte) (*Policy, error) {
 
 func (s *Suppression) check() error {
 	var errs []error
-	if s.ID == "" && s.PURL == "" && s.Control == "" {
-		errs = append(errs, errors.New("set id, purl or control"))
+	if s.ID == "" && s.PURL == "" && s.Control == "" && s.Path == "" {
+		errs = append(errs, errors.New("set id, purl, path or control"))
+	}
+	switch {
+	case s.Path != "" && !pathglob.Valid(s.Path):
+		errs = append(errs, fmt.Errorf("path %q is not a valid pattern", s.Path))
+	case s.Path != "" && s.Control == "":
+		// A folder of test samples must not hide an attack of another kind,
+		// such as a loader that a change adds next to the samples.
+		errs = append(errs, fmt.Errorf("path %q needs control too", s.Path))
 	}
 	if s.Reason == "" {
 		errs = append(errs, errors.New("reason is empty"))

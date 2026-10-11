@@ -339,8 +339,8 @@ glob suppression must name a control.
 _Avoid_: wildcard PURL
 
 **Suppression**:
-A policy entry that hides a finding from the gate, selected by finding id, PURL or control id, with a
-required reason and an optional expiry. `policy.Suppression`. The finding keeps a
+A policy entry that hides a finding from the gate, selected by finding id, PURL, control id or path,
+with a required reason and an optional expiry. A path needs a control id. `policy.Suppression`. The finding keeps a
 `finding.Suppression` record and stays in the report. An expired suppression matches nothing and adds
 a diagnostic.
 _Avoid_: exception, ignore, waiver, allowlist

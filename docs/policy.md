@@ -77,6 +77,7 @@ vet scan --base-ref origin/main --policy vet-policy.yml
 | `suppressions[].id` | one of `id`, `purl`, `control` | A finding id, such as `f-e8b1a3df1a3b5c13` |
 | `suppressions[].purl` | one of `id`, `purl`, `control` | A package. With no version, it matches every version |
 | `suppressions[].control` | one of `id`, `purl`, `control` | A control id, such as `dependency-cooldown` |
+| `suppressions[].path` | no, and it needs `control` | The file of a finding: the whole path, its base name or a folder, as in `scan.exclude`. For a package, the path of its manifest |
 | `suppressions[].reason` | yes | Why the finding is acceptable. A reviewer reads it |
 | `suppressions[].expires` | no | A date (`2026-12-31`) or an RFC 3339 time. A date means 00:00 UTC |
 
@@ -85,6 +86,16 @@ both. A suppression `purl` matches every spelling of the package name in its eco
 `?` or `[` is a glob, and `*` also matches a `/`. A glob suppression must name a `control`, so that it
 never hides an attack such as malware. Write the `?` of a glob as `%3F`, because a `?` in a PURL
 starts the qualifiers.
+
+A `path` suppression must name a `control` for the same reason. Use it for a folder of test samples
+that look like an attack, such as the fixtures of a security tool:
+
+```yaml
+suppressions:
+  - path: test/fixtures
+    control: padded-code
+    reason: Samples of the hidden-code tests.
+```
 
 ## Package rules
 
@@ -270,8 +281,23 @@ edit takes effect after it merges.
 at the severity or above, or when it matches a `fail` rule. A plain scan, with neither, has no gate
 and exits 0.
 
-`--fail-on attacks` fails only on the controls that find an attack: `malware`, `impostor-commit`
-and `suspicious-command`. Each other finding warns. Use it to block attacks on the first day,
+`--fail-on attacks` fails only on the controls that find an attack:
+
+<!-- controls:attacks:start -->
+
+- [`suspicious-command`](controls.md#suspicious-command): Suspicious command in an agent or editor config
+- [`padded-code`](controls.md#padded-code): Script hidden after a run of spaces
+- [`disguised-script`](controls.md#disguised-script): Script in a font, image, dictionary, style sheet or source map
+- [`unicode-payload`](controls.md#unicode-payload): Payload in invisible Unicode characters
+- [`history-rewrite-script`](controls.md#history-rewrite-script): Script that rewrites the git history
+- [`malware`](controls.md#malware): Malicious package
+- [`impostor-commit`](controls.md#impostor-commit): Action pinned to a commit outside its repository
+
+<!-- controls:attacks:end -->
+
+Each other finding warns. A new detection with a risk of false positives starts as a control that
+warns. It becomes an attack control after a false-positive run on clean projects, so the gate does
+not block your build on its first day. Use it to block attacks on the first day,
 before you fix old findings. `vet policy control list -o json` marks the attack controls with
 `attack: true`. The report holds the gate in `trailer.gate`: the outcome, the policy, the rules that
 failed and the finding ids.

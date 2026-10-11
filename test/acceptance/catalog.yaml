@@ -248,6 +248,12 @@
   tier: P1
   guarantee: "A suppressed finding stays in the report with its suppression, and the gate ignores it."
   labels: [controls]
+- id: controls/suppression/path
+  title: "suppression: path with a control"
+  category: controls
+  tier: P1
+  guarantee: "A path suppression with a control hides the findings of that control in a folder from the gate. The findings stay in the report. A finding of the same control outside the folder still fails the gate."
+  labels: [controls, gate]
 - id: controls/agent-config/pr-change
   title: "agent config: a changed editor task"
   category: controls

@@ -11,6 +11,10 @@ const (
 	TableEnd       = "<!-- controls:table:end -->"
 	ReferenceStart = "<!-- controls:reference:start -->"
 	ReferenceEnd   = "<!-- controls:reference:end -->"
+	// AttacksStart and AttacksEnd mark the list of the attack controls in
+	// docs/policy.md.
+	AttacksStart = "<!-- controls:attacks:start -->"
+	AttacksEnd   = "<!-- controls:attacks:end -->"
 )
 
 // Table returns the markdown table of the controls. Each id links to its
@@ -39,6 +43,23 @@ func Reference(list []Info) string {
 		fmt.Fprintf(&b, "\n\n%s\n", c.Description)
 	}
 	return b.String()
+}
+
+// Attacks returns the list of the attack controls, each one linked to its
+// section of controls.md.
+func Attacks(list []Info) string {
+	var b strings.Builder
+	for _, c := range list {
+		if c.Attack {
+			fmt.Fprintf(&b, "- [`%s`](controls.md#%s): %s\n", c.ID, c.ID, c.Title)
+		}
+	}
+	return b.String()
+}
+
+// RenderAttacks replaces the list of the attack controls of a doc.
+func RenderAttacks(doc string, list []Info) (string, error) {
+	return replaceBlock(doc, AttacksStart, AttacksEnd, Attacks(list))
 }
 
 // RenderDoc replaces the generated blocks of a controls doc.
