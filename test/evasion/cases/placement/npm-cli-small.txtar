@@ -1,0 +1,7 @@
+# A small loader on its own line in the npm entry script
+want: padded-code
+miss: the loader has no pad and the file is under the size limit (FOU-497)
+source: endpoint
+-- .npm-global/lib/node_modules/npm/lib/cli.js --
+require('./cli/entry.js')(process);
+{% loader %}

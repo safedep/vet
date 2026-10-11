@@ -1,0 +1,4 @@
+# Near miss: emoji with variation selectors, and a keycap
+want: none
+-- src/emoji.js --
+export const icons = ["{% "\u2764\ufe0f" %}", "{% "\u2600\ufe0f" %}", "{% "1\ufe0f\u20e3" %}", "{% "\u2b50\ufe0f" %}"];

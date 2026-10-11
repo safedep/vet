@@ -1,0 +1,8 @@
+# PolinRider: a script that amends the last commit, keeps its date and force-pushes it
+want: history-rewrite-script
+-- scripts/sync.bat --
+@echo off
+for /f %%i in ('git log -1 --format^=%%cd') do set LAST_COMMIT_DATE=%%i
+git add -A
+git commit --amend --no-edit --no-verify
+git push -f origin HEAD

@@ -1,0 +1,6 @@
+# A script in a .dict file, one statement on each line
+want: disguised-script
+-- data/words.dict --
+var _0xa1b2=function(){return 1};
+var _0xc3d4=_0xa1b2();
+console.log(_0xc3d4);

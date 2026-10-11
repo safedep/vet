@@ -1,0 +1,4 @@
+# Hidden text in 30 tag characters
+want: unicode-payload
+-- src/index.js --
+// note{% tags "console.log(1);console.log(1);" %}

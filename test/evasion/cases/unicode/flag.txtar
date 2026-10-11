@@ -1,0 +1,4 @@
+# Near miss: the flag of England, which spells its region in tag characters
+want: none
+-- src/flags.js --
+export const england = "{% "\U0001F3F4\U000E0067\U000E0062\U000E0065\U000E006E\U000E0067\U000E007F" %}";

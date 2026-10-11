@@ -79,6 +79,8 @@ the wrong package. Move the code. Do not change the rule to make the test pass.
   Obey each rule that it marks **(lint)**. Use the skill `.claude/skills/vet-commands/SKILL.md`.
 - A new user-facing guarantee gets an acceptance script and its row in `test/acceptance/catalog.yaml`.
   See [test/acceptance/README.md](test/acceptance/README.md).
+- A change to an attack detection adds cases to the evasion corpus and commits the diff of
+  `test/evasion/coverage.md`. See [test/evasion/README.md](test/evasion/README.md).
 - An enricher that changes how it maps data bumps its `Version`, so the cache drops the old results.
 - Use `testify` and table-driven tests.
 - `test/release` keeps a v2 build out of the release channels of v1. Users of v1 run the `latest`

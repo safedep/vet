@@ -1,0 +1,4 @@
+# A hex payload in a .woff file with no script token
+want: disguised-script
+-- public/fonts/icons.woff --
+{% repeat "636f6e736f6c652e6c6f67283129" 30 %}

@@ -1,0 +1,5 @@
+# A script in a .css file
+want: disguised-script
+miss: vet does not read .css files for hidden code
+-- styles/theme.css --
+{% loader %}

@@ -1,0 +1,5 @@
+# A loader after 280 spaces on a line before the export
+want: padded-code
+-- postcss.config.mjs --
+const config = { plugins: {} };{% repeat " " 280 %}{% loader %}
+export default config;

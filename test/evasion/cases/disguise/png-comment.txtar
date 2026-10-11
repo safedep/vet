@@ -1,0 +1,4 @@
+# A .png file that starts with a JavaScript comment, which node runs
+want: disguised-script
+-- public/logo.png --
+/*{% "\x89PNG\r\n\x1a\n\x00\x00" %}*/console.log(1)

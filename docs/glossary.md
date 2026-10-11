@@ -546,6 +546,12 @@ script path), a tier (`P0` an incident if it breaks, `P1` important, `P2` tracke
 `testscript` script under `test/acceptance/scripts/` checks the guarantee. A script with no row fails
 `TestCatalogIntegrity`.
 
+**Evasion corpus**:
+The synthetic cases in `test/evasion/cases/` that copy the shape of an attack and the shapes that an
+attacker can change. `TestEvasionCorpus` scans each case and writes `test/evasion/coverage.md`. A
+**known miss** is a case with a `miss` line: the detections do not catch it yet. A **near miss** is a
+clean case that looks like an attack and must give no finding.
+
 **Conformance check**:
 A test in `plugin/plugintest` that a plugin of each kind must pass, such as `TestControl` or
 `TestSink`. `plugintest.MemState` and `plugintest.SampleReport` are the in-memory scan and the sample

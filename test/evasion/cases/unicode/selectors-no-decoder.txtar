@@ -1,0 +1,4 @@
+# A payload in 30 variation selectors with no decoder in the file
+want: unicode-payload
+-- src/index.js --
+export const s = "x{% selectors "console.log(1);console.log(1);" %}";

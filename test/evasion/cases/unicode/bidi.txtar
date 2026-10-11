@@ -1,0 +1,5 @@
+# A bidi override in code, as in Trojan Source
+want: invisible-unicode
+-- src/auth.js --
+if (role !== "admin{% "\u202e" %} {% "\u2066" %}// check{% "\u2069" %} {% "\u2066" %}") {
+}

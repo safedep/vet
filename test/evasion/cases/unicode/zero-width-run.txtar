@@ -1,0 +1,4 @@
+# A run of 8 zero-width characters in code
+want: invisible-unicode
+-- src/index.js --
+const key = "a{% repeat "\u200b\u200c" 4 %}b";

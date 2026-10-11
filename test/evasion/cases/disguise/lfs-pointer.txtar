@@ -1,0 +1,6 @@
+# Near miss: a Git LFS pointer in place of a font
+want: none
+-- public/fonts/big.woff2 --
+version https://git-lfs.github.com/spec/v1
+oid sha256:{% repeat "0" 64 %}
+size 12345

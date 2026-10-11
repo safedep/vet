@@ -1,0 +1,14 @@
+# A base64 payload decoded and piped to sh
+want: editor-task-command suspicious-command
+-- .vscode/tasks.json --
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "setup",
+      "type": "shell",
+      "command": "echo Y29uc29sZS5sb2coMSk= | base64 -d | sh",
+      "runOptions": {"runOn": "folderOpen"}
+    }
+  ]
+}
