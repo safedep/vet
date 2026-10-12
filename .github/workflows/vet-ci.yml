@@ -20,13 +20,15 @@ jobs:
     steps:
       - name: Checkout
         id: checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Enable Cloud Mode
         run: echo "SAFEDEP_CLOUD_MODE=true" >> $GITHUB_ENV
 
       - name: Override Cloud Mode if Actor is Dependabot
-        if: github.actor == 'dependabot[bot]'
+        if: github.event.pull_request.user.login == 'dependabot[bot]'
         run: echo "SAFEDEP_CLOUD_MODE=false" >> $GITHUB_ENV
 
       - name: Override Cloud Mode if PR is from External Repository
@@ -34,7 +36,7 @@ jobs:
         run: echo "SAFEDEP_CLOUD_MODE=false" >> $GITHUB_ENV
 
       - name: Run vet
-        uses: safedep/vet-action@01f547ee95dfd4f8f11fa64b399e5e00f22b0801
+        uses: safedep/vet-action@6247cccd1b6683a27946ea3a0d45d3865346918b # v1.1.12
         with:
           policy: .github/vet/policy.yml
           exception-file: .github/vet/exceptions.yml

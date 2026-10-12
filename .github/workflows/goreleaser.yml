@@ -28,18 +28,21 @@ jobs:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
-      - uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
+          persist-credentials: false
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Set up Go
-        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
           check-latest: true
+          # Release builds must not restore caches that other workflows can write.
+          cache: false
       - name: ghcr-login
-        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -68,18 +71,10 @@ jobs:
       - name: Clone OSX Cross Compiler Tool Chain
         run: git clone $OSX_CROSS_TOOLCHAIN_REPOSITORY $OSXCROSS_DIR
 
-      - name: Setup Cache for OSX Cross Compiler Tool Chain
-        id: osxcross-cache
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          # Cache the whole target dir (bin + SDK + lib). Caching only target/bin
-          # restores the clang wrappers but not target/SDK, and the build step
-          # below is skipped on a cache hit, so the macOS SDK goes missing and the
-          # darwin CGO build fails with "cannot find macOS SDK".
-          key: ${{ runner.os }}-osxcross-${{ env.OSX_CROSS_MACOS_SDK_VERSION }}-target
-          path: ${{ env.OSXCROSS_DIR }}/target
+      # Always build osxcross from source here. Restoring it from the Actions
+      # cache would let any workflow that can write that cache key inject a
+      # toolchain into release builds.
       - name: Build OSX Cross Compiler Tool Chain
-        if: steps.osxcross-cache.outputs.cache-hit != 'true'
         run: |
           cd $OSXCROSS_DIR
           SDK_VERSION=$OSX_CROSS_MACOS_SDK_VERSION UNATTENDED=yes ./build.sh
@@ -91,11 +86,11 @@ jobs:
         run: corepack enable
 
       - name: Set up Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
-          cache: "pnpm"
+          package-manager-cache: false
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -119,7 +114,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
 
       - name: Upload dist folder
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist-artifacts
           path: dist/
@@ -135,9 +130,10 @@ jobs:
         node: ["14", "16", "18", "20", "22", "24"]
     steps:
       - name: Set up Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ matrix.node }}
+          package-manager-cache: false
 
       - name: Extract version
         id: version
@@ -146,16 +142,22 @@ jobs:
 
       - name: Wait for package on registry
         shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           for i in $(seq 1 20); do
-            npm view "@safedep/vet@${{ steps.version.outputs.version }}" version > /dev/null 2>&1 && break
+            npm view "@safedep/vet@$VERSION" version > /dev/null 2>&1 && break
             echo "Waiting... ($i/20)"
             sleep 30
             [ "$i" -eq 20 ] && echo "Package not available after 10 minutes" && exit 1
           done
 
+      # Installs the package this workflow just published; that is the test.
       - name: Install
-        run: npm install -g "@safedep/vet@${{ steps.version.outputs.version }}"
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: npm install -g "@safedep/vet@$VERSION" # zizmor: ignore[adhoc-packages]
 
       - name: Smoke test
         run: vet version
@@ -169,12 +171,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download dist folder
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: dist-artifacts
           path: dist/
 
       - name: Attest build provenance (checksums)
-        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-checksums: dist/checksums.txt
