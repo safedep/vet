@@ -1,0 +1,5 @@
+# A script in a .svg file after an HTML-like comment that pads it past the parse limit
+want: disguised-script
+-- public/logo.svg --
+<!--{% repeat "x" 9000000 %}-->
+{% loader %}

@@ -1,0 +1,5 @@
+# Near miss: require through call with a plain module name
+want: none
+-- webpack.config.js --
+const HtmlPlugin = require.call(null, "html-webpack-plugin");
+module.exports = { plugins: [new HtmlPlugin()] };

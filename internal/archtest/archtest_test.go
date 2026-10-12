@@ -327,6 +327,37 @@ func TestOnlyExtractorsImportScalibr(t *testing.T) {
 	}
 }
 
+// codeParserAllowed are the only packages that read source code with
+// safedep/code: the code usage enricher and the hidden-code check. A second
+// path to the parser would need its own size, node and time limits for
+// hostile files.
+var codeParserAllowed = []string{
+	module + "/internal/plugins/enrichers/codeusage",
+	module + "/internal/plugins/internal/hiddencode",
+}
+
+func TestOnlyCodeChecksImportTheParser(t *testing.T) {
+	for _, p := range listPackages(t) {
+		if isLegacy(p.path) || underAny(p.path, codeParserAllowed) {
+			continue
+		}
+		for _, imp := range p.imports {
+			assert.False(t, under(imp, "github.com/safedep/code"), "package %s imports %s", p.path, imp)
+			assert.False(t, under(imp, "github.com/smacker/go-tree-sitter"), "package %s imports %s", p.path, imp)
+		}
+	}
+}
+
+// A grammar comes from safedep/code, which parses with limits. vet imports
+// go-tree-sitter only for the node type that the safedep/code API returns.
+func TestNoPackageImportsAGrammar(t *testing.T) {
+	for _, p := range listPackages(t) {
+		for _, imp := range p.imports {
+			assert.False(t, strings.HasPrefix(imp, "github.com/smacker/go-tree-sitter/"), "package %s imports %s", p.path, imp)
+		}
+	}
+}
+
 // Only internal/spdxlicense reads SPDX license expressions. A second reader
 // would compare licenses with other rules, such as a deprecated id or an
 // or-later term.

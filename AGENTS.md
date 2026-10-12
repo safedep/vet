@@ -54,6 +54,7 @@ helper or a list. Each row is the one place for its concern.
 | The CI platform and the change that it builds, the adapters that write to it, and the setup files of `vet ci` | `internal/ci` |
 | Package identity: compare, key, order, PURL and the wire form of a package version | `model.PackageVersion`. It wraps the `dry/api/pb` rules. |
 | SPDX license expressions: parse, compare, allow and deny, the OSI and FSF sets | `internal/spdxlicense`. Do not call `go-spdx` from another package. |
+| Source code: parse, walk, and what a JavaScript name or call stands for | `safedep/code` (`parser.ParseBytes`, `pkg/ts`, `lang/ecmascript`), only from `internal/plugins/enrichers/codeusage` and `internal/plugins/internal/hiddencode`. Do not import a tree-sitter grammar. |
 | Report types and the JSON Schema of the report | `report` |
 | Golden file comparison in tests | `internal/golden` |
 | Sample report for sink and view tests | `plugin/plugintest` |
@@ -68,6 +69,8 @@ the wrong package. Move the code. Do not change the rule to make the test pass.
 
 - Only `internal/tui` imports `dry/tui`. `internal/tui` imports no other vet package.
 - Only the enrichers and the cloud plugins import the SafeDep API contract.
+- Only the `codeusage` enricher and the hidden-code check import `safedep/code` and `go-tree-sitter`.
+  No package imports a tree-sitter grammar. `safedep/code` gives the grammar and parses with limits.
 - Only `model` imports the identity rules of `dry/api/pb`. Compare package versions with `Equal`,
   `Key` or `Compare`, never with the name and version strings or the PURL. The PURL is for display
   and for the wire.

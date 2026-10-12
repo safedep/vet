@@ -65,8 +65,8 @@ go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0
 make
 ```
 
-The release builds use CGO. The `codeusage` enricher parses source files with tree-sitter, and
-tree-sitter needs CGO. `CGO_ENABLED=0 go build ./cmd/vet` also works. That build records a
+The release builds use CGO. The `codeusage` enricher and the `dynamic-code` check parse source files
+with safedep/code, which uses tree-sitter, and tree-sitter needs CGO. `CGO_ENABLED=0 go build ./cmd/vet` also works. That build records a
 diagnostic and scans with no code usage.
 
 ### Format Code
