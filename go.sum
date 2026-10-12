@@ -427,8 +427,8 @@ github.com/rogpeppe/go-internal v1.16.0/go.mod h1:DrUVZyrJU+txYW5/1kwtXQSMFio52Z
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/rust-secure-code/go-rustaudit v0.0.0-20250226111315-e20ec32e963c h1:8gOLsYwaY2JwlTMT4brS5/9XJdrdIbmk2obvQ748CC0=
 github.com/rust-secure-code/go-rustaudit v0.0.0-20250226111315-e20ec32e963c/go.mod h1:kwM/7r/rVluTE8qJbHAffduuqmSv4knVQT2IajGvSiA=
-github.com/safedep/code v0.0.0-20261012115528-9f9c39d5a69c h1:+v8pr5efq5GF85nu7TLYMTRXpJ6X6hlKnnAZd8RzPgA=
-github.com/safedep/code v0.0.0-20261012115528-9f9c39d5a69c/go.mod h1:QYfQrEgRFjd15kUk80t3vjvzC5xiKeSjXgn6Qx1S89w=
+github.com/safedep/code v0.0.0-20261012140452-d2b8945c3aea h1:TLcfTZLs4tOSlv1zikig4If7qXmfq4oRd3hlmnnEHp0=
+github.com/safedep/code v0.0.0-20261012140452-d2b8945c3aea/go.mod h1:QYfQrEgRFjd15kUk80t3vjvzC5xiKeSjXgn6Qx1S89w=
 github.com/safedep/dry v0.0.0-20261004082451-fd743e2e48a8 h1:YtLS9zXZpU0GZ3y+AvoXlG5+guo64zTaUk/TOSSRQyQ=
 github.com/safedep/dry v0.0.0-20261004082451-fd743e2e48a8/go.mod h1:PvfZT6uVtDcD8LHMkDWAwHovIzKSOK7TM16Hrot1ZMM=
 github.com/saferwall/pe v1.6.4 h1:sevZnbF2R3okkOfG1PCwuG7D16UNdn92EpXTuH2q8Eg=
