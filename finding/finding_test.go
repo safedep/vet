@@ -208,3 +208,21 @@ func TestGateRecordShortAndEqual(t *testing.T) {
 	assert.False(t, g.Equal(nil))
 	assert.True(t, (*GateRecord)(nil).Equal(nil))
 }
+
+func TestFindingPath(t *testing.T) {
+	meta := Meta{ControlID: "c", Family: FamilyHiddenCode, Severity: SeverityHigh, Title: "t"}
+	pkg := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "a", "1.0.0")}
+	cases := []struct {
+		name string
+		f    Finding
+		want string
+	}{
+		{"file", ForFile(meta, Locus{Path: "src/a.js", StartLine: 1}, Key{}), "src/a.js"},
+		{"package with no line", ForPackage(meta, "package-lock.json", pkg, Key{}), "package-lock.json"},
+		{"manifest", ForManifest(meta, "go.mod", model.EcosystemGo, Key{}), "go.mod"},
+		{"application", ForApplication(meta, ".", "sig"), ""},
+	}
+	for _, tc := range cases {
+		assert.Equal(t, tc.want, tc.f.Path(), tc.name)
+	}
+}

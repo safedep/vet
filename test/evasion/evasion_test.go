@@ -6,7 +6,6 @@ package evasion
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io/fs"
 	"os"
@@ -22,16 +21,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/safedep/vet/v2/internal/endpoint/inventory"
-	"github.com/safedep/vet/v2/internal/engine"
 	"github.com/safedep/vet/v2/internal/golden"
+	"github.com/safedep/vet/v2/internal/hiddentext"
 	"github.com/safedep/vet/v2/internal/plugins/controls"
-	"github.com/safedep/vet/v2/internal/plugins/extractors"
-	"github.com/safedep/vet/v2/internal/plugins/sources"
-	"github.com/safedep/vet/v2/internal/plugins/sources/endpoint"
-	"github.com/safedep/vet/v2/internal/state"
-	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/test/internal/scantest"
 )
 
 // evasionCase is one case of the corpus.
@@ -162,35 +156,22 @@ func unseen(r rune) bool {
 }
 
 // loader is a synthetic obfuscated loader with the tokens of a real one. It
-// runs nothing.
+// runs no dynamic code, so it cannot act.
 var loader = "(function(){var _0xa1b2=function(){return 1};" + strings.Repeat("var _0xc3d4=_0xa1b2();", 10) + "})();"
+
+// dynamicLoader does what a real loader must do to act: it puts require on
+// the global object and builds a function from a decoded string. Its
+// payload is console.log(1).
+var dynamicLoader = "global['r']=require;(function(){var _0xa1b2=Function(atob('Y29uc29sZS5sb2coMSk='));" + strings.Repeat("var _0xc3d4=_0xa1b2;", 8) + "_0xa1b2();})();"
 
 // funcs write the bytes that a reader cannot see or type in a case file.
 var funcs = template.FuncMap{
-	"repeat": strings.Repeat,
-	"chars":  func(s string) []string { return strings.Split(s, "") },
-	"loader": func() string { return loader },
-	// selectors hides text in variation selectors, one byte in each, as
-	// GlassWorm does.
-	"selectors": func(s string) string {
-		var b strings.Builder
-		for _, c := range []byte(s) {
-			if c < 16 {
-				b.WriteRune(0xFE00 + rune(c))
-			} else {
-				b.WriteRune(0xE0100 + rune(c) - 16)
-			}
-		}
-		return b.String()
-	},
-	// tags spells ASCII text in Unicode tag characters.
-	"tags": func(s string) string {
-		var b strings.Builder
-		for _, c := range s {
-			b.WriteRune(0xE0000 + c)
-		}
-		return b.String()
-	},
+	"repeat":        strings.Repeat,
+	"chars":         func(s string) []string { return strings.Split(s, "") },
+	"loader":        func() string { return loader },
+	"dynamicloader": func() string { return dynamicLoader },
+	"selectors":     hiddentext.Selectors,
+	"tags":          hiddentext.Tags,
 }
 
 // expand writes the files of a case under dir. A file body is a template
@@ -217,57 +198,13 @@ func expand(dir string, files []txtar.File) error {
 	return nil
 }
 
-type allEnabled struct{}
-
-func (allEnabled) PluginEnabled(string, bool) bool     { return true }
-func (allEnabled) PluginOrigin(string, string) string  { return "" }
-func (allEnabled) PluginOptions(string) map[string]any { return map[string]any{} }
-
 // source returns the source of a case whose files are under dir.
 func source(t *testing.T, c evasionCase, dir string) plugin.Source {
 	t.Helper()
 	if c.source == sourceEndpoint {
-		return endpoint.New(endpoint.Options{}, endpoint.System{
-			Hostname: func() (string, error) { return "evasion", nil },
-			Home:     func() (string, error) { return dir, nil },
-			Scanners: func() ([]inventory.Scanner, error) { return nil, nil },
-		})
+		return scantest.Endpoint(dir)
 	}
-	src, err := sources.New(dir, sources.Options{})
-	require.NoError(t, err)
-	return src
-}
-
-// scan runs the extractors and the controls of a default scan on src, with
-// no enricher, and returns the sorted control ids of the findings.
-func scan(t *testing.T, src plugin.Source) []string {
-	t.Helper()
-	ctx := context.Background()
-	built, err := controls.Build(allEnabled{})
-	require.NoError(t, err)
-	cs := make([]engine.Control, 0, len(built))
-	for _, c := range built {
-		cs = append(cs, engine.Control{ID: c.Name, Plugin: c.Plugin})
-	}
-	store, err := state.Open(ctx, state.Options{StateDir: t.TempDir()})
-	require.NoError(t, err)
-	defer func() { assert.NoError(t, store.Close()) }()
-	res, err := engine.Run(ctx, engine.Options{
-		Store: store, Source: src, Controls: cs,
-		Extractors:  func(plugin.ArtifactKind) ([]plugin.Extractor, error) { return extractors.For(model.PackagesDeclared) },
-		OptionsHash: "evasion", VetVersion: "test", BatchSize: 10,
-	})
-	require.NoError(t, err)
-	defer func() { assert.NoError(t, res.Scan.Close()) }()
-	var ids []string
-	for f, err := range res.Scan.Findings(ctx, plugin.FindingQuery{}) {
-		require.NoError(t, err)
-		if !slices.Contains(ids, f.ControlID) {
-			ids = append(ids, f.ControlID)
-		}
-	}
-	slices.Sort(ids)
-	return ids
+	return scantest.Directory(t, dir)
 }
 
 // TestEvasionCorpus scans each case. A case with no miss line must give
@@ -275,6 +212,11 @@ func scan(t *testing.T, src plugin.Source) []string {
 // test, but a known miss that the detections now catch does, so that its
 // author removes the miss line. coverage.md records the result.
 func TestEvasionCorpus(t *testing.T) {
+	if !withCGO {
+		t.Skip("the dynamic-code cases need a vet built with CGO")
+	}
+	attacks, err := controls.AttackIDs()
+	require.NoError(t, err)
 	cases := loadCases(t)
 	var table bytes.Buffer
 	table.WriteString("# Evasion corpus coverage\n\n" +
@@ -285,7 +227,7 @@ func TestEvasionCorpus(t *testing.T) {
 	for _, c := range cases {
 		dir := t.TempDir()
 		require.NoError(t, expand(dir, c.files), "%s/%s", c.group, c.name)
-		got := scan(t, source(t, c, dir))
+		got := scantest.ControlIDs(scantest.Scan(t, source(t, c, dir)))
 		caught := slices.Equal(got, c.want)
 		t.Run(c.group+"/"+c.name, func(t *testing.T) {
 			if c.miss == "" {
@@ -303,7 +245,7 @@ func TestEvasionCorpus(t *testing.T) {
 				table.WriteString("\n")
 			}
 			group = c.group
-			fmt.Fprintf(&table, "## %s\n\n| Case | Expected | Actual | Result |\n| --- | --- | --- | --- |\n", group)
+			fmt.Fprintf(&table, "## %s\n\n| Case | Expected | Actual | Gate | Result |\n| --- | --- | --- | --- | --- |\n", group)
 		}
 		result := "pass"
 		switch {
@@ -316,7 +258,11 @@ func TestEvasionCorpus(t *testing.T) {
 		default:
 			passes++
 		}
-		fmt.Fprintf(&table, "| `%s`: %s | %s | %s | %s |\n", c.name, cell(c.summary), ids(c.want), ids(got), cell(result))
+		gate := "passes"
+		if slices.ContainsFunc(got, func(id string) bool { return slices.Contains(attacks, id) }) {
+			gate = "fails"
+		}
+		fmt.Fprintf(&table, "| `%s`: %s | %s | %s | %s | %s |\n", c.name, cell(c.summary), ids(c.want), ids(got), gate, cell(result))
 	}
 	fmt.Fprintf(&table, "\nTotal: %d cases, %d pass, %d fail, %d known misses.\n", passes+fails+misses, passes, fails, misses)
 	golden.Assert(t, "coverage.md", table.Bytes())

@@ -1,0 +1,4 @@
+# Near miss: a font whose glyph names run with no separator, as in a CFF font
+want: none
+-- public/fonts/cjk.otf --
+{% "OTTO\x00\x0a\x00\x80\x00\x03\x00\x20CFF \x00\x00\x00\x00" %}{% repeat "uni4E00uni4E01uni4E02" 60 %}{% "\x00\x01\x02" %}

@@ -9,8 +9,8 @@ description: Use when someone asks you to write, change or test a vet policy, to
 
 A vet policy is a YAML file with `version: 2`, a list of `rules` and a list of `suppressions`. A
 rule has an `id`, a CEL condition in `when` and an `action`, `fail` or `warn`. A suppression names
-an `id`, a `purl` or a `control`, a `reason`, and an optional `expires` date. vet reads a policy
-only with `--policy FILE` or the `policy.file` config key.
+an `id`, a `purl` or a `control`, a `reason`, and an optional `expires` date. A `path` suppression
+also names a `control`. vet reads a policy only with `--policy FILE` or the `policy.file` config key.
 
 ## Rules for you
 

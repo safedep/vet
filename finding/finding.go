@@ -278,3 +278,20 @@ func Compare(a, b *Finding) int {
 	}
 	return cmp.Compare(a.ID, b.ID)
 }
+
+// Path returns the file of the finding: the path of its locus, else of its
+// file, its manifest or the manifest of its package. It is empty for an
+// application finding.
+func (f *Finding) Path() string {
+	switch {
+	case f.Locus != nil && f.Locus.Path != "":
+		return f.Locus.Path
+	case f.Subject.File != nil:
+		return f.Subject.File.Path
+	case f.Subject.Manifest != nil:
+		return f.Subject.Manifest.Path
+	case f.Subject.Package != nil:
+		return f.Subject.Package.ManifestPath
+	}
+	return ""
+}

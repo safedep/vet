@@ -2,6 +2,7 @@ package hiddencode
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -24,6 +25,9 @@ const (
 	IDInvisibleUnicode = "invisible-unicode"
 	IDUnicodePayload   = "unicode-payload"
 	IDHistoryRewrite   = "history-rewrite-script"
+	IDDynamicCode      = "dynamic-code"
+	IDFontPayload      = "font-payload"
+	IDSplitPayload     = "split-unicode-payload"
 )
 
 // Signal is one sign of hidden code in a file.
@@ -37,6 +41,9 @@ type Signal struct {
 	Visible string
 	// Campaign names a known campaign whose markers the file holds.
 	Campaign string
+	// Hidden is the count of invisible characters of a split payload part.
+	// The hidden-code control adds the parts of the files of a scan.
+	Hidden int
 }
 
 // Open reads the part of a file of fsys that Analyze needs. See Read.
@@ -54,8 +61,9 @@ func Open(fsys fs.FS, p string, c Class) (data []byte, err error) {
 }
 
 // Read reads the part of a file that Analyze needs: the first bytes of a
-// binary image, else at most MaxSize+1 bytes. A font is small, and a
-// script can sit after a binary header in it, so vet reads all of it.
+// binary image, at most maxAssetSize+1 bytes of a font or a text asset,
+// else at most MaxSize+1 bytes. A script can sit after a binary header in a
+// font.
 func Read(r io.Reader, p string, c Class) ([]byte, error) {
 	head := make([]byte, headSize)
 	n, err := io.ReadFull(r, head)
@@ -63,10 +71,15 @@ func Read(r io.Reader, p string, c Class) ([]byte, error) {
 		return nil, err
 	}
 	head = head[:n]
-	if c == Asset && !text(head) && assetOf(p) != font && !commentStart(head) {
+	kind := assetOf(p)
+	if c == Asset && !text(head) && kind != font && kind != textAsset && !commentStart(head) {
 		return head, nil
 	}
-	rest, err := io.ReadAll(io.LimitReader(r, MaxSize+1-int64(n)))
+	limit := int64(MaxSize)
+	if c == Asset && (kind == font || kind == textAsset) {
+		limit = maxAssetSize
+	}
+	rest, err := io.ReadAll(io.LimitReader(r, limit+1-int64(n)))
 	if err != nil {
 		return nil, err
 	}
@@ -78,15 +91,15 @@ func Read(r io.Reader, p string, c Class) ([]byte, error) {
 func Analyze(c Class, p string, data []byte) []Signal {
 	switch c {
 	case Config:
-		return named(append(append(oversizeConfig(data), padded(data, true)...), invisible(p, data)...), data)
+		return named(slices.Concat(oversizeConfig(data), padded(data, true), invisible(p, data), dynamicCode(c, p, data)), data)
 	case Asset:
 		return named(disguised(p, data), data)
 	case Source:
-		return named(append(append(padded(data, false), invisible(p, data)...), rewriteScript(data)...), data)
+		return named(slices.Concat(padded(data, false), invisible(p, data), rewriteScript(data)), data)
 	case Script:
 		return historyRewrite(p, data)
 	case Entry:
-		return named(append(oversizeEntry(data), padded(data, true)...), data)
+		return named(slices.Concat(oversizeEntry(data), padded(data, true), dynamicCode(c, p, data)), data)
 	}
 	return nil
 }
@@ -175,28 +188,43 @@ var scriptToken = regexp.MustCompile(`require\s*\(|\beval\s*\(|\bFunction\s*\(|g
 // holds none of them by chance.
 var strongToken = regexp.MustCompile(`require\s*\(\s*['"]|child_process|\beval\s*\(|\(\s*0\s*,\s*eval\s*\)|\bnew Function\s*\(|process\.env\b|\batob\s*\(`)
 
+// minBinarySymbols is the fewest + and / of a base64 run in binary data. A
+// CFF font stores its glyph names with no separator, as uni4E00uni4E01, so
+// a run of letters and digits alone is not a payload there. A base64
+// payload of 512 bytes holds about 16 of them.
+const minBinarySymbols = 4
+
 // encoded reports a long run of hex or base64, as a hex payload that a
-// loader reads from a fake font. A loop counts the runs, because a
-// repeated regular expression is slow on a long near miss.
-func encoded(data []byte) bool {
-	hexRun, b64Run := 0, 0
+// loader reads from a fake font: 256 hex digits, or 512 base64 digits with
+// at least symbols of + and /. A loop counts the runs, because a repeated
+// regular expression is slow on a long near miss.
+func encoded(data []byte, symbols int) bool {
+	hexRun, b64Run, sym := 0, 0, 0
 	for _, c := range data {
 		switch {
 		case c >= '0' && c <= '9', c >= 'a' && c <= 'f', c >= 'A' && c <= 'F':
 			hexRun++
 			b64Run++
-		case c >= 'g' && c <= 'z', c >= 'G' && c <= 'Z', c == '+', c == '/':
+		case c == '+', c == '/':
+			hexRun = 0
+			b64Run++
+			sym++
+		case c >= 'g' && c <= 'z', c >= 'G' && c <= 'Z':
 			hexRun = 0
 			b64Run++
 		default:
-			hexRun, b64Run = 0, 0
+			hexRun, b64Run, sym = 0, 0, 0
 		}
-		if hexRun >= 256 || b64Run >= 512 {
+		if hexRun >= 256 || (b64Run >= 512 && sym >= symbols) {
 			return true
 		}
 	}
 	return false
 }
+
+// minTokens is the fewest script tokens that make a script in a file that
+// can hold a stray one, such as compressed font data or a style sheet.
+const minTokens = 3
 
 // commentStart reports data that starts with a JavaScript comment or a
 // shebang. node runs such a file even with binary bytes in the comment, and
@@ -229,6 +257,9 @@ func disguised(p string, data []byte) []Signal {
 		return []Signal{{ID: IDDisguisedScript, Line: line, Title: title}}
 	}
 	kind := assetOf(p)
+	if kind == textAsset {
+		return disguisedText(ext, data)
+	}
 	if kind == words {
 		if !text(data) {
 			return nil
@@ -254,9 +285,18 @@ func disguised(p string, data []byte) []Signal {
 		}
 		return nil
 	}
+	// Read gives one byte past maxAssetSize for a larger font.
+	if kind == font && len(data) > maxAssetSize {
+		return []Signal{{ID: IDFontPayload, Line: 1, Title: fmt.Sprintf("The %s file is larger than %d MiB. vet reads no further, and a real font is smaller", ext, maxAssetSize>>20)}}
+	}
 	if !text(data) {
-		if (kind == font && strongToken.Match(data)) || (commentStart(data) && scriptToken.Match(data)) {
+		switch {
+		case (kind == font && strongToken.Match(data)) || (commentStart(data) && scriptToken.Match(data)):
 			return sig(1, fmt.Sprintf("The %s file holds script code after its binary header", ext))
+		case kind == font && scriptTokens(data, nil) >= minTokens:
+			return []Signal{{ID: IDFontPayload, Line: 1, Title: fmt.Sprintf("The %s file holds script tokens after its binary header", ext)}}
+		case kind == font && encoded(data, minBinarySymbols):
+			return []Signal{{ID: IDFontPayload, Line: 1, Title: fmt.Sprintf("The %s file holds an encoded payload after its binary header", ext)}}
 		}
 		return nil
 	}
@@ -268,7 +308,7 @@ func disguised(p string, data []byte) []Signal {
 		return nil
 	}
 	lead := len(data) - len(trimmed)
-	if lead < minPad && !scriptToken.Match(data) && !encoded(data) {
+	if lead < minPad && !scriptToken.Match(data) && !encoded(data, 0) {
 		return nil
 	}
 	title := fmt.Sprintf("The file has a %s name but holds a script or an encoded payload, not a %s file", ext, ext[1:])
@@ -276,6 +316,96 @@ func disguised(p string, data []byte) []Signal {
 		title += fmt.Sprintf(", after %d leading spaces and tabs", lead)
 	}
 	return sig(1, title)
+}
+
+// textFormat is a text asset type: the start of its format, the script
+// tokens that a script of that name holds, and the tokens that the format
+// also writes.
+type textFormat struct {
+	name   string
+	starts []string
+	json   bool
+	tokens int
+	legal  *regexp.Regexp
+}
+
+// textFormats are the text asset types. A file in its format passes: an SVG
+// with a script element is a legal image, and a source map holds the source
+// of the code that it maps. JSON runs no code, so a source map that is
+// valid JSON passes. A style sheet has no fixed start, so it needs more
+// tokens, and it skips the tokens that CSS also writes: the :import("...")
+// of CSS Modules, the @function of Sass and a class name such as
+// .constructor.
+var textFormats = map[string]textFormat{
+	".svg": {name: "an SVG image", starts: []string{"<"}, tokens: 2},
+	".map": {name: "a source map", starts: []string{")]}'"}, json: true, tokens: 2},
+	".css": {name: "a style sheet", tokens: minTokens, legal: regexp.MustCompile(`^(import|function|constructor)`)},
+}
+
+// disguisedText finds a script in an SVG image, a style sheet or a source
+// map.
+func disguisedText(ext string, data []byte) []Signal {
+	// JSON runs no code, and a large source map is JSON, so it skips the parse.
+	if json.Valid(data) {
+		return nil
+	}
+	runs, parsed := runsAsScript(data)
+	if !parsed {
+		runs = textScript(ext, data)
+	}
+	if !runs {
+		return nil
+	}
+	return []Signal{{ID: IDDisguisedScript, Line: 1, Title: fmt.Sprintf("The %s file holds a script, not %s", ext, textFormats[ext].name)}}
+}
+
+// Incomplete returns an error for a text asset that is larger than vet
+// reads. node parses all of the file, so a check of its first part cannot
+// clear it, and the scan reports a diagnostic in place of a pass.
+func Incomplete(c Class, p string, data []byte) error {
+	if c != Asset || assetOf(p) != textAsset || len(data) <= maxAssetSize {
+		return nil
+	}
+	return fmt.Errorf("%s is larger than %d MiB, so vet did not check all of it for a hidden script", p, maxAssetSize>>20)
+}
+
+// textScript finds a script in a text asset with no JavaScript parser. A
+// file that starts as its format passes. An attacker can start a script as
+// an SVG image, so a build with CGO parses the file in place of this check.
+func textScript(ext string, data []byte) bool {
+	if !text(data) {
+		return false
+	}
+	f := textFormats[ext]
+	if f.json && json.Valid(data) {
+		return false
+	}
+	trimmed := bytes.TrimLeftFunc(bytes.TrimPrefix(data, []byte("\xEF\xBB\xBF")), unicode.IsSpace)
+	for _, s := range f.starts {
+		if bytes.HasPrefix(trimmed, []byte(s)) {
+			return false
+		}
+	}
+	return scriptTokens(data, f.legal) >= f.tokens
+}
+
+// scriptTokens counts the script tokens of data, up to minTokens. It skips
+// the tokens that legal matches, when legal is not nil.
+func scriptTokens(data []byte, legal *regexp.Regexp) int {
+	limit := minTokens
+	if legal != nil {
+		limit = -1
+	}
+	n := 0
+	for _, loc := range scriptToken.FindAllIndex(data, limit) {
+		if legal != nil && legal.Match(data[loc[0]:loc[1]]) {
+			continue
+		}
+		if n++; n >= minTokens {
+			break
+		}
+	}
+	return n
 }
 
 // minPad is the shortest run of white space that hides code. The
@@ -472,8 +602,12 @@ const (
 	// An emoji sequence uses at most two in a row.
 	minRun = 4
 	// minPayload is the fewest selectors with no base character, or tags
-	// outside a flag emoji, that carry a payload. Real text has none.
+	// outside a flag emoji, that carry a payload. Real text has none. The
+	// parts of a payload that files split count to it too.
 	minPayload = 16
+	// minPart is the fewest payload characters of a part. A file with
+	// fewer gives no part, so stray selectors in text add nothing.
+	minPart = 4
 	// blackFlag starts a subdivision flag emoji, such as the flag of
 	// England, which spells its region in tag characters.
 	blackFlag = 0x1F3F4
@@ -558,8 +692,11 @@ func invisible(p string, data []byte) []Signal {
 		}
 		return append(out, Signal{ID: IDUnicodePayload, Line: payloadLine, Title: title, Visible: visibleLine(data, payloadLine)})
 	}
+	if payload >= minPart {
+		out = append(out, Signal{ID: IDSplitPayload, Line: payloadLine, Visible: visibleLine(data, payloadLine), Hidden: payload})
+	}
 	if built {
-		return nil
+		return out
 	}
 	if longest >= minRun {
 		out = append(out, Signal{
@@ -618,3 +755,14 @@ func visibleLine(data []byte, n int) string {
 
 // maxVisible is the longest visible text of a signal, in runes.
 const maxVisible = 200
+
+// SplitPayload reports parts of a split payload, as the Hidden counts of
+// their signals, that make one payload: two or more parts with minPayload
+// characters or more together.
+func SplitPayload(hidden []int) bool {
+	total := 0
+	for _, h := range hidden {
+		total += h
+	}
+	return len(hidden) >= 2 && total >= minPayload
+}

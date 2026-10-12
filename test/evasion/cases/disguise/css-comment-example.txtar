@@ -1,0 +1,10 @@
+# Near miss: a style sheet whose header comment shows how to load it
+want: none
+-- styles/widget.css --
+/*
+ * Usage:
+ *   const css = require('widget/widget.css');
+ *   console.log(css);
+ *   const theme = require('widget/theme');
+ */
+.widget { display: flex; }

@@ -1,0 +1,5 @@
+# A script in a .map file that starts with {}
+want: disguised-script
+-- public/app.js.map --
+{}
+{% loader %}

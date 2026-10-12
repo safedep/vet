@@ -21,3 +21,5 @@
   add a guarantee.
 - [../test/evasion/README.md](../test/evasion/README.md): the evasion corpus of the attack
   detections, and how to add a case.
+- [../test/falsepositive/README.md](../test/falsepositive/README.md): the false-positive run on
+  clean projects.

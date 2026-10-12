@@ -1,7 +1,9 @@
 package hiddencode_test
 
 import (
+	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -10,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/hiddentext"
 	"github.com/safedep/vet/v2/internal/plugins/controls/hiddencode"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
@@ -62,6 +65,52 @@ func TestHistoryRewriteScript(t *testing.T) {
 
 func TestCampaignInTheTitle(t *testing.T) {
 	fs := evaluate(t, "postcss.config.mjs", "export default config;"+strings.Repeat(" ", 280)+"global['_V']='8-st14';"+js)
-	require.Len(t, fs, 1)
-	assert.Equal(t, fmt.Sprintf("Code continues on line 1 after 280 spaces, with %d bytes off screen. It matches PolinRider", len("global['_V']='8-st14';"+js)), fs[0].Title)
+	i := slices.IndexFunc(fs, func(f finding.Finding) bool { return f.ControlID == "padded-code" })
+	require.GreaterOrEqual(t, i, 0)
+	assert.Equal(t, fmt.Sprintf("Code continues on line 1 after 280 spaces, with %d bytes off screen. It matches PolinRider", len("global['_V']='8-st14';"+js)), fs[i].Title)
+}
+
+func TestSplitPayload(t *testing.T) {
+	a, b := "x"+hiddentext.Selectors("console.log("), "x"+hiddentext.Selectors("1);done;")
+	type file struct {
+		data   string
+		change model.Change
+	}
+	cases := []struct {
+		name  string
+		files map[string]file
+		want  []string
+	}{
+		{"two parts over the limit", map[string]file{"src/a.js": {data: a}, "src/b.js": {data: b}}, []string{"src/a.js", "src/b.js"}},
+		{"two parts under the limit", map[string]file{"src/a.js": {data: "x" + hiddentext.Selectors("conso")}, "src/b.js": {data: "x" + hiddentext.Selectors("le.lo")}}, nil},
+		{"one part", map[string]file{"src/a.js": {data: "x" + hiddentext.Selectors("console.log(1)")}}, nil},
+		{"a change adds one part", map[string]file{"src/a.js": {a, model.ChangeAdded}, "src/b.js": {b, model.ChangeUnchanged}}, []string{"src/a.js"}},
+		{"a change keeps both parts", map[string]file{"src/a.js": {a, model.ChangeUnchanged}, "src/b.js": {b, model.ChangeUnchanged}}, nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, err := hiddencode.New(plugin.MapConfig(nil))
+			require.NoError(t, err)
+			root := fstest.MapFS{}
+			for p, f := range tc.files {
+				root[p] = &fstest.MapFile{Data: []byte("const s = '" + f.data + "';\n")}
+			}
+			for p, f := range tc.files {
+				_, err := c.Evaluate(context.Background(), &model.Manifest{ID: p, Path: p, Kind: model.ManifestKindFile, Root: root, Change: f.change}, nil)
+				require.NoError(t, err)
+			}
+			fs, err := c.(plugin.ApplicationControl).EvaluateApplication(context.Background(), nil)
+			require.NoError(t, err)
+			var got []string
+			for _, f := range fs {
+				assert.Equal(t, "split-unicode-payload", f.ControlID)
+				assert.NotContains(t, f.Locus.Snippet, "\U000E0100")
+				got = append(got, f.Subject.File.Path)
+			}
+			assert.Equal(t, tc.want, got)
+			again, err := c.(plugin.ApplicationControl).EvaluateApplication(context.Background(), nil)
+			require.NoError(t, err)
+			assert.Empty(t, again, "the next scan starts with no parts")
+		})
+	}
 }

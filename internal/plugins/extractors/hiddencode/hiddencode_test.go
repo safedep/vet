@@ -49,3 +49,12 @@ func TestInstallFolders(t *testing.T) {
 		assert.Equal(t, want, e.FileRequired(simplefileapi.New(p, nil)), p)
 	}
 }
+
+func TestTextAssetOverTheLimitIsAnError(t *testing.T) {
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "app.js.map"), []byte(strings.Repeat("a", 33<<20)), 0o600))
+	ms, errs := scalibr.ExtractFile(context.Background(), scalibr.File{Root: dir, Path: "app.js.map"}, []filesystem.Extractor{hiddencode.New()})
+	assert.Empty(t, ms)
+	require.Len(t, errs, 1)
+	assert.Contains(t, errs[0].Error(), "did not check all of it")
+}

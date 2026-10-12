@@ -8,15 +8,36 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/v2/internal/hiddentext"
 )
 
 // js is a hidden script of a realistic size: the PolinRider loader is
 // several KiB of obfuscated code.
 var js = "(function(){var _0xa1b2=function(){return 1};" + strings.Repeat("var _0xc3d4=_0xa1b2();", 10) + "})();"
 
+// withDynamic adds dynamic-code to want in a build that has the check.
+func withDynamic(want ...string) []string {
+	if dynamicCodeAvailable {
+		return append(want, IDDynamicCode)
+	}
+	return want
+}
+
+// reported drops the parts of a split payload, which give no finding alone.
+func reported(signals []Signal) []Signal {
+	var out []Signal
+	for _, s := range signals {
+		if s.ID != IDSplitPayload {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
 func ids(signals []Signal) []string {
 	var out []string
-	for _, s := range signals {
+	for _, s := range reported(signals) {
 		out = append(out, s.ID)
 	}
 	return out
@@ -81,20 +102,9 @@ func TestDisguised(t *testing.T) {
 
 // selectors encodes data in variation selectors, one byte each, as
 // GlassWorm does.
-func selectors(data string) string {
-	var b strings.Builder
-	for _, c := range []byte(data) {
-		if c < 16 {
-			b.WriteRune(rune(0xFE00 + int(c)))
-		} else {
-			b.WriteRune(rune(0xE0100 + int(c) - 16))
-		}
-	}
-	return b.String()
-}
 
 func TestInvisible(t *testing.T) {
-	payload := selectors("console.log('hidden payload')")
+	payload := hiddentext.Selectors("console.log('hidden payload')")
 	decoderJS := "const s = v => [...v].map(c => (c = c.codePointAt(0)) >= 0xFE00 && c <= 0xFE0F ? c - 0xFE00 : c - 0xE0100 + 16);\n"
 	cases := []struct {
 		name, path, data string
@@ -121,7 +131,7 @@ func TestInvisible(t *testing.T) {
 }
 
 func TestInvisibleEvasion(t *testing.T) {
-	payload := selectors("console.log('hidden payload')")
+	payload := hiddentext.Selectors("console.log('hidden payload')")
 	spaced := strings.Join(strings.Split(payload, ""), " ")
 	perLine := strings.Join(strings.Split(payload, ""), "\n")
 	cases := []struct {
@@ -216,8 +226,43 @@ func TestReadsAFontInFull(t *testing.T) {
 	assert.Len(t, got, headSize, "an image needs only its head")
 }
 
+func TestTextAssetPastTheSourceLimit(t *testing.T) {
+	big := "(function(){ require('x'); /*" + strings.Repeat("a", MaxSize) + "*/ })()"
+	data, err := Read(strings.NewReader(big), "theme.css", Asset)
+	require.NoError(t, err)
+	assert.Len(t, data, len(big), "vet reads a text asset in full")
+	require.NoError(t, Incomplete(Asset, "theme.css", data))
+	if dynamicCodeAvailable {
+		assert.Equal(t, []string{IDDisguisedScript}, ids(Analyze(Asset, "theme.css", data)))
+	}
+
+	data, err = Read(strings.NewReader(strings.Repeat("a", maxAssetSize+10)), "app.js.map", Asset)
+	require.NoError(t, err)
+	assert.Len(t, data, maxAssetSize+1)
+	assert.Error(t, Incomplete(Asset, "app.js.map", data))
+}
+
+func TestFontPastTheSourceLimit(t *testing.T) {
+	header := "wOF2\x00\x01" + strings.Repeat("\x00", 1000)
+	cases := []struct {
+		name, data string
+	}{
+		{"a payload after 4 MiB", header + strings.Repeat("\x00\x01", MaxSize/2) + strings.Repeat("0123456789abcdef", 64)},
+		{"a font over the limit", header + strings.Repeat("\x00", maxAssetSize)},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			data, err := Read(strings.NewReader(tc.data), "a.woff2", Asset)
+			require.NoError(t, err)
+			signals := Analyze(Asset, "a.woff2", data)
+			require.Len(t, signals, 1)
+			assert.Equal(t, IDFontPayload, signals[0].ID)
+		})
+	}
+}
+
 func TestInvisibleSnippetHasNoPayload(t *testing.T) {
-	s := Analyze(Source, "src/index.js", []byte("const x = `"+selectors("payload")+"`;\n"))
+	s := reported(Analyze(Source, "src/index.js", []byte("const x = `"+hiddentext.Selectors("payload")+"`;\n")))
 	require.Len(t, s, 1)
 	assert.Equal(t, "const x = ``;", s[0].Visible)
 }
@@ -285,7 +330,7 @@ func TestEntry(t *testing.T) {
 
 func TestAdversarialReview(t *testing.T) {
 	noToken := "[].constructor.constructor(decodeURIComponent('" + strings.Repeat("%63%6f", 40) + "'))()"
-	sel := selectors("console.log('hidden payload')")
+	sel := hiddentext.Selectors("console.log('hidden payload')")
 	var marked strings.Builder
 	for _, r := range sel {
 		marked.WriteString("\u200e")
@@ -297,7 +342,7 @@ func TestAdversarialReview(t *testing.T) {
 		want             []string
 	}{
 		{"a pad of tabs", "postcss.config.mjs", "export default config;" + strings.Repeat("\t", 60) + js, []string{IDPaddedCode}},
-		{"a payload with no common token", "next.config.js", "module.exports = c;" + strings.Repeat(" ", 280) + noToken, []string{IDPaddedCode}},
+		{"a payload with no common token", "next.config.js", "module.exports = c;" + strings.Repeat(" ", 280) + noToken, withDynamic(IDPaddedCode)},
 		{"spaces between zero-width spaces", "next.config.js", "module.exports = c;" + strings.Repeat(" \u200b", 150) + js, []string{IDPaddedCode}},
 		{"blank braille in a comment", "next.config.js", "export default config; /*" + strings.Repeat("\u2800", 200) + "*/ " + js, []string{IDPaddedCode}},
 		{"a file under build", "build/utils.js", "exports.x = 1;" + strings.Repeat(" ", 280) + js, []string{IDPaddedCode}},
@@ -325,6 +370,36 @@ func TestAdversarialReview(t *testing.T) {
 func TestEncodedIsLinear(t *testing.T) {
 	data := []byte(strings.Repeat(strings.Repeat("a", 255)+"-", 16<<10))
 	start := time.Now()
-	assert.False(t, encoded(data))
+	assert.False(t, encoded(data, 0))
 	assert.Less(t, time.Since(start), time.Second)
+}
+
+func TestSplitIDSplitPayload(t *testing.T) {
+	cases := []struct {
+		name, data string
+		want       int
+	}{
+		{"part of a payload", "const x = `" + hiddentext.Selectors("console.log(1)") + "`;\n", len("console.log(1)")},
+		{"too few to be a part", "const x = `" + hiddentext.Selectors("abc") + "`;\n", 0},
+		{"a whole payload is no part", "const x = `" + hiddentext.Selectors("console.log(1);console.log(2);") + "`;\n", 0},
+		{"emoji", "const x = '\u2764\ufe0f\u2600\ufe0f\u2b50\ufe0f\u2764\ufe0f';\n", 0},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := 0
+			for _, s := range Analyze(Source, "src/a.js", []byte(tc.data)) {
+				if s.ID == IDSplitPayload {
+					got = s.Hidden
+					assert.Equal(t, "const x = ``;", s.Visible, "the snippet holds no payload")
+				}
+			}
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestSplitPayload(t *testing.T) {
+	assert.True(t, SplitPayload([]int{8, 8}))
+	assert.False(t, SplitPayload([]int{8, 7}), "under the limit")
+	assert.False(t, SplitPayload([]int{20}), "one part")
 }

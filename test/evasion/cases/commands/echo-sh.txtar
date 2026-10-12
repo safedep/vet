@@ -1,0 +1,14 @@
+# Near miss: echo piped to sh with no download
+want: editor-task-command
+-- .vscode/tasks.json --
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "setup",
+      "type": "shell",
+      "command": "echo npm test | sh",
+      "runOptions": {"runOn": "folderOpen"}
+    }
+  ]
+}

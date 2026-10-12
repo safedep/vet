@@ -101,9 +101,7 @@ func NewInput(f *finding.Finding, pkg *model.Package, m *model.Manifest, now tim
 	in.Finding = FindingInput{
 		ID: f.ID, ControlID: f.ControlID, Family: string(f.Family), Severity: string(f.Severity),
 		Confidence: string(f.Confidence), Title: f.Title, Change: string(f.Change), SubjectKind: string(f.Subject.Kind),
-	}
-	if f.Locus != nil {
-		in.Finding.Path = f.Locus.Path
+		Path: f.Path(),
 	}
 	return in
 }

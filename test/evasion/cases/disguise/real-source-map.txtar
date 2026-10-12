@@ -1,0 +1,4 @@
+# Near miss: a source map that holds the source of the code that it maps
+want: none
+-- dist/app.js.map --
+{"version":3,"file":"app.js","sources":["../src/app.js"],"sourcesContent":["const run = () => { console.log(require('child_process')); };\nfunction main() { run(); }\n"],"mappings":"AAAA"}

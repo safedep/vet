@@ -48,6 +48,7 @@ helper or a list. Each row is the one place for its concern.
 | Global flags, exit codes, usage errors | `internal/app` |
 | Scan state, scan files, enrichment cache | `internal/state` |
 | Wiring of one scan from the config | `internal/runner` |
+| A path pattern of `scan.exclude` or of a policy suppression | `internal/pathglob` |
 | A token in a git URL | `git.Redact` in `internal/plugins/sources/git` |
 | GitHub token and client | `internal/github` |
 | The CI platform and the change that it builds, the adapters that write to it, and the setup files of `vet ci` | `internal/ci` |
@@ -81,6 +82,9 @@ the wrong package. Move the code. Do not change the rule to make the test pass.
   See [test/acceptance/README.md](test/acceptance/README.md).
 - A change to an attack detection adds cases to the evasion corpus and commits the diff of
   `test/evasion/coverage.md`. See [test/evasion/README.md](test/evasion/README.md).
+- A new detection with a risk of false positives starts as a control that warns, not an attack
+  control. It becomes an attack control in a change that shows a clean false-positive run. See
+  [test/falsepositive/README.md](test/falsepositive/README.md).
 - An enricher that changes how it maps data bumps its `Version`, so the cache drops the old results.
 - Use `testify` and table-driven tests.
 - `test/release` keeps a v2 build out of the release channels of v1. Users of v1 run the `latest`

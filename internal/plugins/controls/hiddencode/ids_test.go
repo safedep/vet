@@ -18,6 +18,6 @@ func TestEachSignalHasAControl(t *testing.T) {
 	}
 	assert.ElementsMatch(t, []string{
 		hiddencode.IDPaddedCode, hiddencode.IDDisguisedScript, hiddencode.IDInvisibleUnicode,
-		hiddencode.IDUnicodePayload, hiddencode.IDHistoryRewrite,
+		hiddencode.IDUnicodePayload, hiddencode.IDHistoryRewrite, hiddencode.IDDynamicCode, hiddencode.IDFontPayload, hiddencode.IDSplitPayload,
 	}, got)
 }

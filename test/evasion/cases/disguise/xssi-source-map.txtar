@@ -1,0 +1,5 @@
+# Near miss: a source map with the XSSI prefix
+want: none
+-- dist/vendor.js.map --
+)]}'
+{"version":3,"sources":["a.js"],"sourcesContent":["var a = function () { return eval('1'); };"],"mappings":"AAAA"}

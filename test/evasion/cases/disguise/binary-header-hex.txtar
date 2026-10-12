@@ -1,6 +1,4 @@
 # The woff2 signature, binary header bytes and then a hex payload
-want: disguised-script
-miss: vet reads a binary font only for strong script tokens, not for an encoded payload
-have: none
+want: font-payload
 -- public/fonts/fa-thin.woff2 --
 {% "wOF2\x00\x01\x00\x00\x00\x00\x10\x00" %}{% repeat "636f6e736f6c652e6c6f67283129" 30 %}

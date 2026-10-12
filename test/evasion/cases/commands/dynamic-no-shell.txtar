@@ -1,0 +1,14 @@
+# Near miss: a command name built at run time with no pipe into a shell
+want: editor-task-command
+-- .vscode/tasks.json --
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "setup",
+      "type": "shell",
+      "command": "$(npm bin)/eslint . | tee lint.log",
+      "runOptions": {"runOn": "folderOpen"}
+    }
+  ]
+}

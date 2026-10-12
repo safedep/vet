@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/pathglob"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/report"
 )
@@ -184,6 +185,9 @@ func (s *Suppression) matches(f *finding.Finding) bool {
 		return false
 	}
 	if s.Control != "" && s.Control != f.ControlID {
+		return false
+	}
+	if s.Path != "" && !pathglob.Match(s.Path, f.Path()) {
 		return false
 	}
 	if s.pkg != nil {

@@ -1,0 +1,7 @@
+# Near miss: a linker map file with C++ symbols
+want: none
+-- build/app.map --
+ .text          0x0000000000401000       0x40 main.o
+                0x0000000000401000                std::function<void ()>::function(std::function<void ()> const&)
+                0x0000000000401020                std::function<int (int)>::function(std::function<int (int)> const&)
+                0x0000000000401040                std::function<bool ()>::operator()() const

@@ -138,15 +138,9 @@ func toAnnotation(f *finding.Finding) annotation {
 		Summary: render.Truncate(f.Title, maxSummary), Details: render.Truncate(details(f), maxDetails),
 		Severity: annotationSeverity(f.Severity),
 	}
-	switch {
-	case f.Locus != nil && f.Locus.Path != "":
-		a.Path, a.Line = f.Locus.Path, f.Locus.StartLine
-	case f.Subject.Package != nil:
-		a.Path = f.Subject.Package.ManifestPath
-	case f.Subject.Manifest != nil:
-		a.Path = f.Subject.Manifest.Path
-	case f.Subject.File != nil:
-		a.Path = f.Subject.File.Path
+	a.Path = f.Path()
+	if f.Locus != nil {
+		a.Line = f.Locus.StartLine
 	}
 	if len(f.References) > 0 {
 		a.Link = f.References[0]

@@ -17,6 +17,9 @@ func TestClassify(t *testing.T) {
 		"public/fonts/fa-solid-400.woff2": Asset,
 		".vscode/spellright.dict":         Asset,
 		"assets/logo.PNG":                 Asset,
+		"public/logo.svg":                 Asset,
+		"styles/theme.css":                Asset,
+		"dist/app.js.map":                 Asset,
 		"temp_auto_push.bat":              Script,
 		"scripts/release.sh":              Script,
 		".gitignore":                      Script,
@@ -30,7 +33,7 @@ func TestClassify(t *testing.T) {
 		assert.True(t, ok, p)
 		assert.Equal(t, want, got, p)
 	}
-	for _, p := range []string{"README.md", "logo.svg", "package.json", "main.go"} {
+	for _, p := range []string{"README.md", "logo.ai", "package.json", "main.go"} {
 		_, ok := Classify(p)
 		assert.False(t, ok, p)
 	}
