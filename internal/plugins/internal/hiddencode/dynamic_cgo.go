@@ -206,15 +206,28 @@ func callKind(a *ecmascript.Analysis, c ecmascript.Call) dynamicKind {
 	return 0
 }
 
-// payload returns the argument that a call passes on: the first one, or
-// the second one of f.call(t, x) and f.apply(t, x), where the first one is
-// the this value.
+// payload returns the argument that a call passes on: the first one, the
+// second one of f.call(t, x), or the first item of the list in
+// f.apply(t, [x]). The first argument of call and apply is the this value.
+// A list that apply gets from elsewhere is itself the payload.
 func payload(a *ecmascript.Analysis, c ecmascript.Call) *sitter.Node {
-	if c.Callee.Type() == "member_expression" {
-		switch a.Name(c.Callee.ChildByFieldName("property")) {
-		case "call", "apply":
-			return c.Arg(1)
+	if c.Callee.Type() != "member_expression" {
+		return c.Arg(0)
+	}
+	switch a.Name(c.Callee.ChildByFieldName("property")) {
+	case "call":
+		return c.Arg(1)
+	case "apply":
+		list := a.Unparen(c.Arg(1))
+		if list == nil || list.Type() != "array" {
+			return list
 		}
+		for _, item := range ts.NamedChildren(list) {
+			if item.Type() != "comment" {
+				return item
+			}
+		}
+		return nil
 	}
 	return c.Arg(0)
 }
@@ -274,6 +287,9 @@ func computed(a *ecmascript.Analysis, arg *sitter.Node) bool {
 // byte becomes a space. An asset that the parse cannot read in full gives
 // parsed false, so the text check reads it.
 func runsAsScript(data []byte) (runs, parsed bool) {
+	if len(data) > maxScriptSize {
+		return false, false
+	}
 	if scriptTokens(data, nil) == 0 {
 		return false, true
 	}

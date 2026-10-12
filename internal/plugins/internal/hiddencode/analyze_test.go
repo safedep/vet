@@ -77,6 +77,28 @@ func TestPaddedTooLarge(t *testing.T) {
 	assert.Equal(t, []string{IDPaddedCode}, ids(s))
 }
 
+func TestTextScriptAfterHTMLComments(t *testing.T) {
+	cases := []struct {
+		name, data string
+		want       bool
+	}{
+		{"an image after a generator comment", "<!-- Generator: x -->\n<svg><path d='require(a)'/><g>eval(b)</g></svg>", false},
+		{"a script after a comment", "<!-- logo -->\nrequire('x'); eval(y)", true},
+		{"a script after a long comment", "<!--" + strings.Repeat("a", 4096) + "-->\nrequire('x'); eval(y)", true},
+		{"an open comment", "<!-- logo", false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, textScript(".svg", []byte(tc.data)))
+		})
+	}
+}
+
+func TestDisguisedLargeSVGAfterAComment(t *testing.T) {
+	data := []byte("<!--" + strings.Repeat("a", 9<<20) + "-->\nrequire('x'); eval(y)")
+	assert.Equal(t, []string{IDDisguisedScript}, ids(Analyze(Asset, "public/logo.svg", data)))
+}
+
 func TestDisguised(t *testing.T) {
 	cases := []struct {
 		name, path, data string

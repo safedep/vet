@@ -68,6 +68,9 @@ func TestDynamicCode(t *testing.T) {
 		{"a computed key on window", "App.js", "window['ga-disable-' + GA_ID] = !consent", nil},
 		{"a computed key on self", "App.js", "const root = typeof self !== 'undefined' ? self : window; root[name] = plugin", nil},
 		{"require through call with a plain name", "webpack.config.js", "require.call(null, 'html-webpack-plugin')", nil},
+		{"require through apply with a plain name", "webpack.config.js", "require.apply(null, ['html-webpack-plugin'])", nil},
+		{"require through apply with a computed name", "vite.config.js", "require.apply(null, [atob(m)])", []string{"require(<computed>)"}},
+		{"require through apply with a list from elsewhere", "vite.config.js", "require.apply(null, args())", []string{"require(<computed>)"}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

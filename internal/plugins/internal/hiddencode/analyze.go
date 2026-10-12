@@ -372,6 +372,20 @@ func Incomplete(c Class, p string, data []byte) error {
 // textScript finds a script in a text asset with no JavaScript parser. A
 // file that starts as its format passes. An attacker can start a script as
 // an SVG image, so a build with CGO parses the file in place of this check.
+// skipHTMLComments removes the HTML comments at the start of data. node
+// reads <!-- as a comment too, so a leading comment is no sign of an image.
+// A real SVG image has its element after the comments.
+func skipHTMLComments(data []byte) []byte {
+	for bytes.HasPrefix(data, []byte("<!--")) {
+		end := bytes.Index(data, []byte("-->"))
+		if end < 0 {
+			return nil
+		}
+		data = bytes.TrimLeftFunc(data[end+3:], unicode.IsSpace)
+	}
+	return data
+}
+
 func textScript(ext string, data []byte) bool {
 	if !text(data) {
 		return false
@@ -380,7 +394,7 @@ func textScript(ext string, data []byte) bool {
 	if f.json && json.Valid(data) {
 		return false
 	}
-	trimmed := bytes.TrimLeftFunc(bytes.TrimPrefix(data, []byte("\xEF\xBB\xBF")), unicode.IsSpace)
+	trimmed := skipHTMLComments(bytes.TrimLeftFunc(bytes.TrimPrefix(data, []byte("\xEF\xBB\xBF")), unicode.IsSpace))
 	for _, s := range f.starts {
 		if bytes.HasPrefix(trimmed, []byte(s)) {
 			return false

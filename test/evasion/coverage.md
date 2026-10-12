@@ -77,6 +77,7 @@ detection, and commit the diff. See README.md.
 | `sass-function`: Near miss: a style sheet with Sass functions | none | none | passes | pass |
 | `source-map-empty-object`: A script in a .map file that starts with {} | `disguised-script` | `disguised-script` | fails | pass |
 | `source-map`: A script in a .map file | `disguised-script` | `disguised-script` | fails | pass |
+| `svg-html-comment-padded`: A script in a .svg file after an HTML-like comment that pads it past the parse limit | `disguised-script` | `disguised-script` | fails | pass |
 | `svg-html-comment`: A script in a .svg file that starts with an HTML-like comment, which node reads as a comment | `disguised-script` | `disguised-script` | fails | pass |
 | `svg-in-xml-comment`: A script in an XML comment of a well-formed .svg file, which node runs | `disguised-script` | `disguised-script` | fails | pass |
 | `svg-script-element`: Near miss: an SVG image with a script element | none | none | passes | pass |
@@ -146,6 +147,7 @@ detection, and commit the diff. See README.md.
 | `dynamic-global-alias`: require put on an alias of globalThis | `dynamic-code` | `dynamic-code` | passes | pass |
 | `dynamic-local-require`: Near miss: a local named require in a function of the config | none | none | passes | pass |
 | `dynamic-reassigned-module`: child_process bound by a later assignment and called by a string key | `dynamic-code` | `dynamic-code` | passes | pass |
+| `dynamic-require-apply`: Near miss: require through apply with a plain module name | none | none | passes | pass |
 | `dynamic-require-call`: Near miss: require through call with a plain module name | none | none | passes | pass |
 | `dynamic-value-limit`: child_process hidden behind 16 earlier values of the same name | `dynamic-code` | `dynamic-code` | passes | pass |
 | `dynamic-window-key`: Near miss: a computed key on window in a browser config | none | none | passes | pass |
@@ -156,4 +158,4 @@ detection, and commit the diff. See README.md.
 | `polinrider-rewrite`: PolinRider: a script that amends the last commit, keeps its date and force-pushes it | `history-rewrite-script` | `history-rewrite-script` | fails | pass |
 | `polinrider-task`: PolinRider: a hidden folder-open task runs node on a fake font | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | fails | pass |
 
-Total: 123 cases, 120 pass, 0 fail, 3 known misses.
+Total: 125 cases, 122 pass, 0 fail, 3 known misses.
