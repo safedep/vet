@@ -86,6 +86,12 @@ func TestTextScriptAfterHTMLComments(t *testing.T) {
 		{"a script after a comment", "<!-- logo -->\nrequire('x'); eval(y)", true},
 		{"a script after a long comment", "<!--" + strings.Repeat("a", 4096) + "-->\nrequire('x'); eval(y)", true},
 		{"an open comment", "<!-- logo", false},
+		{"a comment that holds tokens", "<!-- require('x'); eval(y) -->", false},
+		{"an open comment that holds tokens", "<!-- require('x'); eval(y)", false},
+		{"a script on the lines of a comment block", "<!--\nrequire('x'); eval(y)\n-->", true},
+		{"a script after a close comment line", "<!-- a\n--> b\nrequire('x'); eval(y)", true},
+		{"a script after a carriage return", "<!-- a\rrequire('x'); eval(y)", true},
+		{"a comment block with text", "<!--\nMade by x\n-->\n<svg><g/></svg>", false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

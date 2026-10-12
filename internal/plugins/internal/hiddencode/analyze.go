@@ -369,23 +369,30 @@ func Incomplete(c Class, p string, data []byte) error {
 	return fmt.Errorf("%s is larger than %d MiB, so vet did not check all of it for a hidden script", p, maxAssetSize>>20)
 }
 
-// textScript finds a script in a text asset with no JavaScript parser. A
-// file that starts as its format passes. An attacker can start a script as
-// an SVG image, so a build with CGO parses the file in place of this check.
-// skipHTMLComments removes the HTML comments at the start of data. node
-// reads <!-- as a comment too, so a leading comment is no sign of an image.
-// A real SVG image has its element after the comments.
+// skipHTMLComments removes the lines at the start of data that node reads
+// as HTML comments. node reads a line that starts with <!-- or --> as a
+// comment to the end of the line, also when the line holds no -->. The lines
+// of a comment block after the first one run as code.
 func skipHTMLComments(data []byte) []byte {
-	for bytes.HasPrefix(data, []byte("<!--")) {
-		end := bytes.Index(data, []byte("-->"))
+	for bytes.HasPrefix(data, []byte("<!--")) || bytes.HasPrefix(data, []byte("-->")) {
+		end := bytes.IndexFunc(data, lineTerminator)
 		if end < 0 {
 			return nil
 		}
-		data = bytes.TrimLeftFunc(data[end+3:], unicode.IsSpace)
+		data = bytes.TrimLeftFunc(data[end:], unicode.IsSpace)
 	}
 	return data
 }
 
+func lineTerminator(r rune) bool {
+	return r == '\n' || r == '\r' || r == 0x2028 || r == 0x2029
+}
+
+// textScript finds a script in a text asset with no JavaScript parser. A
+// file that starts as its format passes. An attacker can start a script as
+// an SVG image, so a build with CGO parses the file in place of this check.
+// It skips the HTML comments first, because a real SVG image can start with
+// one.
 func textScript(ext string, data []byte) bool {
 	if !text(data) {
 		return false
@@ -394,13 +401,13 @@ func textScript(ext string, data []byte) bool {
 	if f.json && json.Valid(data) {
 		return false
 	}
-	trimmed := skipHTMLComments(bytes.TrimLeftFunc(bytes.TrimPrefix(data, []byte("\xEF\xBB\xBF")), unicode.IsSpace))
+	code := skipHTMLComments(bytes.TrimLeftFunc(bytes.TrimPrefix(data, []byte("\xEF\xBB\xBF")), unicode.IsSpace))
 	for _, s := range f.starts {
-		if bytes.HasPrefix(trimmed, []byte(s)) {
+		if bytes.HasPrefix(code, []byte(s)) {
 			return false
 		}
 	}
-	return scriptTokens(data, f.legal) >= f.tokens
+	return scriptTokens(code, f.legal) >= f.tokens
 }
 
 // scriptTokens counts the script tokens of data, up to minTokens. It skips
