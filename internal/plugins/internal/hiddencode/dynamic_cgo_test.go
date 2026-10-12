@@ -3,6 +3,7 @@
 package hiddencode
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -57,6 +58,16 @@ func TestDynamicCode(t *testing.T) {
 		{"eval in a string", "webpack.config.js", "module.exports = { devtool: 'eval-source-map' }", nil},
 		{"a plain global setting", "vite.config.js", "globalThis.__DEV__ = true", nil},
 		{"a local named require in a function", "webpack.config.js", "function load(x) { const require = x; return require('./a') }", nil},
+		{"require on the global object after var require", "vite.config.js", "var require;\nglobal.r = require", []string{"global[...] = ..."}},
+		{"an alias after var require", "vite.config.js", "var require; const r = require; r(atob(p))", []string{"x = require"}},
+		{"eval through call", "vite.config.js", "eval.call(null, atob(p))", []string{"eval(...)"}},
+		{"eval by a folded key", "vite.config.js", "globalThis['ev' + 'al'](atob(p))", []string{"eval(...)"}},
+		{"exec on a module that an assignment binds", "vite.config.js", "let cp; cp = require('child_process'); cp['exec'](atob(c))", []string{"child_process(<computed>)"}},
+		{"require on an alias of the global object", "vite.config.js", "const g = globalThis; g.r = require", []string{"global[...] = ..."}},
+		{"a value limit that hides a module", "vite.config.js", hiddenByValueLimit, []string{"<not read>"}},
+		{"a computed key on window", "App.js", "window['ga-disable-' + GA_ID] = !consent", nil},
+		{"a computed key on self", "App.js", "const root = typeof self !== 'undefined' ? self : window; root[name] = plugin", nil},
+		{"require through call with a plain name", "webpack.config.js", "require.call(null, 'html-webpack-plugin')", nil},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -68,6 +79,30 @@ func TestDynamicCode(t *testing.T) {
 			assert.Equal(t, tc.want, got)
 		})
 	}
+}
+
+// hiddenByValueLimit binds a name to 16 modules before child_process. The
+// analysis keeps 16 values for a name, so it cannot read the last one.
+var hiddenByValueLimit = func() string {
+	var b strings.Builder
+	b.WriteString("var cp;")
+	for i := range 16 {
+		fmt.Fprintf(&b, "cp = require('m%d');", i)
+	}
+	b.WriteString("var cp = require('child_process'); cp.exec(atob(c))")
+	return b.String()
+}()
+
+func TestDynamicCodeTooComplexToRead(t *testing.T) {
+	s := dynamicCode(Config, "vite.config.js", []byte(strings.Repeat("a;", 400_000)))
+	require.Len(t, s, 1)
+	assert.Equal(t, "<not read>", s[0].Visible)
+	assert.Equal(t, "The build config is too large or too complex for vet to read in full on line 1", s[0].Title)
+}
+
+func TestRunsAsScriptPastTheNodeLimit(t *testing.T) {
+	_, parsed := runsAsScript([]byte(strings.Repeat("require(x);\n", 300_000)))
+	assert.False(t, parsed, "the text check reads an asset that the parse cannot read in full")
 }
 
 func TestDynamicCodeLongCallChain(t *testing.T) {

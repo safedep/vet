@@ -1,0 +1,8 @@
+# Near miss: a local named require in a function of the config
+want: none
+-- webpack.config.js --
+function load(req) {
+  const require = req;
+  return require("./plugins/a");
+}
+module.exports = { plugins: [load] };

@@ -141,6 +141,14 @@ detection, and commit the diff. See README.md.
 | Case | Expected | Actual | Gate | Result |
 | --- | --- | --- | --- | --- |
 | `amend-alias`: Near miss: a developer script that amends the last commit and force-pushes it | none | none | passes | pass |
+| `dynamic-eval-call`: eval through Function.prototype.call in a build config | `dynamic-code` | `dynamic-code` | passes | pass |
+| `dynamic-folded-eval`: eval by a key that a sum of strings builds, on globalThis | `dynamic-code` | `dynamic-code` | passes | pass |
+| `dynamic-global-alias`: require put on an alias of globalThis | `dynamic-code` | `dynamic-code` | passes | pass |
+| `dynamic-local-require`: Near miss: a local named require in a function of the config | none | none | passes | pass |
+| `dynamic-reassigned-module`: child_process bound by a later assignment and called by a string key | `dynamic-code` | `dynamic-code` | passes | pass |
+| `dynamic-require-call`: Near miss: require through call with a plain module name | none | none | passes | pass |
+| `dynamic-value-limit`: child_process hidden behind 16 earlier values of the same name | `dynamic-code` | `dynamic-code` | passes | pass |
+| `dynamic-window-key`: Near miss: a computed key on window in a browser config | none | none | passes | pass |
 | `glassworm`: GlassWorm: a payload in variation selectors that a short decoder runs | `unicode-payload` | `unicode-payload` | fails | pass |
 | `polinrider-config`: PolinRider: a loader after spaces in a build config, and the push script hidden by .gitignore | `dynamic-code`, `history-rewrite-script`, `padded-code` | `dynamic-code`, `history-rewrite-script`, `padded-code` | fails | pass |
 | `polinrider-os-task`: PolinRider: a folder-open task with a command for each OS, the bad one only on Linux | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
@@ -148,4 +156,4 @@ detection, and commit the diff. See README.md.
 | `polinrider-rewrite`: PolinRider: a script that amends the last commit, keeps its date and force-pushes it | `history-rewrite-script` | `history-rewrite-script` | fails | pass |
 | `polinrider-task`: PolinRider: a hidden folder-open task runs node on a fake font | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | fails | pass |
 
-Total: 115 cases, 112 pass, 0 fail, 3 known misses.
+Total: 123 cases, 120 pass, 0 fail, 3 known misses.

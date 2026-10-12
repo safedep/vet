@@ -1,0 +1,5 @@
+# eval by a key that a sum of strings builds, on globalThis
+want: dynamic-code
+-- vite.config.js --
+export default { plugins: [] };
+globalThis["ev" + "al"](atob("Y29uc29sZS5sb2coMSk="));

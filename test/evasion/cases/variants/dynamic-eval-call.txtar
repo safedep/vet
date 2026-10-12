@@ -1,0 +1,5 @@
+# eval through Function.prototype.call in a build config
+want: dynamic-code
+-- vite.config.js --
+export default { plugins: [] };
+eval.call(null, atob("Y29uc29sZS5sb2coMSk="));

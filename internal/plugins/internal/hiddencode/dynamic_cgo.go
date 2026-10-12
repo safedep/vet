@@ -36,6 +36,7 @@ const (
 	dynGlobal
 	dynAlias
 	dynProcess
+	dynUnread
 )
 
 // dynamicText words the title and the snippet of each kind. The snippet
@@ -48,6 +49,7 @@ var dynamicText = map[dynamicKind]struct{ title, snippet string }{
 	dynGlobal:   {"puts require, eval or Function, or a key that it computes, on the global object", "global[...] = ..."},
 	dynAlias:    {"keeps require, eval or Function under another name", "x = require"},
 	dynProcess:  {"starts a process with a command that it builds at run time", "child_process(<computed>)"},
+	dynUnread:   {"is too large or too complex for vet to read in full", "<not read>"},
 }
 
 var (
@@ -60,14 +62,23 @@ var (
 	// fileRoots are the expressions that give the folder of the config, so
 	// a path built on them names a file.
 	fileRoots = map[string]bool{"__dirname": true, "__filename": true, "import.meta.dirname": true, "import.meta.filename": true, "process.cwd()": true}
+	// processModules are the names of the child_process module.
+	processModules = []string{"child_process", "node:child_process"}
+	loaders        = map[string]bool{"require": true, "eval": true, "Function": true}
 )
 
-// processModules are the names of the child_process module.
-var processModules = []string{"child_process", "node:child_process"}
+const (
+	// parseTimeout bounds the parse and the analysis of one file. Some
+	// inputs make the tree-sitter parse slow.
+	parseTimeout = 30 * time.Second
 
-// parseTimeout bounds the parse and the analysis of one file. Some inputs
-// make the tree-sitter parse slow.
-const parseTimeout = 30 * time.Second
+	// maxScriptSize is the largest text asset that runsAsScript parses. It
+	// is above MaxSize, because a comment can pad a script past the config
+	// limit. The parse of a larger asset costs seconds and gigabytes, so the
+	// text check reads it in place of the parse. The node limit of Diagnose
+	// stops a dense asset below this size.
+	maxScriptSize = 8 << 20
+)
 
 // dynamicCode finds code in a build config or an npm entry script that runs
 // code that a reader cannot see. A config only declares settings, so it
@@ -75,27 +86,28 @@ const parseTimeout = 30 * time.Second
 // by a name that it computes, or keep require under another name. The
 // check reads what each name stands for, not the name, because a loader
 // renames require (global['r']=require) and hides its strings in tables.
+// A file that vet cannot read in full gives a finding too, because a loader
+// can hide behind the limits of the parse.
 func dynamicCode(c Class, p string, data []byte) []Signal {
-	var l core.Language
-	var err error
-	switch strings.ToLower(path.Ext(p)) {
-	case ".ts", ".mts", ".cts":
-		l, err = lang.NewTypescriptWithoutJSXLanguage()
-	default:
-		l, err = lang.NewJavascriptLanguage()
+	what := "The build config"
+	if c == Entry {
+		what = "The npm entry script"
 	}
-	if err != nil {
-		return nil
+	signal := func(k dynamicKind, line int) Signal {
+		t := dynamicText[k]
+		return Signal{ID: IDDynamicCode, Line: line, Visible: t.snippet, Title: fmt.Sprintf("%s %s on line %d", what, t.title, line)}
 	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), parseTimeout)
 	defer cancel()
-	tree, err := parser.ParseBytes(ctx, l, data, parser.WithMaxBytes(maxAssetSize+1))
+	tree, err := parseJS(ctx, languageOf(p), data, MaxSize+1)
 	if err != nil {
-		return nil
+		return []Signal{signal(dynUnread, 1)}
 	}
-	a, err := ecmascript.Analyze(ctx, tree, ecmascript.Options{MaxNodes: -1})
+	defer tree.Tree().Close()
+	a, err := ecmascript.Analyze(ctx, tree, ecmascript.Options{})
 	if err != nil {
-		return nil
+		return []Signal{signal(dynUnread, 1)}
 	}
 
 	type hit struct {
@@ -109,7 +121,7 @@ func dynamicCode(c Class, p string, data []byte) []Signal {
 		}
 	}
 	for _, as := range a.Assignments() {
-		if as.Global && (as.Computed || isLoader(a, as.Right)) {
+		if onGlobal(a, as.Object) && (as.Computed || isLoader(a, as.Right)) {
 			hits = append(hits, hit{dynGlobal, as.Node})
 		}
 	}
@@ -117,54 +129,94 @@ func dynamicCode(c Class, p string, data []byte) []Signal {
 		if b.Node.Type() != "variable_declarator" || b.Value == nil {
 			continue
 		}
-		if v := a.Unparen(b.Value); v != nil && (b.Member != "" || v.Type() == "identifier") && aliasesLoader(a, b.Name) {
+		v := a.Unparen(b.Value)
+		if v == nil || (b.Member == "" && v.Type() != "identifier") {
+			continue
+		}
+		if aliasesLoader(a, b.Name) || (b.Member == "" && b.Name != a.Name(v) && isLoader(a, v)) {
 			hits = append(hits, hit{dynAlias, b.Node})
 		}
 	}
 	slices.SortStableFunc(hits, func(x, y hit) int { return cmp.Compare(x.node.StartByte(), y.node.StartByte()) })
 
-	what := "The build config"
-	if c == Entry {
-		what = "The npm entry script"
+	var out []Signal
+	// Eval can drop values at the value limit, so Truncated is read after
+	// the checks.
+	if a.Truncated() {
+		out = append(out, signal(dynUnread, 1))
 	}
 	found := map[dynamicKind]bool{}
-	var out []Signal
 	for _, h := range hits {
-		if found[h.kind] {
-			continue
+		if !found[h.kind] {
+			found[h.kind] = true
+			out = append(out, signal(h.kind, int(h.node.StartPoint().Row)+1))
 		}
-		found[h.kind] = true
-		line := int(h.node.StartPoint().Row) + 1
-		t := dynamicText[h.kind]
-		out = append(out, Signal{ID: IDDynamicCode, Line: line, Visible: t.snippet, Title: fmt.Sprintf("%s %s on line %d", what, t.title, line)})
 	}
 	return out
 }
 
+// languageOf returns TypeScript with no JSX for a .ts, .mts or .cts file,
+// and JavaScript for any other file. node runs a required file of any name
+// as JavaScript.
+func languageOf(p string) core.Language {
+	switch strings.ToLower(path.Ext(p)) {
+	case ".ts", ".mts", ".cts":
+		if l, err := lang.NewTypescriptWithoutJSXLanguage(); err == nil {
+			return l
+		}
+	}
+	l, err := lang.NewJavascriptLanguage()
+	if err != nil {
+		return nil
+	}
+	return l
+}
+
+func parseJS(ctx context.Context, l core.Language, data []byte, maxBytes int) (core.ParseTree, error) {
+	if l == nil {
+		return nil, fmt.Errorf("no JavaScript grammar")
+	}
+	return parser.ParseBytes(ctx, l, data, parser.WithMaxBytes(maxBytes))
+}
+
 func callKind(a *ecmascript.Analysis, c ecmascript.Call) dynamicKind {
 	targets := a.Eval(c.Callee)
-	is := func(names ...string) bool {
-		return slices.ContainsFunc(targets, func(v ecmascript.Value) bool { return v.IsGlobal(names...) })
+	calls := func(name string) bool {
+		return c.Name == name || slices.ContainsFunc(targets, func(v ecmascript.Value) bool { return v.IsGlobal(name) })
 	}
+	arg := payload(a, c)
 	switch {
 	case c.New:
-		if is("Function") || c.Name == "Function" {
+		if calls("Function") {
 			return dynFunction
 		}
-	case is("eval") || c.Name == "eval":
+	case calls("eval"):
 		return dynEval
-	case is("Function") || c.Name == "Function" || constructorChain(a, c.Callee):
+	case calls("Function") || constructorChain(a, c.Callee):
 		return dynFunction
 	case vmRun[c.Name] && c.Callee.Type() == "member_expression":
 		return dynVM
-	case is("require") || c.Name == "require" || c.Callee.Type() == "import":
-		if computed(a, c.Arg(0)) && !isFilePath(a, c.Arg(0)) {
+	case calls("require") || c.Callee.Type() == "import":
+		if computed(a, arg) && !isFilePath(a, arg) {
 			return dynRequire
 		}
-	case runsProcess(c, targets) && computed(a, c.Arg(0)):
+	case runsProcess(c, targets) && computed(a, arg):
 		return dynProcess
 	}
 	return 0
+}
+
+// payload returns the argument that a call passes on: the first one, or
+// the second one of f.call(t, x) and f.apply(t, x), where the first one is
+// the this value.
+func payload(a *ecmascript.Analysis, c ecmascript.Call) *sitter.Node {
+	if c.Callee.Type() == "member_expression" {
+		switch a.Name(c.Callee.ChildByFieldName("property")) {
+		case "call", "apply":
+			return c.Arg(1)
+		}
+	}
+	return c.Arg(0)
 }
 
 // runsProcess reports a call of a child_process runner, or of a runner
@@ -178,12 +230,19 @@ func runsProcess(c ecmascript.Call, targets []ecmascript.Value) bool {
 	})
 }
 
+// onGlobal reports an object that stands for global or globalThis. A
+// browser config writes to window and self, so they do not count.
+func onGlobal(a *ecmascript.Analysis, n *sitter.Node) bool {
+	return slices.ContainsFunc(a.Eval(n), func(v ecmascript.Value) bool { return v.IsGlobal("global", "globalThis") })
+}
+
 func isLoaderValue(v ecmascript.Value) bool { return v.IsGlobal("require", "eval", "Function") }
 
 // isLoader reports an expression that stands for require, eval or
-// Function.
+// Function, or that is one of these names. A file that declares
+// var require at its top level still gets require from node.
 func isLoader(a *ecmascript.Analysis, n *sitter.Node) bool {
-	return slices.ContainsFunc(a.Eval(n), isLoaderValue)
+	return loaders[a.Name(a.Unparen(n))] || slices.ContainsFunc(a.Eval(n), isLoaderValue)
 }
 
 // aliasesLoader reports a name that the file binds to require, eval or
@@ -212,24 +271,26 @@ func computed(a *ecmascript.Analysis, arg *sitter.Node) bool {
 // an SVG image or a source map does not parse as JavaScript with a call.
 // tree-sitter reads an SVG image as JSX, which node does not run. node
 // accepts a NUL byte in a comment, and tree-sitter stops at one, so a NUL
-// byte becomes a space.
+// byte becomes a space. An asset that the parse cannot read in full gives
+// parsed false, so the text check reads it.
 func runsAsScript(data []byte) (runs, parsed bool) {
 	if scriptTokens(data, nil) == 0 {
 		return false, true
 	}
-	l, err := lang.NewJavascriptLanguage()
-	if err != nil {
-		return false, true
-	}
 	ctx, cancel := context.WithTimeout(context.Background(), parseTimeout)
 	defer cancel()
-	tree, err := parser.ParseBytes(ctx, l, bytes.ReplaceAll(data, []byte{0}, []byte{' '}), parser.WithMaxBytes(maxAssetSize+1))
+	tree, err := parseJS(ctx, languageOf(""), bytes.ReplaceAll(data, []byte{0}, []byte{' '}), maxScriptSize)
 	if err != nil {
+		return false, false
+	}
+	defer tree.Tree().Close()
+	root := tree.Tree().RootNode()
+	if root.HasError() {
 		return false, true
 	}
-	d, err := ts.Diagnose(ctx, tree.Tree().RootNode(), -1)
-	if err != nil || d.HasError {
-		return false, true
+	d, err := ts.Diagnose(ctx, root, 0)
+	if err != nil {
+		return false, false
 	}
 	for k := range d.Kinds {
 		if strings.HasPrefix(k, "jsx_") {

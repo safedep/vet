@@ -1,0 +1,5 @@
+# Near miss: a computed key on window in a browser config
+want: none
+-- App.js --
+window["ga-disable-" + GA_ID] = !consent;
+export default function App() { return null; }
