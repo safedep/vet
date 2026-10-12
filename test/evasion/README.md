@@ -11,7 +11,8 @@ go test ./test/evasion/ -count=1                  # check the cases and the tabl
 UPDATE_GOLDEN=1 go test ./test/evasion/ -count=1  # rewrite coverage.md
 ```
 
-The `dynamic-code` cases need a build with CGO, because the check parses JavaScript with tree-sitter.
+The `dynamic-code` cases need a build with CGO, because the check parses JavaScript with safedep/code,
+which uses tree-sitter.
 
 ## Rules for a case
 

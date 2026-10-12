@@ -56,6 +56,7 @@ func TestDynamicCode(t *testing.T) {
 		{"a regular expression exec", "vite.config.js", "/a/.exec(s)", nil},
 		{"eval in a string", "webpack.config.js", "module.exports = { devtool: 'eval-source-map' }", nil},
 		{"a plain global setting", "vite.config.js", "globalThis.__DEV__ = true", nil},
+		{"a local named require in a function", "webpack.config.js", "function load(x) { const require = x; return require('./a') }", nil},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
