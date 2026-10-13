@@ -59,12 +59,17 @@ func MustPackageVersion(eco Ecosystem, name, version string) PackageVersion {
 // No enricher has data for it, so vet skips its packages.
 var ErrUnknownEcosystem = errors.New("unknown ecosystem")
 
+// PURLTypeGitHubActions is the PURL type of a GitHub Action. The purl spec has
+// no type for an action, so SafeDep defines this one. The spec type github is a
+// GitHub repository.
+const PURLTypeGitHubActions = "githubactions"
+
 // purlTypes holds each PURL type that names an ecosystem vet reads.
 // TestPURLTypesMatchDry checks that dry maps each one to that ecosystem.
 var purlTypes = map[string]bool{
 	"npm": true, "pypi": true, "pip": true, "maven": true, "golang": true, "go": true,
 	"cargo": true, "gem": true, "rubygems": true, "nuget": true, "composer": true, "pub": true,
-	"github": true, "actions": true, "githubactions": true, "terraform": true,
+	"github": true, "actions": true, PURLTypeGitHubActions: true, "terraform": true,
 	"vscode": true, "vsix": true, "vsx": true, "openvsx": true,
 }
 

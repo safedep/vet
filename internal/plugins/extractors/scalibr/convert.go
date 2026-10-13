@@ -68,7 +68,7 @@ func ToManifest(in Converted) (*model.Manifest, []error) {
 		if localGoReplacement(sp) {
 			continue
 		}
-		p, err := toPackage(sp)
+		p, err := toPackage(sp, kind)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", in.Path, err))
 			continue
@@ -140,8 +140,8 @@ func localGoReplacement(sp *extractor.Package) bool {
 		(strings.HasPrefix(sp.Name, ".") || strings.HasPrefix(sp.Name, "/") || filepath.IsAbs(sp.Name))
 }
 
-func toPackage(sp *extractor.Package) (*model.Package, error) {
-	pu := sp.PURL()
+func toPackage(sp *extractor.Package, kind model.ManifestKind) (*model.Package, error) {
+	pu := packageURL(sp, kind)
 	if pu == nil {
 		return nil, fmt.Errorf("package %s@%s has no PURL", sp.Name, sp.Version)
 	}
@@ -169,6 +169,18 @@ func toPackage(sp *extractor.Package) (*model.Package, error) {
 		p.Direct = d.IsDirect()
 	}
 	return p, nil
+}
+
+// packageURL returns the PURL of a package. Scalibr writes pkg:github for an
+// action in a workflow. dry reads pkg:github as a GitHub repository, so the
+// action takes the SafeDep type for an action. Without it, vet reads each
+// action as a repository and drops it.
+func packageURL(sp *extractor.Package, kind model.ManifestKind) *purl.PackageURL {
+	pu := sp.PURL()
+	if pu != nil && kind == model.ManifestKindWorkflow && pu.Type == purl.TypeGithub {
+		pu.Type = model.PURLTypeGitHubActions
+	}
+	return pu
 }
 
 // isProdGroup reports a dependency group that ships with the package.

@@ -7,6 +7,9 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/google/osv-scalibr/extractor"
+	"github.com/google/osv-scalibr/inventory"
+	"github.com/google/osv-scalibr/purl"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -151,4 +154,35 @@ func TestGoLocalReplaceIsNotAPackage(t *testing.T) {
 	for _, n := range names {
 		assert.NotContains(t, n, "acme/sdk", "the local replacement drops the module")
 	}
+}
+
+func TestWorkflowActionHasTheActionPURLType(t *testing.T) {
+	action := &extractor.Package{Name: "actions/checkout", Version: "v4", PURLType: purl.TypeGithub}
+	repository := &extractor.Package{Name: "safedep/vet", Version: "v1.0.0", PURLType: purl.TypeGithub}
+
+	cases := []struct {
+		name string
+		pkg  *extractor.Package
+		kind model.ManifestKind
+		want string
+	}{
+		{"action in a workflow", action, model.ManifestKindWorkflow, "pkg:githubactions/actions/checkout@v4"},
+		{"github package in an SBOM", repository, model.ManifestKindSBOM, "pkg:github/safedep/vet@v1.0.0"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, packageURL(tc.pkg, tc.kind).String())
+		})
+	}
+
+	m, errs := ToManifest(Converted{
+		Path:      ".github/workflows/ci.yml",
+		Extractor: "github/actions",
+		Inventory: inventory.Inventory{Packages: []*extractor.Package{action}},
+	})
+	require.Empty(t, errs)
+	require.NotNil(t, m)
+	require.Len(t, m.Packages, 1)
+	assert.Equal(t, model.EcosystemGitHubActions, m.Packages[0].ID.Ecosystem())
+	assert.Equal(t, "actions/checkout", m.Packages[0].ID.Name())
 }
