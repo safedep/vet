@@ -89,6 +89,7 @@ func TestEvaluate(t *testing.T) {
 				{IDUnpinnedAction, 12, "actions/checkout@v4 is not pinned to a commit SHA"},
 			},
 		},
+		{name: "local actions", file: "local.yml", kind: model.ManifestKindWorkflow},
 		{
 			name: "composite action", file: "action.yml", kind: model.ManifestKindWorkflow,
 			want: []hit{
@@ -152,6 +153,10 @@ func TestPinned(t *testing.T) {
 		{"actions/checkout@v4", "actions/checkout", false},
 		{"actions/checkout", "actions/checkout", false},
 		{"./local", "", true},
+		{"$/.github/actions/local", "", true},
+		{"./local@v1", "", true},
+		{".\\local", "", true},
+		{"$local", "$local", false},
 		{"docker://ghcr.io/o/i:1.0", "docker://ghcr.io/o/i", false},
 		{"docker://localhost:5000/i", "docker://localhost:5000/i", false},
 	}

@@ -121,7 +121,7 @@ func readsHead(s string) bool {
 // pinned reports whether a uses: value names an immutable version, and
 // returns the action name without the ref.
 func pinned(uses string) (name string, ok bool) {
-	if strings.HasPrefix(uses, "./") {
+	if github.IsLocalAction(uses) {
 		return "", true
 	}
 	if image, found := strings.CutPrefix(uses, "docker://"); found {

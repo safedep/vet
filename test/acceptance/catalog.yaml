@@ -402,7 +402,7 @@
   title: "workflow: unpinned action"
   category: controls
   tier: P0
-  guarantee: "A workflow that uses an action by tag gives a finding. An action pinned by SHA gives none."
+  guarantee: "A workflow that uses an action by tag gives a finding. An action pinned by SHA gives none. A local action, as ./path or $/path, gives none."
   labels: [controls]
 - id: scan/working-tree/never-writes
   title: "a scan never writes the target"
@@ -606,7 +606,7 @@
   title: "the fix pins actions by SHA"
   category: fix
   tier: P0
-  guarantee: "vet fix github-actions run rewrites each third-party uses: with a tag to a commit SHA with the tag in a comment, from a stub GitHub answer. Local and same-repository actions do not change."
+  guarantee: "vet fix github-actions run rewrites each third-party uses: with a tag to a commit SHA with the tag in a comment, from a stub GitHub answer. Local actions (./path and $/path) and same-repository actions do not change."
   labels: [fix]
 - id: fix/github-actions/dry-run
   title: "the fix dry run writes nothing"
