@@ -1,8 +1,10 @@
 # An action used by tag gives a finding. An action pinned by SHA gives none.
+# A local action, as ./path or $/path, gives none.
 cd proj
 exec vet scan . --mode plain -o plain
 stdout 'unpinned-action\t.github/workflows/tag.yml\t.github/workflows/tag.yml:6'
 ! stdout 'unpinned-action\t.github/workflows/pinned.yml'
+! stdout 'unpinned-action\t.github/workflows/local.yml'
 
 -- proj/.github/workflows/tag.yml --
 on: push
@@ -18,3 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+-- proj/.github/workflows/local.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/local
+      - uses: $/.github/actions/local
