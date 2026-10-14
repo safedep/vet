@@ -1,0 +1,11 @@
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/local
+      - uses: $/.github/actions/local
+      - uses: .\.github\actions\local
+      - uses: ./.github/actions/local@v1
+  call:
+    uses: $/.github/workflows/build.yml

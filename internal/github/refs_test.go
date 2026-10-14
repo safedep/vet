@@ -21,6 +21,22 @@ func TestIsCommitSHA(t *testing.T) {
 	}
 }
 
+func TestIsLocalAction(t *testing.T) {
+	for s, want := range map[string]bool{
+		"./.github/actions/a":    true,
+		"$/.github/actions/a":    true,
+		"$/.github/actions/a@v1": true,
+		".\\github\\actions\\a":  true,
+		"$.github/actions/a":     false,
+		"${{ inputs.action }}":   false,
+		"actions/checkout@v4":    false,
+		"docker://alpine:3.19":   false,
+		"../a":                   false,
+	} {
+		assert.Equal(t, want, IsLocalAction(s), s)
+	}
+}
+
 func TestListAll(t *testing.T) {
 	pages := map[int][]int{0: {1, 2}, 2: {3, 4}, 3: {5}}
 	next := map[int]int{0: 2, 2: 3}

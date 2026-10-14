@@ -31,3 +31,9 @@ jobs:
       - uses: ""
       - uses: actions/no-version@
       - run: echo "no uses here"
+
+  self-repository:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: $/self-action
+      - uses: $/self-action@v1

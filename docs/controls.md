@@ -462,7 +462,7 @@ A script interpolates an event field that an outside user controls, such as the 
 
 **Action not pinned to a commit SHA.** Family `workflow`. Default severity medium. Plugin `workflow`.
 
-A step uses an action by a tag or a branch. The owner of the action, or an attacker who controls it, can move the tag to other code.
+A step uses an action by a tag or a branch. The owner of the action, or an attacker who controls it, can move the tag to other code. A local action passes. $/path runs from the commit of the workflow. ./path runs from the workspace, which the checkout steps of the job fill.
 
 ### impostor-commit
 
