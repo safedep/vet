@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/filemode"
 	"github.com/go-git/go-git/v5/plumbing/object"
 
 	"github.com/safedep/vet/v2/finding"
@@ -30,6 +31,21 @@ import (
 type base struct {
 	manifests map[string]*model.Manifest
 	hashes    map[string]plumbing.Hash
+	// links tells, for each base link, whether its head path was a link
+	// when vet read the base. The base of a link depends on it.
+	links map[string]bool
+}
+
+// sameLinks reports whether each base link has the head mode that it had
+// when vet read the base. A kept base is wrong for a checkout that writes
+// a link as a file, or a file as a link.
+func (b *base) sameLinks(dir string) bool {
+	for rel, link := range b.links {
+		if linkAtHead(dir, rel) != link {
+			return false
+		}
+	}
+	return true
 }
 
 // ErrBaseRefTarget is the usage error of --base-ref on a target that is
@@ -79,7 +95,7 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 	}
 	hash := &tree.Commit
 	cache := r.baseCache(a, *hash, exs)
-	if b, ok := cache.load(); ok {
+	if b, ok := cache.load(); ok && b.sameLinks(a.Path) {
 		return b, nil
 	}
 	tmp, err := os.MkdirTemp("", "vet-base-")
@@ -92,14 +108,16 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 		}
 	}()
 
-	b := &base{manifests: map[string]*model.Manifest{}, hashes: map[string]plumbing.Hash{}}
+	b := &base{manifests: map[string]*model.Manifest{}, hashes: map[string]plumbing.Hash{}, links: map[string]bool{}}
 	var files []string
 	err = tree.Walk(ctx, func(rel string, f *object.File) error {
 		if r.skipped(rel) {
 			return nil
 		}
 		hash := f.Hash
-		if linkAtHead(a.Path, rel) {
+		isLink := f.Mode == filemode.Symlink
+		headLink := isLink && linkAtHead(a.Path, rel)
+		if headLink {
 			if target, ok := tree.Resolve(rel, f); ok {
 				f, hash = target, target.Hash
 			} else {
@@ -116,6 +134,9 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 			return err
 		}
 		b.hashes[rel] = hash
+		if isLink {
+			b.links[rel] = headLink
+		}
 		files = append(files, rel)
 		return nil
 	})

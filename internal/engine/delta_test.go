@@ -542,3 +542,42 @@ func TestPullRequestModeCountsAnUnresolvedBaseLinkAsChanged(t *testing.T) {
 	}
 	assert.Equal(t, map[string]model.Change{"AGENTS.md": model.ChangeAdded, "CLAUDE.md": model.ChangeModified}, kinds)
 }
+
+// TestPullRequestModeKeepsABaseForOneLinkMode checks that a kept base is
+// not used for a checkout that writes a link in another form. The base of
+// a link holds its target for a head link, and its link text for a head
+// file.
+func TestPullRequestModeKeepsABaseForOneLinkMode(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("needs symbolic links")
+	}
+	f := newFixture(t)
+	dir := t.TempDir()
+	repo, err := gogit.PlainInit(dir, false)
+	require.NoError(t, err)
+	write(t, dir, "AGENTS.md", "# Rules\n")
+	link := filepath.Join(dir, "CLAUDE.md")
+	require.NoError(t, os.Symlink("AGENTS.md", link))
+	wt, err := repo.Worktree()
+	require.NoError(t, err)
+	require.NoError(t, wt.AddGlob("."))
+	_, err = wt.Commit("base", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@example.com", When: time.Now()}})
+	require.NoError(t, err)
+
+	o := f.options(t, dir, &fakeEnricher{})
+	o.BaseRef = "HEAD"
+	scan := func(form string) {
+		t.Helper()
+		for m, err := range runScan(t, o).Scan.Manifests(context.Background()) {
+			require.NoError(t, err)
+			assert.Equal(t, model.ChangeUnchanged, m.Change, "%s: %s", form, m.Path)
+		}
+	}
+	scan("a link")
+	require.NoError(t, os.Remove(link))
+	write(t, dir, "CLAUDE.md", "AGENTS.md")
+	scan("a file with the link text")
+	require.NoError(t, os.Remove(link))
+	require.NoError(t, os.Symlink("AGENTS.md", link))
+	scan("a link again")
+}

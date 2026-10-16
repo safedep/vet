@@ -24,6 +24,7 @@ func TestBaseCacheRoundTrip(t *testing.T) {
 	want := &base{
 		manifests: map[string]*model.Manifest{"m1": m},
 		hashes:    map[string]plumbing.Hash{"package-lock.json": plumbing.ComputeHash(plumbing.BlobObject, []byte("x"))},
+		links:     map[string]bool{"CLAUDE.md": true, "GEMINI.md": false},
 	}
 	require.NoError(t, c.save(want))
 
