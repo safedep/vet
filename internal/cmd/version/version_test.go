@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/safedep/vet/v2/internal/app"
+	"github.com/safedep/vet/v2/internal/config"
+	"github.com/safedep/vet/v2/internal/config/appdir"
 	"github.com/safedep/vet/v2/internal/tui/output"
 )
 
@@ -78,4 +81,30 @@ func TestVersion(t *testing.T) {
 			assert.Empty(t, stderr.String())
 		})
 	}
+}
+
+func TestVersionModeObeysALockedConfig(t *testing.T) {
+	t.Cleanup(func() {
+		output.SetWriters(os.Stdout, os.Stderr)
+		output.SetMode(output.Rich)
+	})
+	root := t.TempDir()
+	managed := filepath.Join(root, "safedep", "vet")
+	require.NoError(t, os.MkdirAll(managed, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(managed, "config.yml"), []byte("managed:\n  lockdown: true\noutput:\n  mode: plain\n"), 0o600))
+	env := map[string]string{"ProgramData": root}
+	a := app.New(app.Options{
+		LookupEnv: func(k string) (string, bool) { v, ok := env[k]; return v, ok },
+		Bootstrap: config.BootstrapOptions{
+			TrustManaged: func(string) bool { return true },
+			DirOptions:   []appdir.Option{appdir.WithPlatform("windows", t.TempDir(), 1000, "")},
+		},
+	})
+	a.Globals.Mode = "agent"
+	output.SetWriters(&bytes.Buffer{}, &bytes.Buffer{})
+	c := New(a)
+	c.SetArgs(nil)
+	err := c.Execute()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "output.mode is locked")
 }

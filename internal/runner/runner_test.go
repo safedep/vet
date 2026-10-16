@@ -26,21 +26,24 @@ import (
 
 func TestLockableKeys(t *testing.T) {
 	cases := []struct {
-		name string
-		o    Options
-		want []string
+		name      string
+		o         Options
+		ephemeral bool
+		want      []string
 	}{
-		{"no flag", Options{}, nil},
-		{"gate", Options{FailOn: "high", Policy: "p.yml"}, []string{"policy.fail_on", "policy.file"}},
+		{"no flag", Options{}, false, nil},
+		{"ephemeral", Options{}, true, []string{"state.dir", "cache.dir"}},
+		{"gate", Options{FailOn: "high", Policy: "p.yml"}, false, []string{"policy.fail_on", "policy.file"}},
 		{
 			"scan flags",
 			Options{Strict: true, Exclude: []string{"docs"}, CooldownDays: 7},
+			false,
 			[]string{"scan.strict", "scan.exclude", "plugins.dependency-cooldown.options.days"},
 		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, tc.o.lockableKeys())
+			assert.Equal(t, tc.want, tc.o.lockableKeys(tc.ephemeral))
 		})
 	}
 }
