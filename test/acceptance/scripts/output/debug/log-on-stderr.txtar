@@ -1,0 +1,36 @@
+# --debug writes the debug log of vet and of its libraries on stderr.
+# Stdout keeps the same report, so a script can still read it.
+cd proj
+exec vet scan . --debug -o json
+reportcheck stdout
+! stdout 'DEBUG'
+stderr 'DEBUG.*pom\.xml'
+
+# With no flag, a library line does not show. The scan reports the file as
+# a diagnostic.
+exec vet scan . -o json
+reportcheck stdout
+! stderr 'DEBUG'
+! stderr '^[^:]*pom\.xml'
+
+# --debug and -q cannot be used together.
+! exec vet scan . --debug -q
+stderr 'cannot be used together'
+
+# --log appends the debug log to a file, as JSON lines.
+exec vet scan . --log vet.log -o json
+reportcheck stdout
+! stderr 'DEBUG'
+grep '"level":"debug".*pom\.xml' vet.log
+
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"lodash": "4.17.21"}},
+    "node_modules/lodash": {"version": "4.17.21", "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"}
+  }
+}
+-- proj/pom.xml --
+<project><dependencies><dependency>

@@ -38,7 +38,7 @@ helper or a list. Each row is the one place for its concern.
 | What a person sees first in a report: findings in order, diagnostics, what a change adds | `internal/overview`. The view and the sinks read it. |
 | Stdout data in the `-o` format | `internal/tui/printer` |
 | Untrusted text on a terminal (package names, paths from a repository) | `internal/tui/escape` |
-| Log lines of libraries | `internal/logging`. They print only with `-v`. Do not write to the standard `log` package. |
+| Log lines of vet and of its libraries | `github.com/safedep/dry/log`. `app.InitLog` sends them to stderr with `--debug` and to a file with `--log`. Do not write to the standard `log` package. |
 | The list of built-in plugins with a config section | `internal/plugins/builtin`. Do not list plugins by hand. |
 | The extractor set of a scan, declared and installed packages | `internal/plugins/extractors` (`For`), with `internal/plugins/extractors/installed` |
 | Control plugins, report formats | `internal/plugins/controls`, `internal/plugins/sinks` |

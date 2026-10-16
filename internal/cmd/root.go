@@ -24,7 +24,6 @@ import (
 	"github.com/safedep/vet/v2/internal/cmd/scan"
 	"github.com/safedep/vet/v2/internal/cmd/state"
 	"github.com/safedep/vet/v2/internal/cmd/version"
-	"github.com/safedep/vet/v2/internal/logging"
 	"github.com/safedep/vet/v2/internal/plugins/builtin"
 	"github.com/safedep/vet/v2/internal/plugins/extractors"
 	"github.com/safedep/vet/v2/internal/tui/banner"
@@ -65,6 +64,8 @@ Run "vet scan" in a project directory to start.`,
 	pf.StringVar(&g.Mode, "mode", "", "Messaging mode on stderr: auto, rich, plain or agent")
 	pf.BoolVarP(&g.Verbose, "verbose", "v", false, "Show more output on stderr")
 	pf.BoolVarP(&g.Quiet, "quiet", "q", false, "Show only errors on stderr")
+	pf.BoolVar(&g.Debug, "debug", false, "Write the debug log of vet and its libraries on stderr")
+	pf.StringVar(&g.LogFile, "log", "", "Append the debug log to a file, as JSON lines")
 	pf.BoolVar(&g.NoInput, "no-input", false, "Never prompt")
 	pf.StringVar(&g.ConfigFile, "config", "", "Config file to use in place of the user config file")
 	pf.StringVar(&g.Profile, "profile", "", "SafeDep credential profile")
@@ -114,9 +115,16 @@ func Run(ctx context.Context, args []string, o app.Options) (int, error) {
 	if o.PluginNames == nil {
 		o.PluginNames = builtin.Names()
 	}
-	logging.CaptureStandardLog()
-	extractors.CaptureLogs(logging.Emit)
-	return execute(ctx, New(app.New(o)), args)
+	extractors.CaptureLogs()
+	a := app.New(o)
+	code, err := execute(ctx, New(a), args)
+	if closeErr := a.CloseLog(); closeErr != nil {
+		if err == nil {
+			code = app.ExitRuntime
+		}
+		err = errors.Join(err, closeErr)
+	}
+	return code, err
 }
 
 // rejectUnknownSubcommands makes each command with subcommands, the root

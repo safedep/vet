@@ -30,6 +30,13 @@ Each package in a report has a `purl`. It follows the purl-spec type definition 
 and it keeps the version as the manifest writes it. `name` and `version` hold the canonical form
 that vet compares.
 
+## Debug log
+
+`--debug` writes the debug log of vet and of its libraries on stderr, with the rich view off.
+`--log FILE` appends the same log to a file as JSON lines, for a support case. Stdout keeps the
+report in both cases, so `vet scan --debug -o json | jq` still works. `-v` shows more of the view
+and no log line. `--debug` and `-q` cannot be used together.
+
 ## Saved scans
 
 vet saves each scan in its state directory. These commands read the saved scans, with no new scan:

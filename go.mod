@@ -35,6 +35,7 @@ require (
 	github.com/tidwall/jsonc v0.3.3
 	github.com/wk8/go-ordered-map/v2 v2.1.8
 	github.com/zclconf/go-cty v1.18.0
+	go.uber.org/zap v1.28.0
 	golang.org/x/mod v0.39.0
 	golang.org/x/sys v0.47.0
 	golang.org/x/term v0.45.0
@@ -222,7 +223,6 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.45.0 // indirect
 	go.opentelemetry.io/otel/trace v1.45.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.28.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	go.yaml.in/yaml/v4 v4.0.0-rc.4 // indirect
