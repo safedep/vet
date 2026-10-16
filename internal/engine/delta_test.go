@@ -3,8 +3,10 @@ package engine
 import (
 	"cmp"
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -248,7 +250,7 @@ func TestPullRequestModeReusesBase(t *testing.T) {
 	second := changesOf(t, runScan(t, o))
 	assert.Equal(t, first, second, "the kept base gives the same changes")
 
-	require.NoError(t, os.WriteFile(bases[0], []byte(`{"version": 1, "manifests": [], "hashes": {}}`), 0o600))
+	require.NoError(t, os.WriteFile(bases[0], fmt.Appendf(nil, `{"version": %d, "manifests": [], "hashes": {}}`, baseFileVersion), 0o600))
 	third := changesOf(t, runScan(t, o))
 	for id, c := range third {
 		assert.Equal(t, model.ChangeAdded, c, "%s: vet reads the kept base and does not extract again", id)
@@ -466,4 +468,116 @@ func TestPullRequestModeSkipsTheControlsOfARemovedManifest(t *testing.T) {
 	for _, d := range diagnosticsOf(t, res) {
 		assert.NotEqual(t, report.CodeControlFailed, d.Code, d.Message)
 	}
+}
+
+// TestPullRequestModeReadsALinkAsTheScanDoes checks that an unchanged link
+// is unchanged both when git checks it out as a link and when git checks it
+// out as a file that holds the link text, as with core.symlinks=false.
+func TestPullRequestModeReadsALinkAsTheScanDoes(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("needs symbolic links")
+	}
+	for name, checkout := range map[string]func(t *testing.T, dir string){
+		"a link": func(*testing.T, string) {},
+		"a file with the link text": func(t *testing.T, dir string) {
+			link := filepath.Join(dir, "requirements.txt")
+			require.NoError(t, os.Remove(link))
+			write(t, dir, "requirements.txt", "pinned/requirements.txt")
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			f := newFixture(t)
+			dir := t.TempDir()
+			repo, err := gogit.PlainInit(dir, false)
+			require.NoError(t, err)
+			write(t, dir, "pinned/requirements.txt", "requests==2.31.0\n")
+			require.NoError(t, os.Symlink("pinned/requirements.txt", filepath.Join(dir, "requirements.txt")))
+			wt, err := repo.Worktree()
+			require.NoError(t, err)
+			require.NoError(t, wt.AddGlob("."))
+			_, err = wt.Commit("base", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@example.com", When: time.Now()}})
+			require.NoError(t, err)
+			checkout(t, dir)
+
+			o := f.options(t, dir, &fakeEnricher{})
+			o.BaseRef = "HEAD"
+			res := runScan(t, o)
+			for m, err := range res.Scan.Manifests(context.Background()) {
+				require.NoError(t, err)
+				assert.Equal(t, model.ChangeUnchanged, m.Change, m.Path)
+			}
+			for id, c := range changesOf(t, res) {
+				assert.Equal(t, model.ChangeUnchanged, c, id)
+			}
+		})
+	}
+}
+
+// TestPullRequestModeCountsAnUnresolvedBaseLinkAsChanged checks that a base
+// link with no target is changed, also when the head adds a target that
+// holds the bytes of the link text.
+func TestPullRequestModeCountsAnUnresolvedBaseLinkAsChanged(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("needs symbolic links")
+	}
+	f := newFixture(t)
+	dir := t.TempDir()
+	repo, err := gogit.PlainInit(dir, false)
+	require.NoError(t, err)
+	require.NoError(t, os.Symlink("AGENTS.md", filepath.Join(dir, "CLAUDE.md")))
+	wt, err := repo.Worktree()
+	require.NoError(t, err)
+	require.NoError(t, wt.AddGlob("."))
+	_, err = wt.Commit("base", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@example.com", When: time.Now()}})
+	require.NoError(t, err)
+	write(t, dir, "AGENTS.md", "AGENTS.md")
+
+	o := f.options(t, dir, &fakeEnricher{})
+	o.BaseRef = "HEAD"
+	res := runScan(t, o)
+	kinds := map[string]model.Change{}
+	for m, err := range res.Scan.Manifests(context.Background()) {
+		require.NoError(t, err)
+		kinds[m.Path] = m.Change
+	}
+	assert.Equal(t, map[string]model.Change{"AGENTS.md": model.ChangeAdded, "CLAUDE.md": model.ChangeModified}, kinds)
+}
+
+// TestPullRequestModeKeepsABaseForOneLinkMode checks that a kept base is
+// not used for a checkout that writes a link in another form. The base of
+// a link holds its target for a head link, and its link text for a head
+// file.
+func TestPullRequestModeKeepsABaseForOneLinkMode(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("needs symbolic links")
+	}
+	f := newFixture(t)
+	dir := t.TempDir()
+	repo, err := gogit.PlainInit(dir, false)
+	require.NoError(t, err)
+	write(t, dir, "AGENTS.md", "# Rules\n")
+	link := filepath.Join(dir, "CLAUDE.md")
+	require.NoError(t, os.Symlink("AGENTS.md", link))
+	wt, err := repo.Worktree()
+	require.NoError(t, err)
+	require.NoError(t, wt.AddGlob("."))
+	_, err = wt.Commit("base", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@example.com", When: time.Now()}})
+	require.NoError(t, err)
+
+	o := f.options(t, dir, &fakeEnricher{})
+	o.BaseRef = "HEAD"
+	scan := func(form string) {
+		t.Helper()
+		for m, err := range runScan(t, o).Scan.Manifests(context.Background()) {
+			require.NoError(t, err)
+			assert.Equal(t, model.ChangeUnchanged, m.Change, "%s: %s", form, m.Path)
+		}
+	}
+	scan("a link")
+	require.NoError(t, os.Remove(link))
+	write(t, dir, "CLAUDE.md", "AGENTS.md")
+	scan("a file with the link text")
+	require.NoError(t, os.Remove(link))
+	require.NoError(t, os.Symlink("AGENTS.md", link))
+	scan("a link again")
 }

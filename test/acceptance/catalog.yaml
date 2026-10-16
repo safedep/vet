@@ -308,6 +308,12 @@
   tier: P1
   guarantee: "In pull request mode, a change that adds code after a run of spaces to a build config gives padded-code and fails the attacks gate. A clean config that the change keeps gives nothing."
   labels: [hidden-code, pr-mode]
+- id: controls/agent-config/pr-linked-instructions
+  title: "agent config: an instruction file that links to another in pull request mode"
+  category: controls
+  tier: P2
+  guarantee: "In pull request mode, CLAUDE.md that links to AGENTS.md gives no agent-instruction-change finding when the change keeps both. A change to AGENTS.md reports both names as MODIFIED."
+  labels: [agent-config, pr-mode]
 - id: controls/hidden-code/pr-unchanged
   title: "hidden code: an unchanged infected file in pull request mode"
   category: controls

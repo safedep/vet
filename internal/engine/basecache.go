@@ -58,11 +58,12 @@ type baseFile struct {
 	Version   int               `json:"version"`
 	Manifests []baseManifest    `json:"manifests"`
 	Hashes    map[string]string `json:"hashes"`
+	Links     map[string]bool   `json:"links,omitempty"`
 }
 
 // baseFileVersion is the version of the stored form. vet extracts the base
 // again when a kept file has another version.
-const baseFileVersion = 1
+const baseFileVersion = 2
 
 type baseManifest struct {
 	Manifest model.Manifest  `json:"manifest"`
@@ -78,7 +79,7 @@ func (c baseCache) load() (*base, bool) {
 	if err := json.Unmarshal(data, &f); err != nil || f.Version != baseFileVersion {
 		return nil, false
 	}
-	b := &base{manifests: map[string]*model.Manifest{}, hashes: map[string]plumbing.Hash{}}
+	b := &base{manifests: map[string]*model.Manifest{}, hashes: map[string]plumbing.Hash{}, links: f.Links}
 	for i := range f.Manifests {
 		m := f.Manifests[i].Manifest
 		for j := range f.Manifests[i].Packages {
@@ -93,7 +94,7 @@ func (c baseCache) load() (*base, bool) {
 }
 
 func (c baseCache) save(b *base) error {
-	f := baseFile{Version: baseFileVersion, Hashes: map[string]string{}}
+	f := baseFile{Version: baseFileVersion, Hashes: map[string]string{}, Links: b.links}
 	ids := make([]string, 0, len(b.manifests))
 	for id := range b.manifests {
 		ids = append(ids, id)
