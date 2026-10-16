@@ -11,8 +11,9 @@ VET_FP_CACHE=/tmp/vet-fp VET_FP_REPORT=/tmp/vet-fp.md go test -tags falsepositiv
 ```
 
 `VET_FP_CACHE` keeps the checkouts between runs. `VET_FP_REPORT` names a file for the table. The run
-needs the network, so `go test ./...` does not run it. The workflow `false-positive.yml` runs it on
-dispatch and each week.
+needs the network, so `go test ./...` does not run it. The workflow `false-positive.yml` runs it on a
+pull request that changes a detection or the corpus, on dispatch and each week. It is advisory.
+It is never a required check, so a red run does not block a merge.
 
 ## Rules
 
@@ -20,8 +21,9 @@ dispatch and each week.
   Move a commit only in a change that records the table before and after.
 - A new detection with a risk of false positives starts as a control that warns. It becomes an attack
   control in a change that shows a clean run in its pull request.
-- A pull request that changes a detection runs the workflow on dispatch and puts the table in its
-  body.
+- A pull request that changes a detection runs the workflow, and the run writes the table to its
+  summary. The author reads the table and puts it in the pull request body. A detection outside the
+  `paths` of the workflow runs it on dispatch.
 - A finding on a clean project is a false positive until a reviewer shows that the file is malicious.
   Fix the detection, or add a near miss to the [evasion corpus](../evasion/README.md) and a narrower
   rule. Do not add a suppression to make the run pass.

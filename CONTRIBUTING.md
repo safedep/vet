@@ -13,6 +13,11 @@ features, we particularly value contributions in the form of:
 2. Add your changes
 3. Submit a pull request
 
+## How to contribute a detection
+
+A new detection is a technique: a Go detector, its MITRE ATT&CK ids and its evasion cases. See
+[CONTRIBUTING-DETECTIONS.md](CONTRIBUTING-DETECTIONS.md).
+
 ## How to report a bug
 
 Create a new issue and add the label "bug".
