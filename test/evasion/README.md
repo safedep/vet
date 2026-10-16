@@ -65,6 +65,17 @@ you remove the `miss` and `have` lines. So the table always matches the code.
 A pull request that changes a detection commits the `coverage.md` diff. The diff shows the cases that
 the change catches and the cases that it loses.
 
+## Techniques and groups
+
+`internal/technique` lists the corpus groups of each attack technique. Its tests fail when a
+technique has no MITRE ATT&CK id, an id that is not of the form `T1027` or `T1036.008`, or no corpus
+group and no reason in `NoCorpus`. `TestTechniqueRegistry` fails when:
+
+- an attack control names no technique of the registry,
+- no attack control finds a technique,
+- the groups of a technique hold no case that it must catch, or no near miss. A near miss is a case
+  whose `want` line has no attack control. A hit of another technique is not a near miss.
+
 ## From a report to a case
 
 When a user reports an attack that vet misses, write the shape of the report as a case with `miss`
