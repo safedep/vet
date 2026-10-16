@@ -3,6 +3,8 @@ package controls
 import (
 	"fmt"
 	"strings"
+
+	"github.com/safedep/vet/v2/internal/technique"
 )
 
 // The markers of the generated blocks of docs/controls.md.
@@ -11,6 +13,8 @@ const (
 	TableEnd       = "<!-- controls:table:end -->"
 	ReferenceStart = "<!-- controls:reference:start -->"
 	ReferenceEnd   = "<!-- controls:reference:end -->"
+	TechniqueStart = "<!-- controls:techniques:start -->"
+	TechniqueEnd   = "<!-- controls:techniques:end -->"
 	// AttacksStart and AttacksEnd mark the list of the attack controls in
 	// docs/policy.md.
 	AttacksStart = "<!-- controls:attacks:start -->"
@@ -38,11 +42,40 @@ func Reference(list []Info) string {
 		}
 		fmt.Fprintf(&b, "### %s\n\n**%s.** Family `%s`. Default severity %s. Plugin `%s`.", c.ID, c.Title, c.Family, c.Severity, c.Plugin)
 		if c.Attack {
-			b.WriteString(" The attacks gate fails on it.")
+			fmt.Fprintf(&b, " Technique [`%s`](#attack-techniques). The attacks gate fails on it.", c.Technique)
 		}
 		fmt.Fprintf(&b, "\n\n%s\n", c.Description)
 	}
 	return b.String()
+}
+
+// Techniques returns the markdown table of the attack techniques of the
+// registry, with the controls that name each one.
+func Techniques(list []Info) string {
+	var b strings.Builder
+	b.WriteString("| Technique | MITRE ATT&CK | Controls | Evasion corpus |\n| --- | --- | --- | --- |\n")
+	byTechnique := TechniqueControls(list)
+	for _, t := range technique.All() {
+		var ids, controls []string
+		for _, id := range t.MITRE {
+			ids = append(ids, fmt.Sprintf("[%s](%s)", id, mitreURL(id)))
+		}
+		for _, id := range byTechnique[t.ID] {
+			controls = append(controls, fmt.Sprintf("[`%s`](#%s)", id, id))
+		}
+		corpus := t.NoCorpus
+		if len(t.Corpus) > 0 {
+			corpus = "`" + strings.Join(t.Corpus, "`, `") + "`"
+		}
+		fmt.Fprintf(&b, "| `%s`: %s | %s | %s | %s |\n", t.ID, t.Name, strings.Join(ids, ", "), strings.Join(controls, ", "), corpus)
+	}
+	return b.String()
+}
+
+// mitreURL links an ATT&CK id to its page. A sub-technique, as T1036.008,
+// has the page techniques/T1036/008.
+func mitreURL(id string) string {
+	return "https://attack.mitre.org/techniques/" + strings.ReplaceAll(id, ".", "/") + "/"
 }
 
 // Attacks returns the list of the attack controls, each one linked to its
@@ -66,6 +99,9 @@ func RenderAttacks(doc string, list []Info) (string, error) {
 func RenderDoc(doc string, list []Info) (string, error) {
 	doc, err := replaceBlock(doc, TableStart, TableEnd, Table(list))
 	if err != nil {
+		return "", err
+	}
+	if doc, err = replaceBlock(doc, TechniqueStart, TechniqueEnd, Techniques(list)); err != nil {
 		return "", err
 	}
 	return replaceBlock(doc, ReferenceStart, ReferenceEnd, Reference(list))
