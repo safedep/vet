@@ -338,10 +338,21 @@ func (r row) text(room int) string {
 		}
 	}
 	short := strings.Join(by, ", ") + fix
-	if full := plural(len(r), "vulnerability", "vulnerabilities") + ": " + short; ansi.StringWidth(full) <= room {
-		return full
+	total := plural(len(r), "vulnerability", "vulnerabilities") + ":"
+	switch {
+	case fits(total+" "+short, room, 1):
+		return total + " " + short
+	case fits(total, room, 1) && fits(short, room, textLines-1):
+		// The total takes the first line of the cell, so that no count
+		// splits across two lines.
+		return total + "\n" + short
 	}
 	return short
+}
+
+// fits reports whether text wraps into n lines of the width room.
+func fits(text string, room, n int) bool {
+	return strings.Count(ansi.Wrap(text, room, ""), "\n") < n
 }
 
 // fix is the highest fixed version of a vulnerability row, under the order

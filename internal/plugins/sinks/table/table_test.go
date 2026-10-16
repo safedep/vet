@@ -192,7 +192,8 @@ func TestCountTextFitsTheRoom(t *testing.T) {
 		want string
 	}{
 		{name: "room for the total", room: 40, want: "3 vulnerabilities: 1 critical, 2 high"},
-		{name: "no room for the total", room: 30, want: "1 critical, 2 high"},
+		{name: "the total takes the first line", room: 30, want: "3 vulnerabilities:\n1 critical, 2 high"},
+		{name: "no room for the total", room: 14, want: "1 critical, 2 high"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
