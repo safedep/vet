@@ -31,8 +31,12 @@ one release.
 
 - Use synthetic fixtures only. Do not copy a live payload. Use a host such as
   `https://x.example/...` and a payload such as `console.log(1)`.
-- A fixture that holds a credential URL uses a reserved host, such as `example.com` or a name under
-  `.invalid`. The secret scan of a pull request then does not fail on it.
+- A fixture that holds a credential URL uses the password `***` or a `$VAR`, or has the tag
+  `trufflehog:ignore` on its line. The secret scan of a pull request skips these, and
+  `TestRepoHoldsNoCredentialURL` fails on any other. A reserved host such as `example.com` does
+  not stop the secret scan.
+- A fixture with a known vulnerable lockfile in `test/extraction/corpus` ends in `.fixture`, so
+  that the GitHub dependency graph does not read it.
 
 ## Out of scope
 
