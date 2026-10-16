@@ -22,6 +22,7 @@ func TestWatchSignals(t *testing.T) {
 	case <-time.After(time.Second):
 		require.Fail(t, "the first signal must cancel the context")
 	}
+	assert.True(t, Interrupted(ctx), "the signal is the cause")
 	select {
 	case <-exited:
 		require.Fail(t, "the first signal must not exit")
@@ -43,4 +44,5 @@ func TestWatchSignalsStop(t *testing.T) {
 	stop()
 	stop()
 	assert.Error(t, ctx.Err())
+	assert.False(t, Interrupted(ctx), "a stop is not an interrupt")
 }

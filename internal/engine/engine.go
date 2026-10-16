@@ -166,7 +166,7 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 		err = errors.Join(err, finishErr)
 	}
 	if err != nil {
-		if ctx.Err() != nil {
+		if app.Interrupted(ctx) {
 			return res, fmt.Errorf("%w: %w", app.ErrInterrupted, err)
 		}
 		return res, err
@@ -364,7 +364,7 @@ func (r *run) finish(ctx context.Context, runErr error) error {
 		errs = append(errs, r.diags.flush(wctx, scan))
 	}
 	switch {
-	case runErr != nil && ctx.Err() != nil:
+	case runErr != nil && app.Interrupted(ctx):
 		entry.Status = state.StatusInterrupted
 	case runErr != nil:
 		entry.Status = state.StatusFailed

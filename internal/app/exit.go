@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"errors"
 	"strings"
 
@@ -52,7 +51,7 @@ func ExitCode(err error) int {
 		return ExitOK
 	case errors.Is(err, ErrGateFailed), errors.Is(err, ErrCheckFailed):
 		return ExitGateFailed
-	case errors.Is(err, ErrInterrupted), errors.Is(err, context.Canceled):
+	case errors.Is(err, ErrInterrupted):
 		return ExitInterrupted
 	}
 	if ue, ok := usefulerror.AsUsefulError(err); ok {

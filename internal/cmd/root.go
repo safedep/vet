@@ -167,6 +167,11 @@ func execute(ctx context.Context, root *cobra.Command, args []string) (int, erro
 			err = usageError(c, err)
 		}
 	}
+	// A command that stops on a signal can return the bare context error,
+	// or the error of a call that the cancel stopped.
+	if err != nil && app.Interrupted(ctx) && !errors.Is(err, app.ErrInterrupted) {
+		err = fmt.Errorf("%w: %w", app.ErrInterrupted, err)
+	}
 	code := app.ExitCode(err)
 	if code == app.ExitGateFailed || code == app.ExitInterrupted {
 		return code, nil
