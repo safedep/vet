@@ -5,7 +5,11 @@
 // engine copies the ATT&CK ids onto each finding of the control.
 package technique
 
-import "slices"
+import (
+	"slices"
+
+	"github.com/safedep/vet/v2/finding"
+)
 
 // The ids of the techniques.
 const (
@@ -50,6 +54,14 @@ var all = []Technique{
 
 // All returns the techniques in registry order.
 func All() []Technique { return slices.Clone(all) }
+
+// Attack returns the attack of a finding of a technique, with a copy of its
+// ATT&CK ids. ok is false for an id that the registry does not have. The
+// attack then has no ATT&CK ids.
+func Attack(id string) (a finding.Attack, ok bool) {
+	t, ok := Get(id)
+	return finding.Attack{Technique: id, MITRE: slices.Clone(t.MITRE)}, ok
+}
 
 // Get returns the technique of an id.
 func Get(id string) (Technique, bool) {

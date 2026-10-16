@@ -11,17 +11,20 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/internal/engine"
 	"github.com/safedep/vet/v2/internal/plugins/controls/cooldown"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/plain"
 	"github.com/safedep/vet/v2/internal/state"
+	"github.com/safedep/vet/v2/internal/technique"
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/internal/view"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/plugin/plugintest"
+	"github.com/safedep/vet/v2/report"
 )
 
 func TestLockableKeys(t *testing.T) {
@@ -217,4 +220,20 @@ func TestPluginOriginNamesTheSource(t *testing.T) {
 			assert.Equal(t, tc.want, s.PluginOrigin(cooldown.Name, "days"))
 		})
 	}
+}
+
+func TestMarkAttacksOfAnOldReport(t *testing.T) {
+	malware := &finding.Finding{ID: "f-1", ControlID: "malware"}
+	vuln := &finding.Finding{ID: "f-2", ControlID: "vulnerability"}
+	marked := &finding.Finding{ID: "f-3", ControlID: "padded-code", Attack: &finding.Attack{Technique: "kept"}}
+	d := &report.Document{Records: []report.Record{
+		{Kind: report.KindFinding, Finding: malware},
+		{Kind: report.KindFinding, Finding: vuln},
+		{Kind: report.KindFinding, Finding: marked},
+	}}
+	require.NoError(t, markAttacks(d))
+	want, _ := technique.Attack(technique.MaliciousPackage)
+	assert.Equal(t, &want, malware.Attack, "a finding of an attack control in an old report is an attack")
+	assert.Nil(t, vuln.Attack)
+	assert.Equal(t, "kept", marked.Attack.Technique, "a report that has the field keeps it")
 }

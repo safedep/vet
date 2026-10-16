@@ -140,10 +140,8 @@ func attacksOf(cs []Control) map[string]map[string]finding.Attack {
 			if out[c.ID] == nil {
 				out[c.ID] = map[string]finding.Attack{}
 			}
-			a := finding.Attack{Technique: info.Technique}
-			if t, ok := technique.Get(info.Technique); ok {
-				a.MITRE = t.MITRE
-			} else {
+			a, ok := technique.Attack(info.Technique)
+			if !ok {
 				log.Warnf("engine: control %s of plugin %s names the technique %q, which vet does not know", info.ID, c.ID, info.Technique)
 			}
 			out[c.ID][info.ID] = a

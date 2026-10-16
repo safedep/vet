@@ -30,6 +30,22 @@ func Catalog() ([]Info, error) {
 	return out, nil
 }
 
+// AttackTechniques maps the id of each built-in attack control to the id of
+// its technique.
+func AttackTechniques() (map[string]string, error) {
+	list, err := Catalog()
+	if err != nil {
+		return nil, err
+	}
+	out := map[string]string{}
+	for _, c := range list {
+		if c.Attack {
+			out[c.ID] = c.Technique
+		}
+	}
+	return out, nil
+}
+
 // TechniqueControls maps the id of each technique to the ids of the
 // attack controls that name it, in catalog order.
 func TechniqueControls(list []Info) map[string][]string {
