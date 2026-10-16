@@ -276,7 +276,8 @@ func (s *Scan) Dependents(ctx context.Context, id model.PackageVersion) iter.Seq
 	}
 }
 
-// Findings yields the findings that match the query, the most severe first.
+// Findings yields the findings that match the query in finding.Compare
+// order: the attack findings first, then the most severe.
 func (s *Scan) Findings(ctx context.Context, q plugin.FindingQuery) iter.Seq2[*finding.Finding, error] {
 	return func(yield func(*finding.Finding, error) bool) {
 		sqlq := `SELECT data FROM vet_scan_findings WHERE 1 = 1`
@@ -292,7 +293,7 @@ func (s *Scan) Findings(ctx context.Context, q plugin.FindingQuery) iter.Seq2[*f
 		if !q.IncludeSuppressed {
 			sqlq += ` AND suppressed = 0`
 		}
-		sqlq += ` ORDER BY severity_rank DESC, control_id, id`
+		sqlq += ` ORDER BY attack DESC, severity_rank DESC, control_id, id`
 		rows, err := s.db.QueryContext(ctx, sqlq, args...)
 		if err != nil {
 			yield(nil, fmt.Errorf("query findings: %w", err))

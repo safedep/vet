@@ -274,9 +274,16 @@ func (s Subject) validate() error {
 	return nil
 }
 
-// Compare orders findings for a report: the most severe first, then by
-// control and id. Every report source uses this order.
+// Compare orders findings for a report: the attack findings first, then
+// the most severe, then by control and id. Every report source uses this
+// order, so that no output shows a vulnerability above an attack.
 func Compare(a, b *Finding) int {
+	if aa, ba := a.Attack != nil, b.Attack != nil; aa != ba {
+		if aa {
+			return -1
+		}
+		return 1
+	}
 	if c := cmp.Compare(b.Severity.Rank(), a.Severity.Rank()); c != 0 {
 		return c
 	}

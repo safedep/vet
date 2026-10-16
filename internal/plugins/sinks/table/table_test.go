@@ -96,6 +96,22 @@ func TestGroupsTheVulnerabilitiesOfAPackage(t *testing.T) {
 	assert.NotContains(t, got, "Details:", "the scan view names the finding show command")
 }
 
+func TestAttackComesBeforeCriticalVulnerabilities(t *testing.T) {
+	withWidth(t, 160)
+	r := vulnReport()
+	attack := finding.ForFile(finding.Meta{
+		ControlID: "padded-code", Family: finding.FamilyHiddenCode, Severity: finding.SeverityMedium,
+		Title: "Script hidden after a run of spaces",
+	}, finding.Locus{Path: "src/index.js", StartLine: 1}, finding.Key{})
+	attack.Attack = &finding.Attack{}
+	r.FindingList = append(r.FindingList, &attack)
+	got := write(t, nil, r)
+	rows := rowsOf(got)
+	require.NotEmpty(t, rows)
+	assert.Contains(t, rows[0], "padded-code", "the attack is in the first row, above the critical vulnerability")
+	assert.Contains(t, got, "› 1 attack finding, 5 vulnerabilities in 2 packages.")
+}
+
 func TestAllListsEachFinding(t *testing.T) {
 	withWidth(t, 160)
 	r := vulnReport()
