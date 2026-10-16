@@ -171,15 +171,18 @@ func TestResolve(t *testing.T) {
 		"app/docs/guide.md": "y\n",
 	})
 	for link, target := range map[string]string{
-		"app/CLAUDE.md":   "AGENTS.md",
-		"app/chain.md":    "CLAUDE.md",
-		"app/docs/up.md":  "../AGENTS.md",
-		"app/out.md":      "../secret.md",
-		"app/abs.md":      "/etc/hostname",
-		"app/dangling.md": "missing.md",
-		"app/dir.md":      "sub",
-		"app/loop-a.md":   "loop-b.md",
-		"app/loop-b.md":   "loop-a.md",
+		"app/CLAUDE.md":    "AGENTS.md",
+		"app/chain.md":     "CLAUDE.md",
+		"app/docs/up.md":   "../AGENTS.md",
+		"app/out.md":       "../secret.md",
+		"app/abs.md":       "/etc/hostname",
+		"app/dangling.md":  "missing.md",
+		"app/dir.md":       "sub",
+		"app/loop-a.md":    "loop-b.md",
+		"app/loop-b.md":    "loop-a.md",
+		"app/alias":        "docs",
+		"app/via-alias.md": "alias/../AGENTS.md",
+		"app/via-dir.md":   "sub/../AGENTS.md",
 	} {
 		require.NoError(t, os.Symlink(target, filepath.Join(dir, filepath.FromSlash(link))))
 	}
@@ -212,6 +215,9 @@ func TestResolve(t *testing.T) {
 		"dir.md":        "",
 		"loop-a.md":     "",
 		"loop-b.md":     "",
+		"alias":         "",
+		"via-alias.md":  "",
+		"via-dir.md":    "# Rules\n",
 	}, got, "a link resolves only to a regular file inside the directory")
 }
 

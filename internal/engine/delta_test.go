@@ -512,3 +512,33 @@ func TestPullRequestModeReadsALinkAsTheScanDoes(t *testing.T) {
 		})
 	}
 }
+
+// TestPullRequestModeCountsAnUnresolvedBaseLinkAsChanged checks that a base
+// link with no target is changed, also when the head adds a target that
+// holds the bytes of the link text.
+func TestPullRequestModeCountsAnUnresolvedBaseLinkAsChanged(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("needs symbolic links")
+	}
+	f := newFixture(t)
+	dir := t.TempDir()
+	repo, err := gogit.PlainInit(dir, false)
+	require.NoError(t, err)
+	require.NoError(t, os.Symlink("AGENTS.md", filepath.Join(dir, "CLAUDE.md")))
+	wt, err := repo.Worktree()
+	require.NoError(t, err)
+	require.NoError(t, wt.AddGlob("."))
+	_, err = wt.Commit("base", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@example.com", When: time.Now()}})
+	require.NoError(t, err)
+	write(t, dir, "AGENTS.md", "AGENTS.md")
+
+	o := f.options(t, dir, &fakeEnricher{})
+	o.BaseRef = "HEAD"
+	res := runScan(t, o)
+	kinds := map[string]model.Change{}
+	for m, err := range res.Scan.Manifests(context.Background()) {
+		require.NoError(t, err)
+		kinds[m.Path] = m.Change
+	}
+	assert.Equal(t, map[string]model.Change{"AGENTS.md": model.ChangeAdded, "CLAUDE.md": model.ChangeModified}, kinds)
+}

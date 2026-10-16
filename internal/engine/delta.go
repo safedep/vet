@@ -98,9 +98,15 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 		if r.skipped(rel) {
 			return nil
 		}
+		hash := f.Hash
 		if linkAtHead(a.Path, rel) {
 			if target, ok := tree.Resolve(rel, f); ok {
-				f = target
+				f, hash = target, target.Hash
+			} else {
+				// The base blob holds the link text, and a head file can
+				// hold the same bytes. The zero hash matches no content,
+				// so the link counts as changed.
+				hash = plumbing.ZeroHash
 			}
 		}
 		if len(scalibr.Wanted(exs, rel, blobInfo{name: path.Base(rel), size: f.Size})) == 0 {
@@ -109,7 +115,7 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 		if err := gitbase.WriteBlob(f, filepath.Join(tmp, filepath.FromSlash(rel))); err != nil {
 			return err
 		}
-		b.hashes[rel] = f.Hash
+		b.hashes[rel] = hash
 		files = append(files, rel)
 		return nil
 	})
