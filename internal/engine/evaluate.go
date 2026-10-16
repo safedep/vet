@@ -101,7 +101,25 @@ func (r *run) valid(controlID, where string, fs []finding.Finding, err error) []
 			r.diags.add(report.DiagnosticError, report.CodeInvalidFinding, controlID, err.Error())
 			continue
 		}
+		f.Attack = r.attacks[f.ControlID]
 		out = append(out, f)
+	}
+	return out
+}
+
+// attacksOf reads the attack controls from the info of each control.
+func attacksOf(cs []Control) map[string]*finding.Attack {
+	out := map[string]*finding.Attack{}
+	for _, c := range cs {
+		d, ok := c.Plugin.(plugin.Describer)
+		if !ok {
+			continue
+		}
+		for _, info := range d.Controls() {
+			if info.Attack {
+				out[info.ID] = &finding.Attack{}
+			}
+		}
 	}
 	return out
 }

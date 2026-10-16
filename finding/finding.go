@@ -28,7 +28,14 @@ type Finding struct {
 	Remediation *Remediation `json:"remediation,omitempty"`
 	Suppression *Suppression `json:"suppression,omitempty"`
 	Gate        *GateRecord  `json:"gate,omitempty"`
+	// The engine sets Attack when the control of the finding is an attack
+	// control. It reads the control info, so a control cannot set it.
+	Attack *Attack `json:"attack,omitempty"`
 }
+
+// Attack marks a finding of an attack control. The attacks gate fails on
+// it, and a report shows it before the other findings.
+type Attack struct{}
 
 // Subject holds exactly one of its fields. Kind names it.
 type Subject struct {

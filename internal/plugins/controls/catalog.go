@@ -29,18 +29,3 @@ func Catalog() ([]Info, error) {
 	}
 	return out, nil
 }
-
-// AttackIDs returns the ids of the controls that find an attack.
-func AttackIDs() ([]string, error) {
-	list, err := Catalog()
-	if err != nil {
-		return nil, err
-	}
-	var out []string
-	for _, c := range list {
-		if c.Attack {
-			out = append(out, c.ID)
-		}
-	}
-	return out, nil
-}

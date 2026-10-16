@@ -1,12 +1,15 @@
 package engine
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/model"
+	"github.com/safedep/vet/v2/plugin"
 )
 
 func TestAnnotateUsage(t *testing.T) {
@@ -38,4 +41,37 @@ func TestAnnotateUsage(t *testing.T) {
 	file := finding.ForFile(meta, finding.Locus{Path: "x"}, finding.Key{})
 	annotateUsage(&file, m)
 	assert.Empty(t, file.Evidence)
+}
+
+type describedControl struct {
+	infos    []plugin.ControlInfo
+	findings []finding.Finding
+}
+
+func (c describedControl) Controls() []plugin.ControlInfo { return c.infos }
+
+func (c describedControl) Evaluate(context.Context, *model.Manifest, plugin.State) ([]finding.Finding, error) {
+	return c.findings, nil
+}
+
+func TestValidSetsTheAttackFromTheControlInfo(t *testing.T) {
+	meta := func(id string) finding.Meta {
+		return finding.Meta{ControlID: id, Family: finding.FamilyHiddenCode, Severity: finding.SeverityCritical, Title: "t"}
+	}
+	claimed := finding.ForFile(meta("note"), finding.Locus{Path: "b.js"}, finding.Key{})
+	claimed.Attack = &finding.Attack{}
+	c := describedControl{
+		infos: []plugin.ControlInfo{{ID: "payload", Attack: true}, {ID: "note"}},
+		findings: []finding.Finding{
+			finding.ForFile(meta("payload"), finding.Locus{Path: "a.js"}, finding.Key{}),
+			claimed,
+		},
+	}
+	r := &run{diags: newDiagnostics(), attacks: attacksOf([]Control{{ID: "p", Plugin: c}})}
+	fs, err := c.Evaluate(context.Background(), nil, nil)
+	require.NoError(t, err)
+	got := r.valid("p", "m", fs, nil)
+	require.Len(t, got, 2)
+	assert.NotNil(t, got[0].Attack, "the finding of an attack control is an attack")
+	assert.Nil(t, got[1].Attack, "a control cannot mark its own finding as an attack")
 }

@@ -487,11 +487,7 @@ func newEvaluator(ctx context.Context, cfg *config.Config, failOn report.FailOn,
 		}
 		srcs = append(srcs, src)
 	}
-	attacks, err := controls.AttackIDs()
-	if err != nil {
-		return nil, err
-	}
-	return policy.NewFromSources(ctx, policy.Options{FailOn: failOn, Attacks: attacks}, srcs...)
+	return policy.NewFromSources(ctx, policy.Options{FailOn: failOn}, srcs...)
 }
 
 func withState(ctx context.Context, dirs *state.Dirs, useCache bool, fn func(*state.Store, *state.Cache) error) (err error) {

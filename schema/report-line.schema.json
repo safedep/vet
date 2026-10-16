@@ -37,6 +37,10 @@
         "root"
       ]
     },
+    "Attack": {
+      "properties": {},
+      "type": "object"
+    },
     "Capability": {
       "properties": {
         "id": {
@@ -246,6 +250,9 @@
         },
         "gate": {
           "$ref": "#/$defs/GateRecord"
+        },
+        "attack": {
+          "$ref": "#/$defs/Attack"
         }
       },
       "type": "object",
