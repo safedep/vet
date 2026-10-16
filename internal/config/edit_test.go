@@ -61,8 +61,11 @@ func TestSetInFileErrors(t *testing.T) {
 			err := SetInFile(p, tc.key, tc.value)
 			assert.Equal(t, tc.code, errCode(t, err))
 			assert.Contains(t, err.Error()+help(err), tc.text)
+			assert.NotContains(t, err.Error()+help(err), ".tmp-", "the error names no temporary file")
 			_, statErr := os.Stat(p)
 			assert.ErrorIs(t, statErr, os.ErrNotExist, "a bad value writes no file")
+			_, statErr = os.Stat(filepath.Dir(p))
+			assert.ErrorIs(t, statErr, os.ErrNotExist, "vet checks a change before it writes a file or a folder")
 		})
 	}
 	require.NoError(t, SetInFile(p, "policy.fail_on", "low"), "a new file and its directory are made")
