@@ -10,6 +10,7 @@ import (
 	"testing/fstest"
 
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/filemode"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -146,14 +147,80 @@ func TestRepoPath(t *testing.T) {
 	assert.ErrorIs(t, err, ErrLink, "a link in the working tree")
 }
 
-func TestSameBlobCountsALinkAsChanged(t *testing.T) {
+func TestSameBlobReadsALinkThrough(t *testing.T) {
 	dir := t.TempDir()
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "real.json"), []byte("{}"), 0o600))
 	require.NoError(t, os.Symlink("real.json", filepath.Join(dir, "link.json")))
 	fsys := os.DirFS(dir)
-	for _, base := range []string{"real.json", "{}"} {
+	for base, want := range map[string]bool{"{}": true, "real.json": false, "[]": false} {
 		same, err := SameBlob(fsys, "link.json", plumbing.ComputeHash(plumbing.BlobObject, []byte(base)))
 		require.NoError(t, err)
-		assert.False(t, same, "the target of a link can change with the same link text")
+		assert.Equal(t, want, same, "base %q", base)
 	}
+}
+
+func TestResolve(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("needs symbolic links")
+	}
+	dir := gitbasetest.Repo(t, map[string]string{
+		"app/AGENTS.md":     "# Rules\n",
+		"app/sub/notes.md":  "x\n",
+		"secret.md":         "outside\n",
+		"app/docs/guide.md": "y\n",
+	})
+	for link, target := range map[string]string{
+		"app/CLAUDE.md":   "AGENTS.md",
+		"app/chain.md":    "CLAUDE.md",
+		"app/docs/up.md":  "../AGENTS.md",
+		"app/out.md":      "../secret.md",
+		"app/abs.md":      "/etc/hostname",
+		"app/dangling.md": "missing.md",
+		"app/dir.md":      "sub",
+		"app/loop-a.md":   "loop-b.md",
+		"app/loop-b.md":   "loop-a.md",
+	} {
+		require.NoError(t, os.Symlink(target, filepath.Join(dir, filepath.FromSlash(link))))
+	}
+	gitbasetest.Commit(t, dir)
+
+	tree, err := Open(filepath.Join(dir, "app"), "HEAD")
+	require.NoError(t, err)
+	got := map[string]string{}
+	require.NoError(t, tree.Walk(context.Background(), func(rel string, f *object.File) error {
+		target, ok := tree.Resolve(rel, f)
+		if !ok {
+			got[rel] = ""
+			return nil
+		}
+		content, err := target.Contents()
+		require.NoError(t, err)
+		got[rel] = content
+		return nil
+	}))
+	assert.Equal(t, map[string]string{
+		"AGENTS.md":     "# Rules\n",
+		"sub/notes.md":  "x\n",
+		"docs/guide.md": "y\n",
+		"CLAUDE.md":     "# Rules\n",
+		"chain.md":      "# Rules\n",
+		"docs/up.md":    "# Rules\n",
+		"out.md":        "",
+		"abs.md":        "",
+		"dangling.md":   "",
+		"dir.md":        "",
+		"loop-a.md":     "",
+		"loop-b.md":     "",
+	}, got, "a link resolves only to a regular file inside the directory")
+}
+
+// TestResolveSkipsALongLinkText checks that Resolve reads no link text
+// longer than PATH_MAX. The file system refuses such a link, but git
+// keeps a blob of any size for one. The blob has no data, so a read of it
+// panics.
+func TestResolveSkipsALongLinkText(t *testing.T) {
+	tree := &Tree{}
+	f := &object.File{Name: "long.md", Mode: filemode.Symlink, Blob: object.Blob{Size: maxLinkText + 1}}
+	_, ok := tree.Resolve("long.md", f)
+	assert.False(t, ok)
 }

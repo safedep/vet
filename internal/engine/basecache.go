@@ -62,7 +62,7 @@ type baseFile struct {
 
 // baseFileVersion is the version of the stored form. vet extracts the base
 // again when a kept file has another version.
-const baseFileVersion = 1
+const baseFileVersion = 2
 
 type baseManifest struct {
 	Manifest model.Manifest  `json:"manifest"`

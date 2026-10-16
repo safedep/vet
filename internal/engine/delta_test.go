@@ -3,6 +3,7 @@ package engine
 import (
 	"cmp"
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -248,7 +249,7 @@ func TestPullRequestModeReusesBase(t *testing.T) {
 	second := changesOf(t, runScan(t, o))
 	assert.Equal(t, first, second, "the kept base gives the same changes")
 
-	require.NoError(t, os.WriteFile(bases[0], []byte(`{"version": 1, "manifests": [], "hashes": {}}`), 0o600))
+	require.NoError(t, os.WriteFile(bases[0], fmt.Appendf(nil, `{"version": %d, "manifests": [], "hashes": {}}`, baseFileVersion), 0o600))
 	third := changesOf(t, runScan(t, o))
 	for id, c := range third {
 		assert.Equal(t, model.ChangeAdded, c, "%s: vet reads the kept base and does not extract again", id)

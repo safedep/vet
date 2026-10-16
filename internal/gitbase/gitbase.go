@@ -11,11 +11,13 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/filemode"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/safedep/dry/log"
 )
@@ -163,6 +165,44 @@ func (t *Tree) Walk(ctx context.Context, fn func(rel string, f *object.File) err
 	})
 }
 
+// maxLinks is the longest chain of symbolic links that Resolve follows. Linux
+// stops at 40.
+const maxLinks = 40
+
+// maxLinkText is the longest link text that Resolve reads, the PATH_MAX of
+// Linux. Git keeps a blob of any size for a link, so the limit keeps a
+// crafted link out of memory.
+const maxLinkText = 4096
+
+// Resolve returns the file that the scan reads for a base file. The scan
+// reads a symbolic link of the working tree through to its target, so a
+// base link reads as its target too. The target must be a regular file
+// inside the directory, as the scan requires of a link in the working
+// tree. Resolve is false for any other link: one that leaves the
+// directory, a missing target, a directory, a submodule or a loop.
+func (t *Tree) Resolve(rel string, f *object.File) (*object.File, bool) {
+	for range maxLinks {
+		if f.Mode != filemode.Symlink {
+			return f, f.Mode.IsFile()
+		}
+		if f.Size > maxLinkText {
+			return nil, false
+		}
+		text, err := f.Contents()
+		if err != nil || path.IsAbs(text) {
+			return nil, false
+		}
+		rel = path.Join(path.Dir(rel), text)
+		if !localPath(rel) {
+			return nil, false
+		}
+		if f, err = t.tree.File(t.prefix + rel); err != nil {
+			return nil, false
+		}
+	}
+	return nil, false
+}
+
 // localPath reports whether a tree path stays inside the directory that a
 // caller writes it to. go-git rejects ".." in a tree entry today. vet
 // checks again, so that no future version of go-git can make a base file
@@ -209,16 +249,13 @@ func WriteBlob(f *object.File, dst string) error {
 // SameBlob reports whether a head file has the content of a base blob.
 // Git can check a file out with CRLF line ends and store it with LF
 // (core.autocrlf), so the file also matches when its LF form does.
+//
+// The scan reads a symbolic link through, and the base keeps the blob of
+// the target of a link that Resolve follows. So a link matches only when
+// the scan reads the same bytes at the head and at the base. A link that
+// Resolve does not follow keeps the blob of its link text, which the head
+// content does not match, so it counts as changed.
 func SameBlob(fsys fs.FS, rel string, base plumbing.Hash) (bool, error) {
-	// Git keeps a symbolic link as a blob of its target path, and the scan
-	// reads the link through. The same link text can point at a target
-	// that the change modified, and the base blob does not say, so a link
-	// counts as changed. vet reports more, never less.
-	if rl, ok := fsys.(fs.ReadLinkFS); ok {
-		if _, err := rl.ReadLink(rel); err == nil {
-			return false, nil
-		}
-	}
 	data, err := fs.ReadFile(fsys, rel)
 	if err != nil {
 		return false, err

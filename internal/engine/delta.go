@@ -89,6 +89,9 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 		if r.skipped(rel) {
 			return nil
 		}
+		if target, ok := tree.Resolve(rel, f); ok {
+			f = target
+		}
 		if len(scalibr.Wanted(exs, rel, blobInfo{name: path.Base(rel), size: f.Size})) == 0 {
 			return nil
 		}
