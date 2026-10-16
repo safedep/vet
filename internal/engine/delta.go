@@ -50,6 +50,15 @@ func BaseRefError(err error) error {
 	return err
 }
 
+// linkAtHead reports whether the head file rel under dir is a symbolic
+// link. Git can check a link out as a regular file that holds the link
+// text, as with core.symlinks=false on Windows. The scan then reads the
+// link text, so the base keeps the blob of the link text too.
+func linkAtHead(dir, rel string) bool {
+	info, err := os.Lstat(filepath.Join(dir, filepath.FromSlash(rel)))
+	return err == nil && info.Mode()&fs.ModeSymlink != 0
+}
+
 // sameAtHead reports whether the file rel under dir has the content of the
 // base blob hash.
 func sameAtHead(dir, rel string, hash plumbing.Hash) bool {
@@ -89,8 +98,10 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 		if r.skipped(rel) {
 			return nil
 		}
-		if target, ok := tree.Resolve(rel, f); ok {
-			f = target
+		if linkAtHead(a.Path, rel) {
+			if target, ok := tree.Resolve(rel, f); ok {
+				f = target
+			}
 		}
 		if len(scalibr.Wanted(exs, rel, blobInfo{name: path.Base(rel), size: f.Size})) == 0 {
 			return nil

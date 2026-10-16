@@ -165,9 +165,9 @@ func (t *Tree) Walk(ctx context.Context, fn func(rel string, f *object.File) err
 	})
 }
 
-// maxLinks is the longest chain of symbolic links that Resolve follows. Linux
-// stops at 40.
-const maxLinks = 40
+// maxLinks is the longest chain of symbolic links that Resolve follows, as
+// filepath.EvalSymlinks does for a link in the working tree.
+const maxLinks = 255
 
 // maxLinkText is the longest link text that Resolve reads, the PATH_MAX of
 // Linux. Git keeps a blob of any size for a link, so the limit keeps a
@@ -181,11 +181,11 @@ const maxLinkText = 4096
 // tree. Resolve is false for any other link: one that leaves the
 // directory, a missing target, a directory, a submodule or a loop.
 func (t *Tree) Resolve(rel string, f *object.File) (*object.File, bool) {
-	for range maxLinks {
+	for links := 0; ; links++ {
 		if f.Mode != filemode.Symlink {
 			return f, f.Mode.IsFile()
 		}
-		if f.Size > maxLinkText {
+		if links == maxLinks || f.Size > maxLinkText {
 			return nil, false
 		}
 		text, err := f.Contents()
@@ -200,7 +200,6 @@ func (t *Tree) Resolve(rel string, f *object.File) (*object.File, bool) {
 			return nil, false
 		}
 	}
-	return nil, false
 }
 
 // localPath reports whether a tree path stays inside the directory that a

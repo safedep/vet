@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -466,5 +467,48 @@ func TestPullRequestModeSkipsTheControlsOfARemovedManifest(t *testing.T) {
 	assert.Equal(t, model.ChangeRemoved, changesOf(t, res)["pypi/six@1.16.0"])
 	for _, d := range diagnosticsOf(t, res) {
 		assert.NotEqual(t, report.CodeControlFailed, d.Code, d.Message)
+	}
+}
+
+// TestPullRequestModeReadsALinkAsTheScanDoes checks that an unchanged link
+// is unchanged both when git checks it out as a link and when git checks it
+// out as a file that holds the link text, as with core.symlinks=false.
+func TestPullRequestModeReadsALinkAsTheScanDoes(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("needs symbolic links")
+	}
+	for name, checkout := range map[string]func(t *testing.T, dir string){
+		"a link": func(*testing.T, string) {},
+		"a file with the link text": func(t *testing.T, dir string) {
+			link := filepath.Join(dir, "requirements.txt")
+			require.NoError(t, os.Remove(link))
+			write(t, dir, "requirements.txt", "pinned/requirements.txt")
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			f := newFixture(t)
+			dir := t.TempDir()
+			repo, err := gogit.PlainInit(dir, false)
+			require.NoError(t, err)
+			write(t, dir, "pinned/requirements.txt", "requests==2.31.0\n")
+			require.NoError(t, os.Symlink("pinned/requirements.txt", filepath.Join(dir, "requirements.txt")))
+			wt, err := repo.Worktree()
+			require.NoError(t, err)
+			require.NoError(t, wt.AddGlob("."))
+			_, err = wt.Commit("base", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@example.com", When: time.Now()}})
+			require.NoError(t, err)
+			checkout(t, dir)
+
+			o := f.options(t, dir, &fakeEnricher{})
+			o.BaseRef = "HEAD"
+			res := runScan(t, o)
+			for m, err := range res.Scan.Manifests(context.Background()) {
+				require.NoError(t, err)
+				assert.Equal(t, model.ChangeUnchanged, m.Change, m.Path)
+			}
+			for id, c := range changesOf(t, res) {
+				assert.Equal(t, model.ChangeUnchanged, c, id)
+			}
+		})
 	}
 }

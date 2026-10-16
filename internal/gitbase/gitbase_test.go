@@ -2,6 +2,7 @@ package gitbase
 
 import (
 	"context"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -223,4 +224,32 @@ func TestResolveSkipsALongLinkText(t *testing.T) {
 	f := &object.File{Name: "long.md", Mode: filemode.Symlink, Blob: object.Blob{Size: maxLinkText + 1}}
 	_, ok := tree.Resolve("long.md", f)
 	assert.False(t, ok)
+}
+
+func TestResolveFollowsAtMostMaxLinks(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("needs symbolic links")
+	}
+	dir := gitbasetest.Repo(t, map[string]string{"AGENTS.md": "# Rules\n"})
+	chain := func(prefix string, links int) {
+		for i := range links {
+			next := fmt.Sprintf("%s%d.md", prefix, i+1)
+			if i == links-1 {
+				next = "AGENTS.md"
+			}
+			require.NoError(t, os.Symlink(next, filepath.Join(dir, fmt.Sprintf("%s%d.md", prefix, i))))
+		}
+	}
+	chain("ok", maxLinks)
+	chain("long", maxLinks+1)
+	gitbasetest.Commit(t, dir)
+
+	tree, err := Open(dir, "HEAD")
+	require.NoError(t, err)
+	for start, want := range map[string]bool{"ok0.md": true, "long0.md": false} {
+		f, err := tree.tree.File(start)
+		require.NoError(t, err)
+		_, ok := tree.Resolve(start, f)
+		assert.Equal(t, want, ok, start)
+	}
 }
