@@ -23,7 +23,7 @@ func SampleReport() *MemState {
 	}, m.Path, evil, finding.Key{})
 	malware.Remediation = &finding.Remediation{Summary: "Remove evil-colors.", FixedVersion: "1.3.9"}
 	malware.Evidence = []finding.Evidence{{Source: "threat-intel", Summary: "Verified malicious"}}
-	malware.Attack = &finding.Attack{}
+	malware.Attack = &finding.Attack{Technique: "malicious-package", MITRE: []string{"T1195.001"}}
 
 	workflow := finding.ForFile(finding.Meta{
 		ControlID: "unpinned-action", Family: finding.FamilyWorkflow, Severity: finding.SeverityMedium,

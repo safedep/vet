@@ -141,6 +141,11 @@ type ControlInfo struct {
 	// Attack marks a control that finds an attack, such as a malicious
 	// package. The attacks gate fails on its findings and on no other.
 	Attack bool `json:"attack,omitempty"`
+	// Technique is the id of the attack technique of an attack control,
+	// from the technique registry of vet. The engine copies its MITRE ATT&CK
+	// ids onto each finding of the control. A finding of a technique that
+	// the registry does not have gets no ATT&CK ids.
+	Technique string `json:"technique,omitempty"`
 }
 
 // Describer lists the control ids that a control plugin emits. Every control

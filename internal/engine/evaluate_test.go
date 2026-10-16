@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/technique"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -43,35 +44,35 @@ func TestAnnotateUsage(t *testing.T) {
 	assert.Empty(t, file.Evidence)
 }
 
-type describedControl struct {
-	infos    []plugin.ControlInfo
-	findings []finding.Finding
-}
+type describedControl struct{ infos []plugin.ControlInfo }
 
 func (c describedControl) Controls() []plugin.ControlInfo { return c.infos }
 
-func (c describedControl) Evaluate(context.Context, *model.Manifest, plugin.State) ([]finding.Finding, error) {
-	return c.findings, nil
+func (describedControl) Evaluate(context.Context, *model.Manifest, plugin.State) ([]finding.Finding, error) {
+	return nil, nil
 }
 
 func TestValidSetsTheAttackFromTheControlInfo(t *testing.T) {
 	meta := func(id string) finding.Meta {
 		return finding.Meta{ControlID: id, Family: finding.FamilyHiddenCode, Severity: finding.SeverityCritical, Title: "t"}
 	}
+	payload := finding.ForFile(meta("payload"), finding.Locus{Path: "a.js"}, finding.Key{})
 	claimed := finding.ForFile(meta("note"), finding.Locus{Path: "b.js"}, finding.Key{})
 	claimed.Attack = &finding.Attack{}
-	c := describedControl{
-		infos: []plugin.ControlInfo{{ID: "payload", Attack: true}, {ID: "note"}},
-		findings: []finding.Finding{
-			finding.ForFile(meta("payload"), finding.Locus{Path: "a.js"}, finding.Key{}),
-			claimed,
-		},
-	}
-	r := &run{diags: newDiagnostics(), attacks: attacksOf([]Control{{ID: "p", Plugin: c}})}
-	fs, err := c.Evaluate(context.Background(), nil, nil)
-	require.NoError(t, err)
-	got := r.valid("p", "m", fs, nil)
+	p := describedControl{infos: []plugin.ControlInfo{{ID: "payload", Attack: true, Technique: technique.PaddedCode}, {ID: "note"}}}
+	other := describedControl{infos: []plugin.ControlInfo{{ID: "other"}}}
+	r := &run{diags: newDiagnostics(), attacks: attacksOf([]Control{{ID: "p", Plugin: p}, {ID: "q", Plugin: other}})}
+
+	got := r.valid("p", "m", []finding.Finding{payload, claimed}, nil)
 	require.Len(t, got, 2)
-	assert.NotNil(t, got[0].Attack, "the finding of an attack control is an attack")
+	want, _ := technique.Get(technique.PaddedCode)
+	assert.Equal(t, &finding.Attack{Technique: technique.PaddedCode, MITRE: want.MITRE}, got[0].Attack,
+		"the finding of an attack control is an attack, with the ATT&CK ids of its technique")
 	assert.Nil(t, got[1].Attack, "a control cannot mark its own finding as an attack")
+
+	got[0].Attack.MITRE[0] = "changed"
+	assert.Equal(t, want.MITRE, r.valid("p", "m", []finding.Finding{payload}, nil)[0].Attack.MITRE, "each finding gets its own copy")
+
+	got = r.valid("q", "m", []finding.Finding{payload}, nil)
+	assert.Nil(t, got[0].Attack, "a plugin cannot use the id of an attack control of another plugin")
 }

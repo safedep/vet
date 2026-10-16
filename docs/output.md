@@ -23,7 +23,8 @@ vet scan --report sarif=vet.sarif --report markdown=vet.md
 
 Every format lists the findings in one order. The findings of the attack controls come first, then
 the most severe. A long list of critical vulnerabilities does not push an attack out of the table.
-A finding of an attack control has an `attack` field in JSON.
+A finding of an attack control has an `attack` field in JSON, with its technique and its MITRE
+ATT&CK ids. SARIF tags it `attack` and `external/mitre-attack/<id>`.
 
 Each package in a report has a `purl`. It follows the purl-spec type definition of its ecosystem,
 and it keeps the version as the manifest writes it. `name` and `version` hold the canonical form

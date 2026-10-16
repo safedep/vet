@@ -35,7 +35,12 @@ type Finding struct {
 
 // Attack marks a finding of an attack control. The attacks gate fails on
 // it, and a report shows it before the other findings.
-type Attack struct{}
+type Attack struct {
+	// Technique is the id of the attack technique.
+	Technique string `json:"technique,omitempty"`
+	// MITRE holds the MITRE ATT&CK technique ids, as T1027.
+	MITRE []string `json:"mitre,omitempty"`
+}
 
 // Subject holds exactly one of its fields. Kind names it.
 type Subject struct {

@@ -38,7 +38,17 @@
       ]
     },
     "Attack": {
-      "properties": {},
+      "properties": {
+        "technique": {
+          "type": "string"
+        },
+        "mitre": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
       "type": "object"
     },
     "Capability": {

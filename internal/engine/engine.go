@@ -294,9 +294,9 @@ type run struct {
 	started   time.Time
 	diags     *diagnostics
 	artifacts []plugin.Artifact
-	// attacks maps the id of each attack control to the attack that its
-	// findings get.
-	attacks map[string]*finding.Attack
+	// attacks maps the id of a control plugin and the id of each attack
+	// control that it describes to the attack that its findings get.
+	attacks map[string]map[string]finding.Attack
 }
 
 // rootOf returns the file system that a manifest was read from, for the

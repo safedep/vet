@@ -372,6 +372,13 @@ A finding of an attack control. The engine sets `finding.Finding.Attack` from th
 control cannot mark its own finding. The attacks gate and the reports read the field, not a list of
 control ids.
 
+**Technique**:
+An attack technique that vet detects, and the unit of a detection contribution: a Go detector, its
+MITRE ATT&CK ids and the evasion corpus groups that test it. `internal/technique` is the registry.
+An attack control names its technique in `plugin.ControlInfo.Technique`, and the engine copies the
+ATT&CK ids to `finding.Attack.MITRE`.
+_Avoid_: signature, indicator, rule (a policy rule)
+
 ## Reports and output
 
 **Report**:

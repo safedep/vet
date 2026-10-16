@@ -17,6 +17,7 @@ import (
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/plugins/internal/agentfiles"
 	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
+	"github.com/safedep/vet/v2/internal/technique"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -92,6 +93,7 @@ var infos = []plugin.ControlInfo{
 		Title:       "Suspicious command in an agent or editor config",
 		Description: "A command that an editor, an agent or a git hook runs looks malicious: it runs a downloaded script, decodes a payload or reads credentials.",
 		Attack:      true,
+		Technique:   technique.ConfigCommand,
 	},
 	{
 		ID: IDEditorAutorun, Family: finding.FamilyAgentConfig, Severity: finding.SeverityHigh,

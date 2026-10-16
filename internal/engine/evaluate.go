@@ -4,8 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
+
+	"github.com/safedep/dry/log"
 
 	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/technique"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
@@ -85,40 +89,64 @@ func (r *run) evaluateApplication(ctx context.Context) []finding.Finding {
 
 // valid returns the findings of a control that pass validation. An error of
 // the control, or an invalid finding, becomes a diagnostic.
-func (r *run) valid(controlID, where string, fs []finding.Finding, err error) []finding.Finding {
+func (r *run) valid(pluginID, where string, fs []finding.Finding, err error) []finding.Finding {
 	switch {
 	case errors.Is(err, plugin.ErrUnavailable):
-		r.diags.add(report.DiagnosticWarning, report.CodeControlUnavailable, controlID,
-			fmt.Sprintf("%s did not run on some manifests, because its data was not available", controlID))
+		r.diags.add(report.DiagnosticWarning, report.CodeControlUnavailable, pluginID,
+			fmt.Sprintf("%s did not run on some manifests, because its data was not available", pluginID))
 		return nil
 	case err != nil:
-		r.diags.add(report.DiagnosticError, report.CodeControlFailed, controlID, fmt.Sprintf("%s: %v", where, err))
+		r.diags.add(report.DiagnosticError, report.CodeControlFailed, pluginID, fmt.Sprintf("%s: %v", where, err))
 		return nil
 	}
 	out := fs[:0:0]
 	for _, f := range fs {
 		if err := f.Validate(); err != nil {
-			r.diags.add(report.DiagnosticError, report.CodeInvalidFinding, controlID, err.Error())
+			r.diags.add(report.DiagnosticError, report.CodeInvalidFinding, pluginID, err.Error())
 			continue
 		}
-		f.Attack = r.attacks[f.ControlID]
+		f.Attack = r.attack(pluginID, f.ControlID)
 		out = append(out, f)
 	}
 	return out
 }
 
-// attacksOf reads the attack controls from the info of each control.
-func attacksOf(cs []Control) map[string]*finding.Attack {
-	out := map[string]*finding.Attack{}
+// attack returns a copy of the attack of a control, or nil. The plugin must
+// describe the control, so that a plugin cannot mark its finding as an
+// attack with the id of an attack control of another plugin.
+func (r *run) attack(pluginID, controlID string) *finding.Attack {
+	a, ok := r.attacks[pluginID][controlID]
+	if !ok {
+		return nil
+	}
+	return &finding.Attack{Technique: a.Technique, MITRE: slices.Clone(a.MITRE)}
+}
+
+// attacksOf reads the attack controls from the info of each control
+// plugin. A technique that the registry does not have, as from a plugin
+// outside vet, gives an attack with no ATT&CK ids. TestTechniqueRegistry
+// makes sure that each built-in attack control names a known technique.
+func attacksOf(cs []Control) map[string]map[string]finding.Attack {
+	out := map[string]map[string]finding.Attack{}
 	for _, c := range cs {
 		d, ok := c.Plugin.(plugin.Describer)
 		if !ok {
 			continue
 		}
 		for _, info := range d.Controls() {
-			if info.Attack {
-				out[info.ID] = &finding.Attack{}
+			if !info.Attack {
+				continue
 			}
+			if out[c.ID] == nil {
+				out[c.ID] = map[string]finding.Attack{}
+			}
+			a := finding.Attack{Technique: info.Technique}
+			if t, ok := technique.Get(info.Technique); ok {
+				a.MITRE = t.MITRE
+			} else {
+				log.Warnf("engine: control %s of plugin %s names the technique %q, which vet does not know", info.ID, c.ID, info.Technique)
+			}
+			out[c.ID][info.ID] = a
 		}
 	}
 	return out
