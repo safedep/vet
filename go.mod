@@ -17,7 +17,7 @@ require (
 	github.com/google/go-github/v70 v70.0.0
 	github.com/google/osv-scalibr v0.5.3
 	github.com/google/uuid v1.6.0
-	github.com/hashicorp/hcl/v2 v2.24.0
+	github.com/hashicorp/hcl/v2 v2.25.0
 	github.com/invopop/jsonschema v0.13.0
 	github.com/moby/moby/client v0.5.0
 	github.com/package-url/packageurl-go v0.1.5
@@ -34,7 +34,7 @@ require (
 	github.com/tidwall/gjson v1.19.0
 	github.com/tidwall/jsonc v0.3.3
 	github.com/wk8/go-ordered-map/v2 v2.1.8
-	github.com/zclconf/go-cty v1.18.0
+	github.com/zclconf/go-cty v1.19.0
 	go.uber.org/zap v1.28.0
 	golang.org/x/mod v0.40.0
 	golang.org/x/sys v0.47.0
@@ -69,6 +69,7 @@ require (
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
+	github.com/apparentlymart/go-textseg/v17 v17.0.1 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/aymanbagabas/go-udiff v0.3.1 // indirect
 	github.com/ayoubfaouzi/pkcs7 v0.2.3 // indirect
