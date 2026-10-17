@@ -16,18 +16,14 @@ type Options struct {
 	// FailOn fails the gate on an unsuppressed finding at this severity or
 	// above, or on a finding of an attack control. Empty sets no --fail-on gate.
 	FailOn report.FailOn
-	// Attacks are the ids of the attack controls, for the attacks
-	// --fail-on value.
-	Attacks []string
-	Now     func() time.Time
+	Now    func() time.Time
 }
 
 // Evaluator applies a policy and a --fail-on value to findings.
 type Evaluator struct {
-	p       *Policy
-	failOn  report.FailOn
-	attacks []string
-	now     time.Time
+	p      *Policy
+	failOn report.FailOn
+	now    time.Time
 	// unavailable holds the errors of the policy sources that did not
 	// answer. Finalize records each one as a diagnostic.
 	unavailable []string
@@ -43,7 +39,7 @@ func NewEvaluator(p *Policy, o Options) *Evaluator {
 	if o.Now != nil {
 		now = o.Now
 	}
-	return &Evaluator{p: p, failOn: o.FailOn, attacks: o.Attacks, now: now().UTC()}
+	return &Evaluator{p: p, failOn: o.FailOn, now: now().UTC()}
 }
 
 // Gated reports whether the user set a gate: a severity or a policy.
@@ -174,7 +170,7 @@ func gateOf(fail []*Rule, broken []string, warn *Rule, failOn report.FailOn) *fi
 // failsOn reports whether the finding meets the --fail-on value.
 func (e *Evaluator) failsOn(f *finding.Finding) bool {
 	if e.failOn == report.FailOnAttacks {
-		return slices.Contains(e.attacks, f.ControlID)
+		return f.Attack != nil
 	}
 	sev, ok := e.failOn.Severity()
 	return ok && f.Severity.AtLeast(sev)

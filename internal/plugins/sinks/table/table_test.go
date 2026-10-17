@@ -96,6 +96,22 @@ func TestGroupsTheVulnerabilitiesOfAPackage(t *testing.T) {
 	assert.NotContains(t, got, "Details:", "the scan view names the finding show command")
 }
 
+func TestAttackComesBeforeCriticalVulnerabilities(t *testing.T) {
+	withWidth(t, 160)
+	r := vulnReport()
+	attack := finding.ForFile(finding.Meta{
+		ControlID: "padded-code", Family: finding.FamilyHiddenCode, Severity: finding.SeverityMedium,
+		Title: "Script hidden after a run of spaces",
+	}, finding.Locus{Path: "src/index.js", StartLine: 1}, finding.Key{})
+	attack.Attack = &finding.Attack{}
+	r.FindingList = append(r.FindingList, &attack)
+	got := write(t, nil, r)
+	rows := rowsOf(got)
+	require.NotEmpty(t, rows)
+	assert.Contains(t, rows[0], "padded-code", "the attack is in the first row, above the critical vulnerability")
+	assert.Contains(t, got, "› 1 attack finding, 5 vulnerabilities in 2 packages.")
+}
+
 func TestAllListsEachFinding(t *testing.T) {
 	withWidth(t, 160)
 	r := vulnReport()
@@ -176,7 +192,8 @@ func TestCountTextFitsTheRoom(t *testing.T) {
 		want string
 	}{
 		{name: "room for the total", room: 40, want: "3 vulnerabilities: 1 critical, 2 high"},
-		{name: "no room for the total", room: 30, want: "1 critical, 2 high"},
+		{name: "the total takes the first line", room: 30, want: "3 vulnerabilities:\n1 critical, 2 high"},
+		{name: "no room for the total", room: 14, want: "1 critical, 2 high"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

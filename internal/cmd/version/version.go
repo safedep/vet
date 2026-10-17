@@ -49,6 +49,13 @@ func New(a *app.App) *cobra.Command {
 and the platform on one line. Use -o json to read the fields in a script.`,
 		Args: cobra.NoArgs,
 		RunE: func(*cobra.Command, []string) error {
+			// vet version reads no config. With --mode it loads the config,
+			// so that a managed file that locks output.mode refuses it.
+			if a.Globals.Mode != "" {
+				if _, err := a.Config(app.ConfigOptions{}); err != nil {
+					return err
+				}
+			}
 			p, err := a.Printer()
 			if err != nil {
 				return err

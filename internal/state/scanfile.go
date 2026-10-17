@@ -22,7 +22,7 @@ import (
 // scan files of an older vet unreadable. vet does not migrate a scan file:
 // it refuses an older one, and a stopped scan of an older format starts
 // again.
-const scanFormat = 3
+const scanFormat = 4
 
 // CodeScanFormat is the error code of a scan file of another format.
 const CodeScanFormat = "state_scan_format"
@@ -99,6 +99,7 @@ var scanMigrations = []string{
 		id            TEXT PRIMARY KEY,
 		control_id    TEXT NOT NULL,
 		manifest_id   TEXT NOT NULL,
+		attack        INTEGER NOT NULL,
 		severity_rank INTEGER NOT NULL,
 		suppressed    INTEGER NOT NULL,
 		data          BLOB NOT NULL
@@ -624,11 +625,11 @@ func insertFinding(ctx context.Context, tx *sql.Tx, manifestID string, f *findin
 	if err != nil {
 		return err
 	}
-	_, err = tx.ExecContext(ctx, `INSERT INTO vet_scan_findings (id, control_id, manifest_id, severity_rank, suppressed, data)
-		VALUES (?, ?, ?, ?, ?, ?)
-		ON CONFLICT (id) DO UPDATE SET severity_rank = excluded.severity_rank, suppressed = excluded.suppressed,
-		data = excluded.data`,
-		f.ID, f.ControlID, manifestID, f.Severity.Rank(), boolInt(f.Suppressed()), b)
+	_, err = tx.ExecContext(ctx, `INSERT INTO vet_scan_findings (id, control_id, manifest_id, attack, severity_rank, suppressed, data)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT (id) DO UPDATE SET attack = excluded.attack, severity_rank = excluded.severity_rank,
+		suppressed = excluded.suppressed, data = excluded.data`,
+		f.ID, f.ControlID, manifestID, boolInt(f.Attack != nil), f.Severity.Rank(), boolInt(f.Suppressed()), b)
 	return err
 }
 

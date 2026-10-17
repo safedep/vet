@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"slices"
 	"strings"
 	"testing"
 
@@ -19,7 +18,6 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/safedep/vet/v2/finding"
-	"github.com/safedep/vet/v2/internal/plugins/controls"
 	"github.com/safedep/vet/v2/test/internal/scantest"
 )
 
@@ -74,8 +72,6 @@ func TestFalsePositives(t *testing.T) {
 	require.NoError(t, err)
 	var repos []repo
 	require.NoError(t, yaml.Unmarshal(data, &repos))
-	attacks, err := controls.AttackIDs()
-	require.NoError(t, err)
 
 	var table strings.Builder
 	table.WriteString("| Project | Attack findings | Other findings |\n| --- | --- | --- |\n")
@@ -86,7 +82,7 @@ func TestFalsePositives(t *testing.T) {
 			for _, f := range fs {
 				line := fmt.Sprintf("`%s` %s", f.ControlID, f.Path())
 				switch {
-				case slices.Contains(attacks, f.ControlID):
+				case f.Attack != nil:
 					attack = append(attack, line)
 					assert.Failf(t, "an attack finding on a clean project", "%s: %s", line, f.Title)
 				case f.Family == finding.FamilyHiddenCode || f.Family == finding.FamilyAgentConfig:

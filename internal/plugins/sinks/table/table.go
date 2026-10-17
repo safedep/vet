@@ -176,7 +176,7 @@ func (s Sink) rows(fs []*finding.Finding) []row {
 		rows = append(rows, row{f})
 	}
 	// A finding that fails the gate comes first, so the row limit never
-	// hides it.
+	// hides it. Then the rows keep the report order.
 	slices.SortStableFunc(rows, func(a, b row) int {
 		if fa, fb := a.failing(), b.failing(); fa != fb {
 			if fa {
@@ -184,7 +184,7 @@ func (s Sink) rows(fs []*finding.Finding) []row {
 			}
 			return 1
 		}
-		return b[0].Severity.Rank() - a[0].Severity.Rank()
+		return finding.Compare(a[0], b[0])
 	})
 	return rows
 }
@@ -338,10 +338,21 @@ func (r row) text(room int) string {
 		}
 	}
 	short := strings.Join(by, ", ") + fix
-	if full := plural(len(r), "vulnerability", "vulnerabilities") + ": " + short; ansi.StringWidth(full) <= room {
-		return full
+	total := plural(len(r), "vulnerability", "vulnerabilities") + ":"
+	switch {
+	case fits(total+" "+short, room, 1):
+		return total + " " + short
+	case fits(total, room, 1) && fits(short, room, textLines-1):
+		// The total takes the first line of the cell, so that no count
+		// splits across two lines.
+		return total + "\n" + short
 	}
 	return short
+}
+
+// fits reports whether text wraps into n lines of the width room.
+func fits(text string, room, n int) bool {
+	return strings.Count(ansi.Wrap(text, room, ""), "\n") < n
 }
 
 // fix is the highest fixed version of a vulnerability row, under the order
@@ -389,9 +400,9 @@ func findingHints(findings int, rows []row, shown, suppressed int) []string {
 	grouped := len(rows) < findings
 	switch more := len(rows) - shown; {
 	case grouped && more > 0:
-		hints = append(hints, fmt.Sprintf("%s. The table shows %d of %d rows.", vulnerabilityCount(rows), shown, len(rows)), all)
+		hints = append(hints, fmt.Sprintf("%s. The table shows %d of %d rows.", findingCount(rows), shown, len(rows)), all)
 	case grouped:
-		hints = append(hints, vulnerabilityCount(rows)+". "+all)
+		hints = append(hints, findingCount(rows)+". "+all)
 	case more > 0:
 		hints = append(hints, fmt.Sprintf("%s. %s", plural(more, "more finding", "more findings"), all))
 	}
@@ -407,17 +418,28 @@ func findingHints(findings int, rows []row, shown, suppressed int) []string {
 	return hints
 }
 
-// vulnerabilityCount counts the vulnerability findings and their packages,
-// as "85 vulnerabilities in 3 packages".
-func vulnerabilityCount(rows []row) string {
-	findings, packages := 0, 0
+// findingCount counts the attack findings, then the vulnerability findings
+// and their packages, as "2 attack findings, 85 vulnerabilities in 3
+// packages". It names the attacks first, so that a long list of
+// vulnerabilities does not hide them.
+func findingCount(rows []row) string {
+	attacks, findings, packages := 0, 0, 0
 	for _, r := range rows {
+		for _, f := range r {
+			if f.Attack != nil {
+				attacks++
+			}
+		}
 		if r[0].Family == finding.FamilyVulnerability {
 			findings += len(r)
 			packages++
 		}
 	}
-	return fmt.Sprintf("%s in %s", plural(findings, "vulnerability", "vulnerabilities"), plural(packages, "package", "packages"))
+	count := fmt.Sprintf("%s in %s", plural(findings, "vulnerability", "vulnerabilities"), plural(packages, "package", "packages"))
+	if attacks > 0 {
+		count = plural(attacks, "attack finding", "attack findings") + ", " + count
+	}
+	return count
 }
 
 func plural(n int, one, many string) string {

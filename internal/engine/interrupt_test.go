@@ -15,22 +15,22 @@ import (
 type stopAfter struct {
 	stage  string
 	done   int
-	cancel context.CancelFunc
+	cancel context.CancelCauseFunc
 }
 
 func (stopAfter) Stage(string, int, int) {}
 
 func (s stopAfter) Progress(stage string, done, _ int) {
 	if stage == s.stage && done >= s.done {
-		s.cancel()
+		s.cancel(app.ErrInterrupted)
 	}
 }
 
 // interrupt runs a scan that a signal stops after the first enrich batch.
 func interrupt(t *testing.T, f *fixture, dir string) *state.IndexEntry {
 	t.Helper()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
 	en := &fakeEnricher{}
 	o := f.options(t, dir, en)
 	o.BatchSize = 1

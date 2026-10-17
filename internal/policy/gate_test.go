@@ -21,9 +21,10 @@ func TestGate(t *testing.T) {
 	low, lowPkg := packageFinding("vulnerability", finding.SeverityLow, "a", "1.0.0", nil)
 
 	cases := []struct {
-		name string
-		e    *Evaluator
-		want report.Gate
+		name   string
+		e      *Evaluator
+		attack bool
+		want   report.Gate
 	}{
 		{name: "no gate", e: NewEvaluator(nil, Options{Now: at}), want: report.Gate{Outcome: report.GateNone}},
 		{
@@ -31,11 +32,11 @@ func TestGate(t *testing.T) {
 			want: report.Gate{Outcome: report.GateFail, FailOn: report.FailOn(finding.SeverityHigh), FindingIDs: []string{crit.ID}},
 		},
 		{
-			name: "attacks fail", e: NewEvaluator(nil, Options{FailOn: report.FailOnAttacks, Attacks: []string{"malware"}, Now: at}),
+			name: "attacks fail", e: NewEvaluator(nil, Options{FailOn: report.FailOnAttacks, Now: at}), attack: true,
 			want: report.Gate{Outcome: report.GateFail, FailOn: report.FailOnAttacks, FindingIDs: []string{crit.ID}},
 		},
 		{
-			name: "attacks ignore severity", e: NewEvaluator(nil, Options{FailOn: report.FailOnAttacks, Attacks: []string{"impostor-commit"}, Now: at}),
+			name: "attacks ignore severity", e: NewEvaluator(nil, Options{FailOn: report.FailOnAttacks, Now: at}),
 			want: report.Gate{Outcome: report.GatePass, FailOn: report.FailOnAttacks},
 		},
 		{
@@ -45,6 +46,10 @@ func TestGate(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
+			crit.Attack = nil
+			if tc.attack {
+				crit.Attack = &finding.Attack{}
+			}
 			g := tc.e.NewGate()
 			g.Add(crit, tc.e.Apply(crit, critPkg, nil))
 			g.Add(low, tc.e.Apply(low, lowPkg, nil))

@@ -18,8 +18,14 @@ func TestCatalogIDsAreUnique(t *testing.T) {
 	}
 }
 
-func TestAttackIDs(t *testing.T) {
-	ids, err := AttackIDs()
+func TestAttackControls(t *testing.T) {
+	list, err := Catalog()
 	require.NoError(t, err)
+	var ids []string
+	for _, c := range list {
+		if c.Attack {
+			ids = append(ids, c.ID)
+		}
+	}
 	assert.ElementsMatch(t, []string{"malware", "impostor-commit", "suspicious-command", "padded-code", "disguised-script", "unicode-payload", "history-rewrite-script"}, ids)
 }

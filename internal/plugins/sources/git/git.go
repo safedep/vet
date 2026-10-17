@@ -153,7 +153,7 @@ func (s *Source) auth(ctx context.Context, repoURL string) (transport.AuthMethod
 	}
 	token, err := s.opts.Tokens.Token(ctx)
 	if errors.Is(err, github.ErrNoToken) {
-		log.Debugf("git: no GitHub token, the clone of %s is anonymous", repoURL)
+		log.Debugf("git: no GitHub token, the clone of %s is anonymous", Redact(repoURL))
 		return nil, nil
 	}
 	if err != nil {
@@ -191,7 +191,7 @@ func Key(repoURL string) (string, error) {
 }
 
 // Redact removes the user name and the password from a repository URL, as
-// in https://x-access-token:TOKEN@github.com/org/repo. The report, the
+// in https://x-access-token:$TOKEN@github.com/org/repo. The report, the
 // state index and the messages hold the target, and a CI job keeps them as
 // artifacts.
 func Redact(target string) string {

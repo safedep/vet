@@ -31,7 +31,7 @@ func TestExitCode(t *testing.T) {
 		{name: "nil", want: ExitOK},
 		{name: "gate", err: fmt.Errorf("scan: %w", ErrGateFailed), want: ExitGateFailed},
 		{name: "interrupted", err: ErrInterrupted, want: ExitInterrupted},
-		{name: "context canceled", err: context.Canceled, want: ExitInterrupted},
+		{name: "context canceled with no signal", err: context.Canceled, want: ExitRuntime},
 		{name: "usage", err: UsageError("bad", "help"), want: ExitUsage},
 		{name: "config", err: coded(config.CodeUnknownKey), want: ExitUsage},
 		{name: "state dir", err: coded("state_dir_unwritable"), want: ExitUsage},

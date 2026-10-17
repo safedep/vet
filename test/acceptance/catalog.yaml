@@ -74,6 +74,12 @@
   tier: P0
   guarantee: "In agent mode or with --no-input, a command that asks for confirmation exits 2 at once and names the flag."
   labels: [agent, prompt]
+- id: output/debug/log-on-stderr
+  title: "--debug writes the log on stderr and keeps stdout"
+  category: output
+  tier: P1
+  guarantee: "--debug writes the debug log of vet and of its libraries on stderr, and stdout keeps the report. With no flag, no library line shows. --debug and -q cannot be used together. --log appends the log to a file as JSON lines."
+  labels: [debug, streams]
 - id: output/escape/untrusted-text
   title: "untrusted text prints escaped"
   category: output

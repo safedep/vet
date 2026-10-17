@@ -11,11 +11,13 @@ import (
 
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/config"
+	"github.com/safedep/vet/v2/internal/plugins/controls"
 	"github.com/safedep/vet/v2/internal/plugins/policysources/file"
 	"github.com/safedep/vet/v2/internal/plugins/sources/dir"
 	"github.com/safedep/vet/v2/internal/policy"
 	"github.com/safedep/vet/v2/internal/reportdoc"
 	"github.com/safedep/vet/v2/internal/state"
+	"github.com/safedep/vet/v2/internal/technique"
 	"github.com/safedep/vet/v2/internal/view"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
@@ -141,7 +143,29 @@ func loadFile(ctx context.Context, path string) (*reportdoc.Doc, error) {
 		return nil, app.UsageErrorCode(CodeNoScan, fmt.Sprintf("%s is not a vet report: %v", path, err),
 			"Name a report that vet scan -o json or -o jsonl wrote, a scan id, or last.")
 	}
+	if err := markAttacks(d); err != nil {
+		return nil, err
+	}
 	return reportdoc.FromDocument(d), nil
+}
+
+// markAttacks sets the attack of each finding of a built-in attack control
+// that has none. A report that a build before the attack field wrote has
+// none, and the attacks gate would pass on it.
+func markAttacks(d *report.Document) error {
+	techniques, err := controls.AttackTechniques()
+	if err != nil {
+		return err
+	}
+	for _, rec := range d.Records {
+		if f := rec.Finding; f != nil && f.Attack == nil {
+			if id, ok := techniques[f.ControlID]; ok {
+				a, _ := technique.Attack(id)
+				f.Attack = &a
+			}
+		}
+	}
+	return nil
 }
 
 // ShowOptions are the inputs of "vet report show".

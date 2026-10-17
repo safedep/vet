@@ -37,6 +37,20 @@
         "root"
       ]
     },
+    "Attack": {
+      "properties": {
+        "technique": {
+          "type": "string"
+        },
+        "mitre": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
     "Capability": {
       "properties": {
         "id": {
@@ -246,6 +260,9 @@
         },
         "gate": {
           "$ref": "#/$defs/GateRecord"
+        },
+        "attack": {
+          "$ref": "#/$defs/Attack"
         }
       },
       "type": "object",

@@ -81,7 +81,6 @@ type input struct {
 	header  *report.Header
 	trailer *report.Trailer
 	view    overview.Overview
-	attack  func(*finding.Finding) bool
 	links   links
 	dialect dialect
 	// old is the state of the comment that this run edits, or nil.
@@ -174,7 +173,7 @@ func (c *input) heading(blocking, review, rest int) string {
 func (c *input) caution(b *strings.Builder) {
 	var lines []string
 	for _, f := range c.view.Findings {
-		if c.attack(f) {
+		if f.Attack != nil {
 			lines = append(lines, fmt.Sprintf("%s: %s", code(render.Subject(f)), md(render.Title(f), maxField)))
 		}
 	}

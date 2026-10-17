@@ -15,6 +15,7 @@ import (
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/plugins/internal/hiddencode"
 	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
+	"github.com/safedep/vet/v2/internal/technique"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -63,6 +64,7 @@ var controls = []control{
 			Title:       "Script hidden after a run of spaces",
 			Description: "A source file, a build config or an npm entry script holds a script after a long run of white space, so an editor shows a clean line. A config can also hide it after its export. A build config runs at each build, test or lint, and an npm entry script at each npm command. An npm entry script that is far larger than the published file is also a finding. PolinRider adds its loader in these ways.",
 			Attack:      true,
+			Technique:   technique.PaddedCode,
 		},
 		"Do not build or open the project. Restore the file from a clean commit, and check the machines that built it.",
 	},
@@ -72,6 +74,7 @@ var controls = []control{
 			Title:       "Script in a font, image, dictionary, style sheet or source map",
 			Description: "A file with the name of a font, an image, a dictionary, an SVG image, a style sheet or a source map holds a script. A task or a loader runs it with node, so the folder looks like it holds only assets. Contagious Interview repositories ship such a fake font. vet parses an SVG image, a style sheet or a source map as JavaScript. A file that node can run, with a call and a script token, gives a finding. A real asset does not parse as JavaScript. vet reads a text asset up to 32 MiB, and a larger one gives a diagnostic that vet did not check all of it. A build with no CGO reads the start of the file and its script tokens.",
 			Attack:      true,
+			Technique:   technique.DisguisedScript,
 		},
 		"Do not open the folder in an editor or run it. Remove the file, find what runs it, and check the machines that opened the folder.",
 	},
@@ -81,6 +84,7 @@ var controls = []control{
 			Title:       "Payload in invisible Unicode characters",
 			Description: "A file holds 16 or more variation selectors with no base character, or tag characters outside a flag emoji. Each one carries one byte of a payload, and an editor and a code review show nothing. Real text holds none. GlassWorm spreads this way, with the decoder in the same file or in another one.",
 			Attack:      true,
+			Technique:   technique.UnicodePayload,
 		},
 		"Do not run or install the code. Remove the characters and the decoder, and check the machines that ran it.",
 	},
@@ -122,6 +126,7 @@ var controls = []control{
 			Title:       "Script that rewrites the git history",
 			Description: "A script amends the last commit with no hooks, keeps its date, and force-pushes it, or .gitignore hides such a script. PolinRider uses it to fold its change into the last real commit of each repository on an infected machine, so the history shows no new commit.",
 			Attack:      true,
+			Technique:   technique.HistoryRewrite,
 		},
 		"Treat the machine that holds the script as infected. Compare each repository on it with its remote history, and rotate its credentials.",
 	},

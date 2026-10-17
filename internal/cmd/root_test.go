@@ -25,6 +25,7 @@ func TestExecuteExitCodes(t *testing.T) {
 		name     string
 		args     []string
 		runErr   error
+		signal   bool
 		code     int
 		printErr bool
 	}{
@@ -38,6 +39,9 @@ func TestExecuteExitCodes(t *testing.T) {
 		{name: "usage error from a command", args: []string{"test", "run"}, runErr: app.UsageError("bad target", "fix it"), code: app.ExitUsage, printErr: true},
 		{name: "gate", args: []string{"test", "run"}, runErr: app.ErrGateFailed, code: app.ExitGateFailed},
 		{name: "interrupted", args: []string{"test", "run"}, runErr: app.ErrInterrupted, code: app.ExitInterrupted},
+		{name: "canceled by a signal", args: []string{"test", "run"}, runErr: context.Canceled, signal: true, code: app.ExitInterrupted},
+		{name: "canceled with no signal", args: []string{"test", "run"}, runErr: context.Canceled, code: app.ExitRuntime, printErr: true},
+		{name: "error of a call that a signal stopped", args: []string{"test", "run"}, runErr: errors.New("rpc error: code = Canceled"), signal: true, code: app.ExitInterrupted},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -51,7 +55,12 @@ func TestExecuteExitCodes(t *testing.T) {
 			})
 			root.AddCommand(noun)
 
-			code, err := execute(context.Background(), root, tc.args)
+			ctx, cancel := context.WithCancelCause(context.Background())
+			defer cancel(nil)
+			if tc.signal {
+				cancel(app.ErrInterrupted)
+			}
+			code, err := execute(ctx, root, tc.args)
 			assert.Equal(t, tc.code, code)
 			if tc.printErr {
 				require.Error(t, err)

@@ -11,7 +11,7 @@ func TestRedact(t *testing.T) {
 		{`{"db": {"command": "node", "env": {"DB_URL": "postgres://u:pw@h/db", "MODE": "x"}}}`, `{"db": {"command": "node", "env": {"DB_URL": "***", "MODE": "***"}}}`},
 		{`"headers": {"Authorization": "Bearer abc"}`, `"headers": {"Authorization": "***"}`},
 		{`"GITHUB_TOKEN": "ghp_123",`, `"GITHUB_TOKEN": "***",`},
-		{`"url": "https://user:secret@mcp.example.com/sse"`, `"url": "https://***@mcp.example.com/sse"`},
+		{`"url": "https://user:secret@mcp.example.com/sse"`, `"url": "https://***@mcp.example.com/sse"`}, // trufflehog:ignore
 		{`"command": "npm run build",`, `"command": "npm run build",`},
 		{`curl -H "Authorization: Bearer abcdef123456" https://x.example`, `curl -H "Authorization: Bearer ***" https://x.example`},
 		{`deploy --token=abc123 --api-key 'k-1' --password "p w"`, `deploy --token=*** --api-key *** --password ***`},

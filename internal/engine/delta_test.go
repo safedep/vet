@@ -568,10 +568,12 @@ func TestPullRequestModeKeepsABaseForOneLinkMode(t *testing.T) {
 	o.BaseRef = "HEAD"
 	scan := func(form string) {
 		t.Helper()
+		kinds := map[string]model.Change{}
 		for m, err := range runScan(t, o).Scan.Manifests(context.Background()) {
 			require.NoError(t, err)
-			assert.Equal(t, model.ChangeUnchanged, m.Change, "%s: %s", form, m.Path)
+			kinds[m.Path] = m.Change
 		}
+		assert.Equal(t, map[string]model.Change{"AGENTS.md": model.ChangeUnchanged, "CLAUDE.md": model.ChangeUnchanged}, kinds, form)
 	}
 	scan("a link")
 	require.NoError(t, os.Remove(link))
