@@ -1,12 +1,14 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"mvdan.cc/sh/v3/shell"
 
 	"github.com/safedep/vet/v2/internal/app"
 	vconfig "github.com/safedep/vet/v2/internal/config"
@@ -39,7 +41,11 @@ then check it. The file keeps every comment. In agent mode or with
 					return err
 				}
 			}
-			ed := strings.Fields(editor(a))
+			getenv := func(k string) string { v, _ := a.LookupEnv(k); return v }
+			ed, err := editorCommand(editor(a), runtime.GOOS, exec.LookPath, getenv)
+			if err != nil {
+				return app.UsageError(fmt.Sprintf("vet cannot read the editor command: %v", err), "Set $VISUAL or $EDITOR to a program and its arguments.")
+			}
 			c := exec.CommandContext(cmd.Context(), ed[0], append(ed[1:], path)...)
 			c.Stdin, c.Stdout, c.Stderr = os.Stdin, os.Stdout, os.Stderr
 			if err := c.Run(); err != nil {
@@ -70,4 +76,55 @@ func editor(a *app.App) string {
 		return "notepad"
 	}
 	return "vi"
+}
+
+// editorCommand splits the editor value into a program and its arguments.
+// A value that is one program, such as C:\Program Files\Vim\gvim.exe, stays
+// whole. A Windows value splits on spaces outside double quotes and keeps
+// each backslash. Another value splits as a POSIX shell word list, as git
+// does with $EDITOR, and getenv expands its variables.
+func editorCommand(v, goos string, lookPath func(string) (string, error), getenv func(string) string) ([]string, error) {
+	if _, err := lookPath(v); err == nil {
+		return []string{v}, nil
+	}
+	var fields []string
+	if goos == "windows" {
+		fields = windowsFields(v)
+	} else {
+		var err error
+		if fields, err = shell.Fields(v, getenv); err != nil {
+			return nil, err
+		}
+	}
+	if len(fields) == 0 {
+		return nil, fmt.Errorf("%q names no program", v)
+	}
+	return fields, nil
+}
+
+// windowsFields splits a command line on spaces and tabs outside double
+// quotes, and drops the quotes.
+func windowsFields(v string) []string {
+	var fields []string
+	var cur strings.Builder
+	quoted, started := false, false
+	for _, r := range v {
+		switch {
+		case r == '"':
+			quoted, started = !quoted, true
+		case (r == ' ' || r == '\t') && !quoted:
+			if started {
+				fields = append(fields, cur.String())
+				cur.Reset()
+				started = false
+			}
+		default:
+			cur.WriteRune(r)
+			started = true
+		}
+	}
+	if started {
+		fields = append(fields, cur.String())
+	}
+	return fields
 }

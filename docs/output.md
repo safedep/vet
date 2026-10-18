@@ -21,9 +21,21 @@ vet scan --report sarif=vet.sarif --report markdown=vet.md
 | `gitlab` | A GitLab dependency scanning report, for `artifacts:reports:dependency_scanning` |
 | `bitbucket` | A Bitbucket Code Insights report and its annotations |
 
+Every format lists the findings in one order. The findings of the attack controls come first, then
+the most severe. A long list of critical vulnerabilities does not push an attack out of the table.
+A finding of an attack control has an `attack` field in JSON, with its technique and its MITRE
+ATT&CK ids. SARIF tags it `attack` and `external/mitre-attack/<id>`.
+
 Each package in a report has a `purl`. It follows the purl-spec type definition of its ecosystem,
 and it keeps the version as the manifest writes it. `name` and `version` hold the canonical form
 that vet compares.
+
+## Debug log
+
+`--debug` writes the debug log of vet and of its libraries on stderr, with the rich view off.
+`--log FILE` appends the same log to a file as JSON lines, for a support case. Stdout keeps the
+report in both cases, so `vet scan --debug -o json | jq` still works. `-v` shows more of the view
+and no log line. `--debug` and `-q` cannot be used together.
 
 ## Saved scans
 

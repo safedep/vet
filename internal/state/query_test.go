@@ -109,14 +109,16 @@ func TestFindingsQueryOrder(t *testing.T) {
 	crit := mk("a-crit", finding.SeverityCritical, m.Packages[1])
 	sup := mk("m-sup", finding.SeverityHigh, m.Packages[0])
 	sup.Suppression = &finding.Suppression{Reason: "ok"}
-	require.NoError(t, scan.AddFindings(ctx, m.ID, []finding.Finding{low, crit, sup}))
+	attack := mk("y-attack", finding.SeverityMedium, m.Packages[1])
+	attack.Attack = &finding.Attack{}
+	require.NoError(t, scan.AddFindings(ctx, m.ID, []finding.Finding{low, crit, sup, attack}))
 
 	var got []string
 	for f, err := range scan.Findings(ctx, plugin.FindingQuery{}) {
 		require.NoError(t, err)
 		got = append(got, f.ControlID)
 	}
-	assert.Equal(t, []string{"a-crit", "z-low"}, got)
+	assert.Equal(t, []string{"y-attack", "a-crit", "z-low"}, got, "an attack comes first, as in finding.Compare")
 
 	got = nil
 	for f, err := range scan.Findings(ctx, plugin.FindingQuery{IncludeSuppressed: true, MinSeverity: finding.SeverityHigh}) {

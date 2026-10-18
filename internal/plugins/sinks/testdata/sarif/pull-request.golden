@@ -29,7 +29,9 @@
               "properties": {
                 "tags": [
                   "security",
-                  "malware"
+                  "malware",
+                  "attack",
+                  "external/mitre-attack/T1195.001"
                 ]
               }
             },
@@ -75,7 +77,9 @@
             "security-severity": "9.5",
             "tags": [
               "critical",
-              "malware"
+              "malware",
+              "attack",
+              "external/mitre-attack/T1195.001"
             ]
           }
         },

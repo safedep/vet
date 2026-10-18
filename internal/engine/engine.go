@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
@@ -153,7 +154,7 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 	if o.Opened != nil {
 		o.Opened(res)
 	}
-	run := &run{o: o, res: res, started: o.Now()}
+	run := &run{o: o, res: res, started: o.Now(), attacks: attacksOf(o.Controls)}
 
 	err = run.stages(ctx, artifacts)
 	if app.ExitCode(err) == app.ExitUsage && !res.Continued {
@@ -165,7 +166,7 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 		err = errors.Join(err, finishErr)
 	}
 	if err != nil {
-		if ctx.Err() != nil {
+		if app.Interrupted(ctx) {
 			return res, fmt.Errorf("%w: %w", app.ErrInterrupted, err)
 		}
 		return res, err
@@ -293,6 +294,9 @@ type run struct {
 	started   time.Time
 	diags     *diagnostics
 	artifacts []plugin.Artifact
+	// attacks maps the id of a control plugin and the id of each attack
+	// control that it describes to the attack that its findings get.
+	attacks map[string]map[string]finding.Attack
 }
 
 // rootOf returns the file system that a manifest was read from, for the
@@ -360,7 +364,7 @@ func (r *run) finish(ctx context.Context, runErr error) error {
 		errs = append(errs, r.diags.flush(wctx, scan))
 	}
 	switch {
-	case runErr != nil && ctx.Err() != nil:
+	case runErr != nil && app.Interrupted(ctx):
 		entry.Status = state.StatusInterrupted
 	case runErr != nil:
 		entry.Status = state.StatusFailed

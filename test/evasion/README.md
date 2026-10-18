@@ -4,14 +4,13 @@ The evasion corpus measures how the attack detections of vet hold up when an att
 shape of an attack. Each case is a small synthetic repository. `TestEvasionCorpus` scans each case
 with the built-in extractors and controls, and with no enricher and no network. It writes the result
 to [coverage.md](coverage.md). The Gate column shows if `--fail-on attacks` fails on the case. A case that only a control that warns catches, such as `dynamic-code`, passes the gate. The
-test needs a build with CGO, because the `dynamic-code` cases need it.
+test needs a build with CGO. The `dynamic-code` cases parse JavaScript with safedep/code, which uses
+tree-sitter.
 
 ```bash
 go test ./test/evasion/ -count=1                  # check the cases and the table
 UPDATE_GOLDEN=1 go test ./test/evasion/ -count=1  # rewrite coverage.md
 ```
-
-The `dynamic-code` cases need a build with CGO, because the check parses JavaScript with tree-sitter.
 
 ## Rules for a case
 
@@ -65,6 +64,17 @@ you remove the `miss` and `have` lines. So the table always matches the code.
 
 A pull request that changes a detection commits the `coverage.md` diff. The diff shows the cases that
 the change catches and the cases that it loses.
+
+## Techniques and groups
+
+`internal/technique` lists the corpus groups of each attack technique. Its tests fail when a
+technique has no MITRE ATT&CK id, an id that is not of the form `T1027` or `T1036.008`, or no corpus
+group and no reason in `NoCorpus`. `TestTechniqueRegistry` fails when:
+
+- an attack control names no technique of the registry,
+- no attack control finds a technique,
+- the groups of a technique hold no case that it must catch, or no near miss. A near miss is a case
+  whose `want` line has no attack control. A hit of another technique is not a near miss.
 
 ## From a report to a case
 

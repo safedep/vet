@@ -179,11 +179,18 @@ func deleteNode(m *yaml.Node, path []string) bool {
 }
 
 // writeDoc checks the new file with Load and Validate, then writes it with
-// mode 0600.
+// mode 0600 through a temporary file and a rename.
 func writeDoc(path string, doc *yaml.Node) (err error) {
 	b, err := encodeDoc(doc)
 	if err != nil {
 		return err
+	}
+	l, err := Load(LoadOptions{ConfigFile: path, ConfigData: b, LookupEnv: func(string) (string, bool) { return "", false }})
+	if err != nil {
+		return rejected(err, path)
+	}
+	if err := l.Validate(); err != nil {
+		return rejected(err, path)
 	}
 	if err := appdir.Ensure(filepath.Dir(path)); err != nil {
 		return err
@@ -205,24 +212,16 @@ func writeDoc(path string, doc *yaml.Node) (err error) {
 	if err := tmp.Close(); err != nil {
 		return err
 	}
-	l, err := Load(LoadOptions{ConfigFile: tmp.Name(), LookupEnv: func(string) (string, bool) { return "", false }})
-	if err != nil {
-		return rejected(err, tmp.Name(), path)
-	}
-	if err := l.Validate(); err != nil {
-		return rejected(err, tmp.Name(), path)
-	}
 	return os.Rename(tmp.Name(), path)
 }
 
-// rejected names the config file in place of its temporary copy, and says
-// that the file did not change.
-func rejected(err error, tmp, path string) error {
+// rejected says that the config file did not change.
+func rejected(err error, path string) error {
 	ue, ok := usefulerror.AsUsefulError(err)
 	if !ok {
 		return err
 	}
-	return newError(ue.Code(), strings.ReplaceAll(ue.HumanError(), tmp, path), "vet did not write the change to "+path)
+	return newError(ue.Code(), ue.HumanError(), "vet did not write the change to "+path)
 }
 
 // encodeDoc returns the YAML of a config file. yaml.v3 writes an empty

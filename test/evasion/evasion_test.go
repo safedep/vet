@@ -21,9 +21,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/golden"
 	"github.com/safedep/vet/v2/internal/hiddentext"
-	"github.com/safedep/vet/v2/internal/plugins/controls"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/test/internal/scantest"
 )
@@ -215,8 +215,6 @@ func TestEvasionCorpus(t *testing.T) {
 	if !withCGO {
 		t.Skip("the dynamic-code cases need a vet built with CGO")
 	}
-	attacks, err := controls.AttackIDs()
-	require.NoError(t, err)
 	cases := loadCases(t)
 	var table bytes.Buffer
 	table.WriteString("# Evasion corpus coverage\n\n" +
@@ -227,7 +225,8 @@ func TestEvasionCorpus(t *testing.T) {
 	for _, c := range cases {
 		dir := t.TempDir()
 		require.NoError(t, expand(dir, c.files), "%s/%s", c.group, c.name)
-		got := scantest.ControlIDs(scantest.Scan(t, source(t, c, dir)))
+		fs := scantest.Scan(t, source(t, c, dir))
+		got := scantest.ControlIDs(fs)
 		caught := slices.Equal(got, c.want)
 		t.Run(c.group+"/"+c.name, func(t *testing.T) {
 			if c.miss == "" {
@@ -259,7 +258,7 @@ func TestEvasionCorpus(t *testing.T) {
 			passes++
 		}
 		gate := "passes"
-		if slices.ContainsFunc(got, func(id string) bool { return slices.Contains(attacks, id) }) {
+		if slices.ContainsFunc(fs, func(f *finding.Finding) bool { return f.Attack != nil }) {
 			gate = "fails"
 		}
 		fmt.Fprintf(&table, "| `%s`: %s | %s | %s | %s | %s |\n", c.name, cell(c.summary), ids(c.want), ids(got), gate, cell(result))

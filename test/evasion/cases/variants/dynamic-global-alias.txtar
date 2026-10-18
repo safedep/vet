@@ -1,0 +1,6 @@
+# require put on an alias of globalThis
+want: dynamic-code
+-- rollup.config.js --
+const g = globalThis;
+g.r = require;
+export default {};

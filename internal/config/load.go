@@ -84,6 +84,10 @@ type LoadOptions struct {
 	ManagedFile string
 	// ConfigFile is the file of --config. It must exist when it is set.
 	ConfigFile string
+	// ConfigData, when not nil, is the content of ConfigFile. Load reads
+	// it in place of the file on disk and skips the managed file, so that
+	// vet config set checks a change before it writes the file.
+	ConfigData []byte
 	// UserFile is the user's config.yml. It is optional.
 	UserFile string
 	// Flags maps a key to the raw value of the flag that sets it.
@@ -139,7 +143,7 @@ func Load(opts LoadOptions) (*Loaded, error) {
 		return nil, err
 	}
 	if path != "" {
-		fileTree, err := readTree(path)
+		fileTree, err := readTree(path, opts.ConfigData)
 		if err != nil {
 			return nil, err
 		}
@@ -236,6 +240,9 @@ func Load(opts LoadOptions) (*Loaded, error) {
 }
 
 func pickFile(opts LoadOptions) (string, Layer, error) {
+	if opts.ConfigData != nil {
+		return opts.ConfigFile, LayerFile, nil
+	}
 	if opts.ManagedFile != "" && fileExists(opts.ManagedFile) && opts.TrustManaged(opts.ManagedFile) {
 		return opts.ManagedFile, LayerManaged, nil
 	}
@@ -258,13 +265,17 @@ func fileExists(path string) bool {
 	return err == nil && st.Mode().IsRegular()
 }
 
-func readTree(path string) (map[string]any, error) {
-	b, err := os.ReadFile(path)
-	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			return map[string]any{}, nil
+// readTree reads the tree of a config file, or of data when it is not nil.
+func readTree(path string, data []byte) (map[string]any, error) {
+	b := data
+	if b == nil {
+		var err error
+		if b, err = os.ReadFile(path); err != nil {
+			if errors.Is(err, fs.ErrNotExist) {
+				return map[string]any{}, nil
+			}
+			return nil, newError(CodeFileUnreadable, fmt.Sprintf("read config file %s: %v", path, err), "Check the file mode.")
 		}
-		return nil, newError(CodeFileUnreadable, fmt.Sprintf("read config file %s: %v", path, err), "Check the file mode.")
 	}
 	tree := map[string]any{}
 	if len(bytes.TrimSpace(b)) == 0 {

@@ -12,16 +12,13 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"slices"
 	"time"
 
-	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/ci"
 	"github.com/safedep/vet/v2/internal/ci/githubci"
 	"github.com/safedep/vet/v2/internal/github"
 	"github.com/safedep/vet/v2/internal/overview"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/ghcp"
-	"github.com/safedep/vet/v2/internal/plugins/controls"
 	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -56,10 +53,9 @@ type Options struct {
 
 // Sink writes and publishes the pull request comment.
 type Sink struct {
-	create  string
-	key     string
-	attacks []string
-	getenv  func(string) string
+	create string
+	key    string
+	getenv func(string) string
 	// commenter returns the adapter of the platform of a run.
 	commenter func(ctx context.Context, c ci.Context) (ci.Commenter, error)
 	// proxy returns the adapter of the comment proxy, or nil when the
@@ -80,17 +76,13 @@ func New(cfg plugin.Config) (plugin.Sink, error) {
 	default:
 		return nil, fmt.Errorf("pr-comment: create must be %s or %s, got %q", CreateChanges, CreateFindings, o.Create)
 	}
-	attacks, err := controls.AttackIDs()
-	if err != nil {
-		return nil, err
-	}
 	if err := checkProxyURL(o.ProxyURL); err != nil {
 		return nil, err
 	}
 	if !validKey.MatchString(o.Key) {
 		return nil, fmt.Errorf("pr-comment: key must hold only a-z, 0-9 and -, got %q", o.Key)
 	}
-	s := &Sink{create: o.Create, key: o.Key, attacks: attacks, getenv: os.Getenv, commenter: platformCommenter}
+	s := &Sink{create: o.Create, key: o.Key, getenv: os.Getenv, commenter: platformCommenter}
 	if o.Proxy == nil || *o.Proxy {
 		// The proxy finds the comment to edit by the tag in its body, so
 		// the marker is the tag.
@@ -284,7 +276,6 @@ func (s *Sink) input(ctx context.Context, r plugin.Report) (*input, error) {
 	}
 	return &input{
 		header: r.Header(), trailer: r.Trailer(), view: view,
-		attack:  func(f *finding.Finding) bool { return slices.Contains(s.attacks, f.ControlID) },
 		dialect: githubDialect, marker: markerOf(s.key),
 	}, nil
 }

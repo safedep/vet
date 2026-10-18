@@ -223,7 +223,7 @@ func planFile(ctx context.Context, rel string, data []byte, pin pinner) (*File, 
 }
 
 func pinnable(v string) bool {
-	return !strings.HasPrefix(v, "./") && !strings.HasPrefix(v, "docker://") && !strings.Contains(v, "${{")
+	return !github.IsLocalAction(v) && !strings.HasPrefix(v, "docker://") && !strings.Contains(v, "${{")
 }
 
 // rewriteLine replaces the uses: value at its column, keeps its quotes, and

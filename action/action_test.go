@@ -434,14 +434,17 @@ func TestScan(t *testing.T) {
 		// script fetches it. header is a token header of the checkout.
 		baseInOrigin bool
 		header       bool
-		exit         int
-		args         []string
-		noArgs       []string
-		comment      string
-		outputs      []string
-		noOutputs    []string
-		output       string
-		fetch        string
+		// mergeCheckout checks out the merge of a head commit into a base
+		// that moved after the base of the event.
+		mergeCheckout bool
+		exit          int
+		args          []string
+		noArgs        []string
+		comment       string
+		outputs       []string
+		noOutputs     []string
+		output        string
+		fetch         string
 	}{
 		{
 			name:    "a pull request scans the change, applies the policy and comments",
@@ -510,6 +513,13 @@ func TestScan(t *testing.T) {
 			baseInOrigin: true,
 			args:         []string{"--base-ref\nBASE"},
 			fetch:        "http.https://github.com/.extraheader",
+		},
+		{
+			name:          "a merge checkout scans against the base of the merge, not the older base of the event",
+			event:         "pull_request",
+			mergeCheckout: true,
+			args:          []string{"--base-ref\nMERGEBASE"},
+			noArgs:        []string{"--base-ref\nBASE"},
 		},
 		{
 			name:         "the script uses the token header of the checkout",
@@ -637,13 +647,27 @@ func TestScan(t *testing.T) {
 			if tc.header {
 				gitIn(repo, "config", "http.https://github.com/.extraheader", "AUTHORIZATION: basic eA==")
 			}
+			head, mergeBase := "", ""
+			if tc.mergeCheckout {
+				gitIn(repo, "checkout", "-q", "-b", "change")
+				writeFile(t, filepath.Join(repo, "change.txt"), "change\n", 0o644)
+				gitIn(repo, "add", "-A")
+				gitIn(repo, "commit", "-q", "-m", "change")
+				head = gitIn(repo, "rev-parse", "HEAD")
+				gitIn(repo, "checkout", "-q", "-")
+				writeFile(t, filepath.Join(repo, "moved.txt"), "moved\n", 0o644)
+				gitIn(repo, "add", "-A")
+				gitIn(repo, "commit", "-q", "-m", "the base moves")
+				mergeBase = gitIn(repo, "rev-parse", "HEAD")
+				gitIn(repo, "merge", "-q", "--no-ff", "-m", "merge", head)
+			}
 
 			fake := filepath.Join(root, "fake")
 			bin := filepath.Join(root, "bin")
 			writeFile(t, filepath.Join(bin, "vet"), fakeVet, 0o755)
 			writeFile(t, filepath.Join(bin, "git"), fakeGit, 0o755)
 			event := filepath.Join(root, "event.json")
-			writeFile(t, event, `{"pull_request": {"base": {"sha": "`+base+`"}}}`, 0o644)
+			writeFile(t, event, `{"pull_request": {"base": {"sha": "`+base+`"}, "head": {"sha": "`+head+`"}}}`, 0o644)
 			runner := filepath.Join(root, "runner")
 			require.NoError(t, os.MkdirAll(fake, 0o755))
 			require.NoError(t, os.MkdirAll(runner, 0o755))
@@ -683,6 +707,9 @@ func TestScan(t *testing.T) {
 			argData, err := os.ReadFile(filepath.Join(fake, "args"))
 			require.NoError(t, err)
 			args := strings.ReplaceAll(string(argData), base, "BASE")
+			if mergeBase != "" {
+				args = strings.ReplaceAll(args, mergeBase, "MERGEBASE")
+			}
 			for _, a := range tc.args {
 				assert.Contains(t, args, a)
 			}

@@ -74,6 +74,12 @@
   tier: P0
   guarantee: "In agent mode or with --no-input, a command that asks for confirmation exits 2 at once and names the flag."
   labels: [agent, prompt]
+- id: output/debug/log-on-stderr
+  title: "--debug writes the log on stderr and keeps stdout"
+  category: output
+  tier: P1
+  guarantee: "--debug writes the debug log of vet and of its libraries on stderr, and stdout keeps the report. With no flag, no library line shows. --debug and -q cannot be used together. --log appends the log to a file as JSON lines."
+  labels: [debug, streams]
 - id: output/escape/untrusted-text
   title: "untrusted text prints escaped"
   category: output
@@ -308,6 +314,12 @@
   tier: P1
   guarantee: "In pull request mode, a change that adds code after a run of spaces to a build config gives padded-code and fails the attacks gate. A clean config that the change keeps gives nothing."
   labels: [hidden-code, pr-mode]
+- id: controls/agent-config/pr-linked-instructions
+  title: "agent config: an instruction file that links to another in pull request mode"
+  category: controls
+  tier: P2
+  guarantee: "In pull request mode, CLAUDE.md that links to AGENTS.md gives no agent-instruction-change finding when the change keeps both. A change to AGENTS.md reports both names as MODIFIED."
+  labels: [agent-config, pr-mode]
 - id: controls/hidden-code/pr-unchanged
   title: "hidden code: an unchanged infected file in pull request mode"
   category: controls
@@ -402,7 +414,7 @@
   title: "workflow: unpinned action"
   category: controls
   tier: P0
-  guarantee: "A workflow that uses an action by tag gives a finding. An action pinned by SHA gives none."
+  guarantee: "A workflow that uses an action by tag gives a finding. An action pinned by SHA gives none. A local action, as ./path or $/path, gives none."
   labels: [controls]
 - id: scan/working-tree/never-writes
   title: "a scan never writes the target"
@@ -606,7 +618,7 @@
   title: "the fix pins actions by SHA"
   category: fix
   tier: P0
-  guarantee: "vet fix github-actions run rewrites each third-party uses: with a tag to a commit SHA with the tag in a comment, from a stub GitHub answer. Local and same-repository actions do not change."
+  guarantee: "vet fix github-actions run rewrites each third-party uses: with a tag to a commit SHA with the tag in a comment, from a stub GitHub answer. Local actions (./path and $/path) and same-repository actions do not change."
   labels: [fix]
 - id: fix/github-actions/dry-run
   title: "the fix dry run writes nothing"

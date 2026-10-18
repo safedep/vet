@@ -52,6 +52,17 @@ esac
 base=""
 if [[ ${GITHUB_EVENT_NAME:-} == pull_request* ]]; then
   base=$(jq -r '.pull_request.base.sha // empty' "${GITHUB_EVENT_PATH:?}")
+  head=$(jq -r '.pull_request.head.sha // empty' "$GITHUB_EVENT_PATH")
+  # The checkout of a pull_request event merges the head into the newest
+  # base. The event keeps an older base when the base branch moved after
+  # the last push. A diff against that base then counts the new commits of
+  # the base branch as part of the change. The first parent of the merge is
+  # the base that the merge holds. A shallow checkout keeps the parent ids
+  # in the commit, so cat-file reads them with no fetch.
+  read -r first second extra <<<"$(git cat-file -p HEAD 2>/dev/null | sed -n 's/^parent //p' | tr '\n' ' ')" || true
+  if [ -n "$head" ] && [ "${second:-}" = "$head" ] && [ -z "${extra:-}" ]; then
+    base=$first
+  fi
 fi
 
 if [ -n "$base" ]; then

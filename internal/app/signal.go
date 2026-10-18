@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"os"
 	"os/signal"
 	"syscall"
@@ -21,15 +22,19 @@ func SignalContext(parent context.Context) (context.Context, func()) {
 	}
 }
 
-// watchSignals cancels the context on the first signal, and calls exit on
-// the second.
+// Interrupted reports whether a signal canceled the context. Another cause,
+// such as a stopped parent, is not an interrupt.
+func Interrupted(ctx context.Context) bool { return errors.Is(context.Cause(ctx), ErrInterrupted) }
+
+// watchSignals cancels the context on the first signal, with the cause
+// ErrInterrupted, and calls exit on the second.
 func watchSignals(parent context.Context, sigs <-chan os.Signal, exit func(int)) (context.Context, func()) {
-	ctx, cancel := context.WithCancel(parent)
+	ctx, cancel := context.WithCancelCause(parent)
 	done := make(chan struct{})
 	go func() {
 		select {
 		case <-sigs:
-			cancel()
+			cancel(ErrInterrupted)
 		case <-done:
 			return
 		}
@@ -45,6 +50,6 @@ func watchSignals(parent context.Context, sigs <-chan os.Signal, exit func(int))
 			once = true
 			close(done)
 		}
-		cancel()
+		cancel(nil)
 	}
 }

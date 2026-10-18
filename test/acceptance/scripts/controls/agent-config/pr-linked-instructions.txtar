@@ -1,0 +1,32 @@
+# In pull request mode, CLAUDE.md that links to AGENTS.md gives no finding
+# when the change keeps both files. A change to AGENTS.md reports both
+# names, because an agent reads the new text under each one.
+[windows] skip 'needs symbolic links'
+[!git] skip 'needs git'
+cd repo
+symlink CLAUDE.md -> AGENTS.md
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+cp $WORK/readme.md README.md
+exec vet scan . --base-ref HEAD --mode plain -o json
+! stdout '"control_id":"agent-instruction-change"'
+stdout '"path":"CLAUDE.md","kind":"agent-config","change":"UNCHANGED"'
+cp $WORK/agents.md AGENTS.md
+exec vet scan . --base-ref HEAD --mode plain -o json
+stdout '"path":"CLAUDE.md","kind":"agent-config","change":"MODIFIED"'
+stdout '"path":"AGENTS.md","kind":"agent-config","change":"MODIFIED"'
+stdout '"title":"Agent instruction file CLAUDE.md"'
+stdout '"title":"Agent instruction file AGENTS.md"'
+
+-- repo/AGENTS.md --
+# Rules
+Run go test before a push.
+-- repo/README.md --
+x
+-- readme.md --
+y
+-- agents.md --
+# Rules
+Run go test before a push.
+Also read docs/style.md.

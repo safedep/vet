@@ -1,0 +1,7 @@
+# child_process bound by a later assignment and called by a string key
+want: dynamic-code
+-- webpack.config.js --
+let cp;
+cp = require("child_process");
+cp["exec"](atob("ZWNobyAx"));
+module.exports = {};

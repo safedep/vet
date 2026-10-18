@@ -28,6 +28,18 @@ type Finding struct {
 	Remediation *Remediation `json:"remediation,omitempty"`
 	Suppression *Suppression `json:"suppression,omitempty"`
 	Gate        *GateRecord  `json:"gate,omitempty"`
+	// The engine sets Attack when the control of the finding is an attack
+	// control. It reads the control info, so a control cannot set it.
+	Attack *Attack `json:"attack,omitempty"`
+}
+
+// Attack marks a finding of an attack control. The attacks gate fails on
+// it, and a report shows it before the other findings.
+type Attack struct {
+	// Technique is the id of the attack technique.
+	Technique string `json:"technique,omitempty"`
+	// MITRE holds the MITRE ATT&CK technique ids, as T1027.
+	MITRE []string `json:"mitre,omitempty"`
 }
 
 // Subject holds exactly one of its fields. Kind names it.
@@ -267,9 +279,16 @@ func (s Subject) validate() error {
 	return nil
 }
 
-// Compare orders findings for a report: the most severe first, then by
-// control and id. Every report source uses this order.
+// Compare orders findings for a report: the attack findings first, then
+// the most severe, then by control and id. Every report source uses this
+// order, so that no output shows a vulnerability above an attack.
 func Compare(a, b *Finding) int {
+	if aa, ba := a.Attack != nil, b.Attack != nil; aa != ba {
+		if aa {
+			return -1
+		}
+		return 1
+	}
 	if c := cmp.Compare(b.Severity.Rank(), a.Severity.Rank()); c != 0 {
 		return c
 	}

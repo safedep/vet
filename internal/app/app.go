@@ -18,13 +18,16 @@ import (
 	"github.com/safedep/vet/v2/internal/tui/prompt"
 )
 
-// Globals are the global flags: -o, --mode, -v, -q, --no-input, --config
-// and --profile. Every other flag is local to its command.
+// Globals are the global flags: -o, --mode, -v, -q, --debug, --log,
+// --no-input, --config and --profile. Every other flag is local to its
+// command.
 type Globals struct {
 	Output     string
 	Mode       string
 	Verbose    bool
 	Quiet      bool
+	Debug      bool
+	LogFile    string
 	NoInput    bool
 	ConfigFile string
 	Profile    string
@@ -46,10 +49,11 @@ type Options struct {
 type App struct {
 	Globals Globals
 
-	opts    Options
-	once    sync.Once
-	runtime *config.Runtime
-	err     error
+	opts     Options
+	once     sync.Once
+	runtime  *config.Runtime
+	err      error
+	closeLog func() error
 }
 
 // New returns an App.
@@ -68,16 +72,27 @@ func (a *App) LookupEnv(key string) (string, bool) { return a.opts.LookupEnv(key
 
 var modes = map[string]output.Mode{"rich": output.Rich, "plain": output.Plain, "agent": output.Agent}
 
-// Apply checks the global flags and sets the messaging mode and the
-// verbosity. The root command calls it before every command.
+// Apply checks the global flags and sets the messaging mode, the verbosity
+// and the log. The root command calls it before every command.
 func (a *App) Apply() error {
 	g := a.Globals
 	if g.Verbose && g.Quiet {
 		return UsageError("-v and -q cannot be used together", "Use -v for more output or -q for less output.")
 	}
-	if err := setMode(g.Mode, "--mode"); err != nil {
+	if g.Debug && g.Quiet {
+		return UsageError("--debug and -q cannot be used together", "Use --debug to see the log lines, or -q to see only errors.")
+	}
+	if err := a.setMode(g.Mode, "--mode"); err != nil {
 		return err
 	}
+	if err := a.CloseLog(); err != nil {
+		return err
+	}
+	closeLog, err := InitLog(LogOptions{Debug: g.Debug, File: g.LogFile})
+	if err != nil {
+		return err
+	}
+	a.closeLog = closeLog
 	prompt.SetNoInput(g.NoInput)
 	switch {
 	case g.Verbose:
@@ -90,15 +105,29 @@ func (a *App) Apply() error {
 	return nil
 }
 
-func setMode(mode, from string) error {
-	if mode == "" || mode == "auto" {
+// CloseLog closes the log file of --log. Run calls it when the command ends.
+func (a *App) CloseLog() error {
+	if a.closeLog == nil {
 		return nil
 	}
-	m, ok := modes[mode]
-	if !ok {
-		return UsageError(fmt.Sprintf("%s: unknown mode %q", from, mode), "Use auto, rich, plain or agent.")
+	err := a.closeLog()
+	a.closeLog = nil
+	return err
+}
+
+// setMode sets the messaging mode. With --debug a rich mode becomes plain,
+// because the log lines on stderr would break the live progress.
+func (a *App) setMode(mode, from string) error {
+	if mode != "" && mode != "auto" {
+		m, ok := modes[mode]
+		if !ok {
+			return UsageError(fmt.Sprintf("%s: unknown mode %q", from, mode), "Use auto, rich, plain or agent.")
+		}
+		output.SetMode(m)
 	}
-	output.SetMode(m)
+	if a.Globals.Debug && output.CurrentMode() == output.Rich {
+		output.SetMode(output.Plain)
+	}
 	return nil
 }
 
@@ -147,7 +176,7 @@ func (a *App) Config(o ConfigOptions) (*config.Runtime, error) {
 			a.err = a.runtime.RefuseLocked(o.dirKeys()...)
 		}
 		if a.err == nil && a.Globals.Mode == "" {
-			a.err = setMode(a.runtime.Config.Output.Mode, "output.mode")
+			a.err = a.setMode(a.runtime.Config.Output.Mode, "output.mode")
 		}
 	})
 	return a.runtime, a.err

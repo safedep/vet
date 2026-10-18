@@ -65,7 +65,13 @@ The allowed verbs:
 ### Flags
 
 - Only the root declares persistent flags. **(lint)** The global flags are `-o`, `--mode`, `-v`,
-  `-q`, `--no-input`, `--config` and `--profile`.
+  `-q`, `--debug`, `--log`, `--no-input`, `--config` and `--profile`.
+- `-v` and `-q` change the view on stderr. They never show a log line. `--debug` writes the debug log
+  of vet and of its libraries on stderr, and `--log FILE` appends it to a file as JSON lines. With
+  `--debug` the rich view becomes plain, because a log line breaks the live progress. `--debug` and
+  `-q` cannot be used together, because `-q` shows only errors.
+- Write a log line with `github.com/safedep/dry/log`. Do not write to the standard `log` package.
+  **(archtest)**
 - A flag that only some commands read is a local flag on those commands, for example `--report`,
   `--state-dir`, `--cache-dir` and `--ephemeral`.
 - `-o` names a data format on stdout. It never names a file. `--report FORMAT=PATH` writes a file.

@@ -78,7 +78,7 @@ var infos = map[string]plugin.ControlInfo{
 	IDUnpinnedAction: {
 		ID: IDUnpinnedAction, Family: finding.FamilyWorkflow, Severity: finding.SeverityMedium,
 		Title:       "Action not pinned to a commit SHA",
-		Description: "A step uses an action by a tag or a branch. The owner of the action, or an attacker who controls it, can move the tag to other code.",
+		Description: "A step uses an action by a tag or a branch. The owner of the action, or an attacker who controls it, can move the tag to other code. A local action passes. $/path runs from the commit of the workflow. ./path runs from the workspace, which the checkout steps of the job fill.",
 	},
 }
 

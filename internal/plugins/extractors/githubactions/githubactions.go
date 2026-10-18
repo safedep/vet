@@ -245,9 +245,9 @@ func packagesFromJob(job *yaml.Node, path string) []*extractor.Package {
 // workflow (e.g. local actions like ./action and Docker actions are skipped).
 func packageFromUses(uses string, line int, path string) *extractor.Package {
 	uses = strings.TrimSpace(uses)
-	// Local actions (./path, ../path) live in the same repository and have
-	// no independent version, so they are not GitHub Actions ecosystem deps.
-	if strings.HasPrefix(uses, "./") || strings.HasPrefix(uses, "../") {
+	// Local actions (./path, $/path, ../path) live in the same repository and
+	// have no independent version, so they are not GitHub Actions ecosystem deps.
+	if github.IsLocalAction(uses) || strings.HasPrefix(uses, "../") {
 		return nil
 	}
 	// Docker action references aren't GitHub Actions ecosystem packages.

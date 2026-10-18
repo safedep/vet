@@ -1,9 +1,9 @@
 name: False-positive run
 
 # Scans clean projects at fixed commits and fails on each attack finding.
-# It clones from GitHub, so it is advisory: never a required check. A change
-# that edits a detection runs it on dispatch. GitHub runs the schedule on
-# the default branch only.
+# It clones from GitHub, so it is advisory: never a required check. A pull
+# request that changes a detection or the corpus runs it, and so does a
+# dispatch. GitHub runs the schedule on the default branch only.
 on:
   workflow_dispatch:
     inputs:
@@ -13,9 +13,22 @@ on:
         default: ""
   schedule:
     - cron: "41 4 * * 1"
+  pull_request:
+    branches: [v2]
+    paths:
+      - "internal/technique/**"
+      - "internal/hiddentext/**"
+      - "internal/plugins/controls/**"
+      - "internal/plugins/extractors/agentconfig/**"
+      - "internal/plugins/extractors/hiddencode/**"
+      - "internal/plugins/internal/agentfiles/**"
+      - "internal/plugins/internal/hiddencode/**"
+      - "test/evasion/**"
+      - "test/falsepositive/**"
+      - ".github/workflows/false-positive.yml"
 
 concurrency:
-  group: false-positive-${{ inputs.ref || github.ref }}
+  group: false-positive-${{ github.event.pull_request.number || inputs.ref || github.ref }}
   cancel-in-progress: false
 
 permissions:

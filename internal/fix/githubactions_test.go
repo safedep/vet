@@ -39,6 +39,8 @@ jobs:
       - uses: my-org/app/.github/workflows/x.yml@main
       - uses: actions/cache@` + sha + `
       - uses: gone/action@v1
+      - uses: $/.github/actions/local
+      - uses: $/.github/actions/local@v1
 `
 
 const pinned = `on: push
@@ -54,6 +56,8 @@ jobs:
       - uses: my-org/app/.github/workflows/x.yml@main
       - uses: actions/cache@` + sha + `
       - uses: gone/action@v1
+      - uses: $/.github/actions/local
+      - uses: $/.github/actions/local@v1
 `
 
 func project(t *testing.T) string {

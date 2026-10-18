@@ -20,7 +20,7 @@ comment:
 - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 ```
 
-These stay as they are: local actions (`./path`), Docker images, the actions of the same
+These stay as they are: local actions (`./path` and `$/path`), Docker images, the actions of the same
 repository (from the `origin` remote), expressions, and actions that a SHA already pins. vet edits
 only the `uses:` value, so each file keeps its format, its comments and its line ends. It writes a
 file through a temporary file and a rename.

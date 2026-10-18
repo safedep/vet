@@ -122,9 +122,13 @@ func packagesFor(p model.Packages, k plugin.ArtifactKind) model.Packages {
 }
 
 // lockableKeys are the config keys of the scan flags that the user set. A
-// managed file with lockdown refuses each of them.
-func (o Options) lockableKeys() []string {
+// managed file with lockdown refuses each of them. --ephemeral replaces the
+// state and cache directories, so it changes state.dir and cache.dir.
+func (o Options) lockableKeys(ephemeral bool) []string {
 	keys := gateKeys(o.FailOn, o.Policy)
+	if ephemeral {
+		keys = append(keys, "state.dir", "cache.dir")
+	}
 	if o.Strict {
 		keys = append(keys, "scan.strict")
 	}
@@ -176,7 +180,8 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	for _, w := range rt.Warnings {
 		tui.Warning("%s", w)
 	}
-	if err := rt.RefuseLocked(o.lockableKeys()...); err != nil {
+	ephemeral := o.State.EphemeralFrom(a.LookupEnv)
+	if err := rt.RefuseLocked(o.lockableKeys(ephemeral)...); err != nil {
 		return err
 	}
 
@@ -228,7 +233,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		return configError(err)
 	}
 
-	dirs, err := state.PrepareDirs(state.DirRequest{Dirs: rt.Dirs, Ephemeral: o.State.EphemeralFrom(a.LookupEnv)})
+	dirs, err := state.PrepareDirs(state.DirRequest{Dirs: rt.Dirs, Ephemeral: ephemeral})
 	if err != nil {
 		return err
 	}
@@ -487,11 +492,7 @@ func newEvaluator(ctx context.Context, cfg *config.Config, failOn report.FailOn,
 		}
 		srcs = append(srcs, src)
 	}
-	attacks, err := controls.AttackIDs()
-	if err != nil {
-		return nil, err
-	}
-	return policy.NewFromSources(ctx, policy.Options{FailOn: failOn, Attacks: attacks}, srcs...)
+	return policy.NewFromSources(ctx, policy.Options{FailOn: failOn}, srcs...)
 }
 
 func withState(ctx context.Context, dirs *state.Dirs, useCache bool, fn func(*state.Store, *state.Cache) error) (err error) {

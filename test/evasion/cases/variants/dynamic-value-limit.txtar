@@ -1,0 +1,11 @@
+# child_process hidden behind 16 earlier values of the same name
+want: dynamic-code
+-- vite.config.js --
+var cp;
+cp = require("m0"); cp = require("m1"); cp = require("m2"); cp = require("m3");
+cp = require("m4"); cp = require("m5"); cp = require("m6"); cp = require("m7");
+cp = require("m8"); cp = require("m9"); cp = require("m10"); cp = require("m11");
+cp = require("m12"); cp = require("m13"); cp = require("m14"); cp = require("m15");
+var cp = require("child_process");
+cp.exec(atob("ZWNobyAx"));
+export default {};

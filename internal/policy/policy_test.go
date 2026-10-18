@@ -368,7 +368,10 @@ rules:
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			f, pkg := packageFinding(tc.control, finding.SeverityCritical, "evil", "1.0.0", nil)
-			NewEvaluator(p, Options{FailOn: tc.failOn, Attacks: []string{"malware"}, Now: func() time.Time { return now }}).Apply(f, pkg, nil)
+			if tc.control == "malware" {
+				f.Attack = &finding.Attack{}
+			}
+			NewEvaluator(p, Options{FailOn: tc.failOn, Now: func() time.Time { return now }}).Apply(f, pkg, nil)
 			assert.Equal(t, tc.want, f.Gate)
 		})
 	}

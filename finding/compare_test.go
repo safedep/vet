@@ -13,11 +13,12 @@ func TestCompare(t *testing.T) {
 		{ID: "f-3", ControlID: "a", Severity: SeverityLow},
 		{ID: "f-1", ControlID: "a", Severity: SeverityLow},
 		{ID: "f-9", ControlID: "z", Severity: SeverityCritical},
+		{ID: "f-5", ControlID: "y", Severity: SeverityHigh, Attack: &Attack{}},
 	}
 	slices.SortFunc(fs, Compare)
 	var ids []string
 	for _, f := range fs {
 		ids = append(ids, f.ID)
 	}
-	assert.Equal(t, []string{"f-9", "f-1", "f-3", "f-2"}, ids)
+	assert.Equal(t, []string{"f-5", "f-9", "f-1", "f-3", "f-2"}, ids, "an attack comes before a more severe finding")
 }

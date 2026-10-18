@@ -125,7 +125,7 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 			rules[id] = true
 			rn.Tool.Driver.Rules = append(rn.Tool.Driver.Rules, rule{
 				ID: id, ShortDescription: text{Text: id},
-				Properties: properties{Tags: []string{"security", string(f.Family)}},
+				Properties: properties{Tags: append([]string{"security", string(f.Family)}, attackTags(f)...)},
 			})
 		}
 		rn.Results = append(rn.Results, toResult(f))
@@ -148,6 +148,20 @@ func ruleID(f *finding.Finding) string {
 	return f.ControlID
 }
 
+// attackTags tags an attack finding with "attack" and its MITRE ATT&CK
+// ids, as external/mitre-attack/T1027, so that code scanning can filter
+// on them.
+func attackTags(f *finding.Finding) []string {
+	if f.Attack == nil {
+		return nil
+	}
+	tags := []string{"attack"}
+	for _, id := range f.Attack.MITRE {
+		tags = append(tags, "external/mitre-attack/"+id)
+	}
+	return tags
+}
+
 func first(s []string) string {
 	if len(s) == 0 {
 		return ""
@@ -163,7 +177,7 @@ func toResult(f *finding.Finding) result {
 	res := result{
 		RuleID: ruleID(f), Level: level(f.Severity), Message: text{Text: msg},
 		PartialFingerprints: map[string]string{fingerprint: f.ID},
-		Properties:          properties{SecuritySeverity: securitySeverity(f.Severity), Tags: []string{string(f.Severity), string(f.Family)}},
+		Properties:          properties{SecuritySeverity: securitySeverity(f.Severity), Tags: append([]string{string(f.Severity), string(f.Family)}, attackTags(f)...)},
 	}
 	if loc := locationOf(f); loc != nil {
 		res.Locations = []location{*loc}

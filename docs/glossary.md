@@ -363,9 +363,21 @@ _Avoid_: verdict (the result of a malware analysis), policy rule (the rule itsel
 
 **Attacks gate**:
 The gate of `--fail-on attacks`. It fails on an unsuppressed finding of an attack control, and each
-other finding warns. `plugin.ControlInfo.Attack` marks the attack controls, and `controls.AttackIDs` lists them.
-`docs/policy.md` shows the list. It is the default gate of the vet GitHub Action.
+other finding warns. `plugin.ControlInfo.Attack` marks the attack controls. `docs/policy.md` shows the
+list. It is the default gate of the vet GitHub Action.
 _Avoid_: malware-only mode, safe mode
+
+**Attack finding**:
+A finding of an attack control. The engine sets `finding.Finding.Attack` from the control info, so a
+control cannot mark its own finding. The attacks gate and the reports read the field, not a list of
+control ids.
+
+**Technique**:
+An attack technique that vet detects, and the unit of a detection contribution: a Go detector, its
+MITRE ATT&CK ids and the evasion corpus groups that test it. `internal/technique` is the registry.
+An attack control names its technique in `plugin.ControlInfo.Technique`, and the engine copies the
+ATT&CK ids to `finding.Attack.MITRE`.
+_Avoid_: signature, indicator, rule (a policy rule)
 
 ## Reports and output
 

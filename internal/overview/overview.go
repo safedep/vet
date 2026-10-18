@@ -1,7 +1,7 @@
-// Package overview reads what a person sees first in a report: the
-// findings that no suppression hides, the most severe first, the
-// diagnostics, and what a pull request changes. The terminal view and the
-// sinks share it.
+// Package overview reads what a person sees first in a report. That is the
+// findings that no suppression hides, with the attacks and then the most
+// severe first, the diagnostics, and what a pull request changes. The
+// terminal view and the sinks share it.
 package overview
 
 import (
@@ -17,8 +17,8 @@ import (
 // Overview is what a person sees first in a report.
 type Overview struct {
 	Diagnostics []*report.Diagnostic
-	// Findings are the findings that no suppression hides, the most
-	// severe first.
+	// Findings are the findings that no suppression hides, in
+	// finding.Compare order.
 	Findings []*finding.Finding
 	// Suppressed are the findings that a suppression hides.
 	Suppressed []*finding.Finding

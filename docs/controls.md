@@ -75,6 +75,27 @@ to its section.
 
 <!-- controls:table:end -->
 
+## Attack techniques
+
+Each attack control finds one technique. The table maps the technique to its MITRE ATT&CK ids and to
+the groups of the [evasion corpus](../test/evasion/README.md) that test it. A finding of an attack
+control carries the ATT&CK ids. See [CONTRIBUTING-DETECTIONS.md](../CONTRIBUTING-DETECTIONS.md) to
+add a technique.
+
+<!-- controls:techniques:start -->
+
+| Technique | MITRE ATT&CK | Controls | Evasion corpus |
+| --- | --- | --- | --- |
+| `malicious-package`: Malicious package | [T1195.001](https://attack.mitre.org/techniques/T1195/001/) | [`malware`](#malware) | SafeDep Threat Intel decides the verdict, so a file of the corpus cannot test it. |
+| `impostor-commit`: Action pinned to a commit outside its repository | [T1195.001](https://attack.mitre.org/techniques/T1195/001/), [T1036](https://attack.mitre.org/techniques/T1036/) | [`impostor-commit`](#impostor-commit) | The GitHub API decides it, and the corpus runs with no network. |
+| `config-command`: Command in an agent or editor config | [T1546](https://attack.mitre.org/techniques/T1546/), [T1059](https://attack.mitre.org/techniques/T1059/) | [`suspicious-command`](#suspicious-command) | `commands`, `variants` |
+| `padded-code`: Script hidden after a run of spaces | [T1027](https://attack.mitre.org/techniques/T1027/), [T1564](https://attack.mitre.org/techniques/T1564/) | [`padded-code`](#padded-code) | `padding`, `placement`, `variants` |
+| `disguised-script`: Script in a file of another type | [T1036.008](https://attack.mitre.org/techniques/T1036/008/), [T1027.009](https://attack.mitre.org/techniques/T1027/009/) | [`disguised-script`](#disguised-script) | `disguise`, `variants` |
+| `unicode-payload`: Payload in invisible Unicode characters | [T1027](https://attack.mitre.org/techniques/T1027/) | [`unicode-payload`](#unicode-payload) | `unicode`, `variants` |
+| `history-rewrite`: Script that rewrites the git history | [T1070](https://attack.mitre.org/techniques/T1070/) | [`history-rewrite-script`](#history-rewrite-script) | `variants` |
+
+<!-- controls:techniques:end -->
+
 ## Pull request mode
 
 `vet scan --base-ref REF` compares the target with a git ref. vet reports only the findings of the
@@ -232,7 +253,7 @@ An instruction file tells a coding agent what to do in the project. Review it li
 
 ### suspicious-command
 
-**Suspicious command in an agent or editor config.** Family `agent-config`. Default severity critical. Plugin `agent-config`. The attacks gate fails on it.
+**Suspicious command in an agent or editor config.** Family `agent-config`. Default severity critical. Plugin `agent-config`. Technique [`config-command`](#attack-techniques). The attacks gate fails on it.
 
 A command that an editor, an agent or a git hook runs looks malicious: it runs a downloaded script, decodes a payload or reads credentials.
 
@@ -256,19 +277,19 @@ The registry published the version less than the cooldown window ago. Most malic
 
 ### padded-code
 
-**Script hidden after a run of spaces.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
+**Script hidden after a run of spaces.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. Technique [`padded-code`](#attack-techniques). The attacks gate fails on it.
 
 A source file, a build config or an npm entry script holds a script after a long run of white space, so an editor shows a clean line. A config can also hide it after its export. A build config runs at each build, test or lint, and an npm entry script at each npm command. An npm entry script that is far larger than the published file is also a finding. PolinRider adds its loader in these ways.
 
 ### disguised-script
 
-**Script in a font, image, dictionary, style sheet or source map.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
+**Script in a font, image, dictionary, style sheet or source map.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. Technique [`disguised-script`](#attack-techniques). The attacks gate fails on it.
 
 A file with the name of a font, an image, a dictionary, an SVG image, a style sheet or a source map holds a script. A task or a loader runs it with node, so the folder looks like it holds only assets. Contagious Interview repositories ship such a fake font. vet parses an SVG image, a style sheet or a source map as JavaScript. A file that node can run, with a call and a script token, gives a finding. A real asset does not parse as JavaScript. vet reads a text asset up to 32 MiB, and a larger one gives a diagnostic that vet did not check all of it. A build with no CGO reads the start of the file and its script tokens.
 
 ### unicode-payload
 
-**Payload in invisible Unicode characters.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
+**Payload in invisible Unicode characters.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. Technique [`unicode-payload`](#attack-techniques). The attacks gate fails on it.
 
 A file holds 16 or more variation selectors with no base character, or tag characters outside a flag emoji. Each one carries one byte of a payload, and an editor and a code review show nothing. Real text holds none. GlassWorm spreads this way, with the decoder in the same file or in another one.
 
@@ -298,7 +319,7 @@ A file holds a run of invisible characters, or code holds a bidirectional contro
 
 ### history-rewrite-script
 
-**Script that rewrites the git history.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
+**Script that rewrites the git history.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. Technique [`history-rewrite`](#attack-techniques). The attacks gate fails on it.
 
 A script amends the last commit with no hooks, keeps its date, and force-pushes it, or .gitignore hides such a script. PolinRider uses it to fold its change into the last real commit of each repository on an infected machine, so the history shows no new commit.
 
@@ -394,7 +415,7 @@ node_modules holds a package, or a version of a package, that the lockfile of th
 
 ### malware
 
-**Malicious package.** Family `malware`. Default severity critical. Plugin `malware`. The attacks gate fails on it.
+**Malicious package.** Family `malware`. Default severity critical. Plugin `malware`. Technique [`malicious-package`](#attack-techniques). The attacks gate fails on it.
 
 SafeDep Threat Intel found malicious behavior in the package version, and a verification confirms it.
 
@@ -462,11 +483,11 @@ A script interpolates an event field that an outside user controls, such as the 
 
 **Action not pinned to a commit SHA.** Family `workflow`. Default severity medium. Plugin `workflow`.
 
-A step uses an action by a tag or a branch. The owner of the action, or an attacker who controls it, can move the tag to other code.
+A step uses an action by a tag or a branch. The owner of the action, or an attacker who controls it, can move the tag to other code. A local action passes. $/path runs from the commit of the workflow. ./path runs from the workspace, which the checkout steps of the job fill.
 
 ### impostor-commit
 
-**Action pinned to a commit outside its repository.** Family `workflow`. Default severity critical. Plugin `workflow`. The attacks gate fails on it.
+**Action pinned to a commit outside its repository.** Family `workflow`. Default severity critical. Plugin `workflow`. Technique [`impostor-commit`](#attack-techniques). The attacks gate fails on it.
 
 A step pins an action to a commit that no branch and no tag of the named repository contains. GitHub serves each commit of a fork through the repository, so the commit can come from a fork that an attacker controls.
 

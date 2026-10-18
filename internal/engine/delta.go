@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/filemode"
 	"github.com/go-git/go-git/v5/plumbing/object"
 
 	"github.com/safedep/vet/v2/finding"
@@ -30,6 +31,21 @@ import (
 type base struct {
 	manifests map[string]*model.Manifest
 	hashes    map[string]plumbing.Hash
+	// links tells, for each base link, whether its head path was a link
+	// when vet read the base. The base of a link depends on it.
+	links map[string]bool
+}
+
+// sameLinks reports whether each base link has the head mode that it had
+// when vet read the base. A kept base is wrong for a checkout that writes
+// a link as a file, or a file as a link.
+func (b *base) sameLinks(dir string) bool {
+	for rel, link := range b.links {
+		if linkAtHead(dir, rel) != link {
+			return false
+		}
+	}
+	return true
 }
 
 // ErrBaseRefTarget is the usage error of --base-ref on a target that is
@@ -48,6 +64,15 @@ func BaseRefError(err error) error {
 		return app.UsageError(fmt.Sprintf("--base-ref %v", err), "Fetch the base branch first, as in: git fetch origin main")
 	}
 	return err
+}
+
+// linkAtHead reports whether the head file rel under dir is a symbolic
+// link. Git can check a link out as a regular file that holds the link
+// text, as with core.symlinks=false on Windows. The scan then reads the
+// link text, so the base keeps the blob of the link text too.
+func linkAtHead(dir, rel string) bool {
+	info, err := os.Lstat(filepath.Join(dir, filepath.FromSlash(rel)))
+	return err == nil && info.Mode()&fs.ModeSymlink != 0
 }
 
 // sameAtHead reports whether the file rel under dir has the content of the
@@ -70,7 +95,7 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 	}
 	hash := &tree.Commit
 	cache := r.baseCache(a, *hash, exs)
-	if b, ok := cache.load(); ok {
+	if b, ok := cache.load(); ok && b.sameLinks(a.Path) {
 		return b, nil
 	}
 	tmp, err := os.MkdirTemp("", "vet-base-")
@@ -83,11 +108,24 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 		}
 	}()
 
-	b := &base{manifests: map[string]*model.Manifest{}, hashes: map[string]plumbing.Hash{}}
+	b := &base{manifests: map[string]*model.Manifest{}, hashes: map[string]plumbing.Hash{}, links: map[string]bool{}}
 	var files []string
 	err = tree.Walk(ctx, func(rel string, f *object.File) error {
 		if r.skipped(rel) {
 			return nil
+		}
+		hash := f.Hash
+		isLink := f.Mode == filemode.Symlink
+		headLink := isLink && linkAtHead(a.Path, rel)
+		if headLink {
+			if target, ok := tree.Resolve(rel, f); ok {
+				f, hash = target, target.Hash
+			} else {
+				// The base blob holds the link text, and a head file can
+				// hold the same bytes. The zero hash matches no content,
+				// so the link counts as changed.
+				hash = plumbing.ZeroHash
+			}
 		}
 		if len(scalibr.Wanted(exs, rel, blobInfo{name: path.Base(rel), size: f.Size})) == 0 {
 			return nil
@@ -95,7 +133,10 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 		if err := gitbase.WriteBlob(f, filepath.Join(tmp, filepath.FromSlash(rel))); err != nil {
 			return err
 		}
-		b.hashes[rel] = f.Hash
+		b.hashes[rel] = hash
+		if isLink {
+			b.links[rel] = headLink
+		}
 		files = append(files, rel)
 		return nil
 	})
