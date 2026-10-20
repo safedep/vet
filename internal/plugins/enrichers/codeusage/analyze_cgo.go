@@ -22,6 +22,7 @@ import (
 	"github.com/safedep/code/plugin/depsusage"
 	"github.com/safedep/code/plugin/indexer"
 	"github.com/safedep/dry/localdb"
+	"github.com/safedep/dry/log"
 )
 
 // skipPatterns match the paths under root that vet does not analyze. They
@@ -72,8 +73,10 @@ func analyzeDir(ctx context.Context, dir string, cache localdb.Manager) (Analysi
 	}
 	opts := indexer.Options{Languages: langs, Plugins: []core.Plugin{fileAnalysis}}
 	if cache != nil {
+		// A broken cache.db costs time, not the code usage.
 		if opts.Store, err = localdbstore.New(ctx, cache); err != nil {
-			return Analysis{}, err
+			log.Warnf("code index: %v. vet parses every file", err)
+			opts.Store = nil
 		}
 	}
 	ix, err := indexer.New(opts)
@@ -90,6 +93,12 @@ func analyzeDir(ctx context.Context, dir string, cache localdb.Manager) (Analysi
 		out.Files[f] = string(st)
 	}
 	for _, f := range res.Report.Failed {
+		// The indexer marks a file that the budget cut in the plugin as
+		// indexed, because its index is complete. Its usage is not.
+		if errors.Is(f.Err, context.DeadlineExceeded) || errors.Is(f.Err, context.Canceled) {
+			out.Files[f.File] = FileMissing
+			continue
+		}
 		out.Failed = append(out.Failed, FileFailure{FilePath: f.File, Stage: string(f.Stage), Err: f.Err.Error()})
 	}
 	if runErr != nil {
@@ -219,11 +228,31 @@ func (p *filePlugin) Analyze(ctx context.Context, _ core.File, tree core.ParseTr
 			}
 		}
 	}
+	p.file.Usage = firstUses(p.file.Usage)
 	p.keep(p.file)
 	if err := errors.Join(errs...); err != nil {
 		return nil, err
 	}
 	return json.Marshal(p.file)
+}
+
+// firstUses keeps the first use of each module. The enricher needs one
+// line for each file and module, and a file can use a module thousands of
+// times.
+func firstUses(evs []Evidence) []Evidence {
+	first := map[Evidence]int{}
+	var out []Evidence
+	for _, ev := range evs {
+		k := ev
+		k.Line = 0
+		if i, ok := first[k]; ok {
+			out[i].Line = min(out[i].Line, ev.Line)
+			continue
+		}
+		first[k] = len(out)
+		out = append(out, ev)
+	}
+	return out
 }
 
 // Restore takes the stored artifact of an unchanged file.

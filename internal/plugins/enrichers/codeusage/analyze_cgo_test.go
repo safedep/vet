@@ -184,7 +184,7 @@ func TestUsageLineIsTheImport(t *testing.T) {
 
 // A deadline that ends before the walk gives no files, and a late one gives
 // none missing, so the test tries longer deadlines until one stops the run
-// in the parse.
+// after some files and before the others.
 func TestDeadlineMakesFilesMissing(t *testing.T) {
 	dir := t.TempDir()
 	body := strings.Repeat("requests.get(\"https://example.com\")\n", 3000)
@@ -199,13 +199,12 @@ func TestDeadlineMakesFilesMissing(t *testing.T) {
 			break
 		}
 		require.ErrorIs(t, err, context.DeadlineExceeded)
-		missing := 0
+		counts := map[string]int{}
 		for _, st := range a.Files {
-			if st == FileMissing {
-				missing++
-			}
+			counts[st]++
 		}
-		if len(a.Files) == 100 && missing > 0 {
+		if len(a.Files) == 100 && counts[FileMissing] > 0 && counts["indexed"] > 0 {
+			assert.Empty(t, a.Failed, "a file that the deadline cuts is missing, not failed")
 			return
 		}
 	}
@@ -246,4 +245,28 @@ func TestModuleVersion(t *testing.T) {
 	for name, c := range cases {
 		assert.Equal(t, c.want, moduleVersion(c.info, code), name)
 	}
+}
+
+func TestFirstUses(t *testing.T) {
+	evs := []Evidence{
+		{ModuleName: "a", FilePath: "x.py", Line: 9},
+		{ModuleName: "a", FilePath: "x.py", Line: 3},
+		{ModuleName: "b", FilePath: "x.py", Line: 5},
+		{ModuleName: "a", FilePath: "x.py", Line: 7},
+	}
+	assert.Equal(t, []Evidence{
+		{ModuleName: "a", FilePath: "x.py", Line: 3},
+		{ModuleName: "b", FilePath: "x.py", Line: 5},
+	}, firstUses(evs))
+}
+
+func TestBrokenCacheParsesEveryFile(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "app.py", "import requests\nrequests.get(\"https://example.com\")\n")
+	notADir := filepath.Join(t.TempDir(), "file")
+	require.NoError(t, os.WriteFile(notADir, nil, 0o600))
+	broken := localdb.NewFileManager(localdb.Config{Dir: notADir, FileName: "cache.db"})
+	a, err := newAnalyzer(Options{Cache: broken})(context.Background(), dir)
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{"app.py": "indexed"}, a.Files)
 }

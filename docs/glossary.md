@@ -239,8 +239,9 @@ _Avoid_: reachability (except in "reachability annotation"), usage graph
 
 **Code index**:
 The index of each source file of a target, from the indexer of `safedep/code`, with the usage and the
-signature matches of the file. It lives in the `code_graph` module of `cache.db`, keyed by the content
-hash of the file, so a second scan parses only the changed files. Retention deletes a file that no
+signature matches of the file. It lives in the `code_graph` module of `cache.db`. Its key holds the
+path and the content hash of the file and the versions of the index, the grammar and the analysis, so
+a second scan parses only the changed files. Retention deletes a file that no
 scan read for 30 days.
 _Avoid_: code cache, AST cache
 

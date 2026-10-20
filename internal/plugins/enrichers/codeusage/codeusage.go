@@ -94,8 +94,8 @@ type Analysis struct {
 }
 
 // indexRetention is how long the code index keeps a file that no scan
-// reads. An index never goes stale, since its key holds the hash of the
-// file, so only disk space bounds it.
+// reads. The key of an index holds the content hash of the file, so an
+// index never goes stale. Only disk space bounds it.
 const indexRetention = 30 * 24 * time.Hour
 
 // PruneIndex deletes the index of each file that no scan read in
@@ -219,6 +219,12 @@ func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 			if e.provider.provides(p.ID, m) {
 				addSites(sites, files)
 			}
+		}
+		// The files that the budget stopped can import the package, so
+		// no evidence is not evidence of no import.
+		if len(sites) == 0 && e.stopped {
+			p.Usage = nil
+			continue
 		}
 		p.Usage = usageOf(sites)
 	}

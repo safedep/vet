@@ -64,13 +64,26 @@ func TestBudgetKeepsThePartialAnalysis(t *testing.T) {
 		}, ctx.Err()
 	}
 	e := NewWith(t.TempDir(), Options{Budget: time.Millisecond}, analyze)
-	pkgs := []*model.Package{{ID: model.MustPackageVersion(model.EcosystemNpm, "a", "1.0.0")}}
+	pkgs := []*model.Package{
+		{ID: model.MustPackageVersion(model.EcosystemNpm, "a", "1.0.0")},
+		{ID: model.MustPackageVersion(model.EcosystemNpm, "b", "1.0.0")},
+	}
 	require.NoError(t, e.Enrich(context.Background(), pkgs), "the budget stops the analysis, not the scan")
 	assert.True(t, pkgs[0].Usage.Imported)
+	assert.Nil(t, pkgs[1].Usage, "a missing file can import b, so its usage is unknown")
 	diags := e.Diagnostics()
 	require.Len(t, diags, 1)
 	assert.Equal(t, CodeFileMissing, diags[0].Code)
 	assert.Contains(t, diags[0].Message, "2 source files")
+}
+
+func TestScanDeadlineStopsTheAnalysis(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
+	defer cancel()
+	<-ctx.Done()
+	analyze := func(ctx context.Context, _ string) (Analysis, error) { return Analysis{}, ctx.Err() }
+	e := NewWith(t.TempDir(), Options{Budget: time.Hour}, analyze)
+	assert.ErrorIs(t, e.Enrich(ctx, nil), context.DeadlineExceeded, "the deadline of the scan is not the budget")
 }
 
 func TestCanceledScanStopsTheAnalysis(t *testing.T) {
