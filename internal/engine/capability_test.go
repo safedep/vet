@@ -82,3 +82,28 @@ func TestCapabilityFinderErrorIsADiagnostic(t *testing.T) {
 	}
 	assert.Contains(t, codes, report.CodeEnrichFailed)
 }
+
+// diagnoserEnricher reports one diagnostic about its own work.
+type diagnoserEnricher struct{ fakeEnricher }
+
+func (*diagnoserEnricher) Diagnostics() []report.Diagnostic {
+	return []report.Diagnostic{{Level: report.DiagnosticWarning, Code: "source_file_failed", Message: "vet could not analyze 1 source files"}}
+}
+
+func TestDiagnoserDiagnosticsReachTheReport(t *testing.T) {
+	f := newFixture(t)
+	o := f.options(t, project(t), nil)
+	o.Enrichers = []Enricher{{Name: "code", Version: "1", Plugin: &diagnoserEnricher{}, Local: true}}
+	res := runScan(t, o)
+
+	var diags []*report.Diagnostic
+	for r, err := range res.Scan.Records(context.Background()) {
+		require.NoError(t, err)
+		if r.Diagnostic != nil {
+			diags = append(diags, r.Diagnostic)
+		}
+	}
+	require.Len(t, diags, 1)
+	assert.Equal(t, "source_file_failed", diags[0].Code)
+	assert.Equal(t, "code", diags[0].Component, "a diagnostic with no component names its enricher")
+}

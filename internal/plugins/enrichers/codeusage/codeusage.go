@@ -9,6 +9,7 @@ package codeusage
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -18,6 +19,7 @@ import (
 
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/report"
 )
 
 // Name is the registered name of the enricher and the config key under
@@ -63,11 +65,21 @@ type Match struct {
 	Callee string
 }
 
+// FileFailure is a source file that the analysis could not read, parse
+// or analyze. The rest of the scan goes on without it.
+type FileFailure struct {
+	FilePath string
+	// Stage is read, parse or the name of the analysis that failed.
+	Stage string
+	Err   string
+}
+
 // Analysis is what the analyzer finds in the source files under a
 // directory.
 type Analysis struct {
 	Usage   []Evidence
 	Matches []Match
+	Failed  []FileFailure
 }
 
 // Analyzer analyzes the source files under a directory.
@@ -90,12 +102,42 @@ type Enricher struct {
 	once     sync.Once
 	modules  map[module][]string
 	matches  []Match
+	failed   []FileFailure
 	own      []string
 	provider provider
 	err      error
 }
 
-var _ plugin.CapabilityFinder = (*Enricher)(nil)
+var (
+	_ plugin.CapabilityFinder = (*Enricher)(nil)
+	_ plugin.Diagnoser        = (*Enricher)(nil)
+)
+
+// CodeFileFailed is the diagnostic code of source files that the analysis
+// could not read or parse. The scan goes on without them.
+const CodeFileFailed = "source_file_failed"
+
+// maxFailedNames bounds the file names that the diagnostic of the failed
+// files lists.
+const maxFailedNames = 5
+
+// Diagnostics reports the source files that the analysis skipped. One
+// diagnostic names the first files and counts the rest.
+func (e *Enricher) Diagnostics() []report.Diagnostic {
+	if len(e.failed) == 0 {
+		return nil
+	}
+	names := make([]string, 0, min(len(e.failed), maxFailedNames))
+	for _, f := range e.failed[:min(len(e.failed), maxFailedNames)] {
+		names = append(names, fmt.Sprintf("%s (%s)", f.FilePath, f.Stage))
+	}
+	msg := fmt.Sprintf("vet could not analyze %d source files, so their imports and calls are not in the report: %s",
+		len(e.failed), strings.Join(names, ", "))
+	if more := len(e.failed) - len(names); more > 0 {
+		msg += fmt.Sprintf(" and %d more", more)
+	}
+	return []report.Diagnostic{{Level: report.DiagnosticWarning, Code: CodeFileFailed, Component: Name, Message: msg}}
+}
 
 // New returns the enricher of a directory with the default analyzer. A
 // vet build with no CGO has no analyzer: the enricher then returns
@@ -146,7 +188,11 @@ func (e *Enricher) index(ctx context.Context) error {
 	if e.own, err = ownRoots(e.dir); err != nil {
 		return err
 	}
-	e.matches = e.external(a.Matches, e.dir)
+	e.matches = e.external(a.Matches)
+	e.failed = a.Failed
+	for i := range e.failed {
+		e.failed[i].FilePath = filepath.ToSlash(e.failed[i].FilePath)
+	}
 	evs := a.Usage
 	autoload, err := readAutoload(e.dir)
 	if err != nil {
@@ -158,7 +204,7 @@ func (e *Enricher) index(ctx context.Context) error {
 		if sets[m] == nil {
 			sets[m] = map[string]bool{}
 		}
-		sets[m][relTo(e.dir, ev.FilePath)] = true
+		sets[m][filepath.ToSlash(ev.FilePath)] = true
 	}
 	e.modules = make(map[module][]string, len(sets))
 	for m, set := range sets {
@@ -168,15 +214,16 @@ func (e *Enricher) index(ctx context.Context) error {
 	return nil
 }
 
-// external returns the matches that do not call into the project itself,
-// with paths relative to root.
-func (e *Enricher) external(matches []Match, root string) []Match {
+// external returns the matches that do not call into the project itself.
+// The analyzer gives each path relative to the target, and the report
+// writes it with "/".
+func (e *Enricher) external(matches []Match) []Match {
 	out := make([]Match, 0, len(matches))
 	for _, m := range matches {
 		if inRoots(m.Callee, e.own) {
 			continue
 		}
-		m.FilePath = relTo(root, m.FilePath)
+		m.FilePath = filepath.ToSlash(m.FilePath)
 		out = append(out, m)
 	}
 	return out
@@ -196,24 +243,6 @@ func sortedFiles(set map[string]bool) []string {
 		files = files[:maxFiles]
 	}
 	return files
-}
-
-// relTo returns the path of a file relative to a directory, with "/", as
-// every other path of the report. A path outside the directory stays as
-// the analyzer gave it.
-func relTo(dir, file string) string {
-	if !filepath.IsAbs(file) {
-		return filepath.ToSlash(file)
-	}
-	abs, err := filepath.Abs(dir)
-	if err != nil {
-		return file
-	}
-	r, err := filepath.Rel(abs, file)
-	if err != nil || r == ".." || strings.HasPrefix(r, ".."+string(filepath.Separator)) {
-		return file
-	}
-	return filepath.ToSlash(r)
 }
 
 func normalize(s string) string { return strings.ToLower(strings.TrimSpace(s)) }

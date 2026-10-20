@@ -6,6 +6,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"testing/fstest"
 
@@ -40,11 +41,29 @@ func TestDefaultAnalyzer(t *testing.T) {
 	var ids []string
 	for _, m := range a.Matches {
 		ids = append(ids, m.Signature.ID)
-		assert.Equal(t, filepath.Join(dir, "app.py"), m.FilePath)
+		assert.Equal(t, "app.py", m.FilePath, "safedep/code names a file relative to the target")
 		assert.Equal(t, "python", m.Language)
 		assert.Positive(t, m.Line)
 	}
 	assert.Contains(t, ids, "openai.client")
+}
+
+// A file that does not parse is a failure of that file, not of the scan.
+func TestDefaultAnalyzerKeepsGoingPastAFailedFile(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "app.py", "import requests\n\nrequests.get(\"https://example.com\")\n")
+	write(t, dir, "huge.py", "x = 1\n"+strings.Repeat("#", 5<<20))
+
+	a, err := defaultAnalyzer(context.Background(), dir)
+	require.NoError(t, err)
+	require.Len(t, a.Failed, 1)
+	assert.Equal(t, "huge.py", a.Failed[0].FilePath)
+	assert.Equal(t, "parse", a.Failed[0].Stage)
+	var modules []string
+	for _, ev := range a.Usage {
+		modules = append(modules, ev.ModuleName)
+	}
+	assert.Contains(t, modules, "requests", "the other files still count")
 }
 
 func TestEmbeddedSignatures(t *testing.T) {
@@ -92,7 +111,7 @@ func TestDefaultAnalyzerUnderSkippedParent(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, a.Matches, "a parent directory named build or vendor is not part of the target")
 	for _, m := range a.Matches {
-		assert.Equal(t, filepath.Join(dir, "app.py"), m.FilePath)
+		assert.Equal(t, "app.py", m.FilePath)
 	}
 }
 

@@ -104,7 +104,7 @@ func (e *Enricher) baseMatches(ctx context.Context) (out []Match, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return append(out, e.external(a.Matches, tmp)...), nil
+	return append(out, e.external(a.Matches)...), nil
 }
 
 // sameAsHead reports whether the head file has the content of the base

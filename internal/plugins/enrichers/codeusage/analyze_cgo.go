@@ -92,15 +92,16 @@ func defaultAnalyzer(ctx context.Context, dir string) (Analysis, error) {
 		out.Matches = append(out.Matches, ms...)
 		return nil
 	}
-	exec, err := plugin.NewTreeWalkPluginExecutor(tree, []core.Plugin{
+	exec := plugin.NewTreeWalkPluginExecutor(tree, []core.Plugin{
 		depsusage.NewDependencyUsagePlugin(collectUsage),
 		callgraph.NewCallGraphPlugin(collectMatches),
 	})
+	report, err := exec.Execute(ctx, fileSystem)
 	if err != nil {
-		return Analysis{}, err
-	}
-	if err := exec.Execute(ctx, fileSystem); err != nil {
 		return Analysis{}, fmt.Errorf("code analysis: %w", err)
+	}
+	for _, f := range report.Failed {
+		out.Failed = append(out.Failed, FileFailure{FilePath: f.File, Stage: string(f.Stage), Err: f.Err.Error()})
 	}
 	return out, nil
 }
@@ -112,19 +113,17 @@ func matches(matcher *callgraph.SignatureMatcher, cg *callgraph.CallGraph) ([]Ma
 	if err != nil || len(results) == 0 {
 		return nil, err
 	}
-	data, err := cg.Tree.Data()
-	if err != nil {
-		return nil, err
-	}
 	var out []Match
 	for _, r := range results {
 		sig := signatureOf(r.MatchedSignature)
 		for _, c := range r.MatchedConditions {
 			for _, ev := range c.Evidences {
-				md := ev.Metadata(data)
-				m := Match{Signature: sig, FilePath: r.FilePath, Language: string(r.MatchedLanguageCode), Callee: md.CalleeNamespace}
-				if at := md.CallerIdentifierMetadata; at != nil {
-					m.Line, m.Column = int(at.StartLine)+1, int(at.StartColumn)+1
+				m := Match{
+					Signature: sig, FilePath: r.FilePath, Language: string(r.MatchedLanguageCode),
+					Line: int(ev.Site.StartLine), Column: int(ev.Site.StartColumn),
+				}
+				if ev.Callee != nil {
+					m.Callee = ev.Callee.Namespace
 				}
 				out = append(out, m)
 			}

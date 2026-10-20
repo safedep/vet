@@ -3,6 +3,7 @@ package codeusage
 import (
 	"context"
 	"errors"
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/plugin/plugintest"
+	"github.com/safedep/vet/v2/report"
 )
 
 func TestEnrich(t *testing.T) {
@@ -43,20 +45,52 @@ func TestEnrich(t *testing.T) {
 	assert.Nil(t, pkgs[4].Usage, "an action has no source imports")
 }
 
-func TestRelativeFiles(t *testing.T) {
-	root := t.TempDir()
-	outside := filepath.Join(filepath.Dir(root), "other", "x.js")
-	e := NewWith(root, Options{}, func(context.Context, string) (Analysis, error) {
+func TestFilesKeepTheAnalyzerPaths(t *testing.T) {
+	e := NewWith(t.TempDir(), Options{}, func(context.Context, string) (Analysis, error) {
 		return Analysis{Usage: []Evidence{
-			{PackageHint: "a", FilePath: filepath.Join(root, "src", "a.js")},
+			{PackageHint: "a", FilePath: filepath.Join("src", "a.js")},
 			{PackageHint: "a", FilePath: "lib/b.js"},
-			{PackageHint: "a", FilePath: outside},
 		}}, nil
 	})
 	pkgs := []*model.Package{{ID: model.MustPackageVersion(model.EcosystemNpm, "a", "1.0.0")}}
 	require.NoError(t, e.Enrich(context.Background(), pkgs))
-	want := []string{"lib/b.js", "src/a.js", outside}
-	assert.ElementsMatch(t, want, pkgs[0].Usage.Files)
+	assert.Equal(t, []string{"lib/b.js", "src/a.js"}, pkgs[0].Usage.Files, "safedep/code names each file relative to the target")
+}
+
+func TestDiagnosticsOfFailedFiles(t *testing.T) {
+	var failed []FileFailure
+	for i := range maxFailedNames + 2 {
+		failed = append(failed, FileFailure{FilePath: fmt.Sprintf("f%d.py", i), Stage: "parse", Err: "too large"})
+	}
+	cases := []struct {
+		name   string
+		failed []FileFailure
+		want   []string
+	}{
+		{"no failure", nil, nil},
+		{"one failure", failed[:1], []string{"vet could not analyze 1 source files", "f0.py (parse)"}},
+		{"more failures than names", failed, []string{"7 source files", "f4.py (parse)", "and 2 more"}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			e := NewWith(t.TempDir(), Options{}, func(context.Context, string) (Analysis, error) {
+				return Analysis{Failed: tc.failed}, nil
+			})
+			require.NoError(t, e.Enrich(context.Background(), nil))
+			diags := e.Diagnostics()
+			if tc.want == nil {
+				assert.Empty(t, diags)
+				return
+			}
+			require.Len(t, diags, 1)
+			assert.Equal(t, CodeFileFailed, diags[0].Code)
+			assert.Equal(t, report.DiagnosticWarning, diags[0].Level)
+			for _, w := range tc.want {
+				assert.Contains(t, diags[0].Message, w)
+			}
+			assert.NotContains(t, diags[0].Message, "f5.py", "the message lists at most maxFailedNames files")
+		})
+	}
 }
 
 func TestEnrichError(t *testing.T) {

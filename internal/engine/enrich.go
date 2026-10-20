@@ -23,7 +23,28 @@ func (r *run) enrich(ctx context.Context) error {
 			return err
 		}
 	}
-	return r.findCapabilities(ctx)
+	if err := r.findCapabilities(ctx); err != nil {
+		return err
+	}
+	r.enrichDiagnostics()
+	return nil
+}
+
+// enrichDiagnostics adds the diagnostics that each enricher reports about
+// its own work.
+func (r *run) enrichDiagnostics() {
+	for _, e := range r.o.Enrichers {
+		d, ok := e.Plugin.(plugin.Diagnoser)
+		if !ok {
+			continue
+		}
+		for _, diag := range d.Diagnostics() {
+			if diag.Component == "" {
+				diag.Component = e.Name
+			}
+			r.diags.put(&diag)
+		}
+	}
 }
 
 // enrichProgress reports the enrich stage in packages. Each enricher
