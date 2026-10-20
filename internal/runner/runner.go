@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/safedep/dry/localdb"
 	"github.com/safedep/dry/usefulerror"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
@@ -249,7 +250,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			APIURL: cfg.Cloud.Endpoints.API, CommunityURL: cfg.Cloud.Endpoints.Community,
 			Credentials: creds, Workers: cfg.Scan.Concurrency, TTL: ttl,
 			CodeUsageDir: codeUsageDir(cfg, o),
-			CodeUsage:    codeusage.Options{BaseRef: o.BaseRef},
+			CodeUsage:    codeusage.Options{BaseRef: o.BaseRef, Cache: cacheFile(cache)},
 			ActionRefs:   refs,
 		})
 		if err != nil {
@@ -647,9 +648,22 @@ func applyRetention(ctx context.Context, cfg *config.Config, store *state.Store,
 		tui.Warning("retention: %v", err)
 		return
 	}
-	if n > 0 {
+	indexed, err := codeusage.PruneIndex(ctx, cache.FileManager(), time.Now())
+	if err != nil {
+		tui.Warning("retention: %v", err)
+	}
+	if n += int64(indexed); n > 0 {
 		tui.Faint("Retention deleted %d expired cache entries.", n)
 	}
+}
+
+// cacheFile returns the manager of cache.db, or nil with no cache. A nil
+// *state.Cache must not become a non-nil interface.
+func cacheFile(cache *state.Cache) localdb.Manager {
+	if cache == nil {
+		return nil
+	}
+	return cache.FileManager()
 }
 
 func animate() bool {

@@ -374,6 +374,12 @@
   tier: P2
   guarantee: "With plugins.codeusage.enabled, on a build with CGO, a package finding gets codeusage evidence that names the importing files. The severity does not change."
   labels: [enrichers, config]
+- id: enrichers/codeusage/cached-index
+  title: "a second scan of the same tree parses no file"
+  category: enrichers
+  tier: P2
+  guarantee: "With plugins.codeusage.enabled, on a build with CGO, cache.db keeps the index of each source file. A second vet scan of an unchanged tree reads every file from the cache and parses none. The findings keep their codeusage evidence."
+  labels: [enrichers, config, cache]
 - id: enrichers/codeusage/capabilities
   title: "the code signatures that match are the xBOM"
   category: enrichers

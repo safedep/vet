@@ -73,7 +73,7 @@ func fixtureMatches(t *testing.T, dir, file, tag string) []string {
 	root := t.TempDir()
 	write(t, root, file, string(data))
 
-	a, err := defaultAnalyzer(context.Background(), root)
+	a, err := newAnalyzer(Options{})(context.Background(), root)
 	require.NoError(t, err)
 	var ids []string
 	for _, m := range a.Matches {

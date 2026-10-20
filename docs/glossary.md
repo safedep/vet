@@ -232,9 +232,17 @@ _Avoid_: fork commit, orphan commit, dangling commit
 
 **Code usage**:
 The evidence that the target's code imports a package, and in which files. `model.Usage`, set by the
-`codeusage` enricher. The engine adds it to package findings as evidence. It is import-level evidence,
-not call-graph reachability.
+`codeusage` enricher. `Usage.Imports` holds the import line of each file, and `Usage.TestOnly` marks a
+package that only test files import. The engine adds it to package findings as evidence. It is
+import-level evidence, not call-graph reachability.
 _Avoid_: reachability (except in "reachability annotation"), usage graph
+
+**Code index**:
+The index of each source file of a target, from the indexer of `safedep/code`, with the usage and the
+signature matches of the file. It lives in the `code_graph` module of `cache.db`, keyed by the content
+hash of the file, so a second scan parses only the changed files. Retention deletes a file that no
+scan read for 30 days.
+_Avoid_: code cache, AST cache
 
 **Signature**:
 A rule that names a call in source code, such as a call to the OpenAI client. The `codeusage` enricher

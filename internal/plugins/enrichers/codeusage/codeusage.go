@@ -9,14 +9,22 @@ package codeusage
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"maps"
 	"path/filepath"
 	"regexp"
 	"slices"
-	"sort"
 	"strings"
 	"sync"
+	"time"
 
+	"github.com/safedep/code/fileindex"
+	"github.com/safedep/code/fileindex/store/localdbstore"
+	"github.com/safedep/dry/localdb"
+	"github.com/safedep/dry/log"
+
+	"github.com/safedep/vet/v2/internal/pathglob"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
@@ -27,7 +35,7 @@ import (
 const Name = "codeusage"
 
 // Version changes when the mapping or the signatures change.
-const Version = "5"
+const Version = "6"
 
 // maxFiles bounds the files that a package usage lists.
 const maxFiles = 20
@@ -80,9 +88,32 @@ type Analysis struct {
 	Usage   []Evidence
 	Matches []Match
 	Failed  []FileFailure
+	// Files holds the index status of each source file by name: indexed,
+	// cached, missing, failed or truncated.
+	Files map[string]string
 }
 
-// Analyzer analyzes the source files under a directory.
+// indexRetention is how long the code index keeps a file that no scan
+// reads. An index never goes stale, since its key holds the hash of the
+// file, so only disk space bounds it.
+const indexRetention = 30 * 24 * time.Hour
+
+// PruneIndex deletes the index of each file that no scan read in
+// indexRetention before now, and returns how many rows it deleted.
+func PruneIndex(ctx context.Context, cache localdb.Manager, now time.Time) (int, error) {
+	st, err := localdbstore.New(ctx, cache)
+	if err != nil {
+		return 0, err
+	}
+	return st.Prune(ctx, now.Add(-indexRetention))
+}
+
+// FileMissing is the status of a file that the analysis did not reach in
+// its time budget.
+const FileMissing = "missing"
+
+// Analyzer analyzes the source files under a directory. When ctx is done,
+// it returns the analysis so far with the error of ctx.
 type Analyzer func(ctx context.Context, dir string) (Analysis, error)
 
 // Options are the options of the enricher.
@@ -90,6 +121,13 @@ type Options struct {
 	// BaseRef is the base ref of pull request mode. Each capability then
 	// gets the change against the base commit.
 	BaseRef string
+	// Cache is the manager of cache.db. The analysis keeps the index of
+	// each file there. A nil Cache parses every file on each scan.
+	Cache localdb.Manager
+	// Budget bounds the time of the analysis. The files that it does not
+	// reach are missing, and the scan goes on without them. Zero means no
+	// bound.
+	Budget time.Duration
 }
 
 // Enricher sets model.Package.Usage from the imports of the target, and
@@ -100,9 +138,11 @@ type Enricher struct {
 	analyze Analyzer
 
 	once     sync.Once
-	modules  map[module][]string
+	modules  map[module]map[string]int
 	matches  []Match
 	failed   []FileFailure
+	stopped  bool
+	missing  int
 	own      []string
 	provider provider
 	err      error
@@ -117,6 +157,10 @@ var (
 // could not read or parse. The scan goes on without them.
 const CodeFileFailed = "source_file_failed"
 
+// CodeFileMissing is the diagnostic code of source files that the analysis
+// did not reach in its time budget.
+const CodeFileMissing = "source_file_missing"
+
 // maxFailedNames bounds the file names that the diagnostic of the failed
 // files lists.
 const maxFailedNames = 5
@@ -124,8 +168,16 @@ const maxFailedNames = 5
 // Diagnostics reports the source files that the analysis skipped. One
 // diagnostic names the first files and counts the rest.
 func (e *Enricher) Diagnostics() []report.Diagnostic {
+	var out []report.Diagnostic
+	if e.stopped {
+		msg := fmt.Sprintf("vet stopped the code analysis after %s, before it read the source files", e.o.Budget)
+		if e.missing > 0 {
+			msg = fmt.Sprintf("vet stopped the code analysis after %s, so the imports and calls of %d source files are not in the report", e.o.Budget, e.missing)
+		}
+		out = append(out, report.Diagnostic{Level: report.DiagnosticWarning, Code: CodeFileMissing, Component: Name, Message: msg})
+	}
 	if len(e.failed) == 0 {
-		return nil
+		return out
 	}
 	names := make([]string, 0, min(len(e.failed), maxFailedNames))
 	for _, f := range e.failed[:min(len(e.failed), maxFailedNames)] {
@@ -136,13 +188,13 @@ func (e *Enricher) Diagnostics() []report.Diagnostic {
 	if more := len(e.failed) - len(names); more > 0 {
 		msg += fmt.Sprintf(" and %d more", more)
 	}
-	return []report.Diagnostic{{Level: report.DiagnosticWarning, Code: CodeFileFailed, Component: Name, Message: msg}}
+	return append(out, report.Diagnostic{Level: report.DiagnosticWarning, Code: CodeFileFailed, Component: Name, Message: msg})
 }
 
 // New returns the enricher of a directory with the default analyzer. A
 // vet build with no CGO has no analyzer: the enricher then returns
 // plugin.ErrUnavailable, and the scan records a diagnostic.
-func New(dir string, o Options) *Enricher { return NewWith(dir, o, defaultAnalyzer) }
+func New(dir string, o Options) *Enricher { return NewWith(dir, o, newAnalyzer(o)) }
 
 // NewWith returns the enricher with an analyzer. Tests use it.
 func NewWith(dir string, o Options, a Analyzer) *Enricher {
@@ -161,17 +213,50 @@ func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 			p.Usage = nil
 			continue
 		}
-		set := map[string]bool{}
+		sites := map[string]int{}
 		for m, files := range e.modules {
 			if e.provider.provides(p.ID, m) {
-				for _, f := range files {
-					set[f] = true
-				}
+				addSites(sites, files)
 			}
 		}
-		p.Usage = &model.Usage{Imported: len(set) > 0, Files: sortedFiles(set)}
+		p.Usage = usageOf(sites)
 	}
 	return nil
+}
+
+// usageOf returns the usage of a package from the first import line of
+// each file that imports it.
+func usageOf(sites map[string]int) *model.Usage {
+	u := &model.Usage{Imported: len(sites) > 0, TestOnly: len(sites) > 0}
+	for f := range sites {
+		if !testFile(f) {
+			u.TestOnly = false
+		}
+	}
+	files := slices.Sorted(maps.Keys(sites))
+	if len(files) > maxFiles {
+		files = files[:maxFiles]
+	}
+	for _, f := range files {
+		u.Files = append(u.Files, f)
+		u.Imports = append(u.Imports, model.ImportSite{File: f, Line: sites[f]})
+	}
+	return u
+}
+
+// addSites keeps the first line of each file.
+func addSites(sites, add map[string]int) {
+	for f, line := range add {
+		if l, ok := sites[f]; !ok || line < l {
+			sites[f] = line
+		}
+	}
+}
+
+// testFile reports whether a file is a test file, by the globs that the
+// project graph of safedep/code also reads.
+func testFile(name string) bool {
+	return slices.ContainsFunc(fileindex.DefaultTestPaths, func(g string) bool { return pathglob.Match(g, name) })
 }
 
 // load analyzes the target once for the scan.
@@ -181,10 +266,23 @@ func (e *Enricher) load(ctx context.Context) error {
 }
 
 func (e *Enricher) index(ctx context.Context) error {
-	a, err := e.analyze(ctx, e.dir)
-	if err != nil {
+	actx := ctx
+	if e.o.Budget > 0 {
+		var cancel context.CancelFunc
+		actx, cancel = context.WithTimeout(ctx, e.o.Budget)
+		defer cancel()
+	}
+	a, err := e.analyze(actx, e.dir)
+	if err != nil && (ctx.Err() != nil || !errors.Is(err, context.DeadlineExceeded)) {
 		return err
 	}
+	e.stopped = err != nil
+	counts := map[string]int{}
+	for _, st := range a.Files {
+		counts[st]++
+	}
+	e.missing = counts[FileMissing]
+	log.Debugf("code index: %d source files, %d cached, %d indexed, %d missing", len(a.Files), counts["cached"], counts["indexed"], e.missing)
 	if e.own, err = ownRoots(e.dir); err != nil {
 		return err
 	}
@@ -198,17 +296,13 @@ func (e *Enricher) index(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	sets := map[module]map[string]bool{}
+	e.modules = map[module]map[string]int{}
 	for _, ev := range evs {
 		m := module{Language: ev.Language, Hint: ev.PackageHint, Name: ev.ModuleName}
-		if sets[m] == nil {
-			sets[m] = map[string]bool{}
+		if e.modules[m] == nil {
+			e.modules[m] = map[string]int{}
 		}
-		sets[m][filepath.ToSlash(ev.FilePath)] = true
-	}
-	e.modules = make(map[module][]string, len(sets))
-	for m, set := range sets {
-		e.modules[m] = sortedFiles(set)
+		addSites(e.modules[m], map[string]int{filepath.ToSlash(ev.FilePath): int(ev.Line)})
 	}
 	e.provider = provider{autoload: autoload}
 	return nil
@@ -227,22 +321,6 @@ func (e *Enricher) external(matches []Match) []Match {
 		out = append(out, m)
 	}
 	return out
-}
-
-// sortedFiles returns the files of a set in order, at most maxFiles.
-func sortedFiles(set map[string]bool) []string {
-	if len(set) == 0 {
-		return nil
-	}
-	files := make([]string, 0, len(set))
-	for f := range set {
-		files = append(files, f)
-	}
-	sort.Strings(files)
-	if len(files) > maxFiles {
-		files = files[:maxFiles]
-	}
-	return files
 }
 
 func normalize(s string) string { return strings.ToLower(strings.TrimSpace(s)) }

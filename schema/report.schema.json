@@ -395,6 +395,21 @@
         "scan"
       ]
     },
+    "ImportSite": {
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "required": [
+        "file",
+        "line"
+      ]
+    },
     "Insight": {
       "properties": {
         "vulnerabilities": {
@@ -1140,6 +1155,15 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "imports": {
+          "items": {
+            "$ref": "#/$defs/ImportSite"
+          },
+          "type": "array"
+        },
+        "test_only": {
+          "type": "boolean"
         }
       },
       "type": "object",

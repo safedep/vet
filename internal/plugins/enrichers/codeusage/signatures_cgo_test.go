@@ -44,7 +44,7 @@ func TestSignaturesMatchSDKCode(t *testing.T) {
 		t.Run(tc.file, func(t *testing.T) {
 			dir := t.TempDir()
 			write(t, dir, tc.file, tc.code)
-			a, err := defaultAnalyzer(context.Background(), dir)
+			a, err := newAnalyzer(Options{})(context.Background(), dir)
 			require.NoError(t, err)
 			got := map[string]bool{}
 			for _, m := range a.Matches {
@@ -71,7 +71,7 @@ func TestSignaturesIgnorePlainCode(t *testing.T) {
 		t.Run(file, func(t *testing.T) {
 			dir := t.TempDir()
 			write(t, dir, file, code)
-			a, err := defaultAnalyzer(context.Background(), dir)
+			a, err := newAnalyzer(Options{})(context.Background(), dir)
 			require.NoError(t, err)
 			for _, m := range a.Matches {
 				assert.NotContains(t, m.Signature.Tags, "ai", "%s matches %s", file, m.Signature.ID)
@@ -89,7 +89,7 @@ func TestDynamoDBNeedsItsService(t *testing.T) {
 	for code, want := range cases {
 		dir := t.TempDir()
 		write(t, dir, "app.py", code)
-		a, err := defaultAnalyzer(context.Background(), dir)
+		a, err := newAnalyzer(Options{})(context.Background(), dir)
 		require.NoError(t, err)
 		got := false
 		for _, m := range a.Matches {

@@ -76,8 +76,9 @@ mounted. A path that the user cannot read gives one diagnostic with a count.
 
 With `plugins.codeusage.enabled: true`, vet also reads the source files of a directory target. It
 records which packages the code imports, and the AI and crypto capabilities that the code calls.
-The `cyclonedx` report writes them as an xBOM and a CBOM. The code analysis needs a vet build with
-CGO. A static build records a diagnostic and scans with no code usage.
+The `cyclonedx` report writes them as an xBOM and a CBOM. `cache.db` keeps the index of each file,
+so the next scan parses only the files that changed. The code analysis needs a vet build with CGO. A
+static build records a diagnostic and scans with no code usage.
 
 A backend that does not answer does not fail the scan. The controls that need its data do not run,
 and the report has a diagnostic. `--strict` turns a diagnostic into exit code 3.

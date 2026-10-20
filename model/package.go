@@ -149,4 +149,14 @@ type MalwareAnalysis struct {
 type Usage struct {
 	Imported bool     `json:"imported"`
 	Files    []string `json:"files,omitempty"`
+	// Imports hold the first import of the package in each file of Files.
+	Imports []ImportSite `json:"imports,omitempty"`
+	// TestOnly marks a package that only test files import.
+	TestOnly bool `json:"test_only,omitempty"`
+}
+
+// ImportSite is the line of a source file that imports a package.
+type ImportSite struct {
+	File string `json:"file"`
+	Line int    `json:"line"`
 }

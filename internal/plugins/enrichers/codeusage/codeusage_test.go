@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,8 +22,11 @@ func TestEnrich(t *testing.T) {
 	fake := func(context.Context, string) (Analysis, error) {
 		calls++
 		return Analysis{Usage: []Evidence{
-			{PackageHint: "lodash", ModuleName: "lodash/fp", FilePath: "src/b.js"},
-			{PackageHint: "lodash", ModuleName: "lodash", FilePath: "src/a.js"},
+			{PackageHint: "lodash", ModuleName: "lodash/fp", FilePath: "src/b.js", Line: 4},
+			{PackageHint: "lodash", ModuleName: "lodash", FilePath: "src/b.js", Line: 2},
+			{PackageHint: "lodash", ModuleName: "lodash", FilePath: "src/a.js", Line: 1},
+			{PackageHint: "jest", ModuleName: "jest", FilePath: "src/a.test.js", Line: 1},
+			{PackageHint: "jest", ModuleName: "jest", FilePath: "test/setup.js", Line: 3},
 			{ModuleName: "@scope/pkg/sub", FilePath: "src/c.js"},
 			{PackageHint: "yaml", ModuleName: "yaml", FilePath: "app.py"},
 			{PackageHint: "python_dateutil", ModuleName: "dateutil", FilePath: "app.py"},
@@ -35,14 +39,46 @@ func TestEnrich(t *testing.T) {
 		{ID: model.MustPackageVersion(model.EcosystemPyPI, "python-dateutil", "2.9.0")},
 		{ID: model.MustPackageVersion(model.EcosystemNpm, "unused", "1.0.0")},
 		{ID: model.MustPackageVersion(model.EcosystemGitHubActions, "actions/checkout", "v4")},
+		{ID: model.MustPackageVersion(model.EcosystemNpm, "jest", "29.0.0")},
 	}
 	plugintest.TestEnricher(t, e, pkgs)
 	assert.Equal(t, 1, calls, "the analysis runs once for a scan")
-	assert.Equal(t, &model.Usage{Imported: true, Files: []string{"src/a.js", "src/b.js"}}, pkgs[0].Usage)
+	assert.Equal(t, &model.Usage{
+		Imported: true, Files: []string{"src/a.js", "src/b.js"},
+		Imports: []model.ImportSite{{File: "src/a.js", Line: 1}, {File: "src/b.js", Line: 2}},
+	}, pkgs[0].Usage, "each file gives its first import")
 	assert.True(t, pkgs[1].Usage.Imported)
 	assert.True(t, pkgs[2].Usage.Imported, "PyPI names match with underscores")
 	assert.Equal(t, &model.Usage{}, pkgs[3].Usage)
 	assert.Nil(t, pkgs[4].Usage, "an action has no source imports")
+	assert.True(t, pkgs[5].Usage.TestOnly, "only test files import jest")
+	assert.False(t, pkgs[0].Usage.TestOnly)
+}
+
+func TestBudgetKeepsThePartialAnalysis(t *testing.T) {
+	analyze := func(ctx context.Context, _ string) (Analysis, error) {
+		<-ctx.Done()
+		return Analysis{
+			Usage: []Evidence{{PackageHint: "a", ModuleName: "a", FilePath: "a.js", Line: 1}},
+			Files: map[string]string{"a.js": "indexed", "b.js": FileMissing, "c.js": FileMissing},
+		}, ctx.Err()
+	}
+	e := NewWith(t.TempDir(), Options{Budget: time.Millisecond}, analyze)
+	pkgs := []*model.Package{{ID: model.MustPackageVersion(model.EcosystemNpm, "a", "1.0.0")}}
+	require.NoError(t, e.Enrich(context.Background(), pkgs), "the budget stops the analysis, not the scan")
+	assert.True(t, pkgs[0].Usage.Imported)
+	diags := e.Diagnostics()
+	require.Len(t, diags, 1)
+	assert.Equal(t, CodeFileMissing, diags[0].Code)
+	assert.Contains(t, diags[0].Message, "2 source files")
+}
+
+func TestCanceledScanStopsTheAnalysis(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	analyze := func(ctx context.Context, _ string) (Analysis, error) { return Analysis{}, ctx.Err() }
+	e := NewWith(t.TempDir(), Options{Budget: time.Hour}, analyze)
+	assert.ErrorIs(t, e.Enrich(ctx, nil), context.Canceled)
 }
 
 func TestFilesKeepTheAnalyzerPaths(t *testing.T) {

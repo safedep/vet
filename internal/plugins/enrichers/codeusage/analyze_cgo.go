@@ -4,19 +4,24 @@ package codeusage
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"regexp"
+	"runtime/debug"
+	"slices"
 	"strings"
-	"sync"
 
 	"github.com/safedep/code/core"
+	"github.com/safedep/code/fileindex"
+	"github.com/safedep/code/fileindex/store/localdbstore"
 	"github.com/safedep/code/fs"
 	"github.com/safedep/code/lang"
-	"github.com/safedep/code/parser"
-	"github.com/safedep/code/plugin"
 	"github.com/safedep/code/plugin/callgraph"
 	"github.com/safedep/code/plugin/depsusage"
+	"github.com/safedep/code/plugin/indexer"
+	"github.com/safedep/dry/localdb"
 )
 
 // skipPatterns match the paths under root that vet does not analyze. They
@@ -39,15 +44,17 @@ func regexpQuoted(names []string) []string {
 	return out
 }
 
-// defaultAnalyzer parses the source files with tree-sitter, which needs
-// CGO. One pass finds the imports and matches the code signatures on the
-// call graph of each file.
-func defaultAnalyzer(ctx context.Context, dir string) (Analysis, error) {
-	sigs, err := loadSignatures()
-	if err != nil {
-		return Analysis{}, err
+// newAnalyzer returns the analyzer that indexes the source files with
+// tree-sitter, which needs CGO. With a cache, the index and the analysis of
+// each file stay in cache.db, so a later scan parses only the changed files.
+func newAnalyzer(o Options) Analyzer {
+	return func(ctx context.Context, dir string) (Analysis, error) {
+		return analyzeDir(ctx, dir, o.Cache)
 	}
-	matcher, err := callgraph.NewSignatureMatcher(sigs)
+}
+
+func analyzeDir(ctx context.Context, dir string, cache localdb.Manager) (Analysis, error) {
+	fileAnalysis, err := newFilePlugin()
 	if err != nil {
 		return Analysis{}, err
 	}
@@ -63,47 +70,175 @@ func defaultAnalyzer(ctx context.Context, dir string) (Analysis, error) {
 	if err != nil {
 		return Analysis{}, err
 	}
-	walker, err := fs.NewSourceWalker(fs.SourceWalkerConfig{}, langs)
+	opts := indexer.Options{Languages: langs, Plugins: []core.Plugin{fileAnalysis}}
+	if cache != nil {
+		if opts.Store, err = localdbstore.New(ctx, cache); err != nil {
+			return Analysis{}, err
+		}
+	}
+	ix, err := indexer.New(opts)
 	if err != nil {
 		return Analysis{}, err
 	}
-	tree, err := parser.NewWalkingParser(walker, langs)
-	if err != nil {
-		return Analysis{}, err
+	res, runErr := ix.Run(ctx, fileSystem)
+	if res == nil {
+		return Analysis{}, fmt.Errorf("code analysis: %w", runErr)
 	}
+	out := Analysis{Usage: fileAnalysis.usage, Matches: fileAnalysis.matches, Files: make(map[string]string, len(res.Files))}
+	importLines(out.Usage, res.Indexes)
+	for f, st := range res.Files {
+		out.Files[f] = string(st)
+	}
+	for _, f := range res.Report.Failed {
+		out.Failed = append(out.Failed, FileFailure{FilePath: f.File, Stage: string(f.Stage), Err: f.Err.Error()})
+	}
+	if runErr != nil {
+		return out, fmt.Errorf("code analysis: %w", runErr)
+	}
+	return out, nil
+}
 
-	var mu sync.Mutex
-	var out Analysis
-	var collectUsage depsusage.DependencyUsageCallback = func(_ context.Context, ev *depsusage.UsageEvidence) error {
-		mu.Lock()
-		defer mu.Unlock()
-		out.Usage = append(out.Usage, Evidence{
+// importLines moves the line of each usage evidence to the import of its
+// module. The usage plugin gives the line of the first use, but a person
+// looks for the import.
+func importLines(evs []Evidence, indexes []*fileindex.Index) {
+	lines := map[string]map[string]int{}
+	for _, ix := range indexes {
+		for _, imp := range ix.Imports {
+			if lines[ix.Path] == nil {
+				lines[ix.Path] = map[string]int{}
+			}
+			if l, ok := lines[ix.Path][imp.Module]; !ok || imp.Line < l {
+				lines[ix.Path][imp.Module] = imp.Line
+			}
+		}
+	}
+	for i, ev := range evs {
+		if l, ok := lines[ev.FilePath][ev.ModuleName]; ok {
+			evs[i].Line = uint(l)
+		}
+	}
+}
+
+// filePlugin is the analysis of one file that the indexer caches: the usage
+// evidence of depsusage and the signature matches on the call graph. The
+// indexer runs it on one goroutine, so it needs no lock.
+type filePlugin struct {
+	usagePlugin core.TreePlugin
+	graphPlugin core.TreePlugin
+	version     string
+	languages   []core.LanguageCode
+
+	file    fileResult
+	usage   []Evidence
+	matches []Match
+}
+
+// fileResult is the stored artifact of one file.
+type fileResult struct {
+	Usage   []Evidence `json:"usage,omitempty"`
+	Matches []Match    `json:"matches,omitempty"`
+}
+
+var _ indexer.CachedPlugin = (*filePlugin)(nil)
+
+func newFilePlugin() (*filePlugin, error) {
+	sigs, err := loadSignatures()
+	if err != nil {
+		return nil, err
+	}
+	hash, err := signaturesHash()
+	if err != nil {
+		return nil, err
+	}
+	matcher, err := callgraph.NewSignatureMatcher(sigs)
+	if err != nil {
+		return nil, err
+	}
+	p := &filePlugin{version: Version + "-" + hash + "-" + codeModuleVersion()}
+	p.usagePlugin = depsusage.NewDependencyUsagePlugin(func(_ context.Context, ev *depsusage.UsageEvidence) error {
+		p.file.Usage = append(p.file.Usage, Evidence{
 			PackageHint: ev.PackageHint, ModuleName: ev.ModuleName, Language: languageOf(ev.FilePath), FilePath: ev.FilePath, Line: ev.Line,
 		})
 		return nil
-	}
-	var collectMatches callgraph.CallgraphCallback = func(_ context.Context, cg *callgraph.CallGraph) error {
-		ms, err := matches(matcher, cg)
-		if err != nil {
-			return err
-		}
-		mu.Lock()
-		defer mu.Unlock()
-		out.Matches = append(out.Matches, ms...)
-		return nil
-	}
-	exec := plugin.NewTreeWalkPluginExecutor(tree, []core.Plugin{
-		depsusage.NewDependencyUsagePlugin(collectUsage),
-		callgraph.NewCallGraphPlugin(collectMatches),
 	})
-	report, err := exec.Execute(ctx, fileSystem)
+	p.graphPlugin = callgraph.NewCallGraphPlugin(func(_ context.Context, cg *callgraph.CallGraph) error {
+		ms, err := matches(matcher, cg)
+		p.file.Matches = append(p.file.Matches, ms...)
+		return err
+	})
+	p.languages = slices.Compact(slices.Sorted(slices.Values(append(p.usagePlugin.SupportedLanguages(), p.graphPlugin.SupportedLanguages()...))))
+	return p, nil
+}
+
+// codeModuleVersion is the version of safedep/code in this build. A new
+// release can change what depsusage and the call graph find in a file
+// without a change of fileindex.Version, so the artifact key holds it. A
+// test binary has no dependency list and gets "unknown". A local replace
+// keys by its path only, so a developer clears the cache after an edit.
+func codeModuleVersion() string {
+	info, _ := debug.ReadBuildInfo()
+	return moduleVersion(info, "github.com/safedep/code")
+}
+
+func moduleVersion(info *debug.BuildInfo, path string) string {
+	if info == nil {
+		return "unknown"
+	}
+	for _, m := range info.Deps {
+		if m.Path != path {
+			continue
+		}
+		if m.Replace != nil {
+			return m.Replace.Path + "@" + m.Replace.Version + m.Replace.Sum
+		}
+		return m.Version
+	}
+	return "unknown"
+}
+
+func (p *filePlugin) Name() string                            { return "vet-" + Name }
+func (p *filePlugin) Version() string                         { return p.version }
+func (p *filePlugin) SupportedLanguages() []core.LanguageCode { return p.languages }
+
+// Analyze runs both plugins on the tree. A plugin that fails keeps what the
+// other found, and the indexer stores no artifact, so the next scan tries
+// the file again.
+func (p *filePlugin) Analyze(ctx context.Context, _ core.File, tree core.ParseTree) ([]byte, error) {
+	p.file = fileResult{}
+	language, err := tree.Language()
 	if err != nil {
-		return Analysis{}, fmt.Errorf("code analysis: %w", err)
+		return nil, err
 	}
-	for _, f := range report.Failed {
-		out.Failed = append(out.Failed, FileFailure{FilePath: f.File, Stage: string(f.Stage), Err: f.Err.Error()})
+	code := language.Meta().Code
+	var errs []error
+	for _, pl := range []core.TreePlugin{p.usagePlugin, p.graphPlugin} {
+		if slices.Contains(pl.SupportedLanguages(), code) {
+			if err := pl.AnalyzeTree(ctx, tree); err != nil {
+				errs = append(errs, fmt.Errorf("%s: %w", pl.Name(), err))
+			}
+		}
 	}
-	return out, nil
+	p.keep(p.file)
+	if err := errors.Join(errs...); err != nil {
+		return nil, err
+	}
+	return json.Marshal(p.file)
+}
+
+// Restore takes the stored artifact of an unchanged file.
+func (p *filePlugin) Restore(_ context.Context, _ core.File, data []byte) error {
+	var r fileResult
+	if err := json.Unmarshal(data, &r); err != nil {
+		return err
+	}
+	p.keep(r)
+	return nil
+}
+
+func (p *filePlugin) keep(r fileResult) {
+	p.usage = append(p.usage, r.Usage...)
+	p.matches = append(p.matches, r.Matches...)
 }
 
 // matches returns one match for each call that matches a signature

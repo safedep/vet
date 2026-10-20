@@ -4,12 +4,16 @@ package codeusage
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 	"testing"
 	"testing/fstest"
+	"time"
 
+	"github.com/safedep/dry/localdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -27,7 +31,7 @@ func TestDefaultAnalyzer(t *testing.T) {
 	write(t, dir, "node_modules/x/index.py", "import skipped\nskipped.run()\n")
 	write(t, dir, "static/swagger-ui-bundle.js", "const OpenAI = require('openai');\nnew OpenAI();\n")
 	write(t, dir, "static/app.min.js", "const OpenAI = require('openai');\nnew OpenAI();\n")
-	a, err := defaultAnalyzer(context.Background(), dir)
+	a, err := newAnalyzer(Options{})(context.Background(), dir)
 	require.NoError(t, err)
 	var modules []string
 	for _, ev := range a.Usage {
@@ -54,7 +58,7 @@ func TestDefaultAnalyzerKeepsGoingPastAFailedFile(t *testing.T) {
 	write(t, dir, "app.py", "import requests\n\nrequests.get(\"https://example.com\")\n")
 	write(t, dir, "huge.py", "x = 1\n"+strings.Repeat("#", 5<<20))
 
-	a, err := defaultAnalyzer(context.Background(), dir)
+	a, err := newAnalyzer(Options{})(context.Background(), dir)
 	require.NoError(t, err)
 	require.Len(t, a.Failed, 1)
 	assert.Equal(t, "huge.py", a.Failed[0].FilePath)
@@ -107,7 +111,7 @@ func TestDefaultAnalyzerUnderSkippedParent(t *testing.T) {
 	write(t, dir, "app.py", "from openai import OpenAI\n\nclient = OpenAI()\n")
 	write(t, dir, "vendor/x/index.py", "from openai import OpenAI\n\nOpenAI()\n")
 
-	a, err := defaultAnalyzer(context.Background(), dir)
+	a, err := newAnalyzer(Options{})(context.Background(), dir)
 	require.NoError(t, err)
 	require.NotEmpty(t, a.Matches, "a parent directory named build or vendor is not part of the target")
 	for _, m := range a.Matches {
@@ -134,5 +138,112 @@ func TestSkipPatterns(t *testing.T) {
 			skip = skip || re.MatchString(tc.path)
 		}
 		assert.Equal(t, tc.skip, skip, tc.path)
+	}
+}
+
+func testCache(t *testing.T) localdb.FileManager {
+	t.Helper()
+	mgr := localdb.NewFileManager(localdb.Config{Dir: t.TempDir(), FileName: "cache.db"})
+	t.Cleanup(func() { assert.NoError(t, mgr.Close()) })
+	return mgr
+}
+
+func TestSecondScanParsesNoFile(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "app.py", "import requests\nfrom openai import OpenAI\n\nrequests.get(\"https://example.com\")\nclient = OpenAI()\n")
+	write(t, dir, "lib/util.js", "const _ = require('lodash');\n_.map([], x => x);\n")
+	analyze := newAnalyzer(Options{Cache: testCache(t)})
+
+	first, err := analyze(context.Background(), dir)
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{"app.py": "indexed", "lib/util.js": "indexed"}, first.Files)
+
+	second, err := analyze(context.Background(), dir)
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{"app.py": "cached", "lib/util.js": "cached"}, second.Files)
+	assert.ElementsMatch(t, first.Usage, second.Usage, "the cache gives the usage of the first scan")
+	assert.ElementsMatch(t, first.Matches, second.Matches, "the cache gives the matches of the first scan")
+
+	write(t, dir, "lib/util.js", "const _ = require('lodash');\n_.filter([], x => x);\n")
+	third, err := analyze(context.Background(), dir)
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{"app.py": "cached", "lib/util.js": "indexed"}, third.Files, "a changed file parses again")
+}
+
+func TestUsageLineIsTheImport(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "app.py", "import os\nimport requests\n\n\nrequests.get(\"https://example.com\")\n")
+	a, err := newAnalyzer(Options{})(context.Background(), dir)
+	require.NoError(t, err)
+	for _, ev := range a.Usage {
+		if ev.ModuleName == "requests" {
+			assert.Equal(t, uint(2), ev.Line)
+		}
+	}
+}
+
+// A deadline that ends before the walk gives no files, and a late one gives
+// none missing, so the test tries longer deadlines until one stops the run
+// in the parse.
+func TestDeadlineMakesFilesMissing(t *testing.T) {
+	dir := t.TempDir()
+	body := strings.Repeat("requests.get(\"https://example.com\")\n", 3000)
+	for i := range 100 {
+		write(t, dir, fmt.Sprintf("m%03d.py", i), "import requests\n"+body)
+	}
+	for d := time.Millisecond; d < 10*time.Second; d *= 2 {
+		ctx, cancel := context.WithTimeout(context.Background(), d)
+		a, err := newAnalyzer(Options{})(ctx, dir)
+		cancel()
+		if err == nil {
+			break
+		}
+		require.ErrorIs(t, err, context.DeadlineExceeded)
+		missing := 0
+		for _, st := range a.Files {
+			if st == FileMissing {
+				missing++
+			}
+		}
+		if len(a.Files) == 100 && missing > 0 {
+			return
+		}
+	}
+	t.Fatal("no deadline stopped the analysis in the parse")
+}
+
+func TestPruneIndex(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "app.py", "import requests\nrequests.get(\"https://example.com\")\n")
+	cache := testCache(t)
+	_, err := newAnalyzer(Options{Cache: cache})(context.Background(), dir)
+	require.NoError(t, err)
+
+	n, err := PruneIndex(context.Background(), cache, time.Now())
+	require.NoError(t, err)
+	assert.Zero(t, n, "a file read now stays")
+	n, err = PruneIndex(context.Background(), cache, time.Now().Add(indexRetention+time.Hour))
+	require.NoError(t, err)
+	assert.Equal(t, 2, n, "the index and the analysis of the file go")
+}
+
+func TestModuleVersion(t *testing.T) {
+	const code = "github.com/safedep/code"
+	cases := map[string]struct {
+		info *debug.BuildInfo
+		want string
+	}{
+		"no build info": {nil, "unknown"},
+		"a pinned version": {&debug.BuildInfo{Deps: []*debug.Module{
+			{Path: "github.com/other/mod", Version: "v1.0.0"},
+			{Path: code, Version: "v0.0.0-20261019105110-16bd15970d6e"},
+		}}, "v0.0.0-20261019105110-16bd15970d6e"},
+		"a replaced module": {&debug.BuildInfo{Deps: []*debug.Module{
+			{Path: code, Version: "v0.0.1", Replace: &debug.Module{Path: "../code", Version: "", Sum: ""}},
+		}}, "../code@"},
+		"no such module": {&debug.BuildInfo{}, "unknown"},
+	}
+	for name, c := range cases {
+		assert.Equal(t, c.want, moduleVersion(c.info, code), name)
 	}
 }
