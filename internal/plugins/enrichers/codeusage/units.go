@@ -4,6 +4,8 @@ import (
 	"cmp"
 	"context"
 	"encoding/json"
+	"errors"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -19,16 +21,18 @@ import (
 
 // unitOf finds the source of a Go module or a Rust crate on the disk, in
 // the vendor directory of the project first, then in the module or crate
-// cache. vet never downloads a dependency.
+// cache. A vendor directory counts only when it holds the version of the
+// lockfile, because the call paths of another version prove nothing. vet
+// never downloads a dependency. The standard library of Go has no unit.
 func unitOf(dir string, id model.PackageVersion) (Unit, bool) {
 	name, version := id.RawName(), strings.TrimSpace(id.RawVersion())
-	switch id.Ecosystem() {
-	case model.EcosystemGo:
-		if name == "stdlib" {
-			return stdlibUnit(strings.TrimPrefix(version, "v"))
-		}
+	switch {
+	case id.GoStdlib():
+		return Unit{}, false
+	case id.Ecosystem() == model.EcosystemGo:
 		v := "v" + strings.TrimPrefix(version, "v")
-		key := "go:" + name + "@" + v
+		// EscapePath and EscapeVersion reject a path or a version that could
+		// leave the vendor directory or the module cache.
 		escaped, err := gomodule.EscapePath(name)
 		if err != nil {
 			return Unit{}, false
@@ -37,41 +41,79 @@ func unitOf(dir string, id model.PackageVersion) (Unit, bool) {
 		if err != nil {
 			return Unit{}, false
 		}
-		return firstDir(key, filepath.Join(dir, "vendor", filepath.FromSlash(name)), underHome(goModCache(), filepath.FromSlash(escaped)+"@"+escapedV))
-	case model.EcosystemCargo:
-		key := "cargo:" + name + "@" + version
-		dirs := []string{filepath.Join(dir, "vendor", name+"-"+version), filepath.Join(dir, "vendor", name)}
-		var registries []string
+		var vendor string
+		if vendoredGo(dir)[name] == v {
+			vendor = filepath.Join(dir, "vendor", filepath.FromSlash(name))
+		}
+		return firstDir("go:"+name+"@"+v, vendor, underHome(goModCache(), filepath.FromSlash(escaped)+"@"+escapedV))
+	case id.Ecosystem() == model.EcosystemCargo:
+		// A crate name or a version from the lockfile is one path element.
+		// A name with a separator, a dot path or a pattern character could
+		// read code from outside the vendor directory or the registry.
+		if !pathElement(name) || !pathElement(version) {
+			return Unit{}, false
+		}
+		dirs := []string{filepath.Join(dir, "vendor", name+"-"+version)}
+		if vendoredCrate(filepath.Join(dir, "vendor", name)) == version {
+			dirs = append(dirs, filepath.Join(dir, "vendor", name))
+		}
 		if home := cargoHome(); home != "" {
-			var err error
-			registries, err = filepath.Glob(filepath.Join(home, "registry", "src", "*", name+"-"+version))
-			if err != nil {
-				// A crate name with a pattern character matches no registry.
-				registries = nil
+			registries, err := os.ReadDir(filepath.Join(home, "registry", "src"))
+			if err != nil && !errors.Is(err, fs.ErrNotExist) {
+				log.Debugf("cargo registry: %v", err)
+			}
+			for _, r := range registries {
+				dirs = append(dirs, filepath.Join(home, "registry", "src", r.Name(), name+"-"+version))
 			}
 		}
-		return firstDir(key, append(dirs, registries...)...)
+		return firstDir("cargo:"+name+"@"+version, dirs...)
 	}
 	return Unit{}, false
 }
 
-// stdlibUnit reads the standard library of GOROOT only when it is the
-// version of the project. A call path through another version proves
-// nothing.
-func stdlibUnit(version string) (Unit, bool) {
-	root := cmp.Or(os.Getenv("GOROOT"), goEnvOf().GOROOT)
-	if root == "" {
-		return Unit{}, false
-	}
-	b, err := os.ReadFile(filepath.Join(root, "VERSION"))
+func pathElement(s string) bool {
+	return s != "" && s != "." && s != ".." && filepath.Base(s) == s && !strings.ContainsAny(s, `/\*?[]`)
+}
+
+// vendoredGo reads vendor/modules.txt, the list of the modules that go mod
+// vendor copied, with the version of each. A missing file gives none.
+func vendoredGo(dir string) map[string]string {
+	b, err := os.ReadFile(filepath.Join(dir, "vendor", "modules.txt"))
 	if err != nil {
-		return Unit{}, false
+		return nil
 	}
-	first, _, _ := strings.Cut(string(b), "\n")
-	if strings.TrimSpace(first) != "go"+version {
-		return Unit{}, false
+	out := map[string]string{}
+	for line := range strings.Lines(string(b)) {
+		// A module line is "# path version", or "# path version => replacement".
+		// A replaced module holds other code, so it does not count.
+		fields := strings.Fields(line)
+		if len(fields) == 3 && fields[0] == "#" {
+			out[fields[1]] = fields[2]
+		}
 	}
-	return firstDir("go:std@go"+version, filepath.Join(root, "src"))
+	return out
+}
+
+// vendoredCrate reads the version of the package section of a vendored
+// Cargo.toml, or "".
+func vendoredCrate(dir string) string {
+	b, err := os.ReadFile(filepath.Join(dir, "Cargo.toml"))
+	if err != nil {
+		return ""
+	}
+	inPackage := false
+	for line := range strings.Lines(string(b)) {
+		line = strings.TrimSpace(line)
+		switch {
+		case strings.HasPrefix(line, "["):
+			inPackage = line == "[package]"
+		case inPackage && strings.HasPrefix(line, "version"):
+			if k, v, ok := strings.Cut(line, "="); ok && strings.TrimSpace(k) == "version" {
+				return strings.Trim(strings.TrimSpace(v), `"`)
+			}
+		}
+	}
+	return ""
 }
 
 // underHome joins a path to a cache root, or gives "" with no root.
@@ -97,7 +139,6 @@ func firstDir(key string, dirs ...string) (Unit, bool) {
 // goEnv holds the paths that the go command reports.
 type goEnv struct {
 	GOMODCACHE string
-	GOROOT     string
 }
 
 // goEnvOf asks the go command on the PATH once for each vet process, for
@@ -106,7 +147,7 @@ type goEnv struct {
 var goEnvOf = sync.OnceValue(func() goEnv {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, "go", "env", "-json", "GOMODCACHE", "GOROOT")
+	cmd := exec.CommandContext(ctx, "go", "env", "-json", "GOMODCACHE")
 	// The scan target can hold a go.mod with a toolchain line, and the go
 	// command would download and run that toolchain. vet runs the command
 	// outside the target, with the local toolchain only.

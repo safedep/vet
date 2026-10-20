@@ -509,3 +509,9 @@ func (p PackagePattern) Matches(id PackageVersion) bool {
 	}
 	return version == "" || id.Equal(id.WithVersion(version))
 }
+
+// GoStdlib reports the Go standard library, which a go.mod names as the
+// package stdlib.
+func (p PackageVersion) GoStdlib() bool {
+	return p.Ecosystem() == EcosystemGo && p.RawName() == "stdlib"
+}

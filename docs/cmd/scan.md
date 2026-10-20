@@ -110,15 +110,20 @@ the main functions, the framework handlers, the tests and the exported functions
 `vet report root list` lists them. `--entrypoint cmd/app/main.go:main` adds an entry point, and
 `plugins.codeusage.options.entrypoints` adds a list for every run. The flag values join the
 config list. `--entrypoints-only`, or `entrypoints_only: true`, starts the search from the named
-entry points alone. An entry point that names no function of the project exits with code 2.
+entry points alone. An entry point that names no file or no function of the project exits with
+code 2.
 
 A finding is `not-called` only when all of these are true: the record of the advisory names every
 vulnerable function, a maintainer verified the record, vet read the code of the package, vet found
-an entry point, the project imports the package, and no other dependency that the project imports
-depends on the package. In each other case the finding stays `imported`, and its cause says why:
+an entry point, the project imports the package, no other dependency that the project imports
+depends on the package, no local package (such as a Cargo path dependency) can call it, and no file
+that imports the package has a dynamic call. In each other case the finding stays `imported`, and
+its cause says why. A `go.mod` holds no dependency graph, so a Go finding with no call path stays
+`imported` with the cause `no-graph`:
 
 | Cause | Why vet cannot prove `not-called` |
 | --- | --- |
+| `no-graph` | The lockfile holds no dependency graph, so another dependency can depend on the package. |
 | `no-entry-point` | vet found no entry point, so the search started from every exported function. |
 | `no-dependency-source` | The code of the package is not in `vendor`, in the module cache or in the cargo registry. |
 | `no-symbol-in-graph` | The code of the package does not define a vulnerable function of the record. |

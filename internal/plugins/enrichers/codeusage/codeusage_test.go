@@ -356,6 +356,7 @@ func TestFunctionReachOfARecord(t *testing.T) {
 			dir := t.TempDir()
 			if c.vendored {
 				require.NoError(t, os.MkdirAll(filepath.Join(dir, "vendor", "golang.org", "x", "net"), 0o755))
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "vendor", "modules.txt"), []byte("# golang.org/x/net v0.20.0\n"), 0o600))
 			}
 			t.Setenv("GOMODCACHE", t.TempDir())
 			src := &symbolSource{verified: true}
@@ -396,4 +397,21 @@ func TestEntryPointUsageErrorStopsTheEnricher(t *testing.T) {
 	net := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, "golang.org/x/net", "v0.20.0"), Enrichment: model.Enrichment{Insight: vuln}}
 	err := e.Enrich(context.Background(), []*model.Package{net})
 	assert.Equal(t, app.ExitUsage, app.ExitCode(err))
+}
+
+func TestFunctionReachOfKeys(t *testing.T) {
+	const a, b = "x//A", "x//B"
+	record := func(keys ...string) *model.SymbolRecord {
+		return &model.SymbolRecord{Coverage: model.CoverageExact, Verified: true, FixSites: []string{"x.A", "x.B"}, Keys: keys}
+	}
+	notFound := map[string]ReachAnswer{a: {Status: "not-found"}, b: {Status: "not-found"}}
+	assert.Equal(t, model.FunctionNotFound, functionReachOf(record(a, b), notFound, true, "").Status)
+	assert.Equal(t, &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoSymbolInGraph)},
+		functionReachOf(record(a), notFound, true, ""), "a fix site with no key leaves a hole in the search")
+	assert.Equal(t, &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoSymbolInGraph)},
+		functionReachOf(record(a, b), map[string]ReachAnswer{a: {Status: "not-found"}, b: {Status: reachNoSuchTarget}}, true, ""),
+		"one key that the graph does not hold leaves a hole")
+	called := map[string]ReachAnswer{a: {Status: reachFound, TestOnly: true}, b: {Status: reachFound, Path: []model.PathHop{{Function: "main"}}}}
+	assert.Equal(t, &model.FunctionReach{Status: model.FunctionCalled, Path: []model.PathHop{{Function: "main"}}},
+		functionReachOf(record(a, b), called, true, ""), "a path that is not from a test wins")
 }

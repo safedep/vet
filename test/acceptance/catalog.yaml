@@ -915,5 +915,5 @@
   title: "a bad entry point exits 2 before a scan runs"
   category: reach
   tier: P1
-  guarantee: "An --entrypoint that is not path:function exits 2, and so does --entrypoints-only with no entry point. A good --entrypoint does not change a scan with no symbol data, and vet report root list says that the scan searched no call path."
+  guarantee: "An --entrypoint that is not path:function exits 2, and so does --entrypoints-only with no entry point. An --entrypoint in a file that the target does not have exits 2, also when no search runs. A good --entrypoint does not change a scan with no symbol data, and vet report root list says that the scan searched no call path."
   labels: [reach, enrichers, cli]

@@ -13,6 +13,8 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -169,6 +171,8 @@ type ReachResult struct {
 	Answers  map[string]ReachAnswer
 	Roots    *report.ReachRoots
 	Versions map[string]string
+	// Stopped marks a search that its budget stopped.
+	Stopped bool
 }
 
 // Reacher runs one reach query.
@@ -245,12 +249,18 @@ func ParseSettings(cfg plugin.Config) (Config, error) {
 // ParseEntrypoint reads an entry point as path:function, as
 // cmd/app/main.go:main or app/server.py:Router.handle. The path is
 // relative to the target.
-func ParseEntrypoint(s string) (path string, names []string, err error) {
-	path, fn, ok := strings.Cut(s, ":")
-	if !ok || path == "" || fn == "" || slices.Contains(strings.Split(fn, "."), "") {
+func ParseEntrypoint(s string) (file string, names []string, err error) {
+	var fn string
+	var ok bool
+	file, fn, ok = strings.Cut(s, ":")
+	file = path.Clean(filepath.ToSlash(file))
+	if !ok || file == "." || fn == "" || slices.Contains(strings.Split(fn, "."), "") {
 		return "", nil, fmt.Errorf("entry point %q is not path:function, as cmd/app/main.go:main", s)
 	}
-	return filepath.ToSlash(path), strings.Split(fn, "."), nil
+	if path.IsAbs(file) || file == ".." || strings.HasPrefix(file, "../") {
+		return "", nil, fmt.Errorf("entry point %q is not a path in the target", s)
+	}
+	return file, strings.Split(fn, "."), nil
 }
 
 // EntrypointsOnlyKey is the config key that limits the call graph search to
@@ -516,6 +526,9 @@ func (e *Enricher) lookupSymbols(pkgs []*model.Package) {
 // links the code of the project and of each dependency on disk. A call
 // path can pass through a dependency with no record.
 func (e *Enricher) functionReach(ctx context.Context, pkgs []*model.Package) error {
+	if err := e.checkEntrypoints(); err != nil {
+		return err
+	}
 	if e.symbols == nil || e.reach == nil {
 		return nil
 	}
@@ -530,8 +543,9 @@ func (e *Enricher) functionReach(ctx context.Context, pkgs []*model.Package) err
 		}
 		// Only the code of an imported package can hold a path that proves
 		// a finding. The code of a transitive package costs time and
-		// proves nothing, because the engine keeps it imported.
-		if !p.Usage.Imported {
+		// proves nothing, because the engine keeps it imported. So does
+		// the standard library, which every module calls.
+		if !p.Usage.Imported || p.ID.GoStdlib() {
 			continue
 		}
 		if u, ok := unitOf(e.dir, p.ID); ok {
@@ -557,6 +571,10 @@ func (e *Enricher) functionReach(ctx context.Context, pkgs []*model.Package) err
 	e.roots, e.versions = res.Roots, res.Versions
 	var failed finding.ReachCause
 	switch {
+	case err == nil && res.Stopped:
+		// The search stopped at its budget. Each answer with no path
+		// carries the budget uncertainty.
+		e.reachStopped = true
 	case err == nil:
 	case app.ExitCode(err) == app.ExitUsage || ctx.Err() != nil:
 		return err
@@ -574,9 +592,26 @@ func (e *Enricher) functionReach(ctx context.Context, pkgs []*model.Package) err
 		for i := range p.Usage.Symbols {
 			r := &p.Usage.Symbols[i]
 			r.Reach = functionReachOf(r, res.Answers, hasUnit[p.ID.Key()], failed)
-			if !p.Usage.Imported && r.Reach.Status != model.FunctionCalled {
+			if (!p.Usage.Imported || p.ID.GoStdlib()) && r.Reach.Status != model.FunctionCalled {
 				r.Reach = &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachTransitive)}
 			}
+		}
+	}
+	return nil
+}
+
+// checkEntrypoints checks that the file of each entry point is in the
+// target, so a typo exits 2 also when no search runs. The search checks
+// the function.
+func (e *Enricher) checkEntrypoints() error {
+	for _, ep := range e.o.Entrypoints {
+		file, _, err := ParseEntrypoint(ep)
+		if err == nil {
+			_, err = os.Stat(filepath.Join(e.dir, filepath.FromSlash(file)))
+		}
+		if err != nil {
+			return app.UsageError(fmt.Sprintf("entry point %q names no file of the target", ep),
+				"Fix the entry point. vet report root list lists the entry points that vet found.")
 		}
 	}
 	return nil
@@ -620,6 +655,10 @@ func functionReachOf(r *model.SymbolRecord, answers map[string]ReachAnswer, hasU
 	switch {
 	case found != nil:
 		return &model.FunctionReach{Status: model.FunctionCalled, Path: found.Path, TestOnly: found.TestOnly}
+	case len(r.Keys) < len(r.FixSites):
+		// A fix site with no key is not in the search, so no path to the
+		// others proves nothing.
+		return unknown(finding.ReachNoSymbolInGraph)
 	case cause != "":
 		return unknown(cause)
 	case !hasUnit:

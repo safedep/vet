@@ -1,12 +1,15 @@
 # An entry point that is not path:function exits 2 before a scan runs.
-# --entrypoints-only with no entry point exits 2. A scan with no symbol
-# data searches no call path, so the root list says so.
+# --entrypoints-only with no entry point exits 2. An entry point in a file
+# that the target does not have exits 2, also when no search runs. A scan
+# with no symbol data searches no call path, so the root list says so.
 [!cgo] skip 'code analysis needs a vet built with CGO'
 cd proj
 ! exec vet scan . --entrypoint main.go -o json
 stderr 'entry point "main.go" is not path:function'
 ! exec vet scan . --entrypoints-only -o json
 stderr 'entrypoints_only needs at least one entry point'
+! exec vet scan . --entrypoint cmd/nope.go:main -o json
+stderr 'entry point "cmd/nope.go:main" names no file of the target'
 exec vet scan . --entrypoint main.go:main -o jsonl --mode agent
 stdout '"reach":\{"level":"imported","cause":"no-symbol-data"'
 exec vet report root list -o table

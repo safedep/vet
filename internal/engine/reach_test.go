@@ -41,7 +41,9 @@ func TestReachOf(t *testing.T) {
 		// appUsage and toolUsage are the usage of the two roots.
 		appUsage, toolUsage *model.Usage
 		noGraph             bool
-		want                *finding.Reach
+		// local adds a local package that the code imports.
+		local bool
+		want  *finding.Reach
 	}{
 		{
 			name: "no usage gives no reach", level: report.ReachImport,
@@ -100,6 +102,34 @@ func TestReachOf(t *testing.T) {
 				Level: finding.ReachImported, Cause: finding.ReachTransitive, Confidence: finding.ConfidenceMedium,
 				Via: []string{app.PURL(), dep.PURL()}, FixSites: []string{"dep.Render"},
 			},
+		},
+		{
+			name: "no path to a package that an unread package depends on stays imported", level: report.ReachFunction,
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachTransitive, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
+			name: "no path with an imported local package stays imported", level: report.ReachFunction, local: true,
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachTransitive, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
+			name: "a call in one record of the advisory is a call", level: report.ReachFunction,
+			usage: &model.Usage{Imported: true, Symbols: []model.SymbolRecord{
+				{Advisory: "GHSA-test", Coverage: model.CoverageExact, Verified: true, FixSites: []string{"dep.Render"}, Reach: &model.FunctionReach{Status: model.FunctionNotFound}},
+				{Advisory: "GHSA-test", Coverage: model.CoverageExact, Verified: true, FixSites: []string{"dep.Parse"}, Reach: &model.FunctionReach{Status: model.FunctionCalled, Path: path}},
+			}},
+			appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachCalled, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render", "dep.Parse"}, Path: path},
+		},
+		{
+			name: "no path in one record and no answer in another stays imported", level: report.ReachFunction,
+			usage: &model.Usage{Imported: true, Symbols: []model.SymbolRecord{
+				{Advisory: "GHSA-test", Coverage: model.CoverageExact, Verified: true, FixSites: []string{"dep.Render"}, Reach: &model.FunctionReach{Status: model.FunctionNotFound}},
+				{Advisory: "GHSA-test", Coverage: "broad", FixSites: []string{"dep.Parse"}, Reach: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachBroadRecord)}},
+			}},
+			appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachBroadRecord, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render", "dep.Parse"}},
 		},
 		{
 			name: "no path with an unread file stays imported", level: report.ReachFunction,
@@ -192,6 +222,12 @@ func TestReachOf(t *testing.T) {
 			}}
 			if c.noGraph {
 				m.Graph = nil
+			}
+			if c.local {
+				m.Packages = append(m.Packages, &model.Package{
+					ID: model.MustPackageVersion(model.EcosystemNpm, "shared", "0.1.0"), Local: true,
+					Enrichment: model.Enrichment{Usage: &model.Usage{Imported: true}},
+				})
 			}
 			got := reachOf(c.level, target, m, "GHSA-test")
 			if got != nil && c.want != nil && c.want.Symbols == nil {

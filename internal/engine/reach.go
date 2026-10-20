@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/model"
@@ -121,14 +122,20 @@ func reachOf(level report.ReachLevel, p *model.Package, m *model.Manifest, advis
 	if level != report.ReachFunction || r.Level != finding.ReachImported {
 		return r
 	}
-	rec := recordOf(p.Usage, advisory)
-	if rec == nil {
+	recs := recordsOf(p.Usage, advisory)
+	if len(recs) == 0 {
 		r.Cause = finding.ReachNoSymbolData
 		return r
 	}
-	r.FixSites = rec.FixSites
+	rec, fr := joinRecords(recs)
 	r.Symbols = &finding.ReachSymbols{Record: rec.Record, Coverage: rec.Coverage, Review: rec.Review, Source: rec.Source, License: rec.License}
-	fr := rec.Reach
+	for _, x := range recs {
+		for _, s := range x.FixSites {
+			if !slices.Contains(r.FixSites, s) {
+				r.FixSites = append(r.FixSites, s)
+			}
+		}
+	}
 	switch {
 	case fr == nil:
 		r.Cause = finding.ReachAnalysisFailed
@@ -142,6 +149,28 @@ func reachOf(level report.ReachLevel, p *model.Package, m *model.Manifest, advis
 		r.Cause = finding.ReachCause(fr.Cause)
 	}
 	return r
+}
+
+// joinRecords joins the records of one advisory, as the entries of two
+// version ranges. A call in one record is a call, and the record with the
+// path names the finding. No path is no path only when each record says
+// so. Else the first record that vet could not place gives the cause.
+func joinRecords(recs []*model.SymbolRecord) (*model.SymbolRecord, *model.FunctionReach) {
+	var unproved *model.SymbolRecord
+	for _, rec := range recs {
+		switch {
+		case rec.Reach != nil && rec.Reach.Status == model.FunctionCalled:
+			return rec, rec.Reach
+		case rec.Reach == nil || rec.Reach.Status != model.FunctionNotFound:
+			if unproved == nil {
+				unproved = rec
+			}
+		}
+	}
+	if unproved != nil {
+		return unproved, unproved.Reach
+	}
+	return recs[0], recs[0].Reach
 }
 
 func importReach(p *model.Package, m *model.Manifest) *finding.Reach {
@@ -195,12 +224,19 @@ func unproven(p *model.Package, m *model.Manifest) finding.ReachCause {
 		return finding.ReachDynamicFlag
 	case m.Graph == nil:
 		return finding.ReachNoGraph
-	case p.ID.Ecosystem() == model.EcosystemGo && p.ID.RawName() == "stdlib":
+	case p.ID.GoStdlib():
 		return finding.ReachTransitive
 	case reachedByOther(p, m):
 		return finding.ReachTransitive
 	}
 	return ""
+}
+
+// mayImport reports a package other than p that the code can import: one
+// that the code imports, or one with no usage, as an unchanged package of
+// a pull request scan that the enricher did not read.
+func mayImport(q, p *model.Package) bool {
+	return !q.ID.Equal(p.ID) && (q.Usage == nil || q.Usage.Imported)
 }
 
 // pathConfidence is the lower of the confidence of the record and of the
@@ -218,26 +254,33 @@ func pathConfidence(rec *model.SymbolRecord, path []model.PathHop) finding.Confi
 	return c
 }
 
-// reachedByOther reports a dependency path to p from another package that
-// the code imports.
+// reachedByOther reports another package that the code can import and
+// that can call p. That is a dependency path to p, or a local package,
+// such as a Cargo path dependency. A lockfile records no edge from a local
+// package, and its code can be outside the target.
 func reachedByOther(p *model.Package, m *model.Manifest) bool {
 	var from []model.PackageVersion
 	for _, q := range m.Packages {
-		if q.Usage != nil && q.Usage.Imported && !q.ID.Equal(p.ID) {
-			from = append(from, q.ID)
+		if !mayImport(q, p) {
+			continue
 		}
+		if q.Local {
+			return true
+		}
+		from = append(from, q.ID)
 	}
 	return len(m.Graph.PathFrom(from, p.ID)) > 0
 }
 
-// recordOf returns the symbol record of an advisory of a package, or nil.
-func recordOf(u *model.Usage, advisory string) *model.SymbolRecord {
+// recordsOf returns the symbol records of an advisory of a package.
+func recordsOf(u *model.Usage, advisory string) []*model.SymbolRecord {
+	var out []*model.SymbolRecord
 	for i := range u.Symbols {
 		if advisory != "" && u.Symbols[i].Advisory == advisory {
-			return &u.Symbols[i]
+			out = append(out, &u.Symbols[i])
 		}
 	}
-	return nil
+	return out
 }
 
 // pathFromImported returns the shortest dependency path from a package

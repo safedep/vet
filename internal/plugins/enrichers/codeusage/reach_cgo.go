@@ -61,11 +61,12 @@ func newReacher(root string, langs []core.Language, st store.Store, project *ind
 		}
 		fallback := g.Stats.RootFallback && len(q.Sources) == 0
 		out := ReachResult{
-			Answers: make(map[string]ReachAnswer, len(results)), Roots: rootsOf(g, query, fallback),
+			Answers: make(map[string]ReachAnswer, len(results)), Roots: rootsOf(g, query),
 			Versions: map[string]string{Name: Version, "projectgraph": projectgraph.Version, "reach": reach.Version},
 		}
 		for _, r := range results {
 			out.Answers[r.Target.Key()] = answerOf(r, fallback)
+			out.Stopped = out.Stopped || r.Searched.Stopped
 		}
 		return out, nil
 	}
@@ -73,14 +74,16 @@ func newReacher(root string, langs []core.Language, st store.Store, project *ind
 
 // rootsOf lists the entry points of a search: the roots of the graph and
 // the sources of the query, or the sources alone.
-func rootsOf(g *projectgraph.Graph, q reach.Query, fallback bool) *report.ReachRoots {
+func rootsOf(g *projectgraph.Graph, q reach.Query) *report.ReachRoots {
 	var roots []projectgraph.Root
 	if q.SourceMode != reach.SourcesOnly {
 		roots = g.Roots
 	}
-	out := &report.ReachRoots{Fallback: fallback, Total: len(roots) + len(q.Sources)}
-	if fallback {
-		return out
+	// A graph with no root of its own searches from every exported
+	// function, also when the user names sources.
+	out := &report.ReachRoots{Fallback: g.Stats.RootFallback && q.SourceMode != reach.SourcesOnly, Total: len(roots) + len(q.Sources)}
+	if out.Fallback {
+		roots = nil
 	}
 	for _, r := range roots[:min(len(roots), report.MaxRoots)] {
 		out.List = append(out.List, report.EntryPoint{Function: r.Key, Kind: string(r.Kind), Rule: r.Rule, File: r.Site.Path, Line: r.Site.Line})
@@ -150,7 +153,9 @@ func answerOf(r reach.Result, rootFallback bool) ReachAnswer {
 	a := ReachAnswer{Status: string(r.Status), RootFallback: rootFallback}
 	path := r.Path
 	if len(path) == 0 && len(r.TestPath) > 0 {
-		path, a.TestOnly = r.TestPath, true
+		// Only a test reaches the target. That is still a call, so the
+		// answer is found with the test mark.
+		path, a.TestOnly, a.Status = r.TestPath, true, reachFound
 	}
 	for _, h := range path {
 		a.Path = append(a.Path, model.PathHop{
