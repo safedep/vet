@@ -4,9 +4,15 @@
 # command line and maps the report to the outputs.
 #
 # Environment: ACTION_FAIL_ON, ACTION_POLICY, ACTION_COMMENT,
-# ACTION_COMMENT_PROXY, ACTION_SARIF, ACTION_ARGS, GH_TOKEN and the
-# variables of GitHub Actions.
+# ACTION_COMMENT_PROXY, ACTION_SARIF, ACTION_ARGS, ACTION_CACHE_DIR, GH_TOKEN
+# and the variables of GitHub Actions.
 set -euo pipefail
+
+# The action restores this directory before the scan and saves it after.
+# An empty value keeps the cache directory of the user.
+if [ -n "${ACTION_CACHE_DIR:-}" ]; then
+  export VET_CACHE_DIR=$ACTION_CACHE_DIR
+fi
 
 fail() {
   echo "::error::$*"

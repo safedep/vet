@@ -41,6 +41,9 @@ inputs:
   github-token:
     description: Token for the releases, the comment and the GitHub checks of vet
     default: ${{ github.token }}
+  cache:
+    description: Keep the vet cache directory between runs with actions/cache, so a scan reads unchanged source files and package data from the cache
+    default: "true"
 
 outputs:
   gate:
@@ -55,6 +58,9 @@ outputs:
   comment-url:
     description: The URL of the pull request comment, or empty
     value: ${{ steps.scan.outputs.comment-url }}
+  cache-key:
+    description: The key of the vet cache entry that the run restored, or empty
+    value: ${{ steps.cache.outputs.cache-matched-key }}
 
 runs:
   using: composite
@@ -67,10 +73,24 @@ runs:
         GH_TOKEN: ${{ inputs.github-token }}
       run: bash "$GITHUB_ACTION_PATH/action/install.sh"
 
+    # Each run saves a new cache entry, and the next run restores the
+    # newest one. An entry holds only what vet computed from file content
+    # and from SafeDep answers, keyed by hash, so a pull request that writes
+    # its own entry cannot change the result of another file.
+    - name: Restore the vet cache
+      id: cache
+      if: ${{ inputs.cache == 'true' }}
+      uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+      with:
+        path: ${{ runner.temp }}/vet-cache
+        key: vet-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+        restore-keys: vet-${{ runner.os }}-
+
     - name: Scan
       id: scan
       shell: bash
       env:
+        ACTION_CACHE_DIR: ${{ inputs.cache == 'true' && format('{0}/vet-cache', runner.temp) || '' }}
         ACTION_FAIL_ON: ${{ inputs.fail-on }}
         ACTION_POLICY: ${{ inputs.policy }}
         ACTION_PACKAGE_COOLDOWN: ${{ inputs.package-cooldown }}
@@ -82,6 +102,14 @@ runs:
         GH_TOKEN: ${{ inputs.github-token }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: bash "$GITHUB_ACTION_PATH/action/scan.sh"
+
+    - name: Save the vet cache
+      if: ${{ !cancelled() && inputs.cache == 'true' }}
+      continue-on-error: true
+      uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+      with:
+        path: ${{ runner.temp }}/vet-cache
+        key: vet-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
     # A failed upload does not fail the job. Code scanning of a private
     # repository needs GitHub Advanced Security.

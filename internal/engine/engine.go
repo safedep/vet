@@ -12,6 +12,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/safedep/vet/v2/finding"
@@ -297,6 +298,8 @@ type run struct {
 	// attacks maps the id of a control plugin and the id of each attack
 	// control that it describes to the attack that its findings get.
 	attacks map[string]map[string]finding.Attack
+	// prepared holds the Prepare goroutines of the enrichers.
+	prepared sync.WaitGroup
 }
 
 // rootOf returns the file system that a manifest was read from, for the
@@ -325,6 +328,7 @@ func (r *run) stages(ctx context.Context, artifacts []plugin.Artifact) error {
 		r.diags.put(&c)
 	}
 	r.artifacts = artifacts
+	defer r.prepare(ctx)()
 	steps := []struct {
 		name string
 		fn   func(context.Context) error

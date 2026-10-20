@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/safedep/dry/log"
+
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
@@ -23,11 +25,35 @@ func (r *run) enrich(ctx context.Context) error {
 			return err
 		}
 	}
+	// An enricher that had no package to enrich can still be preparing,
+	// and its diagnostics must wait for its work.
+	r.prepared.Wait()
 	if err := r.findCapabilities(ctx); err != nil {
 		return err
 	}
 	r.enrichDiagnostics()
 	return nil
+}
+
+// prepare starts the Prepare of each enricher. stop cancels the work that
+// is still running and waits for it, so no goroutine outlives the stages.
+func (r *run) prepare(ctx context.Context) (stop func()) {
+	ctx, cancel := context.WithCancel(ctx)
+	for _, e := range r.o.Enrichers {
+		p, ok := e.Plugin.(plugin.Preparer)
+		if !ok {
+			continue
+		}
+		r.prepared.Go(func() {
+			if err := p.Prepare(ctx); err != nil {
+				log.Debugf("prepare %s: %v", e.Name, err)
+			}
+		})
+	}
+	return func() {
+		cancel()
+		r.prepared.Wait()
+	}
 }
 
 // enrichDiagnostics adds the diagnostics that each enricher reports about

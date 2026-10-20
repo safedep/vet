@@ -57,6 +57,7 @@ Then, in the settings of the repository:
 | `config` | empty | The path of a vet config file in the repository, such as `.github/vet/config.yml` in the default setup. In a pull request, vet reads the file at the base commit |
 | `args` | empty | More arguments for `vet scan`. The action splits them on white space |
 | `github-token` | `${{ github.token }}` | The token for the releases, the comment and the GitHub checks of vet |
+| `cache` | `true` | Keep the vet cache directory between runs with `actions/cache`. A scan then reads the unchanged source files and package data from the cache |
 
 The action has two cooldowns for two different things:
 
@@ -107,6 +108,7 @@ malware.
 | `findings` | The count of findings in the report |
 | `report` | The path of the JSON report |
 | `comment-url` | The URL of the comment, or empty |
+| `cache-key` | The key of the vet cache entry that the run restored, or empty |
 
 ## The gate
 

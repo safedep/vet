@@ -397,6 +397,7 @@ func needOneOf(t *testing.T, tools ...string) {
 const fakeVet = `#!/usr/bin/env bash
 printf '%s\n' "$@" >"$FAKE/args"
 echo "create=${VET_PLUGINS_PR_COMMENT_OPTIONS_CREATE:-} proxy=${VET_PLUGINS_PR_COMMENT_OPTIONS_PROXY:-}" >"$FAKE/env"
+echo "${VET_CACHE_DIR:-unset}" >"$FAKE/cache"
 for arg in "$@"; do
   case $arg in
     markdown=*) head -c "${FAKE_SUMMARY_BYTES:-20}" /dev/zero | tr '\0' 'x' >"${arg#markdown=}" ;;
@@ -445,6 +446,8 @@ func TestScan(t *testing.T) {
 		noOutputs     []string
 		output        string
 		fetch         string
+		// cache is the VET_CACHE_DIR that vet gets.
+		cache string
 	}{
 		{
 			name:    "a pull request scans the change, applies the policy and comments",
@@ -455,6 +458,18 @@ func TestScan(t *testing.T) {
 			args:    []string{"--fail-on\nattacks", "--base-ref\nBASE", "--report\npr-comment", "--policy\n.github/vet/policy.yml"},
 			comment: "create=changes proxy=true",
 			outputs: []string{"gate=fail\n", "findings=2\n", "report="},
+		},
+		{
+			name:  "the action cache directory is the vet cache directory",
+			event: "push",
+			env:   map[string]string{"ACTION_CACHE_DIR": "/runner/vet-cache"},
+			cache: "/runner/vet-cache",
+		},
+		{
+			name:  "with no action cache, vet keeps the cache directory of the user",
+			event: "push",
+			env:   map[string]string{"VET_CACHE_DIR": "/user/cache", "ACTION_CACHE_DIR": ""},
+			cache: "/user/cache",
 		},
 		{
 			name:  "a pull request passes the policy, and vet reads it at the base",
@@ -721,6 +736,11 @@ func TestScan(t *testing.T) {
 				got, err := os.ReadFile(filepath.Join(fake, "env"))
 				require.NoError(t, err)
 				assert.Equal(t, tc.comment, strings.TrimSpace(string(got)))
+			}
+			if tc.cache != "" {
+				got, err := os.ReadFile(filepath.Join(fake, "cache"))
+				require.NoError(t, err)
+				assert.Equal(t, tc.cache, strings.TrimSpace(string(got)))
 			}
 			if tc.fetch != "" {
 				got, err := os.ReadFile(filepath.Join(fake, "fetch"))

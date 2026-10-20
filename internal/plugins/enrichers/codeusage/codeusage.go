@@ -151,6 +151,7 @@ type Enricher struct {
 var (
 	_ plugin.CapabilityFinder = (*Enricher)(nil)
 	_ plugin.Diagnoser        = (*Enricher)(nil)
+	_ plugin.Preparer         = (*Enricher)(nil)
 )
 
 // CodeFileFailed is the diagnostic code of source files that the analysis
@@ -258,6 +259,11 @@ func addSites(sites, add map[string]int) {
 func testFile(name string) bool {
 	return slices.ContainsFunc(fileindex.DefaultTestPaths, func(g string) bool { return pathglob.Match(g, name) })
 }
+
+// Prepare indexes the source files at scan start, while the network
+// enrichers run. Enrich and Capabilities then wait for the same load, and
+// they report its error.
+func (e *Enricher) Prepare(ctx context.Context) error { return e.load(ctx) }
 
 // load analyzes the target once for the scan.
 func (e *Enricher) load(ctx context.Context) error {

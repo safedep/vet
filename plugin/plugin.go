@@ -124,6 +124,16 @@ type Diagnoser interface {
 	Diagnostics() []report.Diagnostic
 }
 
+// Preparer is an enricher with work that needs no package, such as the
+// index of the source files. The engine calls Prepare once in its own
+// goroutine when the scan starts, so the work runs while the extraction
+// and the network enrichers run. Enrich must give the same result with or
+// without Prepare. The engine reports no error of Prepare, so Enrich or
+// Diagnostics must report it.
+type Preparer interface {
+	Prepare(ctx context.Context) error
+}
+
 // Control evaluates one manifest, loaded with its packages, and returns
 // findings. A control that looks across manifests reads State.
 type Control interface {
