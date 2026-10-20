@@ -29,7 +29,7 @@ func TestReachOf(t *testing.T) {
 	stdlib := model.MustPackageVersion(model.EcosystemGo, "stdlib", "1.27.1")
 	crate := model.MustPackageVersion(model.EcosystemCargo, "time", "0.3.30")
 	site := []model.ImportSite{{File: "index.js", Line: 1}}
-	path := []model.PathHop{{Function: "main", File: "main.go", Line: 3, Root: "main"}, {Function: "dep.Render"}}
+	path := []model.PathHop{{Function: "main", File: "main.go", Line: 3, Root: "main"}, {Function: "dep.Render", Edge: "direct", Confidence: model.HopHigh}}
 	chaPath := []model.PathHop{{Function: "main", Root: "main"}, {Function: "dep.Render", Edge: "cha", Confidence: "medium"}}
 	record := func(r *model.FunctionReach) []model.SymbolRecord {
 		return []model.SymbolRecord{{Advisory: "GHSA-test", Coverage: model.CoverageExact, Verified: true, FixSites: []string{"dep.Render"}, Reach: r}}
@@ -44,7 +44,9 @@ func TestReachOf(t *testing.T) {
 		noGraph             bool
 		// local adds a local package that the code imports.
 		local bool
-		want  *finding.Reach
+		// sbom reads the graph from an SBOM, which can list only some edges.
+		sbom bool
+		want *finding.Reach
 	}{
 		{
 			name: "no usage gives no reach", level: report.ReachImport,
@@ -141,6 +143,11 @@ func TestReachOf(t *testing.T) {
 			},
 		},
 		{
+			name: "no path with the graph of an SBOM stays imported", level: report.ReachFunction, sbom: true,
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachNoGraph, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
 			name: "no path with an unread file stays imported", level: report.ReachFunction,
 			usage: &model.Usage{Imported: true, UnreadFiles: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
 			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachUnreadFiles, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
@@ -228,7 +235,11 @@ func TestReachOf(t *testing.T) {
 				id = c.id
 			}
 			target := &model.Package{ID: id, Enrichment: model.Enrichment{Usage: c.usage}}
-			m := &model.Manifest{Graph: graph, Packages: []*model.Package{
+			kind := model.ManifestKindLockfile
+			if c.sbom {
+				kind = model.ManifestKindSBOM
+			}
+			m := &model.Manifest{Kind: kind, Graph: graph, Packages: []*model.Package{
 				{ID: app, Enrichment: model.Enrichment{Usage: c.appUsage}},
 				{ID: tool, Enrichment: model.Enrichment{Usage: c.toolUsage}},
 				{ID: lone},

@@ -129,7 +129,7 @@ func skippedPath(rel string) bool {
 		return true
 	}
 	for dir := path.Dir(rel); dir != "." && dir != "/"; dir = path.Dir(dir) {
-		if skippedDir(path.Base(dir)) {
+		if skippedDir(dir) {
 			return true
 		}
 	}

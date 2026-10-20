@@ -239,7 +239,10 @@ const HopHigh = "high"
 // guesses, as a call by name or through an interface to each type that
 // implements it. A real scan showed that such a path is often not a call.
 func WeakPath(path []PathHop) bool {
-	return slices.ContainsFunc(path, func(h PathHop) bool { return h.Confidence != "" && h.Confidence != HopHigh })
+	// The first hop is the entry point and has no call. A later hop with no
+	// confidence is weak, so a call that the graph does not rate never
+	// counts as high.
+	return len(path) > 1 && slices.ContainsFunc(path[1:], func(h PathHop) bool { return h.Confidence != HopHigh })
 }
 
 // PathHop is one function of a call path, with the line of its call into

@@ -72,7 +72,9 @@ func preparedScan(t *testing.T, network *fakeEnricher, index plugin.Enricher) Op
 }
 
 func TestPrepareRunsWithTheNetworkEnrichers(t *testing.T) {
-	const delay = 400 * time.Millisecond
+	// A long delay keeps the fixed cost of a scan, as under -race, small next
+	// to the bound.
+	const delay = time.Second
 	o := preparedScan(t, &fakeEnricher{delay: delay}, newIndexEnricher(delay))
 	o.BatchSize = 100
 	start := time.Now()

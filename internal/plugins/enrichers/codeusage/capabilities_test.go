@@ -29,15 +29,15 @@ func (l *lineAnalyzer) analyze(_ context.Context, dir string) (Analysis, error) 
 		if err != nil {
 			return err
 		}
-		if d.IsDir() {
-			if skippedDir(d.Name()) {
-				return filepath.SkipDir
-			}
-			return nil
-		}
 		rel, err := filepath.Rel(dir, p)
 		if err != nil {
 			return err
+		}
+		if d.IsDir() {
+			if p != dir && skippedDir(filepath.ToSlash(rel)) {
+				return filepath.SkipDir
+			}
+			return nil
 		}
 		rel = filepath.ToSlash(rel)
 		files = append(files, rel)

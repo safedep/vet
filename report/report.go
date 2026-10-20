@@ -114,9 +114,11 @@ const (
 type ReachInfo struct {
 	Level  ReachLevel  `json:"level" jsonschema:"enum=off,enum=import,enum=function"`
 	Status ReachStatus `json:"status" jsonschema:"enum=computed,enum=off,enum=no-source,enum=unavailable,enum=failed"`
-	// Symbols is the symbol data of the scan, or nil when the scan read
-	// none.
-	Symbols *SymbolBundle `json:"symbols,omitempty"`
+	// SymbolData marks a scan with Go or Rust code, which needs symbol
+	// data. Symbols is the symbol data of the scan, or nil when the scan
+	// read none.
+	SymbolData bool          `json:"symbol_data,omitempty"`
+	Symbols    *SymbolBundle `json:"symbols,omitempty"`
 	// Roots are the entry points where the call graph search started, or
 	// nil when the scan searched no call path.
 	Roots *ReachRoots `json:"roots,omitempty"`

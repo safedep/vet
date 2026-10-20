@@ -32,7 +32,9 @@ and the `reach` object in JSON. The value names its evidence, as `called · 3 ho
 `imported · no symbol data` or `unknown · budget`. The table shows the riskiest reach of a row, so a
 called vulnerability never hides behind one that is not called. A target with no source code has no
 REACH column, and the scan view says `Reach: not computed, the target has no source code`. The scan
-view also names the symbol bundle and counts each reach and each cause.
+view also names the symbol bundle and counts each reach and each cause. The call graph search
+covers the whole target. In a target with two `go.mod` files that require one module, a call from
+one project makes the finding of the module `called` in both.
 
 Each package in a report has a `purl`. It follows the purl-spec type definition of its ecosystem,
 and it keeps the version as the manifest writes it. `name` and `version` hold the canonical form

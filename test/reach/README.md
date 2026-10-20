@@ -47,7 +47,8 @@ A case is a `txtar` file under `cases/go/` or `cases/rust/`. The comment section
 
 - Write synthetic code. Do not copy a real dependency.
 - Keep each file name inside the case folder. The test rejects `../` and absolute paths.
-- A Go case needs `vendor/modules.txt` with the module and the version of the unit, as `go mod
-  vendor` writes it. vet reads a vendor tree only with that list.
+- Give a Go case `vendor/modules.txt` with the module and the version of the unit, as `go mod
+  vendor` writes it. A scan reads a vendor tree only with that list. The corpus passes the units
+  to the search itself.
 - Add a `not-called` target next to each `called` target where you can. It keeps the search from
   growing into false paths.

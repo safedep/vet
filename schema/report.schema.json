@@ -1103,6 +1103,9 @@
             "failed"
           ]
         },
+        "symbol_data": {
+          "type": "boolean"
+        },
         "symbols": {
           "$ref": "#/$defs/SymbolBundle"
         },

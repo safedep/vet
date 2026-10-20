@@ -231,7 +231,10 @@ func unproven(p *model.Package, m *model.Manifest) finding.ReachCause {
 		return incomplete(p.Usage)
 	case len(p.Usage.Dynamic) > 0:
 		return finding.ReachDynamicFlag
-	case m.Graph == nil:
+	case m.Graph == nil || m.Kind != model.ManifestKindLockfile:
+		// Only a lockfile lists each dependency of each package. An SBOM can
+		// list only the direct dependencies of the root, and the code of a
+		// dependency with no unit gives the search no edge to follow.
 		return finding.ReachNoGraph
 	case reachedByOther(p, m):
 		return finding.ReachTransitive

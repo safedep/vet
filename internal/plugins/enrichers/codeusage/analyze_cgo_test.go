@@ -134,6 +134,8 @@ func TestSkipPatterns(t *testing.T) {
 		{"/ci/build/app", "/ci/build/app/node_modules/x/index.js", true},
 		{"/ci/build/app", "/ci/build/app/web/dist/app.js", true},
 		{"/ci/build/app", "/ci/build/app/static/swagger-ui-bundle.js", true},
+		{"/ci/build/app", "/ci/build/app/internal/build/b.go", false},
+		{"/ci/build/app", "/ci/build/app/build/out.js", true},
 		{`C:\ci\app`, `C:\ci\app\node_modules\x\index.js`, true},
 		{`C:\ci\app`, `C:\ci\app\src\index.js`, false},
 	}
@@ -404,4 +406,31 @@ func TestReachOfALibraryWithNoMain(t *testing.T) {
 	assert.True(t, res.Roots.Fallback)
 	got := functionReachOf(&model.SymbolRecord{Coverage: model.CoverageExact, Verified: true, Keys: []string{unused}}, res.Answers, true, "")
 	assert.Equal(t, &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoEntryPoint)}, got)
+}
+
+// A package of the project can have the name build. Only a build directory
+// directly under the target holds built code.
+func TestBuildPackageOfTheProjectIsCode(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "go.mod", "module example.com/app\n\ngo 1.27\n")
+	write(t, dir, "internal/build/b.go", "package build\n\nimport \"example.com/dep/html\"\n\nfunc B() { html.Render(nil) }\n")
+	write(t, dir, "build/out.go", "package out\n\nimport \"example.com/dep/html\"\n")
+	a, err := newAnalyzer(Options{})(context.Background(), dir)
+	require.NoError(t, err)
+	assert.Contains(t, a.Files, "internal/build/b.go")
+	assert.NotContains(t, a.Files, "build/out.go")
+}
+
+// A file that names a package only in a type still imports it.
+func TestTypeOnlyGoImportIsAnImport(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "go.mod", "module example.com/app\n\ngo 1.27\n")
+	write(t, dir, "main.go", "package main\n\nimport \"example.com/dep/html\"\n\nvar t *html.Tokenizer\n\nfunc main() {}\n")
+	a, err := newAnalyzer(Options{})(context.Background(), dir)
+	require.NoError(t, err)
+	var mods []string
+	for _, ev := range a.Usage {
+		mods = append(mods, ev.ModuleName)
+	}
+	assert.Contains(t, mods, "example.com/dep/html")
 }

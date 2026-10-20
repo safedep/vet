@@ -188,6 +188,10 @@ type hashed struct {
 	// The entry points change the call paths of each finding.
 	Entrypoints     []string `json:"entrypoints,omitempty"`
 	EntrypointsOnly bool     `json:"entrypoints_only,omitempty"`
+	// The symbol options choose the bundle, so a stopped scan does not mix
+	// the records of two bundles.
+	SymbolsBundle string `json:"symbols_bundle,omitempty"`
+	SymbolsPin    string `json:"symbols_pin,omitempty"`
 }
 
 // Scan runs a scan, writes the report to its destinations and returns the
@@ -295,6 +299,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			BaseRef: o.BaseRef, Exclude: exclude, API: cfg.Cloud.Endpoints.API, Anonymous: creds.Anonymous(),
 			Tenant: creds.TenantDomain(), Enrichers: enricherIDs(set), Packages: string(packages), Reach: code.reach.Level, Budget: code.budget,
 			Entrypoints: code.config.Entrypoints, EntrypointsOnly: code.config.EntrypointsOnly,
+			SymbolsBundle: code.config.SymbolsBundle, SymbolsPin: code.config.SymbolsPin,
 		})
 		if err != nil {
 			return err

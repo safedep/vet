@@ -33,8 +33,10 @@ import (
 func skipPatterns(root string) []*regexp.Regexp {
 	const sep = `[\\/]`
 	names := strings.Join(regexpQuoted(skippedDirs), "|")
+	rootNames := strings.Join(regexpQuoted(skippedRootDirs), "|")
 	return []*regexp.Regexp{
 		regexp.MustCompile(`^` + regexp.QuoteMeta(root) + sep + `(?:.*` + sep + `)?(?:` + names + `)(?:` + sep + `|$)`),
+		regexp.MustCompile(`^` + regexp.QuoteMeta(root) + sep + `(?:` + rootNames + `)(?:` + sep + `|$)`),
 		bundledFile,
 	}
 }
@@ -91,6 +93,7 @@ func analyzeDir(ctx context.Context, dir string, cache localdb.Manager) (Analysi
 	}
 	out := Analysis{Usage: fileAnalysis.usage, Matches: fileAnalysis.matches, Files: make(map[string]fileindex.FileStatus, len(res.Files))}
 	out.Reach = newReacher(root, langs, opts.Store, res)
+	out.Usage = append(out.Usage, unusedGoImports(out.Usage, res.Indexes)...)
 	importLines(out.Usage, res.Indexes)
 	out.DynamicImports = dynamicImports(res.Indexes)
 	out.Calls = externalCalls(res.Indexes)
@@ -139,6 +142,32 @@ func importLines(evs []Evidence, indexes []*fileindex.Index) {
 			evs[i].Line = uint(l)
 		}
 	}
+}
+
+// unusedGoImports returns an evidence for each Go import that no use
+// evidence names. The usage plugin finds a use, and a file that names a
+// package only in a type, as var t *html.Tokenizer, has no use. Go builds
+// the package in all the same, so the package must not read as unused.
+func unusedGoImports(evs []Evidence, indexes []*fileindex.Index) []Evidence {
+	seen := map[[2]string]bool{}
+	for _, ev := range evs {
+		seen[[2]string{ev.FilePath, ev.ModuleName}] = true
+	}
+	var out []Evidence
+	for _, ix := range indexes {
+		if ix.Language != core.LanguageCodeGo {
+			continue
+		}
+		for _, imp := range ix.Imports {
+			k := [2]string{ix.Path, imp.Module}
+			if imp.Kind != fileindex.ImportStatic || seen[k] {
+				continue
+			}
+			seen[k] = true
+			out = append(out, Evidence{PackageHint: imp.Module, ModuleName: imp.Module, Language: string(ix.Language), FilePath: ix.Path, Line: uint(imp.Line)})
+		}
+	}
+	return out
 }
 
 // dynamicImports returns the languages of the files that import a module

@@ -33,6 +33,9 @@ func symbolData(r *report.ReachInfo, now time.Time) Check {
 	case r == nil || r.Level != report.ReachFunction || r.Status != report.ReachComputed:
 		c.Message = "the last scan computed no function reach"
 		return c
+	case !r.SymbolData:
+		c.Message = "the last scan has no Go or Rust code, so it needs no symbol data"
+		return c
 	case r.Symbols == nil:
 		c.Status, c.Message = Warn, "the last scan had no symbol data"
 		c.Fix = "Scan with network access, or set plugins.codeusage.options.symbols_bundle."

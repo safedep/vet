@@ -112,7 +112,8 @@ the main functions, the framework handlers, the tests and the exported functions
 `plugins.codeusage.options.entrypoints` adds a list for every run. The flag values join the
 config list. `--entrypoints-only`, or `entrypoints_only: true`, starts the search from the named
 entry points alone. An entry point that names no file or no function of the project exits with
-code 2.
+code 2. The call graph search has its own time budget, the same as
+`plugins.codeusage.options.budget`, after the code index.
 
 A finding is `not-called` only when all of these are true: the reach corpus of the language
 (`test/reach`) has no call that the search misses, the record of the advisory names every
@@ -120,7 +121,8 @@ vulnerable function, a maintainer verified the record, vet read the code of the 
 an entry point, the project imports the package, no other dependency that the project imports
 depends on the package, no local package (such as a Cargo path dependency) can call it, and no file
 that imports the package has a dynamic call. In each other case the finding stays `imported`, and
-its cause says why. A `go.mod` holds no dependency graph, so a Go finding with no call path stays
+its cause says why. vet reads the dependency graph only from a lockfile, because an SBOM can list
+only some edges. A `go.mod` holds no dependency graph, so a Go finding with no call path stays
 `imported` with the cause `no-graph`:
 
 | Cause | Why vet cannot prove `not-called` |
@@ -149,7 +151,8 @@ bundle: a missing, stale, unreachable or rejected bundle is a warning. A lockfil
 image or a PURL has no source code, so the scan computes no reach and its header says so.
 
 A backend that does not answer does not fail the scan. The controls that need its data do not run,
-and the report has a diagnostic. `--strict` turns a diagnostic into exit code 3.
+and the report has a diagnostic. `--strict` turns a diagnostic into exit code 3. That includes the
+warnings of the code analysis, as a stale symbol bundle or a dependency with no code on the disk.
 
 vet saves each scan in the state directory. `vet report show` renders it again with no new scan. A
 scan that a signal stops saves its progress, and the next `vet scan` of the target continues it. A

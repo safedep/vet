@@ -59,7 +59,10 @@ func newReacher(root string, langs []core.Language, st store.Store, project *ind
 		if err != nil {
 			return ReachResult{}, entryPointError(err)
 		}
-		fallback := g.Stats.RootFallback && len(q.Sources) == 0
+		// A graph with no root of its own searches from every exported
+		// function, also when the user adds sources. No path there proves
+		// nothing about the code that a real caller of a library runs.
+		fallback := g.Stats.RootFallback && !q.SourcesOnly
 		out := ReachResult{
 			Answers: make(map[string]ReachAnswer, len(results)), Roots: rootsOf(g, query),
 			Versions: map[string]string{Name: Version, "projectgraph": projectgraph.Version, "reach": reach.Version},

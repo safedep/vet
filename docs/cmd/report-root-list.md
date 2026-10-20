@@ -20,14 +20,14 @@ that marks the entry point. The kinds are:
 | `manifest` | A script or a binary that a manifest names. |
 | `framework` | A handler that a framework rule marks, such as an HTTP route. |
 | `test` | A test function. |
-| `library-surface` | An exported function of a library. |
+| `library-surface` | An exported function of a library, by a rule of the library. |
 | `query` | A function that `--entrypoint` or `plugins.codeusage.options.entrypoints` names. |
 
 A scan at the function level of reach searches the call graph of a Go or Rust project with a
 vulnerability. A path from an entry point to a vulnerable function makes the finding `called`.
 Use the list to find an entry point that vet missed, then add it with `vet scan --entrypoint
 path:function`. When vet finds no entry point, the search starts from every exported function, and
-the list says so. No finding of such a scan is `not-called`.
+the list says so, also when `--entrypoint` adds one. No finding of such a scan is `not-called`.
 
 The scan header keeps the first 1000 entry points, and the list says how many more there are.
 `--scan` names another scan, by an id prefix, by `last` or by a report file. `-o json` prints the

@@ -522,12 +522,15 @@ func (e *Enricher) functionReach(ctx context.Context, pkgs []*model.Package) err
 		return nil
 	}
 	q, hasUnit := e.reachQuery(pkgs)
-	if len(q.Targets) == 0 {
-		return nil
-	}
-	res, failed, err := e.search(ctx, q)
-	if err != nil {
-		return err
+	// A batch whose records have no key searches nothing, and each record
+	// still gets its answer: no symbol in the graph.
+	var res ReachResult
+	var failed finding.ReachCause
+	if len(q.Targets) > 0 {
+		var err error
+		if res, failed, err = e.search(ctx, q); err != nil {
+			return err
+		}
 	}
 	for _, p := range pkgs {
 		if p.Usage == nil {
@@ -701,6 +704,7 @@ func (e *Enricher) ReachReport(info *report.ReachInfo) {
 	if e.symbols == nil {
 		return
 	}
+	info.SymbolData = true
 	info.Symbols = e.symbols.Bundle()
 	if e.searched {
 		info.Roots, info.Versions = e.roots, e.versions
@@ -882,11 +886,21 @@ func rootModule(m string) string {
 	return m
 }
 
-// skippedDirs are the directories that hold installed or built code, not
-// the code of the project.
-var skippedDirs = []string{"node_modules", "vendor", ".git", ".venv", "venv", "dist", "build", "target", "__pycache__"}
+// skippedDirs are the directories that hold installed, vendored or bundled
+// code, not the code of the project, at any depth. A web app of a
+// monorepo keeps its bundle in web/dist.
+var skippedDirs = []string{"node_modules", "vendor", ".git", ".venv", "venv", "dist", "__pycache__"}
 
-func skippedDir(name string) bool { return slices.Contains(skippedDirs, name) }
+// skippedRootDirs hold built code only directly under the target. A Go
+// package of the project can have the name build, as internal/build, and
+// its calls must stay in the call graph.
+var skippedRootDirs = []string{"build", "target"}
+
+// skippedDir reports a directory of installed or built code. rel is the
+// path of the directory from the target, with "/".
+func skippedDir(rel string) bool {
+	return slices.Contains(skippedDirs, path.Base(rel)) || slices.Contains(skippedRootDirs, rel)
+}
 
 // bundledFile matches a minified or bundled script, such as a vendored
 // swagger-ui-bundle.js. It holds a copy of other packages, and its short
