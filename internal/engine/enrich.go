@@ -146,7 +146,7 @@ func (r *run) enrichWith(ctx context.Context, e Enricher, p *enrichProgress) err
 	}
 	for {
 		batch, err := scan.PackagesToEnrich(ctx, state.EnrichQuery{
-			Enricher: e.Name, After: after, Limit: limit, Introduced: r.o.BaseRef != "",
+			Enricher: e.Name, After: after, Limit: limit, Introduced: r.o.BaseRef != "" && !e.Whole,
 		})
 		if err != nil {
 			return err

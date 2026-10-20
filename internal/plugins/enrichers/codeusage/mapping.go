@@ -39,6 +39,11 @@ type provider struct {
 	// autoload maps a PHP namespace prefix, with a trailing "\", to the
 	// Composer package that autoloads it.
 	autoload map[string]string
+	// goModules are the Go modules of the scan. Go gives an import to the
+	// module with the longest path that holds it, so github.com/foo/bar/v2/x
+	// is in github.com/foo/bar/v2 when the scan has that module, and in
+	// github.com/foo/bar when it does not.
+	goModules []string
 }
 
 func (pv provider) provides(id model.PackageVersion, m module) bool {
@@ -56,7 +61,9 @@ func (pv provider) provides(id model.PackageVersion, m module) bool {
 		// google-cloud-storage installs google.cloud.storage.
 		return id.NameIs(hint) || id.NameIs(rootModule(mod)) || slices.ContainsFunc(dottedPrefixes(mod, "-"), id.NameIs)
 	case model.EcosystemGo:
-		return mod == name || strings.HasPrefix(mod, name+"/") && !majorVersion(strings.TrimPrefix(mod, name+"/"))
+		return goModuleOf(mod, name) && !slices.ContainsFunc(pv.goModules, func(other string) bool {
+			return len(other) > len(name) && goModuleOf(mod, other)
+		})
 	case model.EcosystemMaven:
 		group, _, _ := strings.Cut(name, ":")
 		return mod == group || strings.HasPrefix(mod, group+".")
@@ -146,11 +153,7 @@ func readAutoload(dir string) (map[string]string, error) {
 	return out, err
 }
 
-// majorVersion reports an import path below a module that starts with a
-// major version, as v2/x below github.com/foo/bar. That path is the module
-// github.com/foo/bar/v2, a separate module with its own version.
-func majorVersion(rest string) bool {
-	first, _, _ := strings.Cut(rest, "/")
-	n := strings.TrimPrefix(first, "v")
-	return n != first && n != "" && strings.Trim(n, "0123456789") == "" && n != "0" && n != "1"
+// goModuleOf reports an import path in the module path, by the prefix.
+func goModuleOf(importPath, module string) bool {
+	return importPath == module || strings.HasPrefix(importPath, module+"/")
 }

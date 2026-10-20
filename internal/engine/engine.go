@@ -64,9 +64,10 @@ type Enricher struct {
 	// cache, so the next scan asks again. A malware verdict that is not
 	// ready yet must not hide the verdict for the whole TTL.
 	SkipEmpty bool
-	// Whole gives the enricher every package of the scan in one call. A
-	// call graph links the code of all the packages, so a batch must not
-	// split it.
+	// Whole gives the enricher every package of the scan in one call, also
+	// the unchanged ones of a pull request scan. A call graph links the code
+	// of all the packages, and the reach of a changed package depends on the
+	// imports of the unchanged ones, so a batch must not split them.
 	Whole bool
 }
 

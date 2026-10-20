@@ -256,6 +256,9 @@ func ParseEntrypoint(s string) (file string, names []string, err error) {
 	return file, strings.Split(fn, "."), nil
 }
 
+// EntrypointsKey is the config key of the entry points that the user names.
+const EntrypointsKey = "plugins." + Name + ".options.entrypoints"
+
 // EntrypointsOnlyKey is the config key that limits the call graph search to
 // the entry points that the user names.
 const EntrypointsOnlyKey = "plugins." + Name + ".options.entrypoints_only"
@@ -448,6 +451,12 @@ func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 	}
 	if err := e.load(ctx); err != nil {
 		return e.err
+	}
+	e.provider.goModules = nil
+	for _, p := range pkgs {
+		if p.ID.Ecosystem() == model.EcosystemGo {
+			e.provider.goModules = append(e.provider.goModules, p.ID.Name())
+		}
 	}
 	for _, p := range pkgs {
 		if _, ok := ecosystemLanguages[p.ID.Ecosystem()]; !ok {

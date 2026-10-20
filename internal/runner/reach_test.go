@@ -68,6 +68,8 @@ func TestCodeAnalysisOf(t *testing.T) {
 func TestReachFlagIsLockable(t *testing.T) {
 	assert.Contains(t, Options{Reach: "off"}.lockableKeys(false), codeusage.ReachKey)
 	assert.NotContains(t, Options{}.lockableKeys(false), codeusage.ReachKey)
+	assert.Contains(t, Options{Entrypoints: []string{"main.go:main"}}.lockableKeys(false), codeusage.EntrypointsKey)
+	assert.NotContains(t, Options{}.lockableKeys(false), codeusage.EntrypointsKey)
 }
 
 func TestSymbolOptionsOfCodeusage(t *testing.T) {

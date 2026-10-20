@@ -583,3 +583,16 @@ func TestPullRequestModeKeepsABaseForOneLinkMode(t *testing.T) {
 	require.NoError(t, os.Symlink("AGENTS.md", link))
 	scan("a link again")
 }
+
+// A whole-scan enricher reads the unchanged packages of a pull request
+// scan too. The reach of a changed package depends on their imports.
+func TestPullRequestModeGivesAWholeEnricherEveryPackage(t *testing.T) {
+	f := newFixture(t)
+	network, code := &fakeEnricher{}, &fakeEnricher{}
+	o := f.options(t, gitProject(t), network)
+	o.Enrichers = append(o.Enrichers, Enricher{Name: "code", Version: "1", Plugin: code, Local: true, Whole: true})
+	o.BaseRef = "HEAD"
+	runScan(t, o)
+	assert.Equal(t, 3, network.seen, "a batch enricher reads only the introduced packages")
+	assert.Equal(t, 6, code.seen, "the whole enricher also reads the unchanged and the removed packages")
+}

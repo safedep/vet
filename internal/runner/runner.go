@@ -152,6 +152,9 @@ func (o Options) lockableKeys(ephemeral bool) []string {
 	if o.Reach != "" {
 		keys = append(keys, codeusage.ReachKey)
 	}
+	if len(o.Entrypoints) > 0 {
+		keys = append(keys, codeusage.EntrypointsKey)
+	}
 	if o.EntrypointsOnly {
 		keys = append(keys, codeusage.EntrypointsOnlyKey)
 	}
