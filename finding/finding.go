@@ -128,7 +128,61 @@ type Reach struct {
 	FixSites []string `json:"fix_sites,omitempty"`
 	// Path is the call path from an entry point to a fix site.
 	Path []model.PathHop `json:"path,omitempty"`
+	// Symbols describes the symbol record of the advisory, at the function
+	// level.
+	Symbols *ReachSymbols `json:"symbols,omitempty"`
 }
+
+// ReachSymbols describes the symbol record that a function reach reads.
+type ReachSymbols struct {
+	Record   string `json:"record"`
+	Coverage string `json:"coverage"`
+	Review   string `json:"review,omitempty"`
+	Source   string `json:"source,omitempty"`
+	License  string `json:"license,omitempty"`
+}
+
+// Rank orders the reach levels by risk. A called function ranks first, and
+// a level that the code does not reach ranks last.
+func (l ReachLevel) Rank() int {
+	switch l {
+	case ReachCalled:
+		return 5
+	case ReachImported:
+		return 4
+	case ReachUnknown:
+		return 3
+	case ReachNotCalled:
+		return 2
+	case ReachUnused:
+		return 1
+	}
+	return 0
+}
+
+// Label is the short text of a reach that names its evidence, as
+// "called · 3 hops", "imported · no symbol data" or "unknown · budget".
+func (r *Reach) Label() string {
+	if r == nil {
+		return ""
+	}
+	label := strings.ReplaceAll(string(r.Level), "-", " ")
+	switch {
+	case r.Level == ReachCalled && len(r.Path) == 2:
+		label += " · 1 hop"
+	case r.Level == ReachCalled && len(r.Path) > 2:
+		label += fmt.Sprintf(" · %d hops", len(r.Path)-1)
+	case r.Cause != "":
+		label += " · " + r.Cause.Text()
+	}
+	if r.TestOnly {
+		label += " · tests only"
+	}
+	return label
+}
+
+// Text is the cause as words, as "no symbol data".
+func (c ReachCause) Text() string { return strings.ReplaceAll(string(c), "-", " ") }
 
 // Attack marks a finding of an attack control. The attacks gate fails on
 // it, and a report shows it before the other findings.

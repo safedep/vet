@@ -1097,6 +1097,9 @@
             "$ref": "#/$defs/PathHop"
           },
           "type": "array"
+        },
+        "symbols": {
+          "$ref": "#/$defs/ReachSymbols"
         }
       },
       "type": "object",
@@ -1180,6 +1183,30 @@
       "required": [
         "found",
         "missing"
+      ]
+    },
+    "ReachSymbols": {
+      "properties": {
+        "record": {
+          "type": "string"
+        },
+        "coverage": {
+          "type": "string"
+        },
+        "review": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "record",
+        "coverage"
       ]
     },
     "Remediation": {
@@ -1400,6 +1427,15 @@
         },
         "verified": {
           "type": "boolean"
+        },
+        "review": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
         },
         "fix_sites": {
           "items": {

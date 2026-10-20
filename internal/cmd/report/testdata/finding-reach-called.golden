@@ -1,0 +1,7 @@
+reach: called · 2 hops
+path: cmd/app/main.go//serve (root: --entrypoint)
+path: → golang.org//x//net//html//Parse at cmd/app/main.go:12 (direct, high)
+path: → golang.org//x//net//html//Tokenizer//Next at html/parse.go:88 (cha, medium)
+import: main.go:3
+fix site: golang.org/x/net/html.Tokenizer.Next
+symbol record: GO-2026-0001, exact, verified, vuln-symbols, CC-BY-4.0

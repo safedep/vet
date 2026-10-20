@@ -226,3 +226,25 @@ func TestFindingPath(t *testing.T) {
 		assert.Equal(t, tc.want, tc.f.Path(), tc.name)
 	}
 }
+
+func TestReachLabel(t *testing.T) {
+	hop := model.PathHop{Function: "f"}
+	cases := []struct {
+		reach *Reach
+		want  string
+	}{
+		{nil, ""},
+		{&Reach{Level: ReachCalled, Path: []model.PathHop{hop, hop, hop, hop}}, "called · 3 hops"},
+		{&Reach{Level: ReachCalled, Path: []model.PathHop{hop, hop}}, "called · 1 hop"},
+		{&Reach{Level: ReachCalled, Path: []model.PathHop{hop, hop}, TestOnly: true}, "called · 1 hop · tests only"},
+		{&Reach{Level: ReachNotCalled}, "not called"},
+		{&Reach{Level: ReachImported, Cause: ReachNoSymbolData}, "imported · no symbol data"},
+		{&Reach{Level: ReachUnused}, "unused"},
+		{&Reach{Level: ReachUnknown, Cause: ReachBudget}, "unknown · budget"},
+	}
+	for _, c := range cases {
+		assert.Equal(t, c.want, c.reach.Label())
+	}
+	assert.Greater(t, ReachCalled.Rank(), ReachImported.Rank())
+	assert.Greater(t, ReachUnknown.Rank(), ReachNotCalled.Rank(), "a reach that vet cannot place ranks above one that it proves")
+}

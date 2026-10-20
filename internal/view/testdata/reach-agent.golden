@@ -1,0 +1,8 @@
+INFO: scan started target=. mode=full
+progress: extract 3
+progress: enrich 5
+progress: evaluate 1
+progress: report 0
+INFO: reach level=function status=computed summary="1 called, 1 imported (1 no symbol data)"
+WARN: diagnostic code=enrich_unavailable component=insights message="2 packages have no data (2 times)"
+INFO: scan done findings=3 gate=none

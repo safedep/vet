@@ -26,6 +26,14 @@ the most severe. A long list of critical vulnerabilities does not push an attack
 A finding of an attack control has an `attack` field in JSON, with its technique and its MITRE
 ATT&CK ids. SARIF tags it `attack` and `external/mitre-attack/<id>`.
 
+A vulnerability finding of a scan that computed reach shows it in every format: a REACH column in
+the table, the last column of `plain`, a Reach column in `markdown`, the `reach` property in SARIF
+and the `reach` object in JSON. The value names its evidence, as `called · 3 hops`, `not called`,
+`imported · no symbol data` or `unknown · budget`. The table shows the riskiest reach of a row, so a
+called vulnerability never hides behind one that is not called. A target with no source code has no
+REACH column, and the scan view says `Reach: not computed, the target has no source code`. The scan
+view also names the symbol bundle and counts each reach and each cause.
+
 Each package in a report has a `purl`. It follows the purl-spec type definition of its ecosystem,
 and it keeps the version as the manifest writes it. `name` and `version` hold the canonical form
 that vet compares.
@@ -49,6 +57,7 @@ vet saves each scan in its state directory. These commands read the saved scans,
 | `vet report diff` | Compares the findings of two scans |
 | `vet report finding show ID` | Shows one finding with its evidence |
 | `vet report capability list` | Lists the AI and crypto capabilities |
+| `vet report root list` | Lists the entry points of the call graph search |
 
 A scan that stops, for example with Ctrl-C or a lost connection, continues on the next run.
 `vet state show` prints the state directory and the retention rules. `vet state delete` deletes

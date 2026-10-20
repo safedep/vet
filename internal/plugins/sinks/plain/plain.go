@@ -16,7 +16,7 @@ import (
 // Name is the format name.
 const Name = "plain"
 
-var header = []string{"SEVERITY", "CONTROL", "SUBJECT", "WHERE", "FINDING_ID"}
+var header = []string{"SEVERITY", "CONTROL", "SUBJECT", "WHERE", "FINDING_ID", "REACH"}
 
 // Sink writes the plain format.
 type Sink struct{}
@@ -38,7 +38,7 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 		if f.Suppressed() {
 			return nil
 		}
-		return row(w, []string{string(f.Severity), f.ControlID, render.SubjectID(f), render.Where(f), f.ID})
+		return row(w, []string{string(f.Severity), f.ControlID, render.SubjectID(f), render.Where(f), f.ID, f.Reach.Label()})
 	})
 }
 

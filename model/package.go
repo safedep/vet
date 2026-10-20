@@ -187,7 +187,13 @@ type SymbolRecord struct {
 	Coverage string `json:"coverage"`
 	// Verified marks a record that its maintainers reviewed. Only an exact
 	// and verified record can prove that the code calls no fix site.
-	Verified bool     `json:"verified,omitempty"`
+	Verified bool `json:"verified,omitempty"`
+	// Review is the review state of the record, as verified or unreviewed.
+	Review string `json:"review,omitempty"`
+	// Source names the symbol data, as vuln-symbols, and License the
+	// license of the record.
+	Source   string   `json:"source,omitempty"`
+	License  string   `json:"license,omitempty"`
 	FixSites []string `json:"fix_sites"`
 	// Keys are the symbol keys of the fix sites in the call graph, as
 	// golang.org//x//net//html//Render. A fix site with no key rule has

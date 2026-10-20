@@ -1,0 +1,5 @@
+SEVERITY	CONTROL	SUBJECT	WHERE	FINDING_ID	REACH
+critical	malware	pkg:npm/evil-colors@1.4.1	package-lock.json:42	f-f7017b227d6ad796	
+high	vulnerability	pkg:npm/left-pad@1.3.0	package-lock.json	f-68be2d562f0682bb	called · 2 hops
+medium	unpinned-action	.github/workflows/ci.yml	.github/workflows/ci.yml:8	f-e815bb3b5e0846f1	
+low	vulnerability	pkg:npm/left-pad@1.3.0	package-lock.json	f-ff61bff9fc367aea	not called

@@ -38,9 +38,12 @@ func symbolData(r *report.ReachInfo, now time.Time) Check {
 		return c
 	}
 	c.Message = fmt.Sprintf("the last scan read symbol bundle %s with %d records", r.Symbols.ID, r.Symbols.Records)
-	if !r.Symbols.SignedAt.IsZero() && now.Sub(r.Symbols.SignedAt) > symbolDataStale {
-		c.Status, c.Fix = Warn, "Scan with network access, or update the local bundle."
-		c.Message += fmt.Sprintf(", signed %s, more than 7 days ago", r.Symbols.SignedAt.UTC().Format(time.DateOnly))
+	if signed := r.Symbols.SignedAt; !signed.IsZero() {
+		c.Message += ", signed " + signed.UTC().Format(time.DateOnly)
+		if now.Sub(signed) > symbolDataStale {
+			c.Status, c.Fix = Warn, "Scan with network access, or update the local bundle."
+			c.Message += ", more than 7 days ago"
+		}
 	}
 	if s := r.Sources; s != nil {
 		c.Message += fmt.Sprintf(". vet found the code of %d of %d imported Go modules and Rust crates with a vulnerability", s.Found, s.Found+s.Missing)

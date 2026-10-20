@@ -1,0 +1,4 @@
+reach: not called
+searched from: 4 entry points. vet report root list lists them.
+fix site: golang.org/x/net/html.Render
+symbol record: GO-2026-0001, exact, verified, vuln-symbols, CC-BY-4.0

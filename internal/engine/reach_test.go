@@ -83,7 +83,10 @@ func TestReachOf(t *testing.T) {
 		{
 			name: "no path to a package that the project alone imports is not called", level: report.ReachFunction,
 			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
-			want: &finding.Reach{Level: finding.ReachNotCalled, Confidence: finding.ConfidenceMedium, FixSites: []string{"dep.Render"}},
+			want: &finding.Reach{
+				Level: finding.ReachNotCalled, Confidence: finding.ConfidenceMedium, FixSites: []string{"dep.Render"},
+				Symbols: &finding.ReachSymbols{Coverage: model.CoverageExact},
+			},
 		},
 		{
 			name: "no path to a package that another import depends on stays imported", level: report.ReachFunction,
@@ -190,7 +193,12 @@ func TestReachOf(t *testing.T) {
 			if c.noGraph {
 				m.Graph = nil
 			}
-			assert.Equal(t, c.want, reachOf(c.level, target, m, "GHSA-test"))
+			got := reachOf(c.level, target, m, "GHSA-test")
+			if got != nil && c.want != nil && c.want.Symbols == nil {
+				// One case checks the record details. The others check the level.
+				got.Symbols = nil
+			}
+			assert.Equal(t, c.want, got)
 		})
 	}
 }

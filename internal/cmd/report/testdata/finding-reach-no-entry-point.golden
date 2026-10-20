@@ -1,0 +1,3 @@
+reach: imported · no entry point
+reach help: vet found no entry point. Name one with --entrypoint path:function.
+symbol record: GO-2026-0001, exact, verified, vuln-symbols, CC-BY-4.0

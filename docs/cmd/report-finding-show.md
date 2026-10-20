@@ -14,6 +14,12 @@ vet report finding show ID [--scan ID|FILE] [--state-dir DIR] [-o table|plain|js
 the severity, the subject, the place, the description, the evidence, the fix and the references. The
 scan view and every report print the finding ids. A unique prefix of an id works.
 
+A vulnerability finding of a scan that computed reach also shows its reach and what to do about its
+cause. A `called` finding shows the call path: the entry point and the rule that found it, then each
+call with its line, its kind and its confidence. A `not-called` finding shows how many entry points
+the search used. Each finding at the function level shows its fix sites and its symbol record, with
+the coverage, the review state, the source and the license of the record.
+
 The table shows each value in full. It wraps a long value in a narrow terminal.
 
 `--scan` names another scan, by an id prefix, by `last` or by a report file. `-o json` prints the

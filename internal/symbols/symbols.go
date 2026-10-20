@@ -29,6 +29,9 @@ const (
 	CodeRejected    = "symbol_data_rejected"
 )
 
+// SourceName names the public symbol data in a record.
+const SourceName = "vuln-symbols"
+
 // staleAfter is the age of a bundle signature that vet warns about. A host
 // that stops publishing looks the same as a database with no new
 // advisories.
@@ -180,6 +183,9 @@ func (p *Public) Lookup(qs []Query) [][]model.SymbolRecord {
 				Record:   a.Record.ID,
 				Coverage: vs.Coverage,
 				Verified: vs.Review.State == vsym.ReviewVerified,
+				Review:   vs.Review.State,
+				Source:   SourceName,
+				License:  a.Record.DatabaseSpecific.License,
 				FixSites: a.Affected.Names(),
 			})
 		}

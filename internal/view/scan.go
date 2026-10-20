@@ -189,6 +189,7 @@ func (v *Scan) Finish(h *report.Header, t *report.Trailer, s overview.Overview) 
 			plural(s.Changes.Packages, "package"), plural(s.Changes.Workflows, "workflow"), plural(s.Changes.Unchanged, "unchanged package"))))
 	}
 	v.noManifest(h, t)
+	v.reach(h, s)
 	v.diagnostics(h, s.Diagnostics)
 	v.gate(t)
 	v.next(h, t, s)
@@ -206,6 +207,43 @@ func (v *Scan) noManifest(h *report.Header, t *report.Trailer) {
 	}
 	v.line(style.Warning("vet found no manifest in " + escape.Line(targetName(h.Scan))))
 	v.line(section.Hint("vet reads lockfiles (package-lock.json, go.mod and more), SBOMs and workflows."))
+}
+
+// reach says why a scan computed no reach, or which symbol data it read
+// and how far the code reaches its vulnerabilities.
+func (v *Scan) reach(h *report.Header, s overview.Overview) {
+	r := h.Scan.Reach
+	if r == nil || r.Level == report.ReachOff {
+		return
+	}
+	why := map[report.ReachStatus]string{
+		report.ReachNoSource:    "the target has no source code",
+		report.ReachUnavailable: "this vet build has no code analysis",
+		report.ReachFailed:      "the code analysis failed",
+	}[r.Status]
+	summary := s.ReachSummary()
+	if v.mode == output.Agent {
+		line := "INFO: reach level=" + string(r.Level) + " status=" + string(r.Status)
+		if summary != "" {
+			line += " summary=" + field(summary)
+		}
+		v.line(line)
+		return
+	}
+	if why != "" {
+		v.line(section.Hint("Reach: not computed, " + why))
+		return
+	}
+	if b := r.Symbols; b != nil {
+		line := fmt.Sprintf("Symbol data: bundle %s, %d records", escape.Line(b.ID), b.Records)
+		if !b.SignedAt.IsZero() {
+			line = fmt.Sprintf("Symbol data: bundle %s of %s, %d records", escape.Line(b.ID), b.SignedAt.UTC().Format(time.DateOnly), b.Records)
+		}
+		v.line(section.Hint(line))
+	}
+	if summary != "" {
+		v.line(section.Hint("Reach: " + summary))
+	}
 }
 
 // targetName names the target for a person: the absolute path of a

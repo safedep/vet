@@ -189,19 +189,23 @@ func (s Sink) rows(fs []*finding.Finding) []row {
 	return rows
 }
 
-// findingTable drops CONTROL and WHERE on a narrow terminal. FINDING takes
+// findingTable drops CONTROL and WHERE on a narrow terminal, then shows the
+// reach level with no evidence. FINDING takes
 // the width that the other columns leave, and wraps onto a second line, so
 // that a cut falls on the FINDING text and not on the subject or the place.
 // When FINDING gets less than textWidth, the table drops CONTROL, then
 // WHERE.
 func findingTable(rows []row, idLen int, delta bool, width int) string {
 	wide := width >= wideWidth
-	l := findingLayout(rows, idLen, delta, wide, wide)
+	l := findingLayout(rows, idLen, delta, wide, wide, true)
 	if l.room(width) < textWidth && wide {
-		l = findingLayout(rows, idLen, delta, false, true)
+		l = findingLayout(rows, idLen, delta, false, true, true)
 	}
 	if l.room(width) < textWidth && wide {
-		l = findingLayout(rows, idLen, delta, false, false)
+		l = findingLayout(rows, idLen, delta, false, false, true)
+	}
+	if l.room(width) < textWidth {
+		l = findingLayout(rows, idLen, delta, false, false, false)
 	}
 	room := max(l.room(width), minTextWidth)
 	tbl := table.New().Headers(l.cells[0]...)
@@ -218,7 +222,9 @@ type layout struct {
 	textAt int
 }
 
-func findingLayout(rows []row, idLen int, delta, control, where bool) layout {
+// findingLayout lays out the columns. With no fullReach, REACH shows the
+// level alone, as "called", so that a narrow terminal keeps the subject.
+func findingLayout(rows []row, idLen int, delta, control, where, fullReach bool) layout {
 	headers := []string{"SEVERITY", "ID"}
 	gated := slices.ContainsFunc(rows, func(r row) bool { return r.gate() != nil })
 	if gated {
@@ -230,7 +236,12 @@ func findingLayout(rows []row, idLen int, delta, control, where bool) layout {
 	if delta {
 		headers = append(headers, "CHANGE")
 	}
-	headers = append(headers, "SUBJECT", "FINDING")
+	headers = append(headers, "SUBJECT")
+	reach := slices.ContainsFunc(rows, func(r row) bool { return r.reach() != nil })
+	if reach {
+		headers = append(headers, "REACH")
+	}
+	headers = append(headers, "FINDING")
 	textAt := len(headers) - 1
 	if where {
 		headers = append(headers, "WHERE")
@@ -248,7 +259,15 @@ func findingLayout(rows []row, idLen int, delta, control, where bool) layout {
 		if delta {
 			row = append(row, strings.ToLower(string(f.Change)))
 		}
-		row = append(row, render.Subject(f), "")
+		row = append(row, render.Subject(f))
+		if reach {
+			label := r.reach().Label()
+			if !fullReach {
+				label, _, _ = strings.Cut(label, " · ")
+			}
+			row = append(row, label)
+		}
+		row = append(row, "")
 		if where {
 			row = append(row, render.Where(f))
 		}
@@ -302,6 +321,18 @@ func (r row) gate() *finding.GateRecord {
 		}
 	}
 	return first
+}
+
+// reach is the reach of the row: the riskiest reach of its findings, so a
+// called vulnerability is never hidden behind one that is not called.
+func (r row) reach() *finding.Reach {
+	var top *finding.Reach
+	for _, f := range r {
+		if f.Reach != nil && (top == nil || f.Reach.Level.Rank() > top.Level.Rank()) {
+			top = f.Reach
+		}
+	}
+	return top
 }
 
 func (r row) failing() bool { return slices.ContainsFunc(r, (*finding.Finding).Fails) }

@@ -411,3 +411,21 @@ func TestFixVersionWithNoOrder(t *testing.T) {
 	}
 	assert.Equal(t, "v4, v5", r.fix(), "vet does not pick a version that it cannot order")
 }
+
+func TestReachColumn(t *testing.T) {
+	withWidth(t, 200)
+	r := vulnReport()
+	hop := model.PathHop{Function: "f"}
+	r.FindingList[0].Reach = &finding.Reach{Level: finding.ReachNotCalled}
+	r.FindingList[2].Reach = &finding.Reach{Level: finding.ReachCalled, Path: []model.PathHop{hop, hop, hop}}
+	r.FindingList[3].Reach = &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachNoSymbolData}
+	got := write(t, nil, r)
+	assert.Contains(t, got, "REACH")
+	rows := rowsOf(got)
+	require.Len(t, rows, 3)
+	assert.Contains(t, rows[0], "pypi/django@2.2.0 called · 2 hops 3 vulnerabilities", "a called finding wins over one that is not called")
+	assert.Contains(t, rows[1], "pypi/requests@2.19.0 imported · no symbol data 2 vulnerabilities")
+
+	r = vulnReport()
+	assert.NotContains(t, write(t, nil, r), "REACH", "a scan with no reach has no REACH column")
+}

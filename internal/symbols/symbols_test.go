@@ -105,6 +105,7 @@ func TestLookup(t *testing.T) {
 	require.Len(t, got, 4)
 	assert.Equal(t, []model.SymbolRecord{{
 		Advisory: "GHSA-aaaa", Record: "GO-2026-0001", Coverage: vsym.CoverageExact, Verified: true,
+		Review: vsym.ReviewVerified, Source: SourceName, License: "CC-BY-4.0",
 		FixSites: []string{"example.com/net/html.Render"},
 	}}, got[0], "an alias of the Insights id matches the record")
 	assert.Empty(t, got[1], "v0.4.0 is past the fix of the second record")

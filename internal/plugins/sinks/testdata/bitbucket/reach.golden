@@ -1,0 +1,82 @@
+{
+  "report": {
+    "title": "SafeDep vet",
+    "details": "vet found 4 supply chain findings.",
+    "report_type": "SECURITY",
+    "reporter": "SafeDep vet test",
+    "data": [
+      {
+        "title": "Findings",
+        "type": "NUMBER",
+        "value": 4
+      },
+      {
+        "title": "Critical",
+        "type": "NUMBER",
+        "value": 1
+      },
+      {
+        "title": "High",
+        "type": "NUMBER",
+        "value": 1
+      },
+      {
+        "title": "Medium",
+        "type": "NUMBER",
+        "value": 1
+      },
+      {
+        "title": "Low",
+        "type": "NUMBER",
+        "value": 1
+      },
+      {
+        "title": "Suppressed",
+        "type": "NUMBER",
+        "value": 1
+      },
+      {
+        "title": "Packages",
+        "type": "NUMBER",
+        "value": 2
+      }
+    ]
+  },
+  "annotations": [
+    {
+      "external_id": "f-f7017b227d6ad796",
+      "title": "Malicious package",
+      "annotation_type": "VULNERABILITY",
+      "summary": "Malicious package",
+      "details": "The package runs a postinstall script that reads ~/.npmrc. Remove evil-colors.",
+      "severity": "CRITICAL",
+      "path": "package-lock.json",
+      "line": 42
+    },
+    {
+      "external_id": "f-68be2d562f0682bb",
+      "title": "GHSA-stub-0001 in left-pad",
+      "annotation_type": "VULNERABILITY",
+      "summary": "GHSA-stub-0001 in left-pad",
+      "severity": "HIGH",
+      "path": "package-lock.json"
+    },
+    {
+      "external_id": "f-e815bb3b5e0846f1",
+      "title": "tj-actions/changed-files@v44 is not pinned to a commit SHA",
+      "annotation_type": "CODE_SMELL",
+      "summary": "tj-actions/changed-files@v44 is not pinned to a commit SHA",
+      "severity": "MEDIUM",
+      "path": ".github/workflows/ci.yml",
+      "line": 8
+    },
+    {
+      "external_id": "f-ff61bff9fc367aea",
+      "title": "GHSA-stub-0002 in left-pad",
+      "annotation_type": "VULNERABILITY",
+      "summary": "GHSA-stub-0002 in left-pad",
+      "severity": "LOW",
+      "path": "package-lock.json"
+    }
+  ]
+}

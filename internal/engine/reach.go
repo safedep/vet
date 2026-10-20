@@ -127,6 +127,7 @@ func reachOf(level report.ReachLevel, p *model.Package, m *model.Manifest, advis
 		return r
 	}
 	r.FixSites = rec.FixSites
+	r.Symbols = &finding.ReachSymbols{Record: rec.Record, Coverage: rec.Coverage, Review: rec.Review, Source: rec.Source, License: rec.License}
 	fr := rec.Reach
 	switch {
 	case fr == nil:

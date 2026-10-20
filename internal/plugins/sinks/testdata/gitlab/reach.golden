@@ -1,0 +1,99 @@
+{
+  "schema": "https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/15.2.1/dist/dependency-scanning-report-format.json",
+  "version": "15.2.1",
+  "scan": {
+    "analyzer": {
+      "id": "vet",
+      "name": "vet",
+      "version": "test",
+      "vendor": {
+        "name": "SafeDep"
+      }
+    },
+    "scanner": {
+      "id": "vet",
+      "name": "vet",
+      "version": "test",
+      "vendor": {
+        "name": "SafeDep"
+      }
+    },
+    "type": "dependency_scanning",
+    "start_time": "2026-01-02T03:04:05",
+    "end_time": "2026-01-02T03:05:00",
+    "status": "success"
+  },
+  "vulnerabilities": [
+    {
+      "id": "f-f7017b227d6ad796",
+      "name": "Malicious package",
+      "description": "The package runs a postinstall script that reads ~/.npmrc.\n\nthreat-intel: Verified malicious",
+      "severity": "Critical",
+      "solution": "Remove evil-colors.",
+      "identifiers": [
+        {
+          "type": "safedep_vet",
+          "name": "malware",
+          "value": "malware",
+          "url": "https://docs.safedep.io"
+        }
+      ],
+      "location": {
+        "file": "package-lock.json",
+        "dependency": {
+          "package": {
+            "name": "evil-colors"
+          },
+          "version": "1.4.1",
+          "direct": true
+        }
+      }
+    },
+    {
+      "id": "f-68be2d562f0682bb",
+      "name": "GHSA-stub-0001 in left-pad",
+      "severity": "High",
+      "identifiers": [
+        {
+          "type": "safedep_vet",
+          "name": "vulnerability",
+          "value": "vulnerability",
+          "url": "https://docs.safedep.io"
+        }
+      ],
+      "location": {
+        "file": "package-lock.json",
+        "dependency": {
+          "package": {
+            "name": "left-pad"
+          },
+          "version": "1.3.0",
+          "direct": false
+        }
+      }
+    },
+    {
+      "id": "f-ff61bff9fc367aea",
+      "name": "GHSA-stub-0002 in left-pad",
+      "severity": "Low",
+      "identifiers": [
+        {
+          "type": "safedep_vet",
+          "name": "vulnerability",
+          "value": "vulnerability",
+          "url": "https://docs.safedep.io"
+        }
+      ],
+      "location": {
+        "file": "package-lock.json",
+        "dependency": {
+          "package": {
+            "name": "left-pad"
+          },
+          "version": "1.3.0",
+          "direct": false
+        }
+      }
+    }
+  ]
+}

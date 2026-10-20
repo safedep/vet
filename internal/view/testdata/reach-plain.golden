@@ -1,0 +1,11 @@
+[INFO] Read the manifests: 3 files in 1.5s
+[INFO] Checked 5 packages in 1.5s
+[INFO] Evaluated the controls: 1 manifest in 1.5s
+[INFO] Report
+> Symbol data: bundle f2e47dc1 of 2026-10-01, 1220 records
+> Reach: 1 called, 1 imported (1 no symbol data)
+[WARN] insights: 2 packages have no data (2 times)
+> 3 findings. No gate set, so vet exits 0.
+> Fix: upgrade left-pad to 1.3.1
+> Full list: vet report show test0000 --all
+> One finding: vet report finding show f-f7017b227d6ad796
