@@ -5,7 +5,6 @@
       "kind": "sbom",
       "ecosystem": "rubygems",
       "packages": [
-        "github-actions/google/osv-scanner [+]",
         "go/dario.cat/mergo@1.0.0 [+]",
         "go/github.com/acomagu/bufpipe@1.0.4 [+]",
         "go/github.com/anchore/go-struct-converter@0.0.0-20221118182256-c68fdcfa2092 [+]",
@@ -171,6 +170,7 @@
     "sbom.spdx.json: package actions:google/osv-scanner/actions/scanner@main has no PURL",
     "sbom.spdx.json: package actions:goreleaser/goreleaser-action@336e29918d653399e599bfca99fadc1d7ffbc9f7 has no PURL",
     "sbom.spdx.json: package actions:ossf/scorecard-action@08b4669551908b1024bb425080c797723083c031 has no PURL",
-    "sbom.spdx.json: package actions:slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@1.8.0 has no PURL"
+    "sbom.spdx.json: package actions:slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@1.8.0 has no PURL",
+    "sbom.spdx.json: unknown ecosystem: PURL type \"github\""
   ]
 }

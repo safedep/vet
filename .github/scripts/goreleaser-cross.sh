@@ -4,7 +4,7 @@
 # of the image must be the Go version of go.mod. test/release checks it.
 set -euo pipefail
 
-image="ghcr.io/goreleaser/goreleaser-cross:v1.26.3-v2.16.0@sha256:7fa2f6adefc63b9d51daa5678c1f37349583e55bfa0ebead1665443014d346d0"
+image="ghcr.io/goreleaser/goreleaser-cross:v1.27.1-3-v2.18.3@sha256:6683f7a137adeed2a7ac1aea80c52e486604e5f02ffaf4ca860e6413bbbaf665"
 
 docker run --rm \
   -e GITHUB_TOKEN -e HOMEBREW_TAP_GITHUB_TOKEN -e GORELEASER_CURRENT_TAG \

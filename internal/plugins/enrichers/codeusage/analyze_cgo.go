@@ -251,7 +251,7 @@ func newFilePlugin() (*filePlugin, error) {
 // codeModuleVersion is the version of safedep/code in this build. A new
 // release can change what depsusage and the call graph find in a file
 // without a change of fileindex.Version, so the artifact key holds it. A
-// test binary has no dependency list and gets "unknown". A local replace
+// binary with no build information gets "unknown". A local replace
 // keys by its path only, so a developer clears the cache after an edit.
 func codeModuleVersion() string {
 	info, _ := debug.ReadBuildInfo()

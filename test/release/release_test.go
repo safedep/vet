@@ -171,7 +171,7 @@ func TestCrossImageHasTheGoVersionOfGoMod(t *testing.T) {
 
 	script, err := os.ReadFile(filepath.Join(root, ".github/scripts/goreleaser-cross.sh"))
 	require.NoError(t, err)
-	image := regexp.MustCompile(`goreleaser-cross:v(\d+\.\d+\.\d+)-v[\d.]+@sha256:[0-9a-f]{64}"`).FindSubmatch(script)
+	image := regexp.MustCompile(`goreleaser-cross:v(\d+\.\d+\.\d+)(?:-\d+)?-v[\d.]+@sha256:[0-9a-f]{64}"`).FindSubmatch(script)
 	require.NotNil(t, image, "the image needs a Go version tag and a digest")
 
 	assert.Equal(t, string(goVersion[1]), string(image[1]))
