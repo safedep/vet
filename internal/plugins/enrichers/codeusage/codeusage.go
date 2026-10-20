@@ -37,7 +37,7 @@ import (
 const Name = "codeusage"
 
 // Version changes when the mapping or the signatures change.
-const Version = "8"
+const Version = "9"
 
 // maxFiles bounds the files that a package usage lists.
 const maxFiles = 20
@@ -118,7 +118,15 @@ type Analysis struct {
 	DynamicImports map[string]bool
 	Calls          []ExternalCall
 	Dynamic        []DynamicSite
+	// Languages holds the languages of the source files that the analysis
+	// found, and Unread the languages of a file that it could not read,
+	// parse or index whole.
+	Languages map[string]bool
+	Unread    map[string]bool
 }
+
+// ReachKey is the config key of the reach level.
+const ReachKey = "plugins." + Name + ".options.reach"
 
 // DefaultBudget bounds the code analysis when plugins.codeusage.options
 // sets no budget.
@@ -208,9 +216,11 @@ type Enricher struct {
 	stopped bool
 	missing int
 	// dynamic holds the languages with an import by a computed name.
-	dynamic map[string]bool
-	calls   []ExternalCall
-	sites   []DynamicSite
+	dynamic   map[string]bool
+	languages map[string]bool
+	unread    map[string]bool
+	calls     []ExternalCall
+	sites     []DynamicSite
 	// hints holds the package hint of each imported module, by language
 	// and name, for the calls that name the module only.
 	hints    map[module]string
@@ -302,7 +312,10 @@ func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 		}
 		p.Usage = usageOf(sites)
 		p.Usage.Incomplete = e.stopped
-		p.Usage.DynamicImport = slices.ContainsFunc(ecosystemLanguages[p.ID.Ecosystem()], func(l string) bool { return e.dynamic[l] })
+		langs := ecosystemLanguages[p.ID.Ecosystem()]
+		p.Usage.DynamicImport = slices.ContainsFunc(langs, func(l string) bool { return e.dynamic[l] })
+		p.Usage.UnreadFiles = slices.ContainsFunc(langs, func(l string) bool { return e.unread[l] })
+		p.Usage.NoSourceFiles = !p.Usage.Imported && !slices.ContainsFunc(langs, func(l string) bool { return e.languages[l] })
 		p.Usage.Calls = e.callsInto(p.ID)
 		p.Usage.Dynamic = e.dynamicIn(sites)
 	}
@@ -413,7 +426,7 @@ func (e *Enricher) index(ctx context.Context) error {
 		return err
 	}
 	e.matches = e.external(a.Matches)
-	e.dynamic = a.DynamicImports
+	e.dynamic, e.languages, e.unread = a.DynamicImports, a.Languages, a.Unread
 	e.calls, e.sites = a.Calls, a.Dynamic
 	slices.SortFunc(e.calls, func(x, y ExternalCall) int {
 		return cmp.Or(cmp.Compare(x.FilePath, y.FilePath), cmp.Compare(x.Line, y.Line), cmp.Compare(x.Callee, y.Callee))

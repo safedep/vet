@@ -92,8 +92,13 @@ func analyzeDir(ctx context.Context, dir string, cache localdb.Manager) (Analysi
 	out.DynamicImports = dynamicImports(res.Indexes)
 	out.Calls = externalCalls(res.Indexes)
 	out.Dynamic = dynamicSites(res.Indexes)
+	out.Languages, out.Unread = map[string]bool{}, map[string]bool{}
 	for f, st := range res.Files {
 		out.Files[f] = string(st)
+		out.Languages[languageOf(f)] = true
+		if st == fileindex.FileFailed || st == fileindex.FileTruncated {
+			out.Unread[languageOf(f)] = true
+		}
 	}
 	for _, f := range res.Report.Failed {
 		// The indexer marks a file that the budget cut in the plugin as
@@ -103,6 +108,7 @@ func analyzeDir(ctx context.Context, dir string, cache localdb.Manager) (Analysi
 			continue
 		}
 		out.Failed = append(out.Failed, FileFailure{FilePath: f.File, Stage: string(f.Stage), Err: f.Err.Error()})
+		out.Unread[languageOf(f.File)] = true
 	}
 	if runErr != nil {
 		return out, fmt.Errorf("code analysis: %w", runErr)

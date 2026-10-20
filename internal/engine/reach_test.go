@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -72,6 +73,16 @@ func TestReachOf(t *testing.T) {
 			name: "a stopped analysis is unknown", level: report.ReachImport,
 			usage: &model.Usage{Incomplete: true, DynamicImport: true},
 			want:  &finding.Reach{Level: finding.ReachUnknown, Cause: finding.ReachBudget, Confidence: finding.ConfidenceLow},
+		},
+		{
+			name: "an unread file is unknown", level: report.ReachImport,
+			usage: &model.Usage{UnreadFiles: true}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachUnknown, Cause: finding.ReachUnreadFiles, Confidence: finding.ConfidenceLow},
+		},
+		{
+			name: "no parsed file of the language is unknown", level: report.ReachImport,
+			usage: &model.Usage{NoSourceFiles: true}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachUnknown, Cause: finding.ReachNoSourceFiles, Confidence: finding.ConfidenceLow},
 		},
 		{
 			name: "a computed import is unknown", level: report.ReachImport,
@@ -158,6 +169,38 @@ func TestReachIsOnVulnerabilityFindingsOnly(t *testing.T) {
 	assert.Nil(t, reaches["test-name"], "a malware finding gets no reach")
 	require.NotNil(t, reaches["test-vuln"])
 	assert.Equal(t, finding.ReachImported, reaches["test-vuln"].Level)
+}
+
+// failingSource is a source enricher that fails.
+type failingSource struct {
+	sourceEnricher
+	err error
+}
+
+func (f *failingSource) Enrich(context.Context, []*model.Package) error { return f.err }
+
+func TestFailedSourceEnricherComputesNoReach(t *testing.T) {
+	for _, c := range []struct {
+		err  error
+		want report.ReachStatus
+	}{
+		{plugin.ErrUnavailable, report.ReachUnavailable},
+		{errors.New("signatures do not load"), report.ReachFailed},
+	} {
+		t.Run(string(c.want), func(t *testing.T) {
+			f := newFixture(t)
+			o := f.options(t, project(t), nil, Control{ID: "test-vuln", Plugin: vulnControl{name: "evil"}})
+			o.Enrichers = []Enricher{{Name: "code", Version: "1", Plugin: &failingSource{err: c.err}, Local: true}}
+			o.Reach = report.ReachInfo{Level: report.ReachImport}
+			res := runScan(t, o)
+			assert.Equal(t, report.ReachInfo{Level: report.ReachImport, Status: c.want}, *res.Scan.Header().Scan.Reach,
+				"a header must not say computed when the code analysis did not run")
+			for fd, err := range res.Scan.Findings(context.Background(), plugin.FindingQuery{}) {
+				require.NoError(t, err)
+				assert.Nil(t, fd.Reach)
+			}
+		})
+	}
 }
 
 // vulnControl reports a vulnerability on each package of a name.

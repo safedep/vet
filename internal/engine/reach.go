@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"errors"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/model"
@@ -31,12 +32,30 @@ func (r *run) bindSource(ctx context.Context) error {
 	switch {
 	case r.reach.Level == "" || r.reach.Level == report.ReachOff:
 		r.reach = report.ReachInfo{Level: report.ReachOff, Status: report.ReachNotComputed}
-	case r.reach.Status != "":
 	case dir == "":
 		r.reach.Status = report.ReachNoSource
+	case r.reach.Status != "":
 	default:
 		r.reach.Status = report.ReachComputed
 	}
+	return r.writeReach(ctx)
+}
+
+// sourceFailed records that a source enricher failed, so the scan
+// computes no reach and its header says why.
+func (r *run) sourceFailed(e Enricher, err error) {
+	if _, ok := e.Plugin.(plugin.SourceEnricher); !ok || r.reach.Status != report.ReachComputed {
+		return
+	}
+	r.reach.Status = report.ReachFailed
+	if errors.Is(err, plugin.ErrUnavailable) {
+		r.reach.Status = report.ReachUnavailable
+	}
+	r.reachChanged = true
+}
+
+// writeReach records the reach of the scan in its header.
+func (r *run) writeReach(ctx context.Context) error {
 	h := r.res.Scan.Header()
 	if h == nil {
 		return nil
@@ -105,6 +124,10 @@ func reachOf(level report.ReachLevel, p *model.Package, m *model.Manifest) *find
 	switch {
 	case u.Incomplete:
 		return &finding.Reach{Level: finding.ReachUnknown, Cause: finding.ReachBudget, Confidence: finding.ConfidenceLow}
+	case u.UnreadFiles:
+		return &finding.Reach{Level: finding.ReachUnknown, Cause: finding.ReachUnreadFiles, Confidence: finding.ConfidenceLow}
+	case u.NoSourceFiles:
+		return &finding.Reach{Level: finding.ReachUnknown, Cause: finding.ReachNoSourceFiles, Confidence: finding.ConfidenceLow}
 	case u.DynamicImport:
 		return &finding.Reach{Level: finding.ReachUnknown, Cause: finding.ReachDynamicImport, Confidence: finding.ConfidenceLow}
 	case m.Graph == nil:

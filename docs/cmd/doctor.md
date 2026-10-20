@@ -20,7 +20,7 @@ a `›` line with the fix under a check that did not pass. `-o json` returns the
 | `config.file` | The config file loads and has no unknown key. |
 | `github.token` | The GitHub token and its source: `GITHUB_TOKEN`, `GH_TOKEN` or `gh auth token`. With no token, vet calls the GitHub API anonymously, with 60 calls an hour. |
 | `install.path` | The vet that PATH finds first is this vet. |
-| `plugins` | Each `plugins` section names a built-in plugin and has valid options. `codeusage` needs a vet build with CGO. |
+| `plugins` | Each `plugins` section names a built-in plugin and has valid options. An explicit `plugins.codeusage.enabled: true` needs a vet build with CGO. |
 | `state.dir` | The state directory exists and vet can write to it. |
 | `state.filesystem` | The state directory is on a local file system. SQLite is not safe on a network file system. |
 | `state.index` | The scan index opens. |

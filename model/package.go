@@ -156,6 +156,12 @@ type Usage struct {
 	// Incomplete marks an analysis that its time budget stopped. A
 	// missing import then proves nothing.
 	Incomplete bool `json:"incomplete,omitempty"`
+	// UnreadFiles marks a project with a source file of a language of the
+	// package that the analysis could not read, parse or index whole.
+	UnreadFiles bool `json:"unread_files,omitempty"`
+	// NoSourceFiles marks a project with no source file that the analysis
+	// parses in a language of the package.
+	NoSourceFiles bool `json:"no_source_files,omitempty"`
 	// DynamicImport marks a project that imports a module by a computed
 	// name in a language of the package. A missing import then proves
 	// nothing.

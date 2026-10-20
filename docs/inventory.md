@@ -1,7 +1,8 @@
 # Code usage, AI and crypto inventory
 
-With `plugins.codeusage.enabled: true`, a scan of a directory also reads the source files of
-Python, JavaScript, TypeScript, Java, Go, C#, Rust, PHP and Ruby. vet then reports:
+A scan of a directory or of a git clone also reads the source files of Python, JavaScript,
+TypeScript, Java, Go, C#, Rust, PHP and Ruby. `plugins.codeusage.enabled: false` turns this off.
+vet then reports:
 
 - **Code usage.** The packages that the code imports, and the files that import them. Each package
   finding says whether the project uses the package.
@@ -12,7 +13,6 @@ Python, JavaScript, TypeScript, Java, Go, C#, Rust, PHP and Ruby. vet then repor
   such as MD5, SHA-1, DES or RC4, has the `weak` tag.
 
 ```bash
-vet config set plugins.codeusage.enabled true
 vet scan . --report cyclonedx=../bom.json
 ```
 

@@ -105,12 +105,15 @@ const (
 	ReachNoSource ReachStatus = "no-source"
 	// ReachUnavailable is a vet build with no code analysis.
 	ReachUnavailable ReachStatus = "unavailable"
+	// ReachFailed is a scan whose code analysis failed. The diagnostics say
+	// why.
+	ReachFailed ReachStatus = "failed"
 )
 
 // ReachInfo is the reach of a scan.
 type ReachInfo struct {
-	Level  ReachLevel  `json:"level"`
-	Status ReachStatus `json:"status"`
+	Level  ReachLevel  `json:"level" jsonschema:"enum=off,enum=import,enum=function"`
+	Status ReachStatus `json:"status" jsonschema:"enum=computed,enum=off,enum=no-source,enum=unavailable,enum=failed"`
 }
 
 // Kind names the field that a record holds.

@@ -931,10 +931,23 @@
     "Reach": {
       "properties": {
         "level": {
-          "type": "string"
+          "type": "string",
+          "enum": [
+            "imported",
+            "unused",
+            "unknown"
+          ]
         },
         "cause": {
-          "type": "string"
+          "type": "string",
+          "enum": [
+            "no-graph",
+            "dynamic-import",
+            "budget",
+            "unread-files",
+            "no-source-files",
+            "no-symbol-data"
+          ]
         },
         "confidence": {
           "type": "string",
@@ -969,10 +982,22 @@
     "ReachInfo": {
       "properties": {
         "level": {
-          "type": "string"
+          "type": "string",
+          "enum": [
+            "off",
+            "import",
+            "function"
+          ]
         },
         "status": {
-          "type": "string"
+          "type": "string",
+          "enum": [
+            "computed",
+            "off",
+            "no-source",
+            "unavailable",
+            "failed"
+          ]
         }
       },
       "type": "object",
@@ -1263,6 +1288,12 @@
           "type": "boolean"
         },
         "incomplete": {
+          "type": "boolean"
+        },
+        "unread_files": {
+          "type": "boolean"
+        },
+        "no_source_files": {
           "type": "boolean"
         },
         "dynamic_import": {

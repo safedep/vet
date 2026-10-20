@@ -143,6 +143,9 @@ func (o Options) lockableKeys(ephemeral bool) []string {
 	if o.CooldownDays > 0 {
 		keys = append(keys, cooldown.DaysKey)
 	}
+	if o.Reach != "" {
+		keys = append(keys, codeusage.ReachKey)
+	}
 	return keys
 }
 
@@ -171,6 +174,8 @@ type hashed struct {
 	// Reach changes the reach of each finding, so a stopped scan with
 	// another level does not continue.
 	Reach report.ReachLevel `json:"reach,omitempty"`
+	// Budget changes which files a stopped analysis reads.
+	Budget time.Duration `json:"budget,omitempty"`
 }
 
 // Scan runs a scan, writes the report to its destinations and returns the
@@ -272,7 +277,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		exclude := append(append([]string{}, cfg.Scan.Exclude...), o.Exclude...)
 		hash, err := state.OptionsHash(hashed{
 			BaseRef: o.BaseRef, Exclude: exclude, API: cfg.Cloud.Endpoints.API, Anonymous: creds.Anonymous(),
-			Tenant: creds.TenantDomain(), Enrichers: enricherIDs(set), Packages: string(packages), Reach: code.reach.Level,
+			Tenant: creds.TenantDomain(), Enrichers: enricherIDs(set), Packages: string(packages), Reach: code.reach.Level, Budget: code.budget,
 		})
 		if err != nil {
 			return err

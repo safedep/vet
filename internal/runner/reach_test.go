@@ -63,3 +63,8 @@ func TestCodeAnalysisOf(t *testing.T) {
 		})
 	}
 }
+
+func TestReachFlagIsLockable(t *testing.T) {
+	assert.Contains(t, Options{Reach: "off"}.lockableKeys(false), codeusage.ReachKey)
+	assert.NotContains(t, Options{}.lockableKeys(false), codeusage.ReachKey)
+}

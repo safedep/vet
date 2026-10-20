@@ -45,7 +45,8 @@ const (
 	// dependency graph reaches from a package that the code imports.
 	ReachImported ReachLevel = "imported"
 	// ReachUnused is a package that no source file imports and that no
-	// imported package depends on.
+	// imported package depends on. A package that the project runs with no
+	// import, as a build tool from a script, is unused too.
 	ReachUnused ReachLevel = "unused"
 	// ReachUnknown is a package that vet cannot place. Cause says why. A
 	// report never shows it as safe.
@@ -64,6 +65,12 @@ const (
 	ReachDynamicImport ReachCause = "dynamic-import"
 	// ReachBudget is an analysis that its time budget stopped.
 	ReachBudget ReachCause = "budget"
+	// ReachUnreadFiles is a project with a source file of the language of
+	// the package that the analysis could not read, parse or index whole.
+	ReachUnreadFiles ReachCause = "unread-files"
+	// ReachNoSourceFiles is a project with no source file that vet parses
+	// in the language of the package, such as a project of .jsx files.
+	ReachNoSourceFiles ReachCause = "no-source-files"
 	// ReachNoSymbolData is an imported package with no record of its
 	// vulnerable functions, so function reach falls back to the import.
 	ReachNoSymbolData ReachCause = "no-symbol-data"
@@ -71,8 +78,8 @@ const (
 
 // Reach is the reach of the package of a finding.
 type Reach struct {
-	Level      ReachLevel `json:"level"`
-	Cause      ReachCause `json:"cause,omitempty"`
+	Level      ReachLevel `json:"level" jsonschema:"enum=imported,enum=unused,enum=unknown"`
+	Cause      ReachCause `json:"cause,omitempty" jsonschema:"enum=no-graph,enum=dynamic-import,enum=budget,enum=unread-files,enum=no-source-files,enum=no-symbol-data"`
 	Confidence Confidence `json:"confidence"`
 	// Via is the dependency path from a package that the code imports to
 	// the package of the finding, as PURLs, when no file imports it.

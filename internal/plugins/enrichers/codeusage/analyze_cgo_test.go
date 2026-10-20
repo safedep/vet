@@ -304,3 +304,13 @@ func TestUsageCallsAndDynamicSites(t *testing.T) {
 	require.NotNil(t, tm.Usage)
 	assert.Contains(t, tm.Usage.Calls, model.CallSite{File: "src/main.rs", Line: 2, Callee: "time//OffsetDateTime//now_local"})
 }
+
+func TestUnreadFileAndUnknownExtension(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "App.jsx", "import pad from 'left-pad';\npad('x', 3);\n")
+	write(t, dir, "big.py", "import yaml\n"+strings.Repeat("#", 5<<20))
+	a, err := newAnalyzer(Options{})(context.Background(), dir)
+	require.NoError(t, err)
+	assert.True(t, a.Unread["python"], "a Python file over the size limit is unread")
+	assert.False(t, a.Languages["javascript"], "vet parses no .jsx file")
+}

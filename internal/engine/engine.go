@@ -306,6 +306,9 @@ type run struct {
 	prepared sync.WaitGroup
 	// reach is the reach of the scan, as its header records it.
 	reach report.ReachInfo
+	// reachChanged marks a reach that the enrich stage changed after the
+	// header recorded it.
+	reachChanged bool
 }
 
 // rootOf returns the file system that a manifest was read from, for the

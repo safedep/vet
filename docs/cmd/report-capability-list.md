@@ -15,8 +15,8 @@ AI SDKs, models and agent frameworks, and the cryptographic algorithms, protocol
 that the code calls. Each call site has its own row, so you can open each place in the code. The
 list shows AI first, then weak crypto, then the other crypto.
 
-A scan finds capabilities only when `plugins.codeusage.enabled` is `true`. The scan view shows the
-first ten of them. This command shows all of them, with no new scan.
+A scan of a directory or of a git clone finds capabilities, unless `plugins.codeusage.enabled` is
+`false`. The scan view shows the first ten of them. This command shows all of them, with no new scan.
 
 `--tag` keeps the capabilities that have each tag. `ai`, `cryptography` and `weak` are the common
 tags. `--scan` names another scan, by an id prefix, by `last` or by a report file. `-o json` prints

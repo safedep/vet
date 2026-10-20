@@ -30,7 +30,7 @@ func TestEnrich(t *testing.T) {
 			{ModuleName: "@scope/pkg/sub", FilePath: "src/c.js"},
 			{PackageHint: "yaml", ModuleName: "yaml", FilePath: "app.py"},
 			{PackageHint: "python_dateutil", ModuleName: "dateutil", FilePath: "app.py"},
-		}}, nil
+		}, Languages: map[string]bool{"javascript": true, "python": true}}, nil
 	}
 	e := NewWith("/repo", Options{}, fake)
 	pkgs := []*model.Package{
@@ -59,8 +59,9 @@ func TestBudgetKeepsThePartialAnalysis(t *testing.T) {
 	analyze := func(ctx context.Context, _ string) (Analysis, error) {
 		<-ctx.Done()
 		return Analysis{
-			Usage: []Evidence{{PackageHint: "a", ModuleName: "a", FilePath: "a.js", Line: 1}},
-			Files: map[string]string{"a.js": "indexed", "b.js": FileMissing, "c.js": FileMissing},
+			Usage:     []Evidence{{PackageHint: "a", ModuleName: "a", FilePath: "a.js", Line: 1}},
+			Files:     map[string]string{"a.js": "indexed", "b.js": FileMissing, "c.js": FileMissing},
+			Languages: map[string]bool{"javascript": true},
 		}, ctx.Err()
 	}
 	e := NewWith(t.TempDir(), Options{Budget: time.Millisecond}, analyze)
@@ -205,4 +206,21 @@ func TestCallsAreBoundedAndMapped(t *testing.T) {
 	assert.Len(t, lodash.Usage.Calls, maxSites)
 	assert.Equal(t, model.CallSite{File: "a.js", Line: 1, Callee: "lodash//map"}, lodash.Usage.Calls[0], "the calls are in line order")
 	assert.Equal(t, []model.CallSite{{File: "a.js", Line: 1, Callee: "axios//get"}}, axios.Usage.Calls, "a call counts for the package of its module only")
+}
+
+func TestUnreadAndMissingLanguages(t *testing.T) {
+	e := NewWith(t.TempDir(), Options{}, func(context.Context, string) (Analysis, error) {
+		return Analysis{
+			Languages: map[string]bool{"python": true, "go": true},
+			Unread:    map[string]bool{"python": true},
+		}, nil
+	})
+	pypi := &model.Package{ID: model.MustPackageVersion(model.EcosystemPyPI, "yaml", "6.0")}
+	golang := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, "golang.org/x/net", "v0.20.0")}
+	npm := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "left-pad", "1.3.0")}
+	require.NoError(t, e.Enrich(context.Background(), []*model.Package{pypi, golang, npm}))
+	assert.True(t, pypi.Usage.UnreadFiles, "a Python file failed, so a Python import can hide in it")
+	assert.False(t, golang.Usage.UnreadFiles)
+	assert.False(t, golang.Usage.NoSourceFiles)
+	assert.True(t, npm.Usage.NoSourceFiles, "no JavaScript file parsed, so no import proves nothing")
 }

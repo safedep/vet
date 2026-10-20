@@ -28,6 +28,11 @@ func (r *run) enrich(ctx context.Context) error {
 	// An enricher that had no package to enrich can still be preparing,
 	// and its diagnostics must wait for its work.
 	r.prepared.Wait()
+	if r.reachChanged {
+		if err := r.writeReach(ctx); err != nil {
+			return err
+		}
+	}
 	if err := r.findCapabilities(ctx); err != nil {
 		return err
 	}
@@ -194,6 +199,7 @@ func (r *run) enrichBatch(ctx context.Context, e Enricher, batch []*model.Packag
 		}
 		status = state.EnrichmentFailed
 		r.enrichError(e.Name, err)
+		r.sourceFailed(e, err)
 	}
 	fresh := make([]state.EnrichmentResult, 0, len(todo))
 	for _, p := range todo {

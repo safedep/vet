@@ -89,10 +89,12 @@ vulnerable package.
 | Reach | Meaning |
 | --- | --- |
 | `imported` | A source file imports the package, or a package that the code imports depends on it. |
-| `unused` | No source file imports the package, and no imported package depends on it. |
-| `unknown` | vet cannot tell. The cause names why: `no-graph`, `dynamic-import` or `budget`. |
+| `unused` | No source file imports the package, and no imported package depends on it. A tool that the project runs from a script with no import, as a build tool, is `unused` too. |
+| `unknown` | vet cannot tell. The cause names why: `no-graph`, `dynamic-import`, `budget`, `unread-files` or `no-source-files`. |
 
-vet never shows `unknown` as safe. A package that only test files import is `imported`, with a
+vet never shows `unknown` as safe. A source file that vet could not read or parse makes the packages
+of its language `unknown`. So does a project with no source file that vet parses in the language of
+the package, such as a project of `.jsx` files. A package that only test files import is `imported`, with a
 test-only mark. `--reach` sets the level, and `plugins.codeusage.options.reach` sets it for every
 run. `function`, the default, also follows the calls to the vulnerable functions, and a finding with
 no record of its vulnerable functions stays `imported`. `import` stops at the imports. `off` turns
