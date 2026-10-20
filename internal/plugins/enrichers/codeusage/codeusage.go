@@ -337,10 +337,12 @@ type Enricher struct {
 	roots        *report.ReachRoots
 	versions     map[string]string
 	searched     bool
-	// sources and missingSources count the packages with a record whose
-	// code vet found and did not find.
-	sources, missingSources int
-	sites                   []model.DynamicSite
+	// sources counts the packages with a record whose code vet found.
+	// noCode holds the names of those whose code it did not find, by
+	// ecosystem.
+	sources int
+	noCode  map[model.Ecosystem][]string
+	sites   []model.DynamicSite
 	// hints holds the package hint of each imported module, by language
 	// and name, for the calls that name the module only.
 	hints    map[module]string
@@ -398,12 +400,7 @@ func (e *Enricher) Diagnostics() []report.Diagnostic {
 		}
 		out = append(out, report.Diagnostic{Level: report.DiagnosticWarning, Code: CodeFileMissing, Component: Name, Message: msg})
 	}
-	if e.missingSources > 0 {
-		out = append(out, report.Diagnostic{
-			Level: report.DiagnosticWarning, Code: CodeSourceMissing, Component: Name,
-			Message: fmt.Sprintf("vet found no code of %d imported Go modules and Rust crates with a vulnerability, so their findings stay imported. %s", e.missingSources, finding.FetchHint),
-		})
-	}
+	out = append(out, e.missingDiagnostics()...)
 	if e.reachStopped {
 		out = append(out, report.Diagnostic{
 			Level: report.DiagnosticWarning, Code: CodeReachStopped, Component: Name,
@@ -574,7 +571,10 @@ func (e *Enricher) reachQuery(pkgs []*model.Package) (ReachQuery, map[model.Pack
 			hasUnit[p.ID.Key()] = true
 			e.sources++
 		} else {
-			e.missingSources++
+			if e.noCode == nil {
+				e.noCode = map[model.Ecosystem][]string{}
+			}
+			e.noCode[p.ID.Ecosystem()] = append(e.noCode[p.ID.Ecosystem()], p.ID.RawName())
 		}
 	}
 	q.Targets = slices.Compact(slices.Sorted(slices.Values(q.Targets)))
@@ -717,8 +717,51 @@ func (e *Enricher) ReachReport(info *report.ReachInfo) {
 	info.Symbols = e.symbols.Bundle()
 	if e.searched {
 		info.Roots, info.Versions = e.roots, e.versions
-		info.Sources = &report.ReachSources{Found: e.sources, Missing: e.missingSources}
+		info.Sources = &report.ReachSources{Found: e.sources}
+		for eco := range e.noCode {
+			info.Sources.Missing += len(e.noCodeNames(eco))
+		}
 	}
+}
+
+// noCodeNames lists each package of an ecosystem whose code vet did not
+// find once, in order. Two manifests can list one package.
+func (e *Enricher) noCodeNames(eco model.Ecosystem) []string {
+	return slices.Compact(slices.Sorted(slices.Values(e.noCode[eco])))
+}
+
+// dependencyNouns name a dependency of an ecosystem in a message.
+var dependencyNouns = map[model.Ecosystem][2]string{
+	model.EcosystemGo:    {"Go module", "Go modules"},
+	model.EcosystemCargo: {"Rust crate", "Rust crates"},
+}
+
+// missingDiagnostics gives one diagnostic for each ecosystem with packages
+// whose code is not on the disk. Each names the first packages and the
+// command of that ecosystem that downloads them.
+func (e *Enricher) missingDiagnostics() []report.Diagnostic {
+	var out []report.Diagnostic
+	for _, eco := range slices.Sorted(maps.Keys(e.noCode)) {
+		names := e.noCodeNames(eco)
+		nouns, ok := dependencyNouns[eco]
+		if !ok {
+			nouns = [2]string{"package", "packages"}
+		}
+		noun := nouns[1]
+		if len(names) == 1 {
+			noun = nouns[0]
+		}
+		list := strings.Join(names[:min(len(names), maxFailedNames)], ", ")
+		if more := len(names) - maxFailedNames; more > 0 {
+			list += fmt.Sprintf(" and %d more", more)
+		}
+		out = append(out, report.Diagnostic{
+			Level: report.DiagnosticWarning, Code: CodeSourceMissing, Component: Name, Count: len(names),
+			Message: fmt.Sprintf("vet found no code for %d vulnerable %s (%s), so it cannot tell if the code calls the vulnerable functions. %s",
+				len(names), noun, list, finding.FetchHint(eco)),
+		})
+	}
+	return out
 }
 
 // callsInto returns the calls whose module the package provides, at most

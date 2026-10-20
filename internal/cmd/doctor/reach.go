@@ -50,9 +50,9 @@ func symbolData(r *report.ReachInfo, now time.Time) Check {
 		}
 	}
 	if s := r.Sources; s != nil {
-		c.Message += fmt.Sprintf(". vet found the code of %d of %d imported Go modules and Rust crates with a vulnerability", s.Found, s.Found+s.Missing)
+		c.Message += fmt.Sprintf(". vet found the code of %d of %d vulnerable dependencies that the code imports", s.Found, s.Found+s.Missing)
 		if s.Missing > 0 {
-			c.Status, c.Fix = Warn, finding.FetchHint
+			c.Status, c.Fix = Warn, finding.FetchHint("")
 		}
 	}
 	return c

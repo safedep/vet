@@ -190,9 +190,17 @@ func (r *Reach) Label() string {
 	return label
 }
 
-// FetchHint is the action that puts the code of the dependencies on the
-// disk, for a call graph search.
-const FetchHint = "Run go mod download or cargo fetch, then scan again."
+// FetchHint is the action that puts the code of the dependencies of an
+// ecosystem on the disk, for a call graph search.
+func FetchHint(eco model.Ecosystem) string {
+	switch eco {
+	case model.EcosystemGo:
+		return "Run go mod download, then scan again."
+	case model.EcosystemCargo:
+		return "Run cargo fetch, then scan again."
+	}
+	return "Download the code of the dependencies, then scan again. The scan warning names the command."
+}
 
 // causeHelp says what a person can do about each cause.
 var causeHelp = map[ReachCause]string{
@@ -203,7 +211,7 @@ var causeHelp = map[ReachCause]string{
 	ReachNoSourceFiles:      "vet parses no source file of the language of the package in this project.",
 	ReachNoSymbolData:       "vuln-symbols has no record of the vulnerable functions of the advisory.",
 	ReachNoEntryPoint:       "vet found no entry point. Name one with --entrypoint path:function.",
-	ReachNoDependencySource: "The code of the package is not on the disk. " + FetchHint,
+	ReachNoDependencySource: "The code of the package is not in the vendor directory or the package cache, so vet cannot search the calls into it.",
 	ReachNoSymbolInGraph:    "The call graph has no definition of a vulnerable function of the record.",
 	ReachBroadRecord:        "The record does not name every vulnerable function.",
 	ReachUnreviewedRecord:   "No maintainer verified the record.",

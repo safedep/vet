@@ -416,3 +416,42 @@ func TestFunctionReachOfKeys(t *testing.T) {
 	assert.Equal(t, &model.FunctionReach{Status: model.FunctionCalled, Path: []model.PathHop{{Function: "main"}}},
 		functionReachOf(record(a, b), called, true, ""), "a path that is not from a test wins")
 }
+
+func TestMissingSourceDiagnostics(t *testing.T) {
+	many := []string{"a", "b", "c", "d", "e", "f", "g"}
+	cases := []struct {
+		name   string
+		noCode map[model.Ecosystem][]string
+		want   []string
+	}{
+		{
+			name:   "one Go module names Go only",
+			noCode: map[model.Ecosystem][]string{model.EcosystemGo: {"golang.org/x/net", "golang.org/x/net"}},
+			want:   []string{"vet found no code for 1 vulnerable Go module (golang.org/x/net), so it cannot tell if the code calls the vulnerable functions. Run go mod download, then scan again."},
+		},
+		{
+			name:   "each ecosystem has its own diagnostic",
+			noCode: map[model.Ecosystem][]string{model.EcosystemGo: {"golang.org/x/net"}, model.EcosystemCargo: {"hyper", "tokio"}},
+			want: []string{
+				"vet found no code for 2 vulnerable Rust crates (hyper, tokio), so it cannot tell if the code calls the vulnerable functions. Run cargo fetch, then scan again.",
+				"vet found no code for 1 vulnerable Go module (golang.org/x/net), so it cannot tell if the code calls the vulnerable functions. Run go mod download, then scan again.",
+			},
+		},
+		{
+			name:   "a long list names the first packages",
+			noCode: map[model.Ecosystem][]string{model.EcosystemGo: many},
+			want:   []string{"vet found no code for 7 vulnerable Go modules (a, b, c, d, e and 2 more), so it cannot tell if the code calls the vulnerable functions. Run go mod download, then scan again."},
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			e := &Enricher{noCode: c.noCode}
+			var got []string
+			for _, d := range e.missingDiagnostics() {
+				assert.Equal(t, CodeSourceMissing, d.Code)
+				got = append(got, d.Message)
+			}
+			assert.Equal(t, c.want, got)
+		})
+	}
+}
