@@ -186,3 +186,23 @@ func TestDynamicImportMarksTheEcosystem(t *testing.T) {
 	assert.True(t, pkgs[0].Usage.DynamicImport)
 	assert.False(t, pkgs[1].Usage.DynamicImport, "a computed Python import says nothing about npm")
 }
+
+func TestCallsAreBoundedAndMapped(t *testing.T) {
+	var calls []ExternalCall
+	for i := range maxSites + 50 {
+		calls = append(calls, ExternalCall{FilePath: "a.js", Line: i + 1, Language: "javascript", Callee: "lodash//map", Module: "lodash"})
+	}
+	calls = append(calls, ExternalCall{FilePath: "a.js", Line: 1, Language: "javascript", Callee: "axios//get", Module: "axios"})
+	e := NewWith(t.TempDir(), Options{}, func(context.Context, string) (Analysis, error) {
+		return Analysis{
+			Usage: []Evidence{{PackageHint: "lodash", ModuleName: "lodash", Language: "javascript", FilePath: "a.js", Line: 1}},
+			Calls: calls,
+		}, nil
+	})
+	lodash := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "lodash", "4.17.21")}
+	axios := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "axios", "1.0.0")}
+	require.NoError(t, e.Enrich(context.Background(), []*model.Package{lodash, axios}))
+	assert.Len(t, lodash.Usage.Calls, maxSites)
+	assert.Equal(t, model.CallSite{File: "a.js", Line: 1, Callee: "lodash//map"}, lodash.Usage.Calls[0], "the calls are in line order")
+	assert.Equal(t, []model.CallSite{{File: "a.js", Line: 1, Callee: "axios//get"}}, axios.Usage.Calls, "a call counts for the package of its module only")
+}

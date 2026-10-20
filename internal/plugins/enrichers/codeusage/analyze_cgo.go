@@ -90,6 +90,8 @@ func analyzeDir(ctx context.Context, dir string, cache localdb.Manager) (Analysi
 	out := Analysis{Usage: fileAnalysis.usage, Matches: fileAnalysis.matches, Files: make(map[string]string, len(res.Files))}
 	importLines(out.Usage, res.Indexes)
 	out.DynamicImports = dynamicImports(res.Indexes)
+	out.Calls = externalCalls(res.Indexes)
+	out.Dynamic = dynamicSites(res.Indexes)
 	for f, st := range res.Files {
 		out.Files[f] = string(st)
 	}
@@ -137,6 +139,53 @@ func dynamicImports(indexes []*fileindex.Index) map[string]bool {
 	for _, ix := range indexes {
 		if slices.ContainsFunc(ix.Imports, func(imp fileindex.Import) bool { return imp.Kind == fileindex.ImportDynamicComputed }) {
 			out[string(ix.Language)] = true
+		}
+	}
+	return out
+}
+
+// externalCalls returns the calls of each file into an imported module.
+// The module is the import whose namespace is the longest start of the call
+// target. A bare name that no import binds names no module, so it is not a
+// call into a package.
+func externalCalls(indexes []*fileindex.Index) []ExternalCall {
+	var out []ExternalCall
+	for _, ix := range indexes {
+		for _, c := range ix.ExternalCalls() {
+			targets := c.Targets
+			if len(targets) == 0 {
+				targets = []string{c.Callee}
+			}
+			for _, target := range targets {
+				if mod := importOf(ix.Imports, target); mod != "" {
+					out = append(out, ExternalCall{FilePath: ix.Path, Line: c.Line, Language: string(ix.Language), Callee: target, Module: mod})
+					break
+				}
+			}
+		}
+	}
+	return out
+}
+
+func importOf(imports []fileindex.Import, target string) string {
+	best, module := "", ""
+	for _, imp := range imports {
+		ns := imp.Namespace
+		if ns == "" || len(ns) <= len(best) {
+			continue
+		}
+		if target == ns || strings.HasPrefix(target, ns+fileindex.Separator) {
+			best, module = ns, imp.Module
+		}
+	}
+	return module
+}
+
+func dynamicSites(indexes []*fileindex.Index) []DynamicSite {
+	var out []DynamicSite
+	for _, ix := range indexes {
+		for _, f := range ix.DynamicSites() {
+			out = append(out, DynamicSite{FilePath: ix.Path, Line: f.Line, Kind: string(f.Kind)})
 		}
 	}
 	return out

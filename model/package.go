@@ -160,6 +160,27 @@ type Usage struct {
 	// name in a language of the package. A missing import then proves
 	// nothing.
 	DynamicImport bool `json:"dynamic_import,omitempty"`
+	// Calls are the calls of the code into the package, at most 200.
+	Calls []CallSite `json:"calls,omitempty"`
+	// Dynamic are the dynamic sites of the files that import the package.
+	Dynamic []DynamicSite `json:"dynamic,omitempty"`
+}
+
+// CallSite is one call of the code into a package. Callee is the call
+// target with "//" between its parts, as golang.org//x//net//html//Render.
+type CallSite struct {
+	File   string `json:"file"`
+	Line   int    `json:"line"`
+	Callee string `json:"callee"`
+}
+
+// DynamicSite is a line of a source file that the static analysis cannot
+// follow, such as eval or an import by a computed name. Kind names it as
+// safedep/code does.
+type DynamicSite struct {
+	File string `json:"file"`
+	Line int    `json:"line"`
+	Kind string `json:"kind"`
 }
 
 // ImportSite is the line of a source file that imports a package.

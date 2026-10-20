@@ -8,6 +8,7 @@
 package codeusage
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -36,10 +37,13 @@ import (
 const Name = "codeusage"
 
 // Version changes when the mapping or the signatures change.
-const Version = "7"
+const Version = "8"
 
 // maxFiles bounds the files that a package usage lists.
 const maxFiles = 20
+
+// maxSites bounds the calls and the dynamic sites of a package usage.
+const maxSites = 200
 
 // Evidence is one import of a module in a source file.
 type Evidence struct {
@@ -74,6 +78,23 @@ type Match struct {
 	Callee string
 }
 
+// ExternalCall is one call of a source file into an imported module.
+// Module is the import that the call target starts with.
+type ExternalCall struct {
+	FilePath string
+	Line     int
+	Language string
+	Callee   string
+	Module   string
+}
+
+// DynamicSite is one line of a source file that the analysis cannot follow.
+type DynamicSite struct {
+	FilePath string
+	Line     int
+	Kind     string
+}
+
 // FileFailure is a source file that the analysis could not read, parse
 // or analyze. The rest of the scan goes on without it.
 type FileFailure struct {
@@ -95,6 +116,8 @@ type Analysis struct {
 	// DynamicImports holds the languages of the files that import a module
 	// by a computed name.
 	DynamicImports map[string]bool
+	Calls          []ExternalCall
+	Dynamic        []DynamicSite
 }
 
 // DefaultBudget bounds the code analysis when plugins.codeusage.options
@@ -185,7 +208,12 @@ type Enricher struct {
 	stopped bool
 	missing int
 	// dynamic holds the languages with an import by a computed name.
-	dynamic  map[string]bool
+	dynamic map[string]bool
+	calls   []ExternalCall
+	sites   []DynamicSite
+	// hints holds the package hint of each imported module, by language
+	// and name, for the calls that name the module only.
+	hints    map[module]string
 	own      []string
 	provider provider
 	err      error
@@ -275,8 +303,41 @@ func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 		p.Usage = usageOf(sites)
 		p.Usage.Incomplete = e.stopped
 		p.Usage.DynamicImport = slices.ContainsFunc(ecosystemLanguages[p.ID.Ecosystem()], func(l string) bool { return e.dynamic[l] })
+		p.Usage.Calls = e.callsInto(p.ID)
+		p.Usage.Dynamic = e.dynamicIn(sites)
 	}
 	return nil
+}
+
+// callsInto returns the calls whose module the package provides, at most
+// maxSites, in file and line order.
+func (e *Enricher) callsInto(id model.PackageVersion) []model.CallSite {
+	var out []model.CallSite
+	for _, c := range e.calls {
+		m := module{Language: c.Language, Hint: e.hints[module{Language: c.Language, Name: c.Module}], Name: c.Module}
+		if e.provider.provides(id, m) {
+			out = append(out, model.CallSite{File: c.FilePath, Line: c.Line, Callee: c.Callee})
+			if len(out) == maxSites {
+				break
+			}
+		}
+	}
+	return out
+}
+
+// dynamicIn returns the dynamic sites of the files that import a package,
+// at most maxSites.
+func (e *Enricher) dynamicIn(files map[string]int) []model.DynamicSite {
+	var out []model.DynamicSite
+	for _, d := range e.sites {
+		if _, ok := files[d.FilePath]; ok {
+			out = append(out, model.DynamicSite{File: d.FilePath, Line: d.Line, Kind: d.Kind})
+			if len(out) == maxSites {
+				break
+			}
+		}
+	}
+	return out
 }
 
 // usageOf returns the usage of a package from the first import line of
@@ -353,6 +414,13 @@ func (e *Enricher) index(ctx context.Context) error {
 	}
 	e.matches = e.external(a.Matches)
 	e.dynamic = a.DynamicImports
+	e.calls, e.sites = a.Calls, a.Dynamic
+	slices.SortFunc(e.calls, func(x, y ExternalCall) int {
+		return cmp.Or(cmp.Compare(x.FilePath, y.FilePath), cmp.Compare(x.Line, y.Line), cmp.Compare(x.Callee, y.Callee))
+	})
+	slices.SortFunc(e.sites, func(x, y DynamicSite) int {
+		return cmp.Or(cmp.Compare(x.FilePath, y.FilePath), cmp.Compare(x.Line, y.Line), cmp.Compare(x.Kind, y.Kind))
+	})
 	e.failed = a.Failed
 	for i := range e.failed {
 		e.failed[i].FilePath = filepath.ToSlash(e.failed[i].FilePath)
@@ -363,11 +431,13 @@ func (e *Enricher) index(ctx context.Context) error {
 		return err
 	}
 	e.modules = map[module]map[string]int{}
+	e.hints = map[module]string{}
 	for _, ev := range evs {
 		m := module{Language: ev.Language, Hint: ev.PackageHint, Name: ev.ModuleName}
 		if e.modules[m] == nil {
 			e.modules[m] = map[string]int{}
 		}
+		e.hints[module{Language: ev.Language, Name: ev.ModuleName}] = ev.PackageHint
 		addSites(e.modules[m], map[string]int{filepath.ToSlash(ev.FilePath): int(ev.Line)})
 	}
 	e.provider = provider{autoload: autoload}

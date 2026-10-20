@@ -51,6 +51,25 @@
       },
       "type": "object"
     },
+    "CallSite": {
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        },
+        "callee": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "file",
+        "line",
+        "callee"
+      ]
+    },
     "Capability": {
       "properties": {
         "id": {
@@ -139,6 +158,25 @@
         "code",
         "component",
         "message"
+      ]
+    },
+    "DynamicSite": {
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        },
+        "kind": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "file",
+        "line",
+        "kind"
       ]
     },
     "Evidence": {
@@ -1219,6 +1257,18 @@
         },
         "dynamic_import": {
           "type": "boolean"
+        },
+        "calls": {
+          "items": {
+            "$ref": "#/$defs/CallSite"
+          },
+          "type": "array"
+        },
+        "dynamic": {
+          "items": {
+            "$ref": "#/$defs/DynamicSite"
+          },
+          "type": "array"
         }
       },
       "type": "object",

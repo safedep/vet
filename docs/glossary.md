@@ -233,7 +233,9 @@ _Avoid_: fork commit, orphan commit, dangling commit
 **Code usage**:
 The evidence that the target's code imports a package, and in which files. `model.Usage`, set by the
 `codeusage` enricher. `Usage.Imports` holds the import line of each file, and `Usage.TestOnly` marks a
-package that only test files import. The engine adds it to package findings as evidence. It is
+package that only test files import. `Usage.Calls` holds the calls into the package, and
+`Usage.Dynamic` the dynamic sites of the files that import it, such as eval or an import by a
+computed name. The engine adds it to package findings as evidence. It is
 import-level evidence, not call-graph reachability.
 _Avoid_: reachability (except in "reachability annotation"), usage graph
 

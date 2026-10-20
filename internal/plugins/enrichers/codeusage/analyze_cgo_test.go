@@ -16,6 +16,8 @@ import (
 	"github.com/safedep/dry/localdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/v2/model"
 )
 
 func write(t *testing.T, dir, rel, content string) {
@@ -278,4 +280,27 @@ func TestComputedImportIsDynamic(t *testing.T) {
 	a, err := newAnalyzer(Options{})(context.Background(), dir)
 	require.NoError(t, err)
 	assert.Equal(t, map[string]bool{"python": true}, a.DynamicImports)
+}
+
+func TestUsageCallsAndDynamicSites(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "app.py", "import yaml\n\nyaml.load(x)\n")
+	write(t, dir, "plugins.py", "import importlib\nimport yaml\n\nmod = importlib.import_module(name)\nyaml.dump(mod)\n")
+	write(t, dir, "main.go", "package main\n\nimport \"golang.org/x/net/html\"\n\nfunc main() {\n\thtml.Render(w, n)\n}\n")
+	write(t, dir, "src/main.rs", "fn main() {\n    let now = time::OffsetDateTime::now_local();\n}\n")
+	e := New(Options{})
+	e.UseSource(dir)
+	yaml := &model.Package{ID: model.MustPackageVersion(model.EcosystemPyPI, "PyYAML", "6.0")}
+	net := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, "golang.org/x/net", "v0.20.0")}
+	tm := &model.Package{ID: model.MustPackageVersion(model.EcosystemCargo, "time", "0.3.30")}
+	require.NoError(t, e.Enrich(context.Background(), []*model.Package{yaml, net, tm}))
+
+	require.NotNil(t, yaml.Usage)
+	assert.Equal(t, []model.CallSite{{File: "app.py", Line: 3, Callee: "yaml//load"}, {File: "plugins.py", Line: 5, Callee: "yaml//dump"}}, yaml.Usage.Calls)
+	assert.Equal(t, []model.DynamicSite{{File: "plugins.py", Line: 4, Kind: "computed-import"}}, yaml.Usage.Dynamic,
+		"the dynamic sites come from the files that import the package")
+	require.NotNil(t, net.Usage)
+	assert.Equal(t, []model.CallSite{{File: "main.go", Line: 6, Callee: "golang.org//x//net//html//Render"}}, net.Usage.Calls)
+	require.NotNil(t, tm.Usage)
+	assert.Contains(t, tm.Usage.Calls, model.CallSite{File: "src/main.rs", Line: 2, Callee: "time//OffsetDateTime//now_local"})
 }
