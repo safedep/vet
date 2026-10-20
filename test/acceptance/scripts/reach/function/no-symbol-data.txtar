@@ -1,0 +1,25 @@
+# A first scan with no symbol data says so. The finding stays imported with
+# the cause no-symbol-data, and never says that the code calls no
+# vulnerable function.
+[!cgo] skip 'code analysis needs a vet built with CGO'
+cd proj
+exec vet scan . -o jsonl --mode agent
+stdout '"reach":\{"level":"function","status":"computed"\}'
+stdout '"code":"symbol_data_missing"'
+stdout '"name":"github.com/Masterminds/goutils".*"reach":\{"level":"imported","cause":"no-symbol-data"'
+! stdout 'not-called'
+
+-- proj/go.mod --
+module example.com/app
+
+go 1.22
+
+require github.com/Masterminds/goutils v1.1.0
+-- proj/main.go --
+package main
+
+import "github.com/Masterminds/goutils"
+
+func main() {
+	_, _ = goutils.RandomAlphaNumeric(8)
+}

@@ -314,3 +314,24 @@ func TestUnreadFileAndUnknownExtension(t *testing.T) {
 	assert.True(t, a.Unread["python"], "a Python file over the size limit is unread")
 	assert.False(t, a.Languages["javascript"], "vet parses no .jsx file")
 }
+
+// The key of a fix site must equal the call target that safedep/code gives
+// the same function, or function reach never finds a call.
+func TestSymbolKeyMatchesTheCallGraph(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "main.go", "package main\n\nimport (\n\t\"net/http\"\n\n\t\"golang.org/x/net/html\"\n)\n\nfunc main() {\n\thtml.Render(w, n)\n\thttp.ServeContent(w, r, name, t, f)\n}\n")
+	write(t, dir, "src/main.rs", "fn main() {\n    let now = time::OffsetDateTime::now_local();\n}\n")
+	a, err := newAnalyzer(Options{})(context.Background(), dir)
+	require.NoError(t, err)
+	var targets []string
+	for _, c := range a.Calls {
+		targets = append(targets, c.Callee)
+	}
+	for _, row := range []struct{ language, name string }{
+		{"go", "golang.org/x/net/html.Render"},
+		{"go", "net/http.ServeContent"},
+		{"rust", "time::OffsetDateTime::now_local"},
+	} {
+		assert.Contains(t, targets, symbolKey(row.language, row.name), row.name)
+	}
+}

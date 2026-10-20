@@ -31,6 +31,8 @@ type Finding struct {
 	// The engine sets Attack when the control of the finding is an attack
 	// control. It reads the control info, so a control cannot set it.
 	Attack *Attack `json:"attack,omitempty"`
+	// Advisory is the id of the advisory of a vulnerability finding.
+	Advisory string `json:"advisory,omitempty"`
 	// The engine sets Reach on a vulnerability finding of a scan with
 	// source code. A control cannot set it.
 	Reach *Reach `json:"reach,omitempty"`
@@ -88,6 +90,9 @@ type Reach struct {
 	TestOnly bool `json:"test_only,omitempty"`
 	// Imports are the import lines of the package.
 	Imports []model.ImportSite `json:"imports,omitempty"`
+	// FixSites are the functions that hold the vulnerable code, from the
+	// symbol record of the advisory.
+	FixSites []string `json:"fix_sites,omitempty"`
 }
 
 // Attack marks a finding of an attack control. The attacks gate fails on

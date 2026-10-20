@@ -40,6 +40,9 @@ func Sandbox(env *testscript.Env) error {
 	// No script touches the host keychain. vet keeps the credentials in a
 	// plaintext file under the sandbox home.
 	env.Setenv("VET_CLOUD_KEYCHAIN_FILE", filepath.Join(home, "keychain.json"))
+	// No script fetches the symbol bundle from its public host. A script
+	// that tests the update sets the variable again.
+	env.Setenv("VET_PLUGINS_CODEUSAGE_OPTIONS_SYMBOLS_UPDATE", "false")
 	return nil
 }
 

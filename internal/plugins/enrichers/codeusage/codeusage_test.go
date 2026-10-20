@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/safedep/vet/v2/internal/symbols"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/plugin/plugintest"
@@ -223,4 +224,47 @@ func TestUnreadAndMissingLanguages(t *testing.T) {
 	assert.False(t, golang.Usage.UnreadFiles)
 	assert.False(t, golang.Usage.NoSourceFiles)
 	assert.True(t, npm.Usage.NoSourceFiles, "no JavaScript file parsed, so no import proves nothing")
+}
+
+// symbolSource answers every query with one record.
+type symbolSource struct{ prepared int }
+
+func (s *symbolSource) Prepare(context.Context) { s.prepared++ }
+func (s *symbolSource) Lookup(qs []symbols.Query) [][]model.SymbolRecord {
+	out := make([][]model.SymbolRecord, len(qs))
+	for i, q := range qs {
+		out[i] = []model.SymbolRecord{{Advisory: q.IDs[0], Record: "GO-2026-0001", Coverage: "exact", FixSites: []string{"golang.org/x/net/html.Render"}}}
+	}
+	return out
+}
+func (s *symbolSource) Diagnostics() []report.Diagnostic { return nil }
+func (s *symbolSource) Bundle() *report.SymbolBundle {
+	return &report.SymbolBundle{ID: "abc", Records: 1}
+}
+
+func TestSymbolsOfGoAndRustVulnerabilities(t *testing.T) {
+	src := &symbolSource{}
+	analysis := Analysis{Languages: map[string]bool{"go": true, "python": true}}
+	e := NewWith(t.TempDir(), Options{Symbols: src}, func(context.Context, string) (Analysis, error) { return analysis, nil })
+	vuln := &model.Insight{Vulnerabilities: []model.Vulnerability{{ID: "GHSA-aaaa", Aliases: []string{"CVE-2026-0001"}}}}
+	net := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, "golang.org/x/net", "v0.20.0"), Enrichment: model.Enrichment{Insight: vuln}}
+	yaml := &model.Package{ID: model.MustPackageVersion(model.EcosystemPyPI, "pyyaml", "5.0"), Enrichment: model.Enrichment{Insight: vuln}}
+	require.NoError(t, e.Enrich(context.Background(), []*model.Package{net, yaml}))
+	assert.Equal(t, 1, src.prepared)
+	assert.Equal(t, []model.SymbolRecord{{
+		Advisory: "GHSA-aaaa", Record: "GO-2026-0001", Coverage: "exact",
+		FixSites: []string{"golang.org/x/net/html.Render"}, Keys: []string{"golang.org//x//net//html//Render"},
+	}}, net.Usage.Symbols)
+	assert.Empty(t, yaml.Usage.Symbols, "the symbol data covers Go and Rust only")
+	assert.Equal(t, "abc", e.SymbolBundle().ID)
+}
+
+func TestNoGoOrRustCodeReadsNoSymbolData(t *testing.T) {
+	src := &symbolSource{}
+	e := NewWith(t.TempDir(), Options{Symbols: src}, func(context.Context, string) (Analysis, error) {
+		return Analysis{Languages: map[string]bool{"python": true}}, nil
+	})
+	require.NoError(t, e.Enrich(context.Background(), nil))
+	assert.Zero(t, src.prepared, "a project with no Go or Rust code needs no symbol bundle")
+	assert.Nil(t, e.SymbolBundle())
 }

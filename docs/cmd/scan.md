@@ -96,8 +96,14 @@ vet never shows `unknown` as safe. A source file that vet could not read or pars
 of its language `unknown`. So does a project with no source file that vet parses in the language of
 the package, such as a project of `.jsx` files. A package that only test files import is `imported`, with a
 test-only mark. `--reach` sets the level, and `plugins.codeusage.options.reach` sets it for every
-run. `function`, the default, also follows the calls to the vulnerable functions, and a finding with
-no record of its vulnerable functions stays `imported`. `import` stops at the imports. `off` turns
+run. `function`, the default, also follows the calls to the vulnerable functions of Go and Rust
+packages, and a finding with no record of its vulnerable functions stays `imported` with the cause
+`no-symbol-data`. vet reads the vulnerable functions from the signed bundle of
+[vuln-symbols](https://github.com/safedep/vuln-symbols). It keeps the bundle in the cache directory
+and asks for a newer one at most once a day. `plugins.codeusage.options.symbols_update: false`
+stops the update, `symbols_bundle` reads a local copy of the bundle files and `symbols_pin` keeps a
+CI run on one bundle id. The report header names the bundle. A scan never fails because of the
+bundle: a missing, stale, unreachable or rejected bundle is a warning. `import` stops at the imports. `off` turns
 off the reach only, and the AI and crypto capabilities stay on. A lockfile, an SBOM, an image or a
 PURL has no source code, so the scan computes no reach and its header says so.
 

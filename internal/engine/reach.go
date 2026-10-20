@@ -54,6 +54,18 @@ func (r *run) sourceFailed(e Enricher, err error) {
 	r.reachChanged = true
 }
 
+// symbolBundle records the symbol data that a source enricher read.
+func (r *run) symbolBundle() {
+	for _, e := range r.o.Enrichers {
+		if s, ok := e.Plugin.(plugin.SymbolReporter); ok {
+			if b := s.SymbolBundle(); b != nil && r.reach.Status == report.ReachComputed {
+				r.reach.Symbols = b
+				r.reachChanged = true
+			}
+		}
+	}
+}
+
 // writeReach records the reach of the scan in its header.
 func (r *run) writeReach(ctx context.Context) error {
 	h := r.res.Scan.Header()
@@ -75,7 +87,7 @@ func (r *run) setReach(f *finding.Finding, m *model.Manifest) {
 	if p == nil {
 		return
 	}
-	f.Reach = reachOf(r.reach.Level, p, m)
+	f.Reach = reachOf(r.reach.Level, p, m, f.Advisory)
 }
 
 // packageOf returns the package of a package finding in the manifest.
@@ -98,26 +110,30 @@ func packageOf(f *finding.Finding, m *model.Manifest) *model.Package {
 // reachOf places a package from its code usage and the dependency graph.
 // A package with no usage, such as a GitHub Action, has no reach. A level
 // that a later step cannot prove is unknown, never unused.
-func reachOf(level report.ReachLevel, p *model.Package, m *model.Manifest) *finding.Reach {
+func reachOf(level report.ReachLevel, p *model.Package, m *model.Manifest, advisory string) *finding.Reach {
 	u := p.Usage
 	if u == nil {
 		return nil
 	}
 	var cause finding.ReachCause
+	var fixSites []string
 	if level == report.ReachFunction {
 		cause = finding.ReachNoSymbolData
+		if rec := recordOf(u, advisory); rec != nil {
+			cause, fixSites = "", rec.FixSites
+		}
 	}
 	if u.Imported {
 		return &finding.Reach{
 			Level: finding.ReachImported, Cause: cause, Confidence: finding.ConfidenceHigh,
-			TestOnly: u.TestOnly, Imports: u.Imports,
+			TestOnly: u.TestOnly, Imports: u.Imports, FixSites: fixSites,
 		}
 	}
 	if m.Graph != nil {
 		if via, from := pathFromImported(p, m); len(via) > 1 {
 			return &finding.Reach{
 				Level: finding.ReachImported, Cause: cause, Confidence: finding.ConfidenceMedium,
-				Via: purls(via), TestOnly: from.Usage.TestOnly,
+				Via: purls(via), TestOnly: from.Usage.TestOnly, FixSites: fixSites,
 			}
 		}
 	}
@@ -134,6 +150,16 @@ func reachOf(level report.ReachLevel, p *model.Package, m *model.Manifest) *find
 		return &finding.Reach{Level: finding.ReachUnknown, Cause: finding.ReachNoGraph, Confidence: finding.ConfidenceLow}
 	}
 	return &finding.Reach{Level: finding.ReachUnused, Confidence: finding.ConfidenceMedium}
+}
+
+// recordOf returns the symbol record of an advisory of a package, or nil.
+func recordOf(u *model.Usage, advisory string) *model.SymbolRecord {
+	for i := range u.Symbols {
+		if advisory != "" && u.Symbols[i].Advisory == advisory {
+			return &u.Symbols[i]
+		}
+	}
+	return nil
 }
 
 // pathFromImported returns the shortest dependency path from a package

@@ -59,6 +59,7 @@ func TestCodeAnalysisOf(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
+			got.config = codeusage.Config{}
 			assert.Equal(t, c.want, got)
 		})
 	}
@@ -67,4 +68,22 @@ func TestCodeAnalysisOf(t *testing.T) {
 func TestReachFlagIsLockable(t *testing.T) {
 	assert.Contains(t, Options{Reach: "off"}.lockableKeys(false), codeusage.ReachKey)
 	assert.NotContains(t, Options{}.lockableKeys(false), codeusage.ReachKey)
+}
+
+func TestSymbolOptionsOfCodeusage(t *testing.T) {
+	cfg := &config.Config{Plugins: map[string]config.PluginConfig{codeusage.Name: {Options: map[string]any{
+		"symbols_update": false, "symbols_pin": "ab",
+	}}}}
+	c, err := codeAnalysisOf(cfg, Options{})
+	require.NoError(t, err)
+	assert.False(t, c.config.SymbolsUpdate)
+	c.on = true
+	_, err = c.options(Options{}, nil, t.TempDir())
+	require.Error(t, err, "a pin that is not a SHA-256 is a usage error")
+	assert.Equal(t, app.ExitUsage, app.ExitCode(err))
+
+	c.reach.Level = report.ReachImport
+	opts, err := c.options(Options{}, nil, t.TempDir())
+	require.NoError(t, err)
+	assert.Nil(t, opts.Symbols, "the import level reads no symbol data")
 }

@@ -905,3 +905,9 @@
   tier: P1
   guarantee: "A scan of a directory sets the reach of each vulnerability finding. A package that a source file imports is imported, with its import lines. A package that an imported package depends on is imported, with the dependency path. A package that no file imports and no imported package depends on is unused. --reach off removes the reach, and a lockfile target has no source code, so its report header says no-source. A bad --reach value exits 2."
   labels: [reach, enrichers]
+- id: reach/function/no-symbol-data
+  title: "a scan with no symbol data never says not called"
+  category: reach
+  tier: P1
+  guarantee: "A first scan with no symbol bundle and no network reports symbol_data_missing. A vulnerability finding of an imported Go package stays imported with the cause no-symbol-data, and never says that the code calls no vulnerable function."
+  labels: [reach, enrichers]

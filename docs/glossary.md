@@ -247,6 +247,13 @@ level** is how deep vet looks: `off`, `import` or `function` (`report.ReachLevel
 records the level and whether the scan computed reach in `report.ReachInfo`.
 _Avoid_: reachability (for the field), usage (for the level)
 
+**Symbol data**:
+The records of the functions that hold the vulnerable code of an advisory, from the signed bundle of
+`safedep/vuln-symbols`. `internal/symbols` reads it through the SDK, and `model.Usage.Symbols` holds
+the records of a package. A **fix site** is one such function. A record is `exact` when its list of
+fix sites is complete and `broad` when it can miss some.
+_Avoid_: vulnerable symbols (for the records), signatures (that word names a code signature)
+
 **Code index**:
 The index of each source file of a target, from the indexer of `safedep/code`, with the usage and the
 signature matches of the file. It lives in the `code_graph` module of `cache.db`. Its key holds the

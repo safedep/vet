@@ -302,6 +302,9 @@
         "attack": {
           "$ref": "#/$defs/Attack"
         },
+        "advisory": {
+          "type": "string"
+        },
         "reach": {
           "$ref": "#/$defs/Reach"
         }
@@ -998,6 +1001,12 @@
             "$ref": "#/$defs/ImportSite"
           },
           "type": "array"
+        },
+        "fix_sites": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "type": "object",
@@ -1025,6 +1034,9 @@
             "unavailable",
             "failed"
           ]
+        },
+        "symbols": {
+          "$ref": "#/$defs/SymbolBundle"
         }
       },
       "type": "object",
@@ -1218,6 +1230,61 @@
         "reason"
       ]
     },
+    "SymbolBundle": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "signed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "records": {
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "required": [
+        "id",
+        "signed_at",
+        "records"
+      ]
+    },
+    "SymbolRecord": {
+      "properties": {
+        "advisory": {
+          "type": "string"
+        },
+        "record": {
+          "type": "string"
+        },
+        "coverage": {
+          "type": "string"
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "fix_sites": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "keys": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object",
+      "required": [
+        "advisory",
+        "record",
+        "coverage",
+        "fix_sites"
+      ]
+    },
     "Tool": {
       "properties": {
         "name": {
@@ -1298,6 +1365,12 @@
         "dynamic": {
           "items": {
             "$ref": "#/$defs/DynamicSite"
+          },
+          "type": "array"
+        },
+        "symbols": {
+          "items": {
+            "$ref": "#/$defs/SymbolRecord"
           },
           "type": "array"
         }

@@ -42,7 +42,7 @@ func Plugins() []Plugin {
 		fromFactory(actionrefs.Name, func(c plugin.Config) (*actionrefs.Enricher, error) { return actionrefs.New(c, nil, "") }),
 		Plugin{
 			Name:   codeusage.Name,
-			Check:  func(c plugin.Config) error { _, _, err := codeusage.ParseSettings(c); return err },
+			Check:  func(c plugin.Config) error { _, err := codeusage.ParseSettings(c); return err },
 			Schema: func() ([]byte, error) { return codeusage.OptionsSchema(), nil },
 		},
 	)

@@ -114,6 +114,18 @@ const (
 type ReachInfo struct {
 	Level  ReachLevel  `json:"level" jsonschema:"enum=off,enum=import,enum=function"`
 	Status ReachStatus `json:"status" jsonschema:"enum=computed,enum=off,enum=no-source,enum=unavailable,enum=failed"`
+	// Symbols is the symbol data of the scan, or nil when the scan read
+	// none.
+	Symbols *SymbolBundle `json:"symbols,omitempty"`
+}
+
+// SymbolBundle is the signed bundle of symbol records that a scan read.
+type SymbolBundle struct {
+	ID string `json:"id"`
+	// SignedAt is the verified time of the signature, which is the time of
+	// the last change of the records.
+	SignedAt time.Time `json:"signed_at,omitzero"`
+	Records  int       `json:"records"`
 }
 
 // Kind names the field that a record holds.

@@ -372,6 +372,10 @@ func (p PackageVersion) String() string {
 	return s
 }
 
+// Identity returns the identity value of dry, for a library that takes it,
+// as the vuln-symbols SDK. A caller passes it on and reads nothing from it.
+func (p PackageVersion) Identity() pb.PackageVersion { return p.pv }
+
 // RawProto is the wire form of the package version: the raw name and
 // version. Only the clients of the SafeDep API call it.
 func (p PackageVersion) RawProto() *packagev1.PackageVersion { return p.pv.RawProto() }

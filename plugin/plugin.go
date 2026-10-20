@@ -132,6 +132,12 @@ type SourceEnricher interface {
 	UseSource(dir string)
 }
 
+// SymbolReporter is an enricher that reads symbol data. The engine records
+// the bundle in the reach of the scan header.
+type SymbolReporter interface {
+	SymbolBundle() *report.SymbolBundle
+}
+
 // Preparer is an enricher with work that needs no package, such as the
 // index of the source files. The engine calls Prepare once in its own
 // goroutine when the scan starts, so the work runs while the extraction

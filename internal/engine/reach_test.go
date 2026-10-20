@@ -50,6 +50,14 @@ func TestReachOf(t *testing.T) {
 			want:  &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachNoSymbolData, Confidence: finding.ConfidenceHigh, Imports: site},
 		},
 		{
+			name: "function level with a symbol record names the fix sites", level: report.ReachFunction,
+			usage: &model.Usage{Imported: true, Symbols: []model.SymbolRecord{
+				{Advisory: "GHSA-other", FixSites: []string{"a.B"}},
+				{Advisory: "GHSA-test", Record: "GO-2026-0001", Coverage: "exact", FixSites: []string{"dep.Render"}},
+			}},
+			want: &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
 			name: "an import from tests only", level: report.ReachImport,
 			usage: &model.Usage{Imported: true, TestOnly: true},
 			want:  &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceHigh, TestOnly: true},
@@ -107,7 +115,7 @@ func TestReachOf(t *testing.T) {
 			if c.noGraph {
 				m.Graph = nil
 			}
-			assert.Equal(t, c.want, reachOf(c.level, target, m))
+			assert.Equal(t, c.want, reachOf(c.level, target, m, "GHSA-test"))
 		})
 	}
 }
@@ -216,4 +224,20 @@ func (c vulnControl) Evaluate(_ context.Context, m *model.Manifest, _ plugin.Sta
 		}
 	}
 	return out, nil
+}
+
+// symbolEnricher is a source enricher that read a symbol bundle.
+type symbolEnricher struct{ sourceEnricher }
+
+func (*symbolEnricher) SymbolBundle() *report.SymbolBundle {
+	return &report.SymbolBundle{ID: "f2e47dc1", Records: 1220}
+}
+
+func TestHeaderNamesTheSymbolBundle(t *testing.T) {
+	f := newFixture(t)
+	o := f.options(t, project(t), nil)
+	o.Enrichers = []Enricher{{Name: "code", Version: "1", Plugin: &symbolEnricher{}, Local: true}}
+	o.Reach = report.ReachInfo{Level: report.ReachFunction}
+	res := runScan(t, o)
+	assert.Equal(t, &report.SymbolBundle{ID: "f2e47dc1", Records: 1220}, res.Scan.Header().Scan.Reach.Symbols)
 }

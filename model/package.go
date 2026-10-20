@@ -170,6 +170,29 @@ type Usage struct {
 	Calls []CallSite `json:"calls,omitempty"`
 	// Dynamic are the dynamic sites of the files that import the package.
 	Dynamic []DynamicSite `json:"dynamic,omitempty"`
+	// Symbols are the symbol records of the vulnerabilities of an imported
+	// package.
+	Symbols []SymbolRecord `json:"symbols,omitempty"`
+}
+
+// SymbolRecord is what the symbol data says about one vulnerability of a
+// package: the functions that hold the vulnerable code.
+type SymbolRecord struct {
+	// Advisory is the id of the vulnerability, as Insights names it.
+	Advisory string `json:"advisory"`
+	// Record is the id of the symbol record.
+	Record string `json:"record"`
+	// Coverage is exact when the list of fix sites is complete, and broad
+	// when it can miss some.
+	Coverage string `json:"coverage"`
+	// Verified marks a record that its maintainers reviewed. Only an exact
+	// and verified record can prove that the code calls no fix site.
+	Verified bool     `json:"verified,omitempty"`
+	FixSites []string `json:"fix_sites"`
+	// Keys are the symbol keys of the fix sites in the call graph, as
+	// golang.org//x//net//html//Render. A fix site with no key rule has
+	// none.
+	Keys []string `json:"keys,omitempty"`
 }
 
 // CallSite is one call of the code into a package. Callee is the call

@@ -28,6 +28,7 @@ func (r *run) enrich(ctx context.Context) error {
 	// An enricher that had no package to enrich can still be preparing,
 	// and its diagnostics must wait for its work.
 	r.prepared.Wait()
+	r.symbolBundle()
 	if r.reachChanged {
 		if err := r.writeReach(ctx); err != nil {
 			return err

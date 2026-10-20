@@ -27,6 +27,7 @@ import (
 
 	"github.com/safedep/vet/v2/internal/pathglob"
 	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
+	"github.com/safedep/vet/v2/internal/symbols"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
@@ -37,7 +38,7 @@ import (
 const Name = "codeusage"
 
 // Version changes when the mapping or the signatures change.
-const Version = "9"
+const Version = "10"
 
 // maxFiles bounds the files that a package usage lists.
 const maxFiles = 20
@@ -140,26 +141,45 @@ type Settings struct {
 	// Budget bounds the time of the code analysis, as 90s or 10m. The
 	// default is 5m.
 	Budget string `json:"budget,omitempty"`
+	// SymbolsUpdate asks the host of the symbol data for a newer bundle,
+	// at most once a day. The default is true.
+	SymbolsUpdate *bool `json:"symbols_update,omitempty"`
+	// SymbolsBundle reads the symbol data from a directory with a copy of
+	// the host files, for a machine with no network.
+	SymbolsBundle string `json:"symbols_bundle,omitempty"`
+	// SymbolsPin keeps the scan on one bundle id, for a reproducible run.
+	SymbolsPin string `json:"symbols_pin,omitempty"`
+}
+
+// Config is plugins.codeusage.options with its defaults.
+type Config struct {
+	Reach         report.ReachLevel
+	Budget        time.Duration
+	SymbolsUpdate bool
+	SymbolsBundle string
+	SymbolsPin    string
 }
 
 // ParseSettings reads plugins.codeusage.options.
-func ParseSettings(cfg plugin.Config) (report.ReachLevel, time.Duration, error) {
+func ParseSettings(cfg plugin.Config) (Config, error) {
 	var s Settings
 	if err := cfg.Decode(&s); err != nil {
-		return "", 0, err
+		return Config{}, err
 	}
 	level, err := report.ParseReachLevel(s.Reach)
 	if err != nil {
-		return "", 0, fmt.Errorf("%s: %w", Name, err)
+		return Config{}, fmt.Errorf("%s: %w", Name, err)
 	}
-	if s.Budget == "" {
-		return level, DefaultBudget, nil
+	c := Config{
+		Reach: level, Budget: DefaultBudget, SymbolsUpdate: s.SymbolsUpdate == nil || *s.SymbolsUpdate,
+		SymbolsBundle: s.SymbolsBundle, SymbolsPin: s.SymbolsPin,
 	}
-	budget, err := time.ParseDuration(s.Budget)
-	if err != nil || budget <= 0 {
-		return "", 0, fmt.Errorf("%s: budget %q is not a positive duration such as 90s or 10m", Name, s.Budget)
+	if s.Budget != "" {
+		if c.Budget, err = time.ParseDuration(s.Budget); err != nil || c.Budget <= 0 {
+			return Config{}, fmt.Errorf("%s: budget %q is not a positive duration such as 90s or 10m", Name, s.Budget)
+		}
 	}
-	return level, budget, nil
+	return c, nil
 }
 
 // OptionsSchema returns the JSON Schema of the options.
@@ -200,6 +220,9 @@ type Options struct {
 	// reach are missing, and the scan goes on without them. Zero means no
 	// bound.
 	Budget time.Duration
+	// Symbols finds the vulnerable functions of the vulnerabilities of Go
+	// and Rust packages. A nil Symbols finds none.
+	Symbols symbols.Source
 }
 
 // Enricher sets model.Package.Usage from the imports of the target, and
@@ -216,7 +239,9 @@ type Enricher struct {
 	stopped bool
 	missing int
 	// dynamic holds the languages with an import by a computed name.
-	dynamic   map[string]bool
+	dynamic map[string]bool
+	// symbols is the symbol source once the scan has code that it covers.
+	symbols   symbols.Source
 	languages map[string]bool
 	unread    map[string]bool
 	calls     []ExternalCall
@@ -234,6 +259,7 @@ var (
 	_ plugin.Diagnoser        = (*Enricher)(nil)
 	_ plugin.Preparer         = (*Enricher)(nil)
 	_ plugin.SourceEnricher   = (*Enricher)(nil)
+	_ plugin.SymbolReporter   = (*Enricher)(nil)
 )
 
 // UseSource sets the directory of the source code. A target with no
@@ -256,6 +282,9 @@ const maxFailedNames = 5
 // diagnostic names the first files and counts the rest.
 func (e *Enricher) Diagnostics() []report.Diagnostic {
 	var out []report.Diagnostic
+	if e.symbols != nil {
+		out = append(out, e.symbols.Diagnostics()...)
+	}
 	if e.stopped {
 		msg := fmt.Sprintf("vet stopped the code analysis after %s, before it read the source files", e.o.Budget)
 		if e.missing > 0 {
@@ -319,7 +348,53 @@ func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 		p.Usage.Calls = e.callsInto(p.ID)
 		p.Usage.Dynamic = e.dynamicIn(sites)
 	}
+	e.lookupSymbols(pkgs)
 	return nil
+}
+
+// symbolLanguages are the languages that the symbol data covers.
+var symbolLanguages = []string{"go", "rust"}
+
+// symbolEcosystems are the ecosystems of the symbol data.
+var symbolEcosystems = []model.Ecosystem{model.EcosystemGo, model.EcosystemCargo}
+
+// lookupSymbols sets the symbol records of each vulnerability of a Go or a
+// Rust package. A package that only another package imports needs them
+// too, so the lookup reads every package with a usage.
+func (e *Enricher) lookupSymbols(pkgs []*model.Package) {
+	if e.symbols == nil {
+		return
+	}
+	var qs []symbols.Query
+	var owners []*model.Package
+	for _, p := range pkgs {
+		if p.Usage == nil || p.Insight == nil || !slices.Contains(symbolEcosystems, p.ID.Ecosystem()) {
+			continue
+		}
+		for _, v := range p.Insight.Vulnerabilities {
+			qs = append(qs, symbols.Query{Package: p.ID, IDs: append([]string{v.ID}, v.Aliases...)})
+			owners = append(owners, p)
+		}
+	}
+	for i, recs := range e.symbols.Lookup(qs) {
+		lang := ecosystemLanguages[owners[i].ID.Ecosystem()][0]
+		for _, r := range recs {
+			for _, site := range r.FixSites {
+				if k := symbolKey(lang, site); k != "" {
+					r.Keys = append(r.Keys, k)
+				}
+			}
+			owners[i].Usage.Symbols = append(owners[i].Usage.Symbols, r)
+		}
+	}
+}
+
+// SymbolBundle describes the symbol data that the scan read.
+func (e *Enricher) SymbolBundle() *report.SymbolBundle {
+	if e.symbols == nil {
+		return nil
+	}
+	return e.symbols.Bundle()
 }
 
 // callsInto returns the calls whose module the package provides, at most
@@ -427,6 +502,10 @@ func (e *Enricher) index(ctx context.Context) error {
 	}
 	e.matches = e.external(a.Matches)
 	e.dynamic, e.languages, e.unread = a.DynamicImports, a.Languages, a.Unread
+	if e.o.Symbols != nil && slices.ContainsFunc(symbolLanguages, func(l string) bool { return e.languages[l] }) {
+		e.o.Symbols.Prepare(ctx)
+		e.symbols = e.o.Symbols
+	}
 	e.calls, e.sites = a.Calls, a.Dynamic
 	slices.SortFunc(e.calls, func(x, y ExternalCall) int {
 		return cmp.Or(cmp.Compare(x.FilePath, y.FilePath), cmp.Compare(x.Line, y.Line), cmp.Compare(x.Callee, y.Callee))

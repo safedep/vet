@@ -39,6 +39,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/sources/git"
 	"github.com/safedep/vet/v2/internal/policy"
 	"github.com/safedep/vet/v2/internal/state"
+	"github.com/safedep/vet/v2/internal/symbols"
 	"github.com/safedep/vet/v2/internal/tui"
 	"github.com/safedep/vet/v2/internal/tui/banner"
 	"github.com/safedep/vet/v2/internal/tui/output"
@@ -255,6 +256,10 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		tui.Warning("%s", dirs.Warning)
 	}
 	return withState(ctx, dirs, cfg.Cache.Enabled, func(store *state.Store, cache *state.Cache) error {
+		codeOpts, err := code.options(o, cache, dirs.Cache)
+		if err != nil {
+			return err
+		}
 		ttl, err := cfg.Cache.TTL.Value()
 		if err != nil {
 			return app.UsageError("cache.ttl: "+err.Error(), "Set a duration such as 24h or 7d.")
@@ -262,7 +267,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		set, err := enrichers.Build(enrichers.Options{
 			APIURL: cfg.Cloud.Endpoints.API, CommunityURL: cfg.Cloud.Endpoints.Community,
 			Credentials: creds, Workers: cfg.Scan.Concurrency, TTL: ttl,
-			CodeUsage:  code.options(o, cache),
+			CodeUsage:  codeOpts,
 			ActionRefs: refs,
 		})
 		if err != nil {
@@ -434,6 +439,7 @@ type codeAnalysis struct {
 	on     bool
 	budget time.Duration
 	reach  report.ReachInfo
+	config codeusage.Config
 }
 
 // codeAnalysisOf reads plugins.codeusage and --reach. Code analysis is on
@@ -441,18 +447,18 @@ type codeAnalysis struct {
 // diagnostic. A config that turns it on there gets the diagnostic of the
 // enricher.
 func codeAnalysisOf(cfg *config.Config, o Options) (codeAnalysis, error) {
-	level, budget, err := codeusage.ParseSettings(plugin.MapConfig(cfg.PluginOptions(codeusage.Name)))
+	set, err := codeusage.ParseSettings(plugin.MapConfig(cfg.PluginOptions(codeusage.Name)))
 	if err != nil {
 		return codeAnalysis{}, app.UsageError("plugins."+codeusage.Name+".options: "+err.Error(), "Fix the option in the config file.")
 	}
 	if o.Reach != "" {
-		if level, err = report.ParseReachLevel(o.Reach); err != nil {
+		if set.Reach, err = report.ParseReachLevel(o.Reach); err != nil {
 			return codeAnalysis{}, app.UsageError("--reach: "+err.Error(), "Use --reach off, import or function.")
 		}
 	}
-	c := codeAnalysis{on: o.Source == nil && cfg.PluginEnabled(codeusage.Name, true), budget: budget, reach: report.ReachInfo{Level: level}}
-	p, set := cfg.Plugins[codeusage.Name]
-	explicit := set && p.Enabled != nil
+	c := codeAnalysis{on: o.Source == nil && cfg.PluginEnabled(codeusage.Name, true), budget: set.Budget, reach: report.ReachInfo{Level: set.Reach}, config: set}
+	p, ok := cfg.Plugins[codeusage.Name]
+	explicit := ok && p.Enabled != nil
 	switch {
 	case !c.on:
 		c.reach = report.ReachInfo{Level: report.ReachOff}
@@ -464,12 +470,24 @@ func codeAnalysisOf(cfg *config.Config, o Options) (codeAnalysis, error) {
 }
 
 // options returns the options of the codeusage enricher, or nil when the
-// code analysis is off.
-func (c codeAnalysis) options(o Options, cache *state.Cache) *codeusage.Options {
+// code analysis is off. The function level reads the symbol data, which
+// the SDK keeps in the cache directory.
+func (c codeAnalysis) options(o Options, cache *state.Cache, cacheDir string) (*codeusage.Options, error) {
 	if !c.on {
-		return nil
+		return nil, nil
 	}
-	return &codeusage.Options{BaseRef: o.BaseRef, Cache: cacheFile(cache), Budget: c.budget}
+	opts := &codeusage.Options{BaseRef: o.BaseRef, Cache: cacheFile(cache), Budget: c.budget}
+	if c.reach.Level != report.ReachFunction {
+		return opts, nil
+	}
+	src, err := symbols.NewPublic(symbols.Options{
+		CacheDir: cacheDir, Update: c.config.SymbolsUpdate, LocalBundle: c.config.SymbolsBundle, Pin: c.config.SymbolsPin,
+	})
+	if err != nil {
+		return nil, app.UsageError("plugins."+codeusage.Name+".options: "+err.Error(), "Fix symbols_pin or symbols_bundle in the config file.")
+	}
+	opts.Symbols = src
+	return opts, nil
 }
 
 // actionRefs builds the actionrefs enricher, or nil when the config turns
