@@ -1,0 +1,34 @@
+# main uses a macro of the crate, which expands to a call of the vulnerable function
+lang: rust
+miss: the search does not expand a macro, so the call in it stays unresolved
+unit: cargo:dep@1.2.0 vendor/dep-1.2.0
+called: dep::render
+-- Cargo.toml --
+[package]
+name = "app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dep = "1.2.0"
+-- vendor/dep-1.2.0/Cargo.toml --
+[package]
+name = "dep"
+version = "1.2.0"
+edition = "2021"
+-- src/main.rs --
+#[macro_use]
+extern crate dep;
+
+fn main() {
+    render_now!();
+}
+-- vendor/dep-1.2.0/src/lib.rs --
+pub fn render() {}
+
+#[macro_export]
+macro_rules! render_now {
+    () => {
+        $crate::render()
+    };
+}

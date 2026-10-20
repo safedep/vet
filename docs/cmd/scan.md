@@ -113,7 +113,8 @@ config list. `--entrypoints-only`, or `entrypoints_only: true`, starts the searc
 entry points alone. An entry point that names no file or no function of the project exits with
 code 2.
 
-A finding is `not-called` only when all of these are true: the record of the advisory names every
+A finding is `not-called` only when all of these are true: the reach corpus of the language
+(`test/reach`) has no call that the search misses, the record of the advisory names every
 vulnerable function, a maintainer verified the record, vet read the code of the package, vet found
 an entry point, the project imports the package, no other dependency that the project imports
 depends on the package, no local package (such as a Cargo path dependency) can call it, and no file
@@ -133,7 +134,8 @@ its cause says why. A `go.mod` holds no dependency graph, so a Go finding with n
 | `dynamic-flag` | A call on the path is dynamic, as reflection. |
 | `transitive` | Another dependency can call the package, through code that vet did not prove. |
 | `budget` | The time budget stopped the search. |
-| `analysis-failed` | The search failed. A diagnostic says why. | vet reads the vulnerable functions from the signed bundle of
+| `analysis-failed` | The search failed. A diagnostic says why. |
+| `unproven-language` | The reach corpus of the language still has a call that the search misses. Rust is such a language today. | vet reads the vulnerable functions from the signed bundle of
 [vuln-symbols](https://github.com/safedep/vuln-symbols). It keeps the bundle in the cache directory
 and asks for a newer one at most once a day. `plugins.codeusage.options.symbols_update: false`
 stops the update, `symbols_bundle` reads a local copy of the bundle files and `symbols_pin` keeps a

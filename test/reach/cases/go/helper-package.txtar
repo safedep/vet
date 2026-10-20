@@ -1,0 +1,34 @@
+# main calls a helper package of the project, and the helper calls the dependency
+lang: go
+unit: go:example.com/dep@v1.2.0 vendor/example.com/dep
+called: example.com/dep/html.Render
+-- go.mod --
+module example.com/app
+
+go 1.27
+
+require example.com/dep v1.2.0
+-- vendor/modules.txt --
+# example.com/dep v1.2.0
+## explicit
+example.com/dep/html
+-- main.go --
+package main
+
+import "example.com/app/internal/page"
+
+func main() {
+	page.Show()
+}
+-- internal/page/page.go --
+package page
+
+import "example.com/dep/html"
+
+func Show() {
+	html.Render(nil)
+}
+-- vendor/example.com/dep/html/html.go --
+package html
+
+func Render(b []byte) {}

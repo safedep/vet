@@ -27,6 +27,9 @@ stdout '"name":"left-pad".*"reach":\{"level":"unused","confidence":"medium"\}'
 cd ..
 exec vet scan proj/package-lock.json -o jsonl --mode agent
 stdout '"reach":\{"level":"function","status":"no-source"\}'
+exec vet scan proj/package-lock.json --mode plain -o table
+stderr 'Reach: not computed, the target has no source code'
+! stdout 'REACH'
 ! stdout '"level":"imported"'
 
 -- proj/index.js --

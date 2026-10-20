@@ -20,6 +20,6 @@ func TestSymbolKey(t *testing.T) {
 		{"python", "yaml.load", ""},
 	}
 	for _, c := range cases {
-		assert.Equal(t, c.want, symbolKey(c.language, c.name), c.name)
+		assert.Equal(t, c.want, SymbolKey(c.language, c.name), c.name)
 	}
 }

@@ -1,0 +1,34 @@
+# only a test calls the vulnerable function
+lang: go
+unit: go:example.com/dep@v1.2.0 vendor/example.com/dep
+called: example.com/dep/html.Render
+-- go.mod --
+module example.com/app
+
+go 1.27
+
+require example.com/dep v1.2.0
+-- vendor/modules.txt --
+# example.com/dep v1.2.0
+## explicit
+example.com/dep/html
+-- main.go --
+package main
+
+func main() {}
+-- main_test.go --
+package main
+
+import (
+	"testing"
+
+	"example.com/dep/html"
+)
+
+func TestRender(t *testing.T) {
+	html.Render(nil)
+}
+-- vendor/example.com/dep/html/html.go --
+package html
+
+func Render(b []byte) {}

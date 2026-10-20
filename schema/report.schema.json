@@ -1033,7 +1033,9 @@
             "unresolved-call",
             "dynamic-flag",
             "transitive",
-            "analysis-failed"
+            "analysis-failed",
+            "unproven-language",
+            "weak-path"
           ]
         },
         "confidence": {

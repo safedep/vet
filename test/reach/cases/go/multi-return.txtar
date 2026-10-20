@@ -1,0 +1,34 @@
+# main calls a method on the first value of a constructor with two results
+lang: go
+unit: go:example.com/dep@v1.2.0 vendor/example.com/dep
+called: example.com/dep/html.Node.Render
+-- go.mod --
+module example.com/app
+
+go 1.27
+
+require example.com/dep v1.2.0
+-- vendor/modules.txt --
+# example.com/dep v1.2.0
+## explicit
+example.com/dep/html
+-- main.go --
+package main
+
+import "example.com/dep/html"
+
+func main() {
+	n, err := html.Parse("<a>")
+	if err != nil {
+		return
+	}
+	n.Render()
+}
+-- vendor/example.com/dep/html/node.go --
+package html
+
+type Node struct{}
+
+func Parse(s string) (*Node, error) { return &Node{}, nil }
+
+func (n *Node) Render() {}

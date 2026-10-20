@@ -1,0 +1,28 @@
+# a function of the project calls the dependency, and no entry point calls that function
+lang: go
+unit: go:example.com/dep@v1.2.0 vendor/example.com/dep
+not-called: example.com/dep/html.Render
+-- go.mod --
+module example.com/app
+
+go 1.27
+
+require example.com/dep v1.2.0
+-- vendor/modules.txt --
+# example.com/dep v1.2.0
+## explicit
+example.com/dep/html
+-- main.go --
+package main
+
+import "example.com/dep/html"
+
+func main() {}
+
+func unused() {
+	html.Render(nil)
+}
+-- vendor/example.com/dep/html/html.go --
+package html
+
+func Render(b []byte) {}

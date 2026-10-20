@@ -139,8 +139,13 @@ func reachOf(level report.ReachLevel, p *model.Package, m *model.Manifest, advis
 	switch {
 	case fr == nil:
 		r.Cause = finding.ReachAnalysisFailed
+	case fr.Status == model.FunctionCalled && weakestCall(fr.Path) != finding.ConfidenceHigh:
+		r.Cause, r.Path, r.TestOnly = finding.ReachWeakPath, fr.Path, fr.TestOnly
 	case fr.Status == model.FunctionCalled:
-		r.Level, r.Confidence, r.Path, r.TestOnly = finding.ReachCalled, pathConfidence(rec, fr.Path), fr.Path, fr.TestOnly
+		r.Level, r.Path, r.TestOnly = finding.ReachCalled, fr.Path, fr.TestOnly
+		if !rec.Verified {
+			r.Confidence = finding.ConfidenceMedium
+		}
 	case fr.Status == model.FunctionNotFound:
 		if r.Cause = unproven(p, m); r.Cause == "" {
 			r.Level, r.Confidence = finding.ReachNotCalled, finding.ConfidenceMedium
@@ -216,6 +221,8 @@ func incomplete(u *model.Usage) finding.ReachCause {
 // dependency of every module.
 func unproven(p *model.Package, m *model.Manifest) finding.ReachCause {
 	switch {
+	case !ProvesNotCalled(p.ID.Ecosystem()):
+		return finding.ReachUnprovenLanguage
 	case !p.Usage.Imported:
 		return finding.ReachTransitive
 	case incomplete(p.Usage) != "":
@@ -232,6 +239,16 @@ func unproven(p *model.Package, m *model.Manifest) finding.ReachCause {
 	return ""
 }
 
+// notCalledEcosystems are the ecosystems whose reach corpus in test/reach
+// has no call that the search misses. Only for them can no path become
+// not-called. The corpus test fails when a miss shows up in one of them.
+// The Rust search misses a call through a trait object.
+var notCalledEcosystems = map[model.Ecosystem]bool{model.EcosystemGo: true}
+
+// ProvesNotCalled reports whether vet can say not-called for a package of
+// the ecosystem.
+func ProvesNotCalled(e model.Ecosystem) bool { return notCalledEcosystems[e] }
+
 // mayImport reports a package other than p that the code can import: one
 // that the code imports, or one with no usage, as an unchanged package of
 // a pull request scan that the enricher did not read.
@@ -239,13 +256,13 @@ func mayImport(q, p *model.Package) bool {
 	return !q.ID.Equal(p.ID) && (q.Usage == nil || q.Usage.Imported)
 }
 
-// pathConfidence is the lower of the confidence of the record and of the
-// weakest call on the path. A maintainer verified a high record.
-func pathConfidence(rec *model.SymbolRecord, path []model.PathHop) finding.Confidence {
-	c := finding.ConfidenceMedium
-	if rec.Verified {
-		c = finding.ConfidenceHigh
-	}
+// weakestCall is the confidence of the weakest call on a path. A real scan
+// showed that a path through a call by name, or through an interface to
+// each type that implements it, is often not a call. So only a path of
+// high calls is called, and the confidence of a called finding is that of
+// its record.
+func weakestCall(path []model.PathHop) finding.Confidence {
+	c := finding.ConfidenceHigh
 	for _, h := range path {
 		if hc := finding.Confidence(h.Confidence); hc.Valid() && hc.Rank() < c.Rank() {
 			c = hc

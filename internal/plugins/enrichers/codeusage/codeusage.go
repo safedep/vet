@@ -512,7 +512,7 @@ func (e *Enricher) lookupSymbols(pkgs []*model.Package) {
 		lang := ecosystemLanguages[owners[i].ID.Ecosystem()][0]
 		for _, r := range recs {
 			for _, site := range r.FixSites {
-				if k := symbolKey(lang, site); k != "" {
+				if k := SymbolKey(lang, site); k != "" {
 					r.Keys = append(r.Keys, k)
 				}
 			}
@@ -598,6 +598,20 @@ func (e *Enricher) functionReach(ctx context.Context, pkgs []*model.Package) err
 		}
 	}
 	return nil
+}
+
+// Search analyzes the code under dir and searches its call graph for the
+// target keys, with the units as the dependency code. The reach corpus in
+// test/reach runs it. A build with no CGO gives plugin.ErrUnavailable.
+func Search(ctx context.Context, dir string, q ReachQuery) (ReachResult, error) {
+	a, err := newAnalyzer(Options{})(ctx, dir)
+	if err != nil {
+		return ReachResult{}, err
+	}
+	if a.Reach == nil {
+		return ReachResult{}, plugin.ErrUnavailable
+	}
+	return a.Reach(ctx, q)
 }
 
 // checkEntrypoints checks that the file of each entry point is in the

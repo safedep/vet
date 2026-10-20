@@ -7,7 +7,7 @@ import "strings"
 // symbol, as golang.org/x/net/html.Tokenizer.Next. A Rust name is a path with
 // ::, as time::OffsetDateTime::now_local, and its crate name folds - to _.
 // It returns "" for a language that has no rule.
-func symbolKey(language, name string) string {
+func SymbolKey(language, name string) string {
 	switch language {
 	case "go":
 		pkg, sym := name, ""

@@ -1,0 +1,18 @@
+# main calls a function of the standard library net/http
+lang: go
+called: net/http.ServeContent
+-- go.mod --
+module example.com/app
+
+go 1.27
+-- main.go --
+package main
+
+import (
+	"net/http"
+	"time"
+)
+
+func main() {
+	http.ServeContent(nil, nil, "a", time.Time{}, nil)
+}

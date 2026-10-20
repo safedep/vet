@@ -109,12 +109,20 @@ const (
 	ReachTransitive ReachCause = "transitive"
 	// ReachAnalysisFailed is a call graph search that failed.
 	ReachAnalysisFailed ReachCause = "analysis-failed"
+	// ReachWeakPath is a call path with a call that the call graph only
+	// guesses, as a call by name or through an interface to each type
+	// that implements it. The finding keeps the path as evidence.
+	ReachWeakPath ReachCause = "weak-path"
+	// ReachUnprovenLanguage is a package of a language whose reach corpus
+	// still has a call that the search does not find, so vet does not say
+	// not-called for it.
+	ReachUnprovenLanguage ReachCause = "unproven-language"
 )
 
 // Reach is the reach of the package of a finding.
 type Reach struct {
 	Level      ReachLevel `json:"level" jsonschema:"enum=called,enum=not-called,enum=imported,enum=unused,enum=unknown"`
-	Cause      ReachCause `json:"cause,omitempty" jsonschema:"enum=no-graph,enum=dynamic-import,enum=budget,enum=unread-files,enum=no-source-files,enum=no-symbol-data,enum=no-entry-point,enum=no-dependency-source,enum=no-symbol-in-graph,enum=broad-record,enum=unreviewed-record,enum=unresolved-call,enum=dynamic-flag,enum=transitive,enum=analysis-failed"`
+	Cause      ReachCause `json:"cause,omitempty" jsonschema:"enum=no-graph,enum=dynamic-import,enum=budget,enum=unread-files,enum=no-source-files,enum=no-symbol-data,enum=no-entry-point,enum=no-dependency-source,enum=no-symbol-in-graph,enum=broad-record,enum=unreviewed-record,enum=unresolved-call,enum=dynamic-flag,enum=transitive,enum=analysis-failed,enum=unproven-language,enum=weak-path"`
 	Confidence Confidence `json:"confidence"`
 	// Via is the dependency path from a package that the code imports to
 	// the package of the finding, as PURLs, when no file imports it.

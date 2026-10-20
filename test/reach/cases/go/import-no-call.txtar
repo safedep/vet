@@ -1,0 +1,29 @@
+# main imports the dependency and calls another function of it
+lang: go
+unit: go:example.com/dep@v1.2.0 vendor/example.com/dep
+called: example.com/dep/html.Escape
+not-called: example.com/dep/html.Render
+-- go.mod --
+module example.com/app
+
+go 1.27
+
+require example.com/dep v1.2.0
+-- vendor/modules.txt --
+# example.com/dep v1.2.0
+## explicit
+example.com/dep/html
+-- main.go --
+package main
+
+import "example.com/dep/html"
+
+func main() {
+	_ = html.Escape("<a>")
+}
+-- vendor/example.com/dep/html/html.go --
+package html
+
+func Render(b []byte) {}
+
+func Escape(s string) string { return s }

@@ -15,10 +15,10 @@ import (
 )
 
 func TestReachOf(t *testing.T) {
-	app := model.MustPackageVersion(model.EcosystemNpm, "app-lib", "1.0.0")
-	tool := model.MustPackageVersion(model.EcosystemNpm, "test-tool", "1.0.0")
-	dep := model.MustPackageVersion(model.EcosystemNpm, "dep", "1.0.0")
-	lone := model.MustPackageVersion(model.EcosystemNpm, "lone", "1.0.0")
+	app := model.MustPackageVersion(model.EcosystemGo, "example.com/app-lib", "v1.0.0")
+	tool := model.MustPackageVersion(model.EcosystemGo, "example.com/test-tool", "v1.0.0")
+	dep := model.MustPackageVersion(model.EcosystemGo, "example.com/dep", "v1.0.0")
+	lone := model.MustPackageVersion(model.EcosystemGo, "example.com/lone", "v1.0.0")
 	graph := model.NewGraph()
 	graph.AddRoot(app)
 	graph.AddRoot(tool)
@@ -27,6 +27,7 @@ func TestReachOf(t *testing.T) {
 	graph.AddEdge(tool, dep)
 
 	stdlib := model.MustPackageVersion(model.EcosystemGo, "stdlib", "1.27.1")
+	crate := model.MustPackageVersion(model.EcosystemCargo, "time", "0.3.30")
 	site := []model.ImportSite{{File: "index.js", Line: 1}}
 	path := []model.PathHop{{Function: "main", File: "main.go", Line: 3, Root: "main"}, {Function: "dep.Render"}}
 	chaPath := []model.PathHop{{Function: "main", Root: "main"}, {Function: "dep.Render", Edge: "cha", Confidence: "medium"}}
@@ -67,9 +68,9 @@ func TestReachOf(t *testing.T) {
 			want: &finding.Reach{Level: finding.ReachCalled, Confidence: finding.ConfidenceMedium, FixSites: []string{"dep.Render"}, Path: path},
 		},
 		{
-			name: "a call path with a weak call takes its confidence", level: report.ReachFunction,
+			name: "a call path with a weak call stays imported with the path", level: report.ReachFunction,
 			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionCalled, Path: chaPath})},
-			want:  &finding.Reach{Level: finding.ReachCalled, Confidence: finding.ConfidenceMedium, FixSites: []string{"dep.Render"}, Path: chaPath},
+			want:  &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachWeakPath, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}, Path: chaPath},
 		},
 		{
 			name: "no path with a dynamic site stays imported", level: report.ReachFunction,
@@ -145,6 +146,11 @@ func TestReachOf(t *testing.T) {
 			name: "no path in the standard library stays imported", level: report.ReachFunction, id: stdlib,
 			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
 			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachTransitive, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
+			name: "no path in a language that the corpus does not prove stays imported", level: report.ReachFunction, id: crate,
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachUnprovenLanguage, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
 		},
 		{
 			name: "an unknown function reach keeps its cause", level: report.ReachFunction,
@@ -225,7 +231,7 @@ func TestReachOf(t *testing.T) {
 			}
 			if c.local {
 				m.Packages = append(m.Packages, &model.Package{
-					ID: model.MustPackageVersion(model.EcosystemNpm, "shared", "0.1.0"), Local: true,
+					ID: model.MustPackageVersion(model.EcosystemGo, "example.com/shared", "v0.1.0"), Local: true,
 					Enrichment: model.Enrichment{Usage: &model.Usage{Imported: true}},
 				})
 			}
