@@ -153,6 +153,13 @@ type Usage struct {
 	Imports []ImportSite `json:"imports,omitempty"`
 	// TestOnly marks a package that only test files import.
 	TestOnly bool `json:"test_only,omitempty"`
+	// Incomplete marks an analysis that its time budget stopped. A
+	// missing import then proves nothing.
+	Incomplete bool `json:"incomplete,omitempty"`
+	// DynamicImport marks a project that imports a module by a computed
+	// name in a language of the package. A missing import then proves
+	// nothing.
+	DynamicImport bool `json:"dynamic_import,omitempty"`
 }
 
 // ImportSite is the line of a source file that imports a package.

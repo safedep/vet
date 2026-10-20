@@ -25,6 +25,7 @@ import (
 	"github.com/safedep/dry/log"
 
 	"github.com/safedep/vet/v2/internal/pathglob"
+	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
@@ -35,7 +36,7 @@ import (
 const Name = "codeusage"
 
 // Version changes when the mapping or the signatures change.
-const Version = "6"
+const Version = "7"
 
 // maxFiles bounds the files that a package usage lists.
 const maxFiles = 20
@@ -91,7 +92,47 @@ type Analysis struct {
 	// Files holds the index status of each source file by name: indexed,
 	// cached, missing, failed or truncated.
 	Files map[string]string
+	// DynamicImports holds the languages of the files that import a module
+	// by a computed name.
+	DynamicImports map[string]bool
 }
+
+// DefaultBudget bounds the code analysis when plugins.codeusage.options
+// sets no budget.
+const DefaultBudget = 5 * time.Minute
+
+// Settings are plugins.codeusage.options.
+type Settings struct {
+	// Reach is the reach level of the vulnerability findings: off, import
+	// or function. The default is function. --reach overrides it.
+	Reach string `json:"reach,omitempty" jsonschema:"enum=off,enum=import,enum=function"`
+	// Budget bounds the time of the code analysis, as 90s or 10m. The
+	// default is 5m.
+	Budget string `json:"budget,omitempty"`
+}
+
+// ParseSettings reads plugins.codeusage.options.
+func ParseSettings(cfg plugin.Config) (report.ReachLevel, time.Duration, error) {
+	var s Settings
+	if err := cfg.Decode(&s); err != nil {
+		return "", 0, err
+	}
+	level, err := report.ParseReachLevel(s.Reach)
+	if err != nil {
+		return "", 0, fmt.Errorf("%s: %w", Name, err)
+	}
+	if s.Budget == "" {
+		return level, DefaultBudget, nil
+	}
+	budget, err := time.ParseDuration(s.Budget)
+	if err != nil || budget <= 0 {
+		return "", 0, fmt.Errorf("%s: budget %q is not a positive duration such as 90s or 10m", Name, s.Budget)
+	}
+	return level, budget, nil
+}
+
+// OptionsSchema returns the JSON Schema of the options.
+func OptionsSchema() []byte { return optschema.Of(&Settings{}) }
 
 // indexRetention is how long the code index keeps a file that no scan
 // reads. The key of an index holds the content hash of the file, so an
@@ -137,12 +178,14 @@ type Enricher struct {
 	o       Options
 	analyze Analyzer
 
-	once     sync.Once
-	modules  map[module]map[string]int
-	matches  []Match
-	failed   []FileFailure
-	stopped  bool
-	missing  int
+	once    sync.Once
+	modules map[module]map[string]int
+	matches []Match
+	failed  []FileFailure
+	stopped bool
+	missing int
+	// dynamic holds the languages with an import by a computed name.
+	dynamic  map[string]bool
 	own      []string
 	provider provider
 	err      error
@@ -152,7 +195,12 @@ var (
 	_ plugin.CapabilityFinder = (*Enricher)(nil)
 	_ plugin.Diagnoser        = (*Enricher)(nil)
 	_ plugin.Preparer         = (*Enricher)(nil)
+	_ plugin.SourceEnricher   = (*Enricher)(nil)
 )
+
+// UseSource sets the directory of the source code. A target with no
+// source code gets no usage and no capabilities.
+func (e *Enricher) UseSource(dir string) { e.dir = dir }
 
 // CodeFileFailed is the diagnostic code of source files that the analysis
 // could not read or parse. The scan goes on without them.
@@ -192,10 +240,11 @@ func (e *Enricher) Diagnostics() []report.Diagnostic {
 	return append(out, report.Diagnostic{Level: report.DiagnosticWarning, Code: CodeFileFailed, Component: Name, Message: msg})
 }
 
-// New returns the enricher of a directory with the default analyzer. A
-// vet build with no CGO has no analyzer: the enricher then returns
+// New returns the enricher with the default analyzer. The engine gives it
+// the source directory with UseSource. A vet build with no CGO has no
+// analyzer: the enricher then returns
 // plugin.ErrUnavailable, and the scan records a diagnostic.
-func New(dir string, o Options) *Enricher { return NewWith(dir, o, newAnalyzer(o)) }
+func New(o Options) *Enricher { return NewWith("", o, newAnalyzer(o)) }
 
 // NewWith returns the enricher with an analyzer. Tests use it.
 func NewWith(dir string, o Options, a Analyzer) *Enricher {
@@ -206,6 +255,9 @@ func NewWith(dir string, o Options, a Analyzer) *Enricher {
 // gets Imported false. A package of an ecosystem with no source language,
 // such as a GitHub Action, gets no usage.
 func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
+	if e.dir == "" {
+		return nil
+	}
 	if err := e.load(ctx); err != nil {
 		return e.err
 	}
@@ -220,13 +272,9 @@ func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 				addSites(sites, files)
 			}
 		}
-		// The files that the budget stopped can import the package, so
-		// no evidence is not evidence of no import.
-		if len(sites) == 0 && e.stopped {
-			p.Usage = nil
-			continue
-		}
 		p.Usage = usageOf(sites)
+		p.Usage.Incomplete = e.stopped
+		p.Usage.DynamicImport = slices.ContainsFunc(ecosystemLanguages[p.ID.Ecosystem()], func(l string) bool { return e.dynamic[l] })
 	}
 	return nil
 }
@@ -269,7 +317,12 @@ func testFile(name string) bool {
 // Prepare indexes the source files at scan start, while the network
 // enrichers run. Enrich and Capabilities then wait for the same load, and
 // they report its error.
-func (e *Enricher) Prepare(ctx context.Context) error { return e.load(ctx) }
+func (e *Enricher) Prepare(ctx context.Context) error {
+	if e.dir == "" {
+		return nil
+	}
+	return e.load(ctx)
+}
 
 // load analyzes the target once for the scan.
 func (e *Enricher) load(ctx context.Context) error {
@@ -299,6 +352,7 @@ func (e *Enricher) index(ctx context.Context) error {
 		return err
 	}
 	e.matches = e.external(a.Matches)
+	e.dynamic = a.DynamicImports
 	e.failed = a.Failed
 	for i := range e.failed {
 		e.failed[i].FilePath = filepath.ToSlash(e.failed[i].FilePath)

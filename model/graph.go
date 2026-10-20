@@ -1,6 +1,9 @@
 package model
 
-import "sort"
+import (
+	"maps"
+	"slices"
+)
 
 // Graph is the dependency graph of one manifest. Roots are the direct
 // dependencies. It keys each node by PackageKey, so two spellings of one
@@ -114,13 +117,55 @@ func (g *Graph) PathTo(id PackageVersion) []PackageVersion {
 	return nil
 }
 
+// PathFrom returns one shortest path from a package of from to the
+// package, or nil when none of them reaches it. The search visits the
+// sources and the children in key order, so each call gives the same path.
+func (g *Graph) PathFrom(from []PackageVersion, id PackageVersion) []PackageVersion {
+	target := id.Key()
+	prev := map[PackageKey]PackageKey{}
+	var queue []PackageKey
+	starts := make([]PackageKey, 0, len(from))
+	for _, f := range from {
+		starts = append(starts, f.Key())
+	}
+	slices.Sort(starts)
+	for _, k := range starts {
+		if _, ok := g.nodes[k]; ok {
+			if _, seen := prev[k]; !seen {
+				prev[k] = k
+				queue = append(queue, k)
+			}
+		}
+	}
+	for len(queue) > 0 {
+		k := queue[0]
+		queue = queue[1:]
+		if k == target {
+			path := []PackageVersion{g.nodes[k]}
+			for prev[k] != k {
+				k = prev[k]
+				path = append(path, g.nodes[k])
+			}
+			slices.Reverse(path)
+			return path
+		}
+		for _, c := range g.sortedKeys(g.edges[k]) {
+			if _, seen := prev[c]; !seen {
+				prev[c] = k
+				queue = append(queue, c)
+			}
+		}
+	}
+	return nil
+}
+
+func (g *Graph) sortedKeys(set map[PackageKey]struct{}) []PackageKey {
+	return slices.Sorted(maps.Keys(set))
+}
+
 // sorted returns the nodes of a key set in a stable order.
 func (g *Graph) sorted(set map[PackageKey]struct{}) []PackageVersion {
-	keys := make([]PackageKey, 0, len(set))
-	for k := range set {
-		keys = append(keys, k)
-	}
-	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+	keys := g.sortedKeys(set)
 	out := make([]PackageVersion, len(keys))
 	for i, k := range keys {
 		out[i] = g.nodes[k]

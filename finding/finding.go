@@ -31,6 +31,56 @@ type Finding struct {
 	// The engine sets Attack when the control of the finding is an attack
 	// control. It reads the control info, so a control cannot set it.
 	Attack *Attack `json:"attack,omitempty"`
+	// The engine sets Reach on a vulnerability finding of a scan with
+	// source code. A control cannot set it.
+	Reach *Reach `json:"reach,omitempty"`
+}
+
+// ReachLevel says how far the code of the project reaches the package of a
+// finding.
+type ReachLevel string
+
+const (
+	// ReachImported is a package that the code imports, or that the
+	// dependency graph reaches from a package that the code imports.
+	ReachImported ReachLevel = "imported"
+	// ReachUnused is a package that no source file imports and that no
+	// imported package depends on.
+	ReachUnused ReachLevel = "unused"
+	// ReachUnknown is a package that vet cannot place. Cause says why. A
+	// report never shows it as safe.
+	ReachUnknown ReachLevel = "unknown"
+)
+
+// ReachCause says why a reach is unknown, or what limits it.
+type ReachCause string
+
+const (
+	// ReachNoGraph is a manifest with no dependency graph, so vet cannot
+	// tell an unused package from a transitive one.
+	ReachNoGraph ReachCause = "no-graph"
+	// ReachDynamicImport is a project that imports a module by a computed
+	// name in the language of the package.
+	ReachDynamicImport ReachCause = "dynamic-import"
+	// ReachBudget is an analysis that its time budget stopped.
+	ReachBudget ReachCause = "budget"
+	// ReachNoSymbolData is an imported package with no record of its
+	// vulnerable functions, so function reach falls back to the import.
+	ReachNoSymbolData ReachCause = "no-symbol-data"
+)
+
+// Reach is the reach of the package of a finding.
+type Reach struct {
+	Level      ReachLevel `json:"level"`
+	Cause      ReachCause `json:"cause,omitempty"`
+	Confidence Confidence `json:"confidence"`
+	// Via is the dependency path from a package that the code imports to
+	// the package of the finding, as PURLs, when no file imports it.
+	Via []string `json:"via,omitempty"`
+	// TestOnly marks a package that only test files import.
+	TestOnly bool `json:"test_only,omitempty"`
+	// Imports are the import lines of the package.
+	Imports []model.ImportSite `json:"imports,omitempty"`
 }
 
 // Attack marks a finding of an attack control. The attacks gate fails on

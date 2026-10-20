@@ -48,6 +48,7 @@ with no new scan, and an interrupted scan continues on the next run.`,
 	f.StringVar(&o.BaseRef, "base-ref", "", "Report only the changes since this git ref")
 	f.StringArrayVar(&o.Exclude, "exclude", nil, "Skip the paths that match this glob. Repeatable")
 	f.StringVar(&o.Packages, "packages", "", "Where to find packages: declared, installed or all")
+	f.StringVar(&o.Reach, "reach", "", "How far vet traces the code into a vulnerable package: off, import or function")
 	o.RegisterFlags(c)
 	return c
 }

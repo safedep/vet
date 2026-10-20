@@ -111,6 +111,10 @@ type Options struct {
 	// BatchSize is the number of packages for each enricher call.
 	BatchSize int
 
+	// Reach is the reach level of the scan. A Status that the caller sets,
+	// such as unavailable, stays. Else the engine sets it from the target.
+	Reach report.ReachInfo
+
 	Finalize Finalizer
 	Observer Observer
 	// Opened gets the result before the first stage, so the command can
@@ -300,6 +304,8 @@ type run struct {
 	attacks map[string]map[string]finding.Attack
 	// prepared holds the Prepare goroutines of the enrichers.
 	prepared sync.WaitGroup
+	// reach is the reach of the scan, as its header records it.
+	reach report.ReachInfo
 }
 
 // rootOf returns the file system that a manifest was read from, for the
@@ -328,6 +334,9 @@ func (r *run) stages(ctx context.Context, artifacts []plugin.Artifact) error {
 		r.diags.put(&c)
 	}
 	r.artifacts = artifacts
+	if err := r.bindSource(ctx); err != nil {
+		return err
+	}
 	defer r.prepare(ctx)()
 	steps := []struct {
 		name string

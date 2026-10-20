@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"slices"
 	"strings"
 	"time"
@@ -62,6 +61,8 @@ type Options struct {
 	FailOn  string
 	Policy  string
 	Reports []string
+	// Reach is the --reach value, or empty.
+	Reach string
 	// Packages is the --packages value, or empty.
 	Packages string
 
@@ -167,6 +168,9 @@ type hashed struct {
 	Tenant    string   `json:"tenant,omitempty"`
 	Enrichers []string `json:"enrichers,omitempty"`
 	Packages  string   `json:"packages,omitempty"`
+	// Reach changes the reach of each finding, so a stopped scan with
+	// another level does not continue.
+	Reach report.ReachLevel `json:"reach,omitempty"`
 }
 
 // Scan runs a scan, writes the report to its destinations and returns the
@@ -233,6 +237,10 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	if err != nil {
 		return configError(err)
 	}
+	code, err := codeAnalysisOf(cfg, o)
+	if err != nil {
+		return err
+	}
 
 	dirs, err := state.PrepareDirs(state.DirRequest{Dirs: rt.Dirs, Ephemeral: ephemeral})
 	if err != nil {
@@ -249,9 +257,8 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		set, err := enrichers.Build(enrichers.Options{
 			APIURL: cfg.Cloud.Endpoints.API, CommunityURL: cfg.Cloud.Endpoints.Community,
 			Credentials: creds, Workers: cfg.Scan.Concurrency, TTL: ttl,
-			CodeUsageDir: codeUsageDir(cfg, o),
-			CodeUsage:    codeusage.Options{BaseRef: o.BaseRef, Cache: cacheFile(cache)},
-			ActionRefs:   refs,
+			CodeUsage:  code.options(o, cache),
+			ActionRefs: refs,
 		})
 		if err != nil {
 			return err
@@ -265,7 +272,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		exclude := append(append([]string{}, cfg.Scan.Exclude...), o.Exclude...)
 		hash, err := state.OptionsHash(hashed{
 			BaseRef: o.BaseRef, Exclude: exclude, API: cfg.Cloud.Endpoints.API, Anonymous: creds.Anonymous(),
-			Tenant: creds.TenantDomain(), Enrichers: enricherIDs(set), Packages: string(packages),
+			Tenant: creds.TenantDomain(), Enrichers: enricherIDs(set), Packages: string(packages), Reach: code.reach.Level,
 		})
 		if err != nil {
 			return err
@@ -288,7 +295,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			Kind: kind, Mode: mode, BaseRef: o.BaseRef, OptionsHash: hash, VetVersion: version.Version(),
 			Resume: o.Resume, Fresh: o.Fresh, ContinueWithin: within, Strict: o.Strict || cfg.Scan.Strict,
 			Diagnostics: pol.diagnostics(),
-			BatchSize:   100, Observer: v, Opened: notContinued,
+			BatchSize:   100, Observer: v, Opened: notContinued, Reach: code.reach,
 			Finalize: func(ctx context.Context, s *state.Scan) (report.Gate, error) {
 				if err := syncInventory(ctx, cfg, store, s); err != nil {
 					return report.Gate{}, err
@@ -417,21 +424,47 @@ func Outputs(cfg *config.Config, out string, reports []string, extra map[string]
 	return outs, nil
 }
 
-// codeUsageDir returns the directory of a scan of a local directory when
-// plugins.codeusage is on, else "".
-func codeUsageDir(cfg *config.Config, o Options) string {
-	if o.Source != nil || !cfg.PluginEnabled(codeusage.Name, false) {
-		return ""
-	}
-	info, err := os.Stat(o.Target)
-	if err != nil || !info.IsDir() {
-		return ""
-	}
-	dir, err := filepath.Abs(o.Target)
+// codeAnalysis is the code analysis of a scan and its reach.
+type codeAnalysis struct {
+	on     bool
+	budget time.Duration
+	reach  report.ReachInfo
+}
+
+// codeAnalysisOf reads plugins.codeusage and --reach. Code analysis is on
+// by default. A build with no CGO turns the default off with no
+// diagnostic. A config that turns it on there gets the diagnostic of the
+// enricher.
+func codeAnalysisOf(cfg *config.Config, o Options) (codeAnalysis, error) {
+	level, budget, err := codeusage.ParseSettings(plugin.MapConfig(cfg.PluginOptions(codeusage.Name)))
 	if err != nil {
-		return ""
+		return codeAnalysis{}, app.UsageError("plugins."+codeusage.Name+".options: "+err.Error(), "Fix the option in the config file.")
 	}
-	return dir
+	if o.Reach != "" {
+		if level, err = report.ParseReachLevel(o.Reach); err != nil {
+			return codeAnalysis{}, app.UsageError("--reach: "+err.Error(), "Use --reach off, import or function.")
+		}
+	}
+	c := codeAnalysis{on: o.Source == nil && cfg.PluginEnabled(codeusage.Name, true), budget: budget, reach: report.ReachInfo{Level: level}}
+	p, set := cfg.Plugins[codeusage.Name]
+	explicit := set && p.Enabled != nil
+	switch {
+	case !c.on:
+		c.reach = report.ReachInfo{Level: report.ReachOff}
+	case !codeusage.Available() && !explicit:
+		c.on = false
+		c.reach.Status = report.ReachUnavailable
+	}
+	return c, nil
+}
+
+// options returns the options of the codeusage enricher, or nil when the
+// code analysis is off.
+func (c codeAnalysis) options(o Options, cache *state.Cache) *codeusage.Options {
+	if !c.on {
+		return nil
+	}
+	return &codeusage.Options{BaseRef: o.BaseRef, Cache: cacheFile(cache), Budget: c.budget}
 }
 
 // actionRefs builds the actionrefs enricher, or nil when the config turns

@@ -30,6 +30,9 @@ const maxBaseFile = 4 << 20
 // gets its change against the base commit, and a capability of the base
 // that the head does not have is removed.
 func (e *Enricher) Capabilities(ctx context.Context) ([]report.Capability, error) {
+	if e.dir == "" {
+		return nil, nil
+	}
 	if err := e.load(ctx); err != nil {
 		return nil, err
 	}

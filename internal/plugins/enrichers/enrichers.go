@@ -35,11 +35,9 @@ type Options struct {
 	Workers int
 	// TTL is the cache time to live.
 	TTL time.Duration
-	// CodeUsageDir turns on the codeusage enricher for the source files of
-	// this directory.
-	CodeUsageDir string
-	// CodeUsage are the options of the codeusage enricher.
-	CodeUsage codeusage.Options
+	// CodeUsage turns on the codeusage enricher. The engine gives it the
+	// source code of the target.
+	CodeUsage *codeusage.Options
 	// ActionRefs turns on the actionrefs enricher.
 	ActionRefs *actionrefs.Enricher
 }
@@ -100,9 +98,9 @@ func Build(o Options) (*Set, error) {
 		// A pin with no data is not cached, so a later scan checks it again.
 		set.Specs = append(set.Specs, Spec{Name: actionrefs.Name, Version: o.ActionRefs.CacheVersion(), TTL: o.TTL, Plugin: o.ActionRefs, SkipEmpty: true})
 	}
-	if o.CodeUsageDir != "" {
+	if o.CodeUsage != nil {
 		// The usage depends on the target, so the cache keeps none.
-		set.Specs = append(set.Specs, Spec{Name: codeusage.Name, Version: codeusage.Version, Plugin: codeusage.New(o.CodeUsageDir, o.CodeUsage), Local: true})
+		set.Specs = append(set.Specs, Spec{Name: codeusage.Name, Version: codeusage.Version, Plugin: codeusage.New(*o.CodeUsage), Local: true})
 	}
 	return set, nil
 }

@@ -40,8 +40,11 @@ func Plugins() []Plugin {
 		fromFactory(tenantpolicy.Name, tenantpolicy.New),
 		fromFactory(inventory.Name, func(c plugin.Config) (*inventory.Syncer, error) { return inventory.New(c, nil) }),
 		fromFactory(actionrefs.Name, func(c plugin.Config) (*actionrefs.Enricher, error) { return actionrefs.New(c, nil, "") }),
-		// codeusage reads only plugins.codeusage.enabled.
-		Plugin{Name: codeusage.Name, Check: func(plugin.Config) error { return nil }, Schema: func() ([]byte, error) { return nil, nil }},
+		Plugin{
+			Name:   codeusage.Name,
+			Check:  func(c plugin.Config) error { _, _, err := codeusage.ParseSettings(c); return err },
+			Schema: func() ([]byte, error) { return codeusage.OptionsSchema(), nil },
+		},
 	)
 	slices.SortFunc(out, func(a, b Plugin) int { return cmp.Compare(a.Name, b.Name) })
 	return out

@@ -89,6 +89,7 @@ func analyzeDir(ctx context.Context, dir string, cache localdb.Manager) (Analysi
 	}
 	out := Analysis{Usage: fileAnalysis.usage, Matches: fileAnalysis.matches, Files: make(map[string]string, len(res.Files))}
 	importLines(out.Usage, res.Indexes)
+	out.DynamicImports = dynamicImports(res.Indexes)
 	for f, st := range res.Files {
 		out.Files[f] = string(st)
 	}
@@ -127,6 +128,18 @@ func importLines(evs []Evidence, indexes []*fileindex.Index) {
 			evs[i].Line = uint(l)
 		}
 	}
+}
+
+// dynamicImports returns the languages of the files that import a module
+// by a computed name, as import(name) or importlib.import_module(name).
+func dynamicImports(indexes []*fileindex.Index) map[string]bool {
+	out := map[string]bool{}
+	for _, ix := range indexes {
+		if slices.ContainsFunc(ix.Imports, func(imp fileindex.Import) bool { return imp.Kind == fileindex.ImportDynamicComputed }) {
+			out[string(ix.Language)] = true
+		}
+	}
+	return out
 }
 
 // filePlugin is the analysis of one file that the indexer caches: the usage

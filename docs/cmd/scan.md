@@ -8,7 +8,7 @@ Scan a project, a repository, an image, an SBOM or a package.
 vet scan [TARGET] [--base-ref REF] [--fail-on SEVERITY|attacks] [--policy FILE|NAME]
          [--report FORMAT=PATH]... [--strict] [--resume | --fresh] [--no-cache]
          [--exclude GLOB]... [--packages declared|installed|all] [--cooldown-days N]
-         [--state-dir DIR] [--cache-dir DIR] [--ephemeral]
+         [--reach off|import|function] [--state-dir DIR] [--cache-dir DIR] [--ephemeral]
          [-o table|plain|json|jsonl|sarif|markdown|cyclonedx|gitlab|bitbucket]
 ```
 
@@ -74,11 +74,30 @@ A scan of a root file system does not enter `proc`, `sys`, `dev` and the macOS `
 On Linux, vet also skips each pseudo file system, such as proc, sysfs and cgroup, wherever it is
 mounted. A path that the user cannot read gives one diagnostic with a count.
 
-With `plugins.codeusage.enabled: true`, vet also reads the source files of a directory target. It
-records which packages the code imports, and the AI and crypto capabilities that the code calls.
-The `cyclonedx` report writes them as an xBOM and a CBOM. `cache.db` keeps the index of each file,
-so the next scan parses only the files that changed. The code analysis needs a vet build with CGO. A
-static build records a diagnostic and scans with no code usage.
+vet reads the source files of a directory target and of a git clone. It records which packages the
+code imports, and the AI and crypto capabilities that the code calls. The `cyclonedx` report writes
+the capabilities as an xBOM and a CBOM. `cache.db` keeps the index of each file, so the next scan
+parses only the files that changed. vet parses the code while it waits for SafeDep Insights.
+`plugins.codeusage.options.budget` bounds the time, 5m by default. A file that the budget stops is
+not in the report, and a diagnostic counts these files. `plugins.codeusage.enabled: false` turns off
+all code analysis. The code analysis needs a vet build with CGO. A static build scans with no code
+analysis.
+
+Each vulnerability finding gets a reach. It says how far the code of the project reaches the
+vulnerable package.
+
+| Reach | Meaning |
+| --- | --- |
+| `imported` | A source file imports the package, or a package that the code imports depends on it. |
+| `unused` | No source file imports the package, and no imported package depends on it. |
+| `unknown` | vet cannot tell. The cause names why: `no-graph`, `dynamic-import` or `budget`. |
+
+vet never shows `unknown` as safe. A package that only test files import is `imported`, with a
+test-only mark. `--reach` sets the level, and `plugins.codeusage.options.reach` sets it for every
+run. `function`, the default, also follows the calls to the vulnerable functions, and a finding with
+no record of its vulnerable functions stays `imported`. `import` stops at the imports. `off` turns
+off the reach only, and the AI and crypto capabilities stay on. A lockfile, an SBOM, an image or a
+PURL has no source code, so the scan computes no reach and its header says so.
 
 A backend that does not answer does not fail the scan. The controls that need its data do not run,
 and the report has a diagnostic. `--strict` turns a diagnostic into exit code 3.

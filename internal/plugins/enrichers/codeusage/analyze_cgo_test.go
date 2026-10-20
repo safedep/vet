@@ -270,3 +270,12 @@ func TestBrokenCacheParsesEveryFile(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, map[string]string{"app.py": "indexed"}, a.Files)
 }
+
+func TestComputedImportIsDynamic(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "app.py", "import importlib\nname = input()\nmod = importlib.import_module(name)\n")
+	write(t, dir, "lib.js", "const a = require('lodash');\n")
+	a, err := newAnalyzer(Options{})(context.Background(), dir)
+	require.NoError(t, err)
+	assert.Equal(t, map[string]bool{"python": true}, a.DynamicImports)
+}

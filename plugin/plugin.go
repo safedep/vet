@@ -124,6 +124,14 @@ type Diagnoser interface {
 	Diagnostics() []report.Diagnostic
 }
 
+// SourceEnricher is an enricher that reads the source code of the target.
+// The engine calls UseSource once, before Prepare and Enrich, with the
+// directory of a directory artifact, such as a local directory or a git
+// clone. It passes "" for a target with no source code.
+type SourceEnricher interface {
+	UseSource(dir string)
+}
+
 // Preparer is an enricher with work that needs no package, such as the
 // index of the source files. The engine calls Prepare once in its own
 // goroutine when the scan starts, so the work runs while the extraction

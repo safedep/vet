@@ -237,6 +237,14 @@ package that only test files import. The engine adds it to package findings as e
 import-level evidence, not call-graph reachability.
 _Avoid_: reachability (except in "reachability annotation"), usage graph
 
+**Reach**:
+How far the code of the project reaches the package of a vulnerability finding. `finding.Reach`,
+set by the engine from the code usage and the dependency graph. The levels are `imported`, `unused`
+and `unknown`. An unknown reach names its cause, and a report never shows it as safe. A **reach
+level** is how deep vet looks: `off`, `import` or `function` (`report.ReachLevel`). The scan header
+records the level and whether the scan computed reach in `report.ReachInfo`.
+_Avoid_: reachability (for the field), usage (for the level)
+
 **Code index**:
 The index of each source file of a target, from the indexer of `safedep/code`, with the usage and the
 signature matches of the file. It lives in the `code_graph` module of `cache.db`. Its key holds the

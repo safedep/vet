@@ -899,3 +899,9 @@
   tier: P1
   guarantee: "vet ci update moves the safedep/vet and actions/checkout pins of the vet workflow to the newest release, and keeps each other line."
   labels: [action, ci-setup]
+- id: reach/import/levels
+  title: "a vulnerability finding says whether the code imports its package"
+  category: reach
+  tier: P1
+  guarantee: "A scan of a directory sets the reach of each vulnerability finding. A package that a source file imports is imported, with its import lines. A package that an imported package depends on is imported, with the dependency path. A package that no file imports and no imported package depends on is unused. --reach off removes the reach, and a lockfile target has no source code, so its report header says no-source. A bad --reach value exits 2."
+  labels: [reach, enrichers]

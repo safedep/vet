@@ -285,6 +285,9 @@
         },
         "attack": {
           "$ref": "#/$defs/Attack"
+        },
+        "reach": {
+          "$ref": "#/$defs/Reach"
         }
       },
       "type": "object",
@@ -887,6 +890,59 @@
         "raw_name"
       ]
     },
+    "Reach": {
+      "properties": {
+        "level": {
+          "type": "string"
+        },
+        "cause": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "via": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "test_only": {
+          "type": "boolean"
+        },
+        "imports": {
+          "items": {
+            "$ref": "#/$defs/ImportSite"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object",
+      "required": [
+        "level",
+        "confidence"
+      ]
+    },
+    "ReachInfo": {
+      "properties": {
+        "level": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "level",
+        "status"
+      ]
+    },
     "Record": {
       "properties": {
         "kind": {
@@ -981,6 +1037,9 @@
         },
         "git_sha": {
           "type": "string"
+        },
+        "reach": {
+          "$ref": "#/$defs/ReachInfo"
         }
       },
       "type": "object",
@@ -1163,6 +1222,12 @@
           "type": "array"
         },
         "test_only": {
+          "type": "boolean"
+        },
+        "incomplete": {
+          "type": "boolean"
+        },
+        "dynamic_import": {
           "type": "boolean"
         }
       },

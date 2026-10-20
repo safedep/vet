@@ -66,6 +66,51 @@ type ScanInfo struct {
 	BaseRef   string    `json:"base_ref,omitempty"`
 	GitRef    string    `json:"git_ref,omitempty"`
 	GitSHA    string    `json:"git_sha,omitempty"`
+	// Reach says how far the scan traced the code of the target into its
+	// vulnerable packages. A scan of an older vet has none.
+	Reach *ReachInfo `json:"reach,omitempty"`
+}
+
+// ReachLevel is how deep vet traces the code into a package.
+type ReachLevel string
+
+const (
+	ReachOff ReachLevel = "off"
+	// ReachImport finds the packages that the code imports.
+	ReachImport ReachLevel = "import"
+	// ReachFunction also follows the calls to the vulnerable functions.
+	ReachFunction ReachLevel = "function"
+)
+
+// ParseReachLevel reads a reach level. Empty is ReachFunction.
+func ParseReachLevel(s string) (ReachLevel, error) {
+	switch l := ReachLevel(s); l {
+	case "":
+		return ReachFunction, nil
+	case ReachOff, ReachImport, ReachFunction:
+		return l, nil
+	}
+	return "", fmt.Errorf("reach level %q is not valid: use off, import or function", s)
+}
+
+// ReachStatus says whether the scan computed reach, and why not.
+type ReachStatus string
+
+const (
+	ReachComputed ReachStatus = "computed"
+	// ReachNotComputed is a scan with reach off or with code analysis off.
+	ReachNotComputed ReachStatus = "off"
+	// ReachNoSource is a target with no source code, such as a lockfile, an
+	// SBOM, an image or a PURL.
+	ReachNoSource ReachStatus = "no-source"
+	// ReachUnavailable is a vet build with no code analysis.
+	ReachUnavailable ReachStatus = "unavailable"
+)
+
+// ReachInfo is the reach of a scan.
+type ReachInfo struct {
+	Level  ReachLevel  `json:"level"`
+	Status ReachStatus `json:"status"`
 }
 
 // Kind names the field that a record holds.

@@ -70,7 +70,7 @@ func TestBudgetKeepsThePartialAnalysis(t *testing.T) {
 	}
 	require.NoError(t, e.Enrich(context.Background(), pkgs), "the budget stops the analysis, not the scan")
 	assert.True(t, pkgs[0].Usage.Imported)
-	assert.Nil(t, pkgs[1].Usage, "a missing file can import b, so its usage is unknown")
+	assert.Equal(t, &model.Usage{Incomplete: true}, pkgs[1].Usage, "a missing file can import b")
 	diags := e.Diagnostics()
 	require.Len(t, diags, 1)
 	assert.Equal(t, CodeFileMissing, diags[0].Code)
@@ -155,4 +155,34 @@ func TestRootModule(t *testing.T) {
 	for in, want := range map[string]string{"lodash/fp": "lodash", "@scope/pkg/sub": "@scope/pkg", "yaml.loader": "yaml", "requests": "requests", "@x": "@x"} {
 		assert.Equal(t, want, rootModule(in), in)
 	}
+}
+
+func TestNoSourceGivesNoUsage(t *testing.T) {
+	calls := 0
+	e := NewWith(t.TempDir(), Options{}, func(context.Context, string) (Analysis, error) {
+		calls++
+		return Analysis{}, nil
+	})
+	e.UseSource("")
+	pkgs := []*model.Package{{ID: model.MustPackageVersion(model.EcosystemNpm, "a", "1.0.0")}}
+	require.NoError(t, e.Prepare(context.Background()))
+	require.NoError(t, e.Enrich(context.Background(), pkgs))
+	caps, err := e.Capabilities(context.Background())
+	require.NoError(t, err)
+	assert.Nil(t, pkgs[0].Usage)
+	assert.Empty(t, caps)
+	assert.Zero(t, calls, "a target with no source code needs no analysis")
+}
+
+func TestDynamicImportMarksTheEcosystem(t *testing.T) {
+	e := NewWith(t.TempDir(), Options{}, func(context.Context, string) (Analysis, error) {
+		return Analysis{DynamicImports: map[string]bool{"python": true}}, nil
+	})
+	pkgs := []*model.Package{
+		{ID: model.MustPackageVersion(model.EcosystemPyPI, "yaml", "6.0")},
+		{ID: model.MustPackageVersion(model.EcosystemNpm, "a", "1.0.0")},
+	}
+	require.NoError(t, e.Enrich(context.Background(), pkgs))
+	assert.True(t, pkgs[0].Usage.DynamicImport)
+	assert.False(t, pkgs[1].Usage.DynamicImport, "a computed Python import says nothing about npm")
 }
