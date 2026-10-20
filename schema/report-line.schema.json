@@ -179,6 +179,30 @@
         "kind"
       ]
     },
+    "EntryPoint": {
+      "properties": {
+        "function": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "rule": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "required": [
+        "function",
+        "kind"
+      ]
+    },
     "Evidence": {
       "properties": {
         "source": {
@@ -319,6 +343,29 @@
         "subject",
         "title",
         "description"
+      ]
+    },
+    "FunctionReach": {
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "cause": {
+          "type": "string"
+        },
+        "path": {
+          "items": {
+            "$ref": "#/$defs/PathHop"
+          },
+          "type": "array"
+        },
+        "test_only": {
+          "type": "boolean"
+        }
+      },
+      "type": "object",
+      "required": [
+        "status"
       ]
     },
     "Gate": {
@@ -958,11 +1005,39 @@
         "raw_name"
       ]
     },
+    "PathHop": {
+      "properties": {
+        "function": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        },
+        "root": {
+          "type": "string"
+        },
+        "edge": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "function"
+      ]
+    },
     "Reach": {
       "properties": {
         "level": {
           "type": "string",
           "enum": [
+            "called",
+            "not-called",
             "imported",
             "unused",
             "unknown"
@@ -976,7 +1051,16 @@
             "budget",
             "unread-files",
             "no-source-files",
-            "no-symbol-data"
+            "no-symbol-data",
+            "no-entry-point",
+            "no-dependency-source",
+            "no-symbol-in-graph",
+            "broad-record",
+            "unreviewed-record",
+            "unresolved-call",
+            "dynamic-flag",
+            "transitive",
+            "analysis-failed"
           ]
         },
         "confidence": {
@@ -1005,6 +1089,12 @@
         "fix_sites": {
           "items": {
             "type": "string"
+          },
+          "type": "array"
+        },
+        "path": {
+          "items": {
+            "$ref": "#/$defs/PathHop"
           },
           "type": "array"
         }
@@ -1037,12 +1127,59 @@
         },
         "symbols": {
           "$ref": "#/$defs/SymbolBundle"
+        },
+        "roots": {
+          "$ref": "#/$defs/ReachRoots"
+        },
+        "sources": {
+          "$ref": "#/$defs/ReachSources"
+        },
+        "versions": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
         }
       },
       "type": "object",
       "required": [
         "level",
         "status"
+      ]
+    },
+    "ReachRoots": {
+      "properties": {
+        "fallback": {
+          "type": "boolean"
+        },
+        "total": {
+          "type": "integer"
+        },
+        "list": {
+          "items": {
+            "$ref": "#/$defs/EntryPoint"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object",
+      "required": [
+        "total"
+      ]
+    },
+    "ReachSources": {
+      "properties": {
+        "found": {
+          "type": "integer"
+        },
+        "missing": {
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "required": [
+        "found",
+        "missing"
       ]
     },
     "Remediation": {
@@ -1275,6 +1412,9 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "reach": {
+          "$ref": "#/$defs/FunctionReach"
         }
       },
       "type": "object",

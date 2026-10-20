@@ -6,6 +6,7 @@ import (
 
 	"github.com/safedep/dry/log"
 
+	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
@@ -28,7 +29,7 @@ func (r *run) enrich(ctx context.Context) error {
 	// An enricher that had no package to enrich can still be preparing,
 	// and its diagnostics must wait for its work.
 	r.prepared.Wait()
-	r.symbolBundle()
+	r.reachReport()
 	if r.reachChanged {
 		if err := r.writeReach(ctx); err != nil {
 			return err
@@ -139,9 +140,13 @@ func (r *run) findCapabilities(ctx context.Context) error {
 func (r *run) enrichWith(ctx context.Context, e Enricher, p *enrichProgress) error {
 	scan := r.res.Scan
 	after := ""
+	limit := r.o.BatchSize
+	if e.Whole {
+		limit = -1
+	}
 	for {
 		batch, err := scan.PackagesToEnrich(ctx, state.EnrichQuery{
-			Enricher: e.Name, After: after, Limit: r.o.BatchSize, Introduced: r.o.BaseRef != "",
+			Enricher: e.Name, After: after, Limit: limit, Introduced: r.o.BaseRef != "",
 		})
 		if err != nil {
 			return err
@@ -197,6 +202,11 @@ func (r *run) enrichBatch(ctx context.Context, e Enricher, batch []*model.Packag
 	if err := e.Plugin.Enrich(ctx, todo); err != nil {
 		if ctx.Err() != nil {
 			return nil, ctx.Err()
+		}
+		// A usage error, as an entry point that names no function, is the
+		// fault of the user. The scan stops, so the user fixes it.
+		if app.ExitCode(err) == app.ExitUsage {
+			return nil, err
 		}
 		status = state.EnrichmentFailed
 		r.enrichError(e.Name, err)

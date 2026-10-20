@@ -26,10 +26,17 @@ func TestReachOf(t *testing.T) {
 	graph.AddEdge(app, dep)
 	graph.AddEdge(tool, dep)
 
+	stdlib := model.MustPackageVersion(model.EcosystemGo, "stdlib", "1.27.1")
 	site := []model.ImportSite{{File: "index.js", Line: 1}}
+	path := []model.PathHop{{Function: "main", File: "main.go", Line: 3, Root: "main"}, {Function: "dep.Render"}}
+	chaPath := []model.PathHop{{Function: "main", Root: "main"}, {Function: "dep.Render", Edge: "cha", Confidence: "medium"}}
+	record := func(r *model.FunctionReach) []model.SymbolRecord {
+		return []model.SymbolRecord{{Advisory: "GHSA-test", Coverage: model.CoverageExact, Verified: true, FixSites: []string{"dep.Render"}, Reach: r}}
+	}
 	cases := []struct {
 		name  string
 		level report.ReachLevel
+		id    model.PackageVersion
 		usage *model.Usage
 		// appUsage and toolUsage are the usage of the two roots.
 		appUsage, toolUsage *model.Usage
@@ -50,12 +57,76 @@ func TestReachOf(t *testing.T) {
 			want:  &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachNoSymbolData, Confidence: finding.ConfidenceHigh, Imports: site},
 		},
 		{
-			name: "function level with a symbol record names the fix sites", level: report.ReachFunction,
+			name: "a call path to the fix site of the advisory is called", level: report.ReachFunction,
 			usage: &model.Usage{Imported: true, Symbols: []model.SymbolRecord{
-				{Advisory: "GHSA-other", FixSites: []string{"a.B"}},
-				{Advisory: "GHSA-test", Record: "GO-2026-0001", Coverage: "exact", FixSites: []string{"dep.Render"}},
+				{Advisory: "GHSA-other", FixSites: []string{"a.B"}, Reach: &model.FunctionReach{Status: model.FunctionNotFound}},
+				{Advisory: "GHSA-test", Record: "GO-2026-0001", FixSites: []string{"dep.Render"}, Reach: &model.FunctionReach{Status: model.FunctionCalled, Path: path}},
 			}},
-			want: &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+			want: &finding.Reach{Level: finding.ReachCalled, Confidence: finding.ConfidenceMedium, FixSites: []string{"dep.Render"}, Path: path},
+		},
+		{
+			name: "a call path with a weak call takes its confidence", level: report.ReachFunction,
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionCalled, Path: chaPath})},
+			want:  &finding.Reach{Level: finding.ReachCalled, Confidence: finding.ConfidenceMedium, FixSites: []string{"dep.Render"}, Path: chaPath},
+		},
+		{
+			name: "no path with a dynamic site stays imported", level: report.ReachFunction,
+			usage:    &model.Usage{Imported: true, Dynamic: []model.DynamicSite{{File: "main.go", Line: 4, Kind: "reflect"}}, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})},
+			appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachDynamicFlag, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
+			name: "a call path from a test only", level: report.ReachFunction,
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionCalled, Path: path, TestOnly: true})},
+			want:  &finding.Reach{Level: finding.ReachCalled, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}, Path: path, TestOnly: true},
+		},
+		{
+			name: "no path to a package that the project alone imports is not called", level: report.ReachFunction,
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachNotCalled, Confidence: finding.ConfidenceMedium, FixSites: []string{"dep.Render"}},
+		},
+		{
+			name: "no path to a package that another import depends on stays imported", level: report.ReachFunction,
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{Imported: true}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachTransitive, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
+			name: "no path to a package that only the graph reaches stays imported", level: report.ReachFunction,
+			usage: &model.Usage{Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{Imported: true}, toolUsage: &model.Usage{},
+			want: &finding.Reach{
+				Level: finding.ReachImported, Cause: finding.ReachTransitive, Confidence: finding.ConfidenceMedium,
+				Via: []string{app.PURL(), dep.PURL()}, FixSites: []string{"dep.Render"},
+			},
+		},
+		{
+			name: "no path with an unread file stays imported", level: report.ReachFunction,
+			usage: &model.Usage{Imported: true, UnreadFiles: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachUnreadFiles, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
+			name: "no path with no graph stays imported", level: report.ReachFunction, noGraph: true,
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})},
+			want:  &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachNoGraph, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
+			name: "no path in the standard library stays imported", level: report.ReachFunction, id: stdlib,
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachTransitive, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
+			name: "an unknown function reach keeps its cause", level: report.ReachFunction,
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoEntryPoint)})},
+			want:  &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachNoEntryPoint, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
+			name: "a record with no search is a failed analysis", level: report.ReachFunction,
+			usage: &model.Usage{Imported: true, Symbols: record(nil)},
+			want:  &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachAnalysisFailed, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
+			name: "an import level scan ignores the call path", level: report.ReachImport,
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})},
+			want:  &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceHigh},
 		},
 		{
 			name: "an import from tests only", level: report.ReachImport,
@@ -105,7 +176,11 @@ func TestReachOf(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			target := &model.Package{ID: dep, Enrichment: model.Enrichment{Usage: c.usage}}
+			id := dep
+			if c.id.Name() != "" {
+				id = c.id
+			}
+			target := &model.Package{ID: id, Enrichment: model.Enrichment{Usage: c.usage}}
 			m := &model.Manifest{Graph: graph, Packages: []*model.Package{
 				{ID: app, Enrichment: model.Enrichment{Usage: c.appUsage}},
 				{ID: tool, Enrichment: model.Enrichment{Usage: c.toolUsage}},
@@ -226,18 +301,22 @@ func (c vulnControl) Evaluate(_ context.Context, m *model.Manifest, _ plugin.Sta
 	return out, nil
 }
 
-// symbolEnricher is a source enricher that read a symbol bundle.
+// symbolEnricher is a source enricher that read a symbol bundle and
+// searched from one entry point.
 type symbolEnricher struct{ sourceEnricher }
 
-func (*symbolEnricher) SymbolBundle() *report.SymbolBundle {
-	return &report.SymbolBundle{ID: "f2e47dc1", Records: 1220}
+func (*symbolEnricher) ReachReport(info *report.ReachInfo) {
+	info.Symbols = &report.SymbolBundle{ID: "f2e47dc1", Records: 1220}
+	info.Roots = &report.ReachRoots{Total: 1, List: []report.EntryPoint{{Function: "main.go//main", Kind: "main"}}}
 }
 
-func TestHeaderNamesTheSymbolBundle(t *testing.T) {
+func TestHeaderNamesTheSymbolBundleAndTheRoots(t *testing.T) {
 	f := newFixture(t)
 	o := f.options(t, project(t), nil)
 	o.Enrichers = []Enricher{{Name: "code", Version: "1", Plugin: &symbolEnricher{}, Local: true}}
 	o.Reach = report.ReachInfo{Level: report.ReachFunction}
 	res := runScan(t, o)
-	assert.Equal(t, &report.SymbolBundle{ID: "f2e47dc1", Records: 1220}, res.Scan.Header().Scan.Reach.Symbols)
+	reach := res.Scan.Header().Scan.Reach
+	assert.Equal(t, &report.SymbolBundle{ID: "f2e47dc1", Records: 1220}, reach.Symbols)
+	assert.Equal(t, 1, reach.Roots.Total)
 }

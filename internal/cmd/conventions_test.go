@@ -33,7 +33,7 @@ var (
 	// section 3.2, and the 2 leaves of ci.
 	leafCommands = []string{
 		"scan",
-		"report show", "report list", "report diff", "report finding show", "report capability list", "report schema get",
+		"report show", "report list", "report diff", "report finding show", "report capability list", "report root list", "report schema get",
 		"policy init", "policy validate", "policy control list", "policy schema get",
 		"fix github-actions run",
 		"ci init", "ci update",

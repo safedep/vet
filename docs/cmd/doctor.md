@@ -27,6 +27,7 @@ a `›` line with the fix under a check that did not pass. `-o json` returns the
 | `state.mode` | The state directory has mode 0700. |
 | `state.scans` | Each scan has its file and its index entry, and no scan is marked running after its process stopped. |
 | `state.size` | The scans are under the `state.retention.max_size` limit. |
+| `reach.symbol-data` | The last scan of the current directory read a symbol bundle less than 7 days old, and found the code of each imported Go module and Rust crate with a vulnerability. |
 | `credentials` | The SafeDep credentials: anonymous, or the tenant, the source and the profile. |
 | `endpoint.insights`, `endpoint.malysis` | The SafeDep Insights and Threat Intel endpoints answer in 5 seconds. |
 

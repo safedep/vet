@@ -377,6 +377,7 @@ type EnrichQuery struct {
 	Enricher string
 	// After is the package key cursor: the page starts after it.
 	After string
+	// Limit bounds the page. A negative Limit gives every package.
 	Limit int
 	// Introduced keeps the packages that pull request mode marks added,
 	// upgraded or downgraded.

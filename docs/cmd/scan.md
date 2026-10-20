@@ -8,7 +8,8 @@ Scan a project, a repository, an image, an SBOM or a package.
 vet scan [TARGET] [--base-ref REF] [--fail-on SEVERITY|attacks] [--policy FILE|NAME]
          [--report FORMAT=PATH]... [--strict] [--resume | --fresh] [--no-cache]
          [--exclude GLOB]... [--packages declared|installed|all] [--cooldown-days N]
-         [--reach off|import|function] [--state-dir DIR] [--cache-dir DIR] [--ephemeral]
+         [--reach off|import|function] [--entrypoint PATH:FUNCTION]... [--entrypoints-only]
+         [--state-dir DIR] [--cache-dir DIR] [--ephemeral]
          [-o table|plain|json|jsonl|sarif|markdown|cyclonedx|gitlab|bitbucket]
 ```
 
@@ -88,6 +89,8 @@ vulnerable package.
 
 | Reach | Meaning |
 | --- | --- |
+| `called` | A call path from an entry point of the project reaches a vulnerable function. The finding shows the path. |
+| `not-called` | No call path reaches a vulnerable function, and vet can prove it. See below. |
 | `imported` | A source file imports the package, or a package that the code imports depends on it. |
 | `unused` | No source file imports the package, and no imported package depends on it. A tool that the project runs from a script with no import, as a build tool, is `unused` too. |
 | `unknown` | vet cannot tell. The cause names why: `no-graph`, `dynamic-import`, `budget`, `unread-files` or `no-source-files`. |
@@ -98,7 +101,34 @@ the package, such as a project of `.jsx` files. A package that only test files i
 test-only mark. `--reach` sets the level, and `plugins.codeusage.options.reach` sets it for every
 run. `function`, the default, also follows the calls to the vulnerable functions of Go and Rust
 packages, and a finding with no record of its vulnerable functions stays `imported` with the cause
-`no-symbol-data`. vet reads the vulnerable functions from the signed bundle of
+`no-symbol-data`.
+
+At the function level, vet links one call graph of the project and of the Go modules and Rust
+crates that it finds on the disk: the `vendor` directory first, then the module cache or the cargo
+registry. vet never downloads a dependency. The search starts at the entry points that vet finds:
+the main functions, the framework handlers, the tests and the exported functions of a library.
+`vet report root list` lists them. `--entrypoint cmd/app/main.go:main` adds an entry point, and
+`plugins.codeusage.options.entrypoints` adds a list for every run. The flag values join the
+config list. `--entrypoints-only`, or `entrypoints_only: true`, starts the search from the named
+entry points alone. An entry point that names no function of the project exits with code 2.
+
+A finding is `not-called` only when all of these are true: the record of the advisory names every
+vulnerable function, a maintainer verified the record, vet read the code of the package, vet found
+an entry point, the project imports the package, and no other dependency that the project imports
+depends on the package. In each other case the finding stays `imported`, and its cause says why:
+
+| Cause | Why vet cannot prove `not-called` |
+| --- | --- |
+| `no-entry-point` | vet found no entry point, so the search started from every exported function. |
+| `no-dependency-source` | The code of the package is not in `vendor`, in the module cache or in the cargo registry. |
+| `no-symbol-in-graph` | The code of the package does not define a vulnerable function of the record. |
+| `broad-record` | The record does not name every vulnerable function. |
+| `unreviewed-record` | No maintainer verified the record. |
+| `unresolved-call` | A call on the path is a call that vet cannot resolve. |
+| `dynamic-flag` | A call on the path is dynamic, as reflection. |
+| `transitive` | Another dependency can call the package, through code that vet did not prove. |
+| `budget` | The time budget stopped the search. |
+| `analysis-failed` | The search failed. A diagnostic says why. | vet reads the vulnerable functions from the signed bundle of
 [vuln-symbols](https://github.com/safedep/vuln-symbols). It keeps the bundle in the cache directory
 and asks for a newer one at most once a day. `plugins.codeusage.options.symbols_update: false`
 stops the update, `symbols_bundle` reads a local copy of the bundle files and `symbols_pin` keeps a

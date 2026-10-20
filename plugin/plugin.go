@@ -132,10 +132,12 @@ type SourceEnricher interface {
 	UseSource(dir string)
 }
 
-// SymbolReporter is an enricher that reads symbol data. The engine records
-// the bundle in the reach of the scan header.
-type SymbolReporter interface {
-	SymbolBundle() *report.SymbolBundle
+// ReachReporter is an enricher that searches the call graph. ReachReport
+// adds the symbol data that it read, the entry points and the dependency
+// code of its search to the reach of the scan header. It leaves a field
+// that it did not use as it is.
+type ReachReporter interface {
+	ReachReport(info *report.ReachInfo)
 }
 
 // Preparer is an enricher with work that needs no package, such as the

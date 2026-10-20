@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -11,6 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/symbols"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
@@ -227,13 +230,21 @@ func TestUnreadAndMissingLanguages(t *testing.T) {
 }
 
 // symbolSource answers every query with one record.
-type symbolSource struct{ prepared int }
+type symbolSource struct {
+	prepared int
+	verified bool
+	edit     func(*model.SymbolRecord)
+}
 
 func (s *symbolSource) Prepare(context.Context) { s.prepared++ }
 func (s *symbolSource) Lookup(qs []symbols.Query) [][]model.SymbolRecord {
 	out := make([][]model.SymbolRecord, len(qs))
 	for i, q := range qs {
-		out[i] = []model.SymbolRecord{{Advisory: q.IDs[0], Record: "GO-2026-0001", Coverage: "exact", FixSites: []string{"golang.org/x/net/html.Render"}}}
+		r := model.SymbolRecord{Advisory: q.IDs[0], Record: "GO-2026-0001", Coverage: "exact", Verified: s.verified, FixSites: []string{"golang.org/x/net/html.Render"}}
+		if s.edit != nil {
+			s.edit(&r)
+		}
+		out[i] = []model.SymbolRecord{r}
 	}
 	return out
 }
@@ -256,7 +267,10 @@ func TestSymbolsOfGoAndRustVulnerabilities(t *testing.T) {
 		FixSites: []string{"golang.org/x/net/html.Render"}, Keys: []string{"golang.org//x//net//html//Render"},
 	}}, net.Usage.Symbols)
 	assert.Empty(t, yaml.Usage.Symbols, "the symbol data covers Go and Rust only")
-	assert.Equal(t, "abc", e.SymbolBundle().ID)
+	var info report.ReachInfo
+	e.ReachReport(&info)
+	assert.Equal(t, "abc", info.Symbols.ID)
+	assert.Nil(t, info.Roots, "a record with no key searches no call path")
 }
 
 func TestNoGoOrRustCodeReadsNoSymbolData(t *testing.T) {
@@ -266,5 +280,120 @@ func TestNoGoOrRustCodeReadsNoSymbolData(t *testing.T) {
 	})
 	require.NoError(t, e.Enrich(context.Background(), nil))
 	assert.Zero(t, src.prepared, "a project with no Go or Rust code needs no symbol bundle")
-	assert.Nil(t, e.SymbolBundle())
+	var info report.ReachInfo
+	e.ReachReport(&info)
+	assert.Equal(t, report.ReachInfo{}, info)
+}
+
+func TestFunctionReachOfARecord(t *testing.T) {
+	const key = "golang.org//x//net//html//Render"
+	path := []model.PathHop{{Function: "main.go//main", Root: "main"}, {Function: key}}
+	cases := []struct {
+		name     string
+		vendored bool
+		indirect bool
+		record   func(*model.SymbolRecord)
+		answer   ReachAnswer
+		err      error
+		want     *model.FunctionReach
+		diag     string
+	}{
+		{
+			name: "a path to a fix site is a call", vendored: true,
+			answer: ReachAnswer{Status: reachFound, Path: path},
+			want:   &model.FunctionReach{Status: model.FunctionCalled, Path: path},
+		},
+		{
+			name: "no path in an exact and verified record of vendored code", vendored: true,
+			answer: ReachAnswer{Status: "not-found"},
+			want:   &model.FunctionReach{Status: model.FunctionNotFound},
+		},
+		{
+			name: "no path with no source of the package", answer: ReachAnswer{Status: "not-found"},
+			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoDependencySource)}, diag: CodeSourceMissing,
+		},
+		{
+			name: "no path to a package that the code does not import", vendored: true, indirect: true, answer: ReachAnswer{Status: "not-found"},
+			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachTransitive)},
+		},
+		{
+			name: "no definition with no source of the package", answer: ReachAnswer{Status: reachNoSuchTarget},
+			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoDependencySource)},
+		},
+		{
+			name: "no definition in the source of the package", vendored: true, answer: ReachAnswer{Status: reachNoSuchTarget},
+			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoSymbolInGraph)},
+		},
+		{
+			name: "no path in a broad record", vendored: true, answer: ReachAnswer{Status: "not-found"},
+			record: func(r *model.SymbolRecord) { r.Coverage = "broad" },
+			want:   &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachBroadRecord)},
+		},
+		{
+			name: "no path in an unreviewed record", vendored: true, answer: ReachAnswer{Status: "not-found"},
+			record: func(r *model.SymbolRecord) { r.Verified = false },
+			want:   &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachUnreviewedRecord)},
+		},
+		{
+			name: "an unresolved call", vendored: true, answer: ReachAnswer{Status: reachUncertain, Uncertain: "unresolved-call"},
+			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachUnresolvedCall)},
+		},
+		{
+			name: "no entry point", vendored: true, answer: ReachAnswer{Status: "not-found", RootFallback: true},
+			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoEntryPoint)},
+		},
+		{
+			name: "a failed search", vendored: true, err: errors.New("link the call graph: boom"),
+			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachAnalysisFailed)}, diag: CodeReachFailed,
+		},
+		{
+			name: "a search past its budget", vendored: true, err: context.DeadlineExceeded,
+			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachBudget)}, diag: CodeReachStopped,
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			dir := t.TempDir()
+			if c.vendored {
+				require.NoError(t, os.MkdirAll(filepath.Join(dir, "vendor", "golang.org", "x", "net"), 0o755))
+			}
+			t.Setenv("GOMODCACHE", t.TempDir())
+			src := &symbolSource{verified: true}
+			if c.record != nil {
+				src.edit = c.record
+			}
+			analysis := Analysis{Languages: map[string]bool{"go": true}, Reach: func(_ context.Context, q ReachQuery) (ReachResult, error) {
+				assert.Equal(t, []string{key}, q.Targets)
+				assert.Equal(t, c.vendored && !c.indirect, len(q.Units) == 1, "only an imported package gives its code")
+				return ReachResult{Answers: map[string]ReachAnswer{key: c.answer}}, c.err
+			}}
+			if !c.indirect {
+				analysis.Usage = []Evidence{{Language: "go", PackageHint: "golang.org/x/net", ModuleName: "golang.org/x/net/html", FilePath: "main.go", Line: 3}}
+			}
+			e := NewWith(dir, Options{Symbols: src}, func(context.Context, string) (Analysis, error) { return analysis, nil })
+			vuln := &model.Insight{Vulnerabilities: []model.Vulnerability{{ID: "GHSA-aaaa"}}}
+			net := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, "golang.org/x/net", "v0.20.0"), Enrichment: model.Enrichment{Insight: vuln}}
+			require.NoError(t, e.Enrich(context.Background(), []*model.Package{net}))
+			require.Len(t, net.Usage.Symbols, 1)
+			assert.Equal(t, c.want, net.Usage.Symbols[0].Reach)
+			var codes []string
+			for _, d := range e.Diagnostics() {
+				codes = append(codes, d.Code)
+			}
+			if c.diag != "" {
+				assert.Contains(t, codes, c.diag)
+			}
+		})
+	}
+}
+
+func TestEntryPointUsageErrorStopsTheEnricher(t *testing.T) {
+	analysis := Analysis{Languages: map[string]bool{"go": true}, Reach: func(context.Context, ReachQuery) (ReachResult, error) {
+		return ReachResult{}, app.UsageError("entry point \"x\" is not path:function", "Fix it.")
+	}}
+	e := NewWith(t.TempDir(), Options{Symbols: &symbolSource{}}, func(context.Context, string) (Analysis, error) { return analysis, nil })
+	vuln := &model.Insight{Vulnerabilities: []model.Vulnerability{{ID: "GHSA-aaaa"}}}
+	net := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, "golang.org/x/net", "v0.20.0"), Enrichment: model.Enrichment{Insight: vuln}}
+	err := e.Enrich(context.Background(), []*model.Package{net})
+	assert.Equal(t, app.ExitUsage, app.ExitCode(err))
 }

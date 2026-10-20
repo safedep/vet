@@ -43,6 +43,14 @@ type Finding struct {
 type ReachLevel string
 
 const (
+	// ReachCalled is a vulnerable function that a call path from an entry
+	// point of the project reaches. Path holds the path.
+	ReachCalled ReachLevel = "called"
+	// ReachNotCalled is a vulnerable function that no call path reaches.
+	// vet says it only when the symbol record names every fix site, a
+	// maintainer verified the record, vet read the code of the package,
+	// and the project alone imports the package.
+	ReachNotCalled ReachLevel = "not-called"
 	// ReachImported is a package that the code imports, or that the
 	// dependency graph reaches from a package that the code imports.
 	ReachImported ReachLevel = "imported"
@@ -76,12 +84,37 @@ const (
 	// ReachNoSymbolData is an imported package with no record of its
 	// vulnerable functions, so function reach falls back to the import.
 	ReachNoSymbolData ReachCause = "no-symbol-data"
+	// ReachNoEntryPoint is a project where vet found no entry point, so it
+	// searched from every exported function.
+	ReachNoEntryPoint ReachCause = "no-entry-point"
+	// ReachNoDependencySource is a package with no source on the disk, in
+	// the vendor directory or in the module or crate cache.
+	ReachNoDependencySource ReachCause = "no-dependency-source"
+	// ReachNoSymbolInGraph is a record with a fix site that the call graph
+	// of the code of the package does not hold.
+	ReachNoSymbolInGraph ReachCause = "no-symbol-in-graph"
+	// ReachBroadRecord is a record that does not name every fix site.
+	ReachBroadRecord ReachCause = "broad-record"
+	// ReachUnreviewedRecord is a record that no maintainer verified.
+	ReachUnreviewedRecord ReachCause = "unreviewed-record"
+	// ReachUnresolvedCall is a call path that ends at a call that vet
+	// cannot resolve.
+	ReachUnresolvedCall ReachCause = "unresolved-call"
+	// ReachDynamicFlag is a call path through code that the call graph
+	// marks dynamic, such as reflection, or a dynamic site in a file that
+	// imports the package.
+	ReachDynamicFlag ReachCause = "dynamic-flag"
+	// ReachTransitive is a package that another dependency can call, so no
+	// path in the code that vet read proves that nothing calls it.
+	ReachTransitive ReachCause = "transitive"
+	// ReachAnalysisFailed is a call graph search that failed.
+	ReachAnalysisFailed ReachCause = "analysis-failed"
 )
 
 // Reach is the reach of the package of a finding.
 type Reach struct {
-	Level      ReachLevel `json:"level" jsonschema:"enum=imported,enum=unused,enum=unknown"`
-	Cause      ReachCause `json:"cause,omitempty" jsonschema:"enum=no-graph,enum=dynamic-import,enum=budget,enum=unread-files,enum=no-source-files,enum=no-symbol-data"`
+	Level      ReachLevel `json:"level" jsonschema:"enum=called,enum=not-called,enum=imported,enum=unused,enum=unknown"`
+	Cause      ReachCause `json:"cause,omitempty" jsonschema:"enum=no-graph,enum=dynamic-import,enum=budget,enum=unread-files,enum=no-source-files,enum=no-symbol-data,enum=no-entry-point,enum=no-dependency-source,enum=no-symbol-in-graph,enum=broad-record,enum=unreviewed-record,enum=unresolved-call,enum=dynamic-flag,enum=transitive,enum=analysis-failed"`
 	Confidence Confidence `json:"confidence"`
 	// Via is the dependency path from a package that the code imports to
 	// the package of the finding, as PURLs, when no file imports it.
@@ -93,6 +126,8 @@ type Reach struct {
 	// FixSites are the functions that hold the vulnerable code, from the
 	// symbol record of the advisory.
 	FixSites []string `json:"fix_sites,omitempty"`
+	// Path is the call path from an entry point to a fix site.
+	Path []model.PathHop `json:"path,omitempty"`
 }
 
 // Attack marks a finding of an attack control. The attacks gate fails on

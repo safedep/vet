@@ -193,6 +193,48 @@ type SymbolRecord struct {
 	// golang.org//x//net//html//Render. A fix site with no key rule has
 	// none.
 	Keys []string `json:"keys,omitempty"`
+	// Reach is what the call graph says about the fix sites, or nil when
+	// vet did not search.
+	Reach *FunctionReach `json:"reach,omitempty"`
+}
+
+// FunctionReach is the answer of the call graph for the fix sites of one
+// record.
+type FunctionReach struct {
+	// Status is called, not-found or unknown. Not-found is no path in the
+	// graph of the project and the dependency code that vet read. Only the
+	// engine turns it into not called, because another dependency can
+	// call the fix site.
+	Status string `json:"status"`
+	// Cause says why the status is unknown.
+	Cause string `json:"cause,omitempty"`
+	// Path is the call path from an entry point to a fix site.
+	Path []PathHop `json:"path,omitempty"`
+	// TestOnly marks a path that only a test reaches.
+	TestOnly bool `json:"test_only,omitempty"`
+}
+
+// CoverageExact is the coverage of a record that names every fix site.
+const CoverageExact = "exact"
+
+// The statuses of a FunctionReach.
+const (
+	FunctionCalled   = "called"
+	FunctionNotFound = "not-found"
+	FunctionUnknown  = "unknown"
+)
+
+// PathHop is one function of a call path, with the line of its call into
+// the next hop. The first hop is the entry point and Root names its kind.
+type PathHop struct {
+	Function string `json:"function"`
+	File     string `json:"file,omitempty"`
+	Line     int    `json:"line,omitempty"`
+	Root     string `json:"root,omitempty"`
+	// Edge is the kind of the call into the hop, as direct or cha, and
+	// Confidence is how sure the call graph is of it.
+	Edge       string `json:"edge,omitempty"`
+	Confidence string `json:"confidence,omitempty"`
 }
 
 // CallSite is one call of the code into a package. Callee is the call

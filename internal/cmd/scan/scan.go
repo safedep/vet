@@ -49,6 +49,8 @@ with no new scan, and an interrupted scan continues on the next run.`,
 	f.StringArrayVar(&o.Exclude, "exclude", nil, "Skip the paths that match this glob. Repeatable")
 	f.StringVar(&o.Packages, "packages", "", "Where to find packages: declared, installed or all")
 	f.StringVar(&o.Reach, "reach", "", "How far vet traces the code into a vulnerable package: off, import or function")
+	f.StringArrayVar(&o.Entrypoints, "entrypoint", nil, "Start the call graph search also at this function, as cmd/app/main.go:main. Repeatable")
+	f.BoolVar(&o.EntrypointsOnly, "entrypoints-only", false, "Start the call graph search only at the --entrypoint functions")
 	o.RegisterFlags(c)
 	return c
 }

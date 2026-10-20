@@ -117,6 +117,50 @@ type ReachInfo struct {
 	// Symbols is the symbol data of the scan, or nil when the scan read
 	// none.
 	Symbols *SymbolBundle `json:"symbols,omitempty"`
+	// Roots are the entry points where the call graph search started, or
+	// nil when the scan searched no call path.
+	Roots *ReachRoots `json:"roots,omitempty"`
+	// Sources counts the Go modules and Rust crates with a vulnerability
+	// record whose code vet found on the disk, and those it did not find.
+	Sources *ReachSources `json:"sources,omitempty"`
+	// Versions are the versions of the code analysis, by component, as
+	// codeusage, projectgraph and reach. A change of one can change a
+	// reach.
+	Versions map[string]string `json:"versions,omitempty"`
+}
+
+// ReachSources counts the dependency code of a call graph search.
+type ReachSources struct {
+	Found   int `json:"found"`
+	Missing int `json:"missing"`
+}
+
+// MaxRoots bounds the entry points that a scan header lists. A project
+// with many tests has thousands.
+const MaxRoots = 1000
+
+// ReachRoots are the entry points of the call graph search.
+type ReachRoots struct {
+	// Fallback marks a project where vet found no entry point. The search
+	// then started from every exported function, and List is empty.
+	Fallback bool `json:"fallback,omitempty"`
+	// Total counts the entry points. List holds the first MaxRoots of
+	// them, in function order.
+	Total int          `json:"total"`
+	List  []EntryPoint `json:"list,omitempty"`
+}
+
+// EntryPoint is one entry point of the call graph search.
+type EntryPoint struct {
+	// Function is the key of the function, as cmd/app/main.go//main.
+	Function string `json:"function"`
+	// Kind is main, manifest, framework, test, library-surface, or query
+	// for an entry point that the user names.
+	Kind string `json:"kind"`
+	// Rule names the rule that marks the entry point.
+	Rule string `json:"rule,omitempty"`
+	File string `json:"file,omitempty"`
+	Line int    `json:"line,omitempty"`
 }
 
 // SymbolBundle is the signed bundle of symbol records that a scan read.

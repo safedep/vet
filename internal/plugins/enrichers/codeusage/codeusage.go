@@ -25,6 +25,8 @@ import (
 	"github.com/safedep/dry/localdb"
 	"github.com/safedep/dry/log"
 
+	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/pathglob"
 	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
 	"github.com/safedep/vet/v2/internal/symbols"
@@ -38,7 +40,7 @@ import (
 const Name = "codeusage"
 
 // Version changes when the mapping or the signatures change.
-const Version = "10"
+const Version = "11"
 
 // maxFiles bounds the files that a package usage lists.
 const maxFiles = 20
@@ -124,7 +126,53 @@ type Analysis struct {
 	// parse or index whole.
 	Languages map[string]bool
 	Unread    map[string]bool
+	// Reach searches the call graph of the project and of the dependency
+	// units. It is nil in a build with no code analysis.
+	Reach Reacher
 }
+
+// Unit is the source of one dependency, with its unit key. A key names the
+// language, the name and the version, as cargo:time@0.3.30.
+type Unit struct {
+	Key string
+	Dir string
+}
+
+// ReachQuery asks whether the code calls the target keys. Sources are the
+// entry points that the user names, as path:function. SourcesOnly starts
+// the search from them alone.
+type ReachQuery struct {
+	Units       []Unit
+	Targets     []string
+	Sources     []string
+	SourcesOnly bool
+}
+
+// ReachAnswer is the answer for one target key.
+type ReachAnswer struct {
+	// Status is found, not-found, uncertain or no-such-target.
+	Status string
+	Path   []model.PathHop
+	// TestOnly marks an answer whose only path starts at a test.
+	TestOnly bool
+	// Uncertain names the kind of the first uncertainty, as
+	// unresolved-call.
+	Uncertain string
+	// RootFallback marks a graph with no entry point, where every exported
+	// function is a root.
+	RootFallback bool
+}
+
+// ReachResult is the answer of a reach query for each target key, the
+// entry points of the search and the versions of the call graph.
+type ReachResult struct {
+	Answers  map[string]ReachAnswer
+	Roots    *report.ReachRoots
+	Versions map[string]string
+}
+
+// Reacher runs one reach query.
+type Reacher func(ctx context.Context, q ReachQuery) (ReachResult, error)
 
 // ReachKey is the config key of the reach level.
 const ReachKey = "plugins." + Name + ".options.reach"
@@ -149,15 +197,22 @@ type Settings struct {
 	SymbolsBundle string `json:"symbols_bundle,omitempty"`
 	// SymbolsPin keeps the scan on one bundle id, for a reproducible run.
 	SymbolsPin string `json:"symbols_pin,omitempty"`
+	// Entrypoints are entry points that vet does not find itself, as
+	// cmd/app/main.go:main. --entrypoint adds to the list.
+	Entrypoints []string `json:"entrypoints,omitempty"`
+	// EntrypointsOnly starts the call graph search from Entrypoints alone.
+	EntrypointsOnly bool `json:"entrypoints_only,omitempty"`
 }
 
 // Config is plugins.codeusage.options with its defaults.
 type Config struct {
-	Reach         report.ReachLevel
-	Budget        time.Duration
-	SymbolsUpdate bool
-	SymbolsBundle string
-	SymbolsPin    string
+	Reach           report.ReachLevel
+	Budget          time.Duration
+	SymbolsUpdate   bool
+	SymbolsBundle   string
+	SymbolsPin      string
+	Entrypoints     []string
+	EntrypointsOnly bool
 }
 
 // ParseSettings reads plugins.codeusage.options.
@@ -172,7 +227,12 @@ func ParseSettings(cfg plugin.Config) (Config, error) {
 	}
 	c := Config{
 		Reach: level, Budget: DefaultBudget, SymbolsUpdate: s.SymbolsUpdate == nil || *s.SymbolsUpdate,
-		SymbolsBundle: s.SymbolsBundle, SymbolsPin: s.SymbolsPin,
+		SymbolsBundle: s.SymbolsBundle, SymbolsPin: s.SymbolsPin, Entrypoints: s.Entrypoints, EntrypointsOnly: s.EntrypointsOnly,
+	}
+	for _, ep := range s.Entrypoints {
+		if _, _, err := ParseEntrypoint(ep); err != nil {
+			return Config{}, fmt.Errorf("%s: entrypoints: %w", Name, err)
+		}
 	}
 	if s.Budget != "" {
 		if c.Budget, err = time.ParseDuration(s.Budget); err != nil || c.Budget <= 0 {
@@ -181,6 +241,21 @@ func ParseSettings(cfg plugin.Config) (Config, error) {
 	}
 	return c, nil
 }
+
+// ParseEntrypoint reads an entry point as path:function, as
+// cmd/app/main.go:main or app/server.py:Router.handle. The path is
+// relative to the target.
+func ParseEntrypoint(s string) (path string, names []string, err error) {
+	path, fn, ok := strings.Cut(s, ":")
+	if !ok || path == "" || fn == "" || slices.Contains(strings.Split(fn, "."), "") {
+		return "", nil, fmt.Errorf("entry point %q is not path:function, as cmd/app/main.go:main", s)
+	}
+	return filepath.ToSlash(path), strings.Split(fn, "."), nil
+}
+
+// EntrypointsOnlyKey is the config key that limits the call graph search to
+// the entry points that the user names.
+const EntrypointsOnlyKey = "plugins." + Name + ".options.entrypoints_only"
 
 // OptionsSchema returns the JSON Schema of the options.
 func OptionsSchema() []byte { return optschema.Of(&Settings{}) }
@@ -221,8 +296,15 @@ type Options struct {
 	// bound.
 	Budget time.Duration
 	// Symbols finds the vulnerable functions of the vulnerabilities of Go
-	// and Rust packages. A nil Symbols finds none.
+	// and Rust packages. A nil Symbols finds none, and the enricher then
+	// searches no call path.
 	Symbols symbols.Source
+	// Entrypoints are the entry points that the user names, as
+	// cmd/app/main.go:main. The search starts from them and from the
+	// entry points that vet finds.
+	Entrypoints []string
+	// EntrypointsOnly starts the search from Entrypoints alone.
+	EntrypointsOnly bool
 }
 
 // Enricher sets model.Package.Usage from the imports of the target, and
@@ -245,7 +327,18 @@ type Enricher struct {
 	languages map[string]bool
 	unread    map[string]bool
 	calls     []ExternalCall
-	sites     []DynamicSite
+	reach     Reacher
+	// reachStopped and reachErr record a call graph search that did not
+	// finish.
+	reachStopped bool
+	reachErr     error
+	roots        *report.ReachRoots
+	versions     map[string]string
+	searched     bool
+	// sources and missingSources count the packages with a record whose
+	// code vet found and did not find.
+	sources, missingSources int
+	sites                   []DynamicSite
 	// hints holds the package hint of each imported module, by language
 	// and name, for the calls that name the module only.
 	hints    map[module]string
@@ -259,7 +352,7 @@ var (
 	_ plugin.Diagnoser        = (*Enricher)(nil)
 	_ plugin.Preparer         = (*Enricher)(nil)
 	_ plugin.SourceEnricher   = (*Enricher)(nil)
-	_ plugin.SymbolReporter   = (*Enricher)(nil)
+	_ plugin.ReachReporter    = (*Enricher)(nil)
 )
 
 // UseSource sets the directory of the source code. A target with no
@@ -273,6 +366,17 @@ const CodeFileFailed = "source_file_failed"
 // CodeFileMissing is the diagnostic code of source files that the analysis
 // did not reach in its time budget.
 const CodeFileMissing = "source_file_missing"
+
+// The diagnostic codes of a call graph search that did not finish. The
+// function reach of each vulnerability is then unknown.
+const (
+	CodeReachStopped = "reach_stopped"
+	CodeReachFailed  = "reach_failed"
+)
+
+// CodeSourceMissing is the diagnostic code of imported packages with a
+// vulnerability record whose code is not on the disk.
+const CodeSourceMissing = "dependency_source_missing"
 
 // maxFailedNames bounds the file names that the diagnostic of the failed
 // files lists.
@@ -291,6 +395,24 @@ func (e *Enricher) Diagnostics() []report.Diagnostic {
 			msg = fmt.Sprintf("vet stopped the code analysis after %s, so the imports and calls of %d source files are not in the report", e.o.Budget, e.missing)
 		}
 		out = append(out, report.Diagnostic{Level: report.DiagnosticWarning, Code: CodeFileMissing, Component: Name, Message: msg})
+	}
+	if e.missingSources > 0 {
+		out = append(out, report.Diagnostic{
+			Level: report.DiagnosticWarning, Code: CodeSourceMissing, Component: Name,
+			Message: fmt.Sprintf("vet found no code of %d imported Go modules and Rust crates with a vulnerability, so their findings stay imported. Run go mod download or cargo fetch, then scan again.", e.missingSources),
+		})
+	}
+	if e.reachStopped {
+		out = append(out, report.Diagnostic{
+			Level: report.DiagnosticWarning, Code: CodeReachStopped, Component: Name,
+			Message: fmt.Sprintf("vet stopped the call graph search after %s, so it does not know which vulnerable functions the code calls", e.o.Budget),
+		})
+	}
+	if e.reachErr != nil {
+		out = append(out, report.Diagnostic{
+			Level: report.DiagnosticWarning, Code: CodeReachFailed, Component: Name,
+			Message: fmt.Sprintf("vet could not search the call graph, so it does not know which vulnerable functions the code calls: %v", e.reachErr),
+		})
 	}
 	if len(e.failed) == 0 {
 		return out
@@ -349,7 +471,7 @@ func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 		p.Usage.Dynamic = e.dynamicIn(sites)
 	}
 	e.lookupSymbols(pkgs)
-	return nil
+	return e.functionReach(ctx, pkgs)
 }
 
 // symbolLanguages are the languages that the symbol data covers.
@@ -389,12 +511,145 @@ func (e *Enricher) lookupSymbols(pkgs []*model.Package) {
 	}
 }
 
-// SymbolBundle describes the symbol data that the scan read.
-func (e *Enricher) SymbolBundle() *report.SymbolBundle {
-	if e.symbols == nil {
+// functionReach searches the call graph for the fix sites of each record.
+// The engine gives the enricher every package in one call, so one graph
+// links the code of the project and of each dependency on disk. A call
+// path can pass through a dependency with no record.
+func (e *Enricher) functionReach(ctx context.Context, pkgs []*model.Package) error {
+	if e.symbols == nil || e.reach == nil {
 		return nil
 	}
-	return e.symbols.Bundle()
+	q := ReachQuery{Sources: e.o.Entrypoints, SourcesOnly: e.o.EntrypointsOnly}
+	hasUnit := map[model.PackageKey]bool{}
+	for _, p := range pkgs {
+		if p.Usage == nil || len(p.Usage.Symbols) == 0 {
+			continue
+		}
+		for _, r := range p.Usage.Symbols {
+			q.Targets = append(q.Targets, r.Keys...)
+		}
+		// Only the code of an imported package can hold a path that proves
+		// a finding. The code of a transitive package costs time and
+		// proves nothing, because the engine keeps it imported.
+		if !p.Usage.Imported {
+			continue
+		}
+		if u, ok := unitOf(e.dir, p.ID); ok {
+			q.Units = append(q.Units, u)
+			hasUnit[p.ID.Key()] = true
+			e.sources++
+		} else {
+			e.missingSources++
+		}
+	}
+	if len(q.Targets) == 0 {
+		return nil
+	}
+	q.Targets = slices.Compact(slices.Sorted(slices.Values(q.Targets)))
+	e.searched = true
+	rctx := ctx
+	if e.o.Budget > 0 {
+		var cancel context.CancelFunc
+		rctx, cancel = context.WithTimeout(ctx, e.o.Budget)
+		defer cancel()
+	}
+	res, err := e.reach(rctx, q)
+	e.roots, e.versions = res.Roots, res.Versions
+	var failed finding.ReachCause
+	switch {
+	case err == nil:
+	case app.ExitCode(err) == app.ExitUsage || ctx.Err() != nil:
+		return err
+	case errors.Is(err, context.DeadlineExceeded):
+		failed = finding.ReachBudget
+		e.reachStopped = true
+	default:
+		failed = finding.ReachAnalysisFailed
+		e.reachErr = err
+	}
+	for _, p := range pkgs {
+		if p.Usage == nil {
+			continue
+		}
+		for i := range p.Usage.Symbols {
+			r := &p.Usage.Symbols[i]
+			r.Reach = functionReachOf(r, res.Answers, hasUnit[p.ID.Key()], failed)
+			if !p.Usage.Imported && r.Reach.Status != model.FunctionCalled {
+				r.Reach = &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachTransitive)}
+			}
+		}
+	}
+	return nil
+}
+
+// functionReachOf joins the answers for the keys of a record. One found
+// key is a call. No path proves nothing unless the record lists every fix
+// site, a maintainer verified it, vet read the code of the package and the
+// graph has its own entry points.
+func functionReachOf(r *model.SymbolRecord, answers map[string]ReachAnswer, hasUnit bool, failed finding.ReachCause) *model.FunctionReach {
+	unknown := func(cause finding.ReachCause) *model.FunctionReach {
+		return &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(cause)}
+	}
+	switch {
+	case failed != "":
+		return unknown(failed)
+	case len(r.Keys) == 0:
+		return unknown(finding.ReachNoSymbolInGraph)
+	}
+	var found *ReachAnswer
+	var cause finding.ReachCause
+	for _, k := range r.Keys {
+		a, ok := answers[k]
+		switch {
+		case !ok:
+			cause = cmp.Or(cause, finding.ReachAnalysisFailed)
+		case a.Status == reachFound:
+			if found == nil || (found.TestOnly && !a.TestOnly) {
+				found = &a
+			}
+		case a.Status == reachUncertain && a.Uncertain != "":
+			cause = cmp.Or(cause, finding.ReachCause(a.Uncertain))
+		case a.Status == reachUncertain || a.RootFallback:
+			cause = cmp.Or(cause, finding.ReachNoEntryPoint)
+		case a.Status == reachNoSuchTarget && !hasUnit:
+			cause = cmp.Or(cause, finding.ReachNoDependencySource)
+		case a.Status == reachNoSuchTarget:
+			cause = cmp.Or(cause, finding.ReachNoSymbolInGraph)
+		}
+	}
+	switch {
+	case found != nil:
+		return &model.FunctionReach{Status: model.FunctionCalled, Path: found.Path, TestOnly: found.TestOnly}
+	case cause != "":
+		return unknown(cause)
+	case !hasUnit:
+		return unknown(finding.ReachNoDependencySource)
+	case r.Coverage != model.CoverageExact:
+		return unknown(finding.ReachBroadRecord)
+	case !r.Verified:
+		return unknown(finding.ReachUnreviewedRecord)
+	}
+	return &model.FunctionReach{Status: model.FunctionNotFound}
+}
+
+// The statuses of a ReachAnswer.
+const (
+	reachFound        = "found"
+	reachUncertain    = "uncertain"
+	reachNoSuchTarget = "no-such-target"
+)
+
+// ReachReport adds the symbol data that the scan read, and the entry
+// points, the dependency code and the versions of the call graph search.
+func (e *Enricher) ReachReport(info *report.ReachInfo) {
+	if e.symbols == nil {
+		return
+	}
+	info.Symbols = e.symbols.Bundle()
+	if e.searched {
+		info.Roots, info.Versions = e.roots, e.versions
+		info.Sources = &report.ReachSources{Found: e.sources, Missing: e.missingSources}
+	}
 }
 
 // callsInto returns the calls whose module the package provides, at most
@@ -507,6 +762,7 @@ func (e *Enricher) index(ctx context.Context) error {
 		e.symbols = e.o.Symbols
 	}
 	e.calls, e.sites = a.Calls, a.Dynamic
+	e.reach = a.Reach
 	slices.SortFunc(e.calls, func(x, y ExternalCall) int {
 		return cmp.Or(cmp.Compare(x.FilePath, y.FilePath), cmp.Compare(x.Line, y.Line), cmp.Compare(x.Callee, y.Callee))
 	})

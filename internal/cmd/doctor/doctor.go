@@ -118,6 +118,7 @@ func run(ctx context.Context, a *app.App, f state.Flags, fix bool) []Check {
 	checks = append(checks, githubTokenCheck(ctx, github.DefaultProvider()))
 	checks = append(checks, installChecks(rt.Config)...)
 	checks = append(checks, stateChecks(ctx, rt, fix)...)
+	checks = append(checks, symbolDataCheck(ctx, a, f))
 	creds, credCheck := credentialCheck(rt.Config)
 	checks = append(checks, credCheck)
 	if creds != nil {

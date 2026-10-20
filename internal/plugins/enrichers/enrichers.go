@@ -52,6 +52,8 @@ type Spec struct {
 	Local bool
 	// SkipEmpty keeps a package with no data out of the cache.
 	SkipEmpty bool
+	// Whole gets every package of the scan in one call.
+	Whole bool
 }
 
 // Set is the enrichers and the connections they hold.
@@ -100,7 +102,7 @@ func Build(o Options) (*Set, error) {
 	}
 	if o.CodeUsage != nil {
 		// The usage depends on the target, so the cache keeps none.
-		set.Specs = append(set.Specs, Spec{Name: codeusage.Name, Version: codeusage.Version, Plugin: codeusage.New(*o.CodeUsage), Local: true})
+		set.Specs = append(set.Specs, Spec{Name: codeusage.Name, Version: codeusage.Version, Plugin: codeusage.New(*o.CodeUsage), Local: true, Whole: true})
 	}
 	return set, nil
 }

@@ -88,6 +88,7 @@ func analyzeDir(ctx context.Context, dir string, cache localdb.Manager) (Analysi
 		return Analysis{}, fmt.Errorf("code analysis: %w", runErr)
 	}
 	out := Analysis{Usage: fileAnalysis.usage, Matches: fileAnalysis.matches, Files: make(map[string]string, len(res.Files))}
+	out.Reach = newReacher(root, langs, opts.Store, res)
 	importLines(out.Usage, res.Indexes)
 	out.DynamicImports = dynamicImports(res.Indexes)
 	out.Calls = externalCalls(res.Indexes)

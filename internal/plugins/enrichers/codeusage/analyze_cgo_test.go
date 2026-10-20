@@ -17,6 +17,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/model"
 )
 
@@ -334,4 +336,62 @@ func TestSymbolKeyMatchesTheCallGraph(t *testing.T) {
 	} {
 		assert.Contains(t, targets, symbolKey(row.language, row.name), row.name)
 	}
+}
+
+// A vendored module gives the call graph the code of the dependency, so a
+// call into a function that calls the fix site is a path.
+func TestReachThroughVendoredCode(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "go.mod", "module example.com/app\n\ngo 1.27\n\nrequire example.com/dep v1.2.0\n")
+	write(t, dir, "main.go", "package main\n\nimport \"example.com/dep/html\"\n\nfunc main() {\n\thtml.Parse(nil)\n}\n\nfunc handle() {\n\thtml.Unused()\n}\n")
+	write(t, dir, "vendor/example.com/dep/html/parse.go", "package html\n\nfunc Parse(b []byte) { render(b) }\n\nfunc render(b []byte) {}\n\nfunc Unused() {}\n")
+	t.Setenv("GOMODCACHE", t.TempDir())
+	a, err := newAnalyzer(Options{})(context.Background(), dir)
+	require.NoError(t, err)
+	require.NotNil(t, a.Reach)
+	unit, ok := unitOf(dir, model.MustPackageVersion(model.EcosystemGo, "example.com/dep", "v1.2.0"))
+	require.True(t, ok)
+	render, unused := symbolKey("go", "example.com/dep/html.render"), symbolKey("go", "example.com/dep/html.Unused")
+	res, err := a.Reach(context.Background(), ReachQuery{Units: []Unit{unit}, Targets: []string{render, unused}})
+	require.NoError(t, err)
+	assert.Equal(t, reachFound, res.Answers[render].Status, "main calls Parse, and Parse calls render")
+	require.NotEmpty(t, res.Answers[render].Path)
+	assert.Equal(t, "main", res.Answers[render].Path[0].Root)
+	assert.Equal(t, "not-found", res.Answers[unused].Status)
+	require.NotNil(t, res.Roots)
+	assert.False(t, res.Roots.Fallback)
+	assert.NotEmpty(t, res.Roots.List)
+
+	res, err = a.Reach(context.Background(), ReachQuery{Units: []Unit{unit}, Targets: []string{unused}, Sources: []string{"main.go:handle"}})
+	require.NoError(t, err)
+	require.Equal(t, reachFound, res.Answers[unused].Status, "a named entry point reaches what main does not")
+	assert.Equal(t, "query", res.Answers[unused].Path[0].Root)
+
+	res, err = a.Reach(context.Background(), ReachQuery{Targets: []string{render}})
+	require.NoError(t, err)
+	assert.NotEqual(t, "not-found", res.Answers[render].Status, "with no code of the dependency, no path proves nothing")
+
+	_, err = a.Reach(context.Background(), ReachQuery{Units: []Unit{unit}, Targets: []string{render}, Sources: []string{"main.go:nope"}})
+	assert.Equal(t, app.ExitUsage, app.ExitCode(err), "an entry point that names no function is a usage error")
+}
+
+// A library with no main has no entry point of its own. No path in it is
+// never a proof.
+func TestReachOfALibraryWithNoMain(t *testing.T) {
+	dir := t.TempDir()
+	write(t, dir, "go.mod", "module example.com/lib\n\ngo 1.27\n\nrequire example.com/dep v1.2.0\n")
+	write(t, dir, "lib.go", "package lib\n\nimport \"example.com/dep/html\"\n\nfunc Run() {\n\thtml.Parse(nil)\n}\n")
+	write(t, dir, "vendor/example.com/dep/html/parse.go", "package html\n\nfunc Parse(b []byte) {}\n\nfunc Unused() {}\n")
+	t.Setenv("GOMODCACHE", t.TempDir())
+	a, err := newAnalyzer(Options{})(context.Background(), dir)
+	require.NoError(t, err)
+	unit, ok := unitOf(dir, model.MustPackageVersion(model.EcosystemGo, "example.com/dep", "v1.2.0"))
+	require.True(t, ok)
+	unused := symbolKey("go", "example.com/dep/html.Unused")
+	res, err := a.Reach(context.Background(), ReachQuery{Units: []Unit{unit}, Targets: []string{unused}})
+	require.NoError(t, err)
+	require.NotNil(t, res.Roots)
+	assert.True(t, res.Roots.Fallback)
+	got := functionReachOf(&model.SymbolRecord{Coverage: model.CoverageExact, Verified: true, Keys: []string{unused}}, res.Answers, true, "")
+	assert.Equal(t, &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoEntryPoint)}, got)
 }

@@ -911,3 +911,9 @@
   tier: P1
   guarantee: "A first scan with no symbol bundle and no network reports symbol_data_missing. A vulnerability finding of an imported Go package stays imported with the cause no-symbol-data, and never says that the code calls no vulnerable function."
   labels: [reach, enrichers]
+- id: reach/function/entrypoints
+  title: "a bad entry point exits 2 before a scan runs"
+  category: reach
+  tier: P1
+  guarantee: "An --entrypoint that is not path:function exits 2, and so does --entrypoints-only with no entry point. A good --entrypoint does not change a scan with no symbol data, and vet report root list says that the scan searched no call path."
+  labels: [reach, enrichers, cli]

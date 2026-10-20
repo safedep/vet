@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -178,4 +179,31 @@ func TestEnrichProgressCountsPackages(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestWholeEnricherGetsEveryPackageInOneCall(t *testing.T) {
+	for _, whole := range []bool{false, true} {
+		t.Run(fmt.Sprint("whole=", whole), func(t *testing.T) {
+			f := newFixture(t)
+			en := &fakeEnricher{}
+			o := f.options(t, project(t), en)
+			o.Cache, o.BatchSize = nil, 1
+			o.Enrichers[0].Whole = whole
+			runScan(t, o)
+			require.Positive(t, en.calls)
+			if whole {
+				assert.Equal(t, 1, en.calls, "one call holds every package")
+			} else {
+				assert.Greater(t, en.calls, 1, "a batch holds one package")
+			}
+		})
+	}
+}
+
+func TestUsageErrorStopsTheScan(t *testing.T) {
+	f := newFixture(t)
+	o := f.options(t, project(t), &fakeEnricher{err: app.UsageError("entry point \"x\" is not path:function", "Fix it.")})
+	_, err := Run(context.Background(), o)
+	require.Error(t, err)
+	assert.Equal(t, app.ExitUsage, app.ExitCode(err))
 }

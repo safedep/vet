@@ -241,11 +241,30 @@ _Avoid_: reachability (except in "reachability annotation"), usage graph
 
 **Reach**:
 How far the code of the project reaches the package of a vulnerability finding. `finding.Reach`,
-set by the engine from the code usage and the dependency graph. The levels are `imported`, `unused`
-and `unknown`. An unknown reach names its cause, and a report never shows it as safe. A **reach
-level** is how deep vet looks: `off`, `import` or `function` (`report.ReachLevel`). The scan header
-records the level and whether the scan computed reach in `report.ReachInfo`.
+set by the engine from the code usage, the dependency graph and the call path. The levels are
+`called`, `not-called`, `imported`, `unused` and `unknown`. A reach that vet cannot prove names its
+cause, and a report never shows it as safe. A **reach level** is how deep vet looks: `off`, `import`
+or `function` (`report.ReachLevel`). The scan header records the level, whether the scan computed
+reach, and what the call graph search read in `report.ReachInfo`.
 _Avoid_: reachability (for the field), usage (for the level)
+
+**Call path**:
+The chain of calls from an entry point to a fix site, in the call graph of the project and of the
+dependency code. `finding.Reach.Path` holds it as `model.PathHop` values, and `model.FunctionReach`
+holds the answer of the search for one symbol record. A finding with a call path is `called`.
+_Avoid_: trace, stack (a call path is static)
+
+**Entry point**:
+A function where the call graph search starts: a main function, a framework handler, a test, the
+exported surface of a library, or a function that `--entrypoint` names. `report.EntryPoint`, listed
+in `report.ReachRoots` and by `vet report root list`. safedep/code calls it a root.
+_Avoid_: source (safedep/code uses that word for a named entry point)
+
+**Dependency unit**:
+The source code of one Go module or Rust crate on the disk, in `vendor` or in the module or crate
+cache, with its unit key, as `go:golang.org/x/net@v0.20.0`. `codeusage.Unit`. The call graph links
+the units of the imported packages with a symbol record. vet never downloads one.
+_Avoid_: dependency source (for the type)
 
 **Symbol data**:
 The records of the functions that hold the vulnerable code of an advisory, from the signed bundle of

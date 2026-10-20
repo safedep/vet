@@ -64,6 +64,11 @@ type Options struct {
 	Reports []string
 	// Reach is the --reach value, or empty.
 	Reach string
+	// Entrypoints are the --entrypoint values. They join the entry points
+	// of the config.
+	Entrypoints []string
+	// EntrypointsOnly is --entrypoints-only.
+	EntrypointsOnly bool
 	// Packages is the --packages value, or empty.
 	Packages string
 
@@ -147,6 +152,9 @@ func (o Options) lockableKeys(ephemeral bool) []string {
 	if o.Reach != "" {
 		keys = append(keys, codeusage.ReachKey)
 	}
+	if o.EntrypointsOnly {
+		keys = append(keys, codeusage.EntrypointsOnlyKey)
+	}
 	return keys
 }
 
@@ -177,6 +185,9 @@ type hashed struct {
 	Reach report.ReachLevel `json:"reach,omitempty"`
 	// Budget changes which files a stopped analysis reads.
 	Budget time.Duration `json:"budget,omitempty"`
+	// The entry points change the call paths of each finding.
+	Entrypoints     []string `json:"entrypoints,omitempty"`
+	EntrypointsOnly bool     `json:"entrypoints_only,omitempty"`
 }
 
 // Scan runs a scan, writes the report to its destinations and returns the
@@ -283,6 +294,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		hash, err := state.OptionsHash(hashed{
 			BaseRef: o.BaseRef, Exclude: exclude, API: cfg.Cloud.Endpoints.API, Anonymous: creds.Anonymous(),
 			Tenant: creds.TenantDomain(), Enrichers: enricherIDs(set), Packages: string(packages), Reach: code.reach.Level, Budget: code.budget,
+			Entrypoints: code.config.Entrypoints, EntrypointsOnly: code.config.EntrypointsOnly,
 		})
 		if err != nil {
 			return err
@@ -456,6 +468,17 @@ func codeAnalysisOf(cfg *config.Config, o Options) (codeAnalysis, error) {
 			return codeAnalysis{}, app.UsageError("--reach: "+err.Error(), "Use --reach off, import or function.")
 		}
 	}
+	for _, ep := range o.Entrypoints {
+		if _, _, err := codeusage.ParseEntrypoint(ep); err != nil {
+			return codeAnalysis{}, app.UsageError("--entrypoint: "+err.Error(), "Name an entry point as cmd/app/main.go:main.")
+		}
+	}
+	set.Entrypoints = append(slices.Clone(set.Entrypoints), o.Entrypoints...)
+	set.EntrypointsOnly = set.EntrypointsOnly || o.EntrypointsOnly
+	if set.EntrypointsOnly && len(set.Entrypoints) == 0 {
+		return codeAnalysis{}, app.UsageError("entrypoints_only needs at least one entry point",
+			"Add --entrypoint cmd/app/main.go:main, or set plugins.codeusage.options.entrypoints.")
+	}
 	c := codeAnalysis{on: o.Source == nil && cfg.PluginEnabled(codeusage.Name, true), budget: set.Budget, reach: report.ReachInfo{Level: set.Reach}, config: set}
 	p, ok := cfg.Plugins[codeusage.Name]
 	explicit := ok && p.Enabled != nil
@@ -476,7 +499,10 @@ func (c codeAnalysis) options(o Options, cache *state.Cache, cacheDir string) (*
 	if !c.on {
 		return nil, nil
 	}
-	opts := &codeusage.Options{BaseRef: o.BaseRef, Cache: cacheFile(cache), Budget: c.budget}
+	opts := &codeusage.Options{
+		BaseRef: o.BaseRef, Cache: cacheFile(cache), Budget: c.budget,
+		Entrypoints: c.config.Entrypoints, EntrypointsOnly: c.config.EntrypointsOnly,
+	}
 	if c.reach.Level != report.ReachFunction {
 		return opts, nil
 	}
@@ -584,7 +610,7 @@ func enricherSpecs(set *enrichers.Set) []engine.Enricher {
 	for _, s := range set.Specs {
 		out = append(out, engine.Enricher{
 			Name: s.Name, Version: s.Version, TTL: s.TTL, Plugin: s.Plugin,
-			Prior: s.Name == insights.Name, Local: s.Local, SkipEmpty: s.SkipEmpty,
+			Prior: s.Name == insights.Name, Local: s.Local, SkipEmpty: s.SkipEmpty, Whole: s.Whole,
 		})
 	}
 	return out
