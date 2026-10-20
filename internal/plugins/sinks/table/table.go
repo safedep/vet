@@ -263,7 +263,7 @@ func findingLayout(rows []row, idLen int, delta, control, where, fullReach bool)
 		if reach {
 			label := r.reach().Label()
 			if !fullReach {
-				label, _, _ = strings.Cut(label, " · ")
+				label = r.reach().Level.Text()
 			}
 			row = append(row, label)
 		}

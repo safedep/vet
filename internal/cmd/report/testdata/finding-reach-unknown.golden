@@ -1,2 +1,2 @@
 reach: unknown · budget
-reach help: The time budget stopped the analysis. Raise plugins.codeusage.options.budget.
+reach help: The time budget or a limit of the call graph stopped the analysis. Raise plugins.codeusage.options.budget.

@@ -23,6 +23,8 @@ import (
 	"github.com/safedep/code/plugin/indexer"
 	"github.com/safedep/dry/localdb"
 	"github.com/safedep/dry/log"
+
+	"github.com/safedep/vet/v2/model"
 )
 
 // skipPatterns match the paths under root that vet does not analyze. They
@@ -87,7 +89,7 @@ func analyzeDir(ctx context.Context, dir string, cache localdb.Manager) (Analysi
 	if res == nil {
 		return Analysis{}, fmt.Errorf("code analysis: %w", runErr)
 	}
-	out := Analysis{Usage: fileAnalysis.usage, Matches: fileAnalysis.matches, Files: make(map[string]string, len(res.Files))}
+	out := Analysis{Usage: fileAnalysis.usage, Matches: fileAnalysis.matches, Files: make(map[string]fileindex.FileStatus, len(res.Files))}
 	out.Reach = newReacher(root, langs, opts.Store, res)
 	importLines(out.Usage, res.Indexes)
 	out.DynamicImports = dynamicImports(res.Indexes)
@@ -95,7 +97,7 @@ func analyzeDir(ctx context.Context, dir string, cache localdb.Manager) (Analysi
 	out.Dynamic = dynamicSites(res.Indexes)
 	out.Languages, out.Unread = map[string]bool{}, map[string]bool{}
 	for f, st := range res.Files {
-		out.Files[f] = string(st)
+		out.Files[f] = st
 		out.Languages[languageOf(f)] = true
 		if st == fileindex.FileFailed || st == fileindex.FileTruncated {
 			out.Unread[languageOf(f)] = true
@@ -105,7 +107,7 @@ func analyzeDir(ctx context.Context, dir string, cache localdb.Manager) (Analysi
 		// The indexer marks a file that the budget cut in the plugin as
 		// indexed, because its index is complete. Its usage is not.
 		if errors.Is(f.Err, context.DeadlineExceeded) || errors.Is(f.Err, context.Canceled) {
-			out.Files[f.File] = FileMissing
+			out.Files[f.File] = fileindex.FileMissing
 			continue
 		}
 		out.Failed = append(out.Failed, FileFailure{FilePath: f.File, Stage: string(f.Stage), Err: f.Err.Error()})
@@ -188,11 +190,11 @@ func importOf(imports []fileindex.Import, target string) string {
 	return module
 }
 
-func dynamicSites(indexes []*fileindex.Index) []DynamicSite {
-	var out []DynamicSite
+func dynamicSites(indexes []*fileindex.Index) []model.DynamicSite {
+	var out []model.DynamicSite
 	for _, ix := range indexes {
 		for _, f := range ix.DynamicSites() {
-			out = append(out, DynamicSite{FilePath: ix.Path, Line: f.Line, Kind: string(f.Kind)})
+			out = append(out, model.DynamicSite{File: ix.Path, Line: f.Line, Kind: string(f.Kind)})
 		}
 	}
 	return out

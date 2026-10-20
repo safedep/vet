@@ -139,7 +139,9 @@ func reachOf(level report.ReachLevel, p *model.Package, m *model.Manifest, advis
 	switch {
 	case fr == nil:
 		r.Cause = finding.ReachAnalysisFailed
-	case fr.Status == model.FunctionCalled && weakestCall(fr.Path) != finding.ConfidenceHigh:
+	case !p.ProvableReach() && fr.Status != model.FunctionCalled:
+		r.Cause = finding.ReachTransitive
+	case fr.Status == model.FunctionCalled && model.WeakPath(fr.Path):
 		r.Cause, r.Path, r.TestOnly = finding.ReachWeakPath, fr.Path, fr.TestOnly
 	case fr.Status == model.FunctionCalled:
 		r.Level, r.Path, r.TestOnly = finding.ReachCalled, fr.Path, fr.TestOnly
@@ -223,7 +225,7 @@ func unproven(p *model.Package, m *model.Manifest) finding.ReachCause {
 	switch {
 	case !ProvesNotCalled(p.ID.Ecosystem()):
 		return finding.ReachUnprovenLanguage
-	case !p.Usage.Imported:
+	case !p.ProvableReach():
 		return finding.ReachTransitive
 	case incomplete(p.Usage) != "":
 		return incomplete(p.Usage)
@@ -231,8 +233,6 @@ func unproven(p *model.Package, m *model.Manifest) finding.ReachCause {
 		return finding.ReachDynamicFlag
 	case m.Graph == nil:
 		return finding.ReachNoGraph
-	case p.ID.GoStdlib():
-		return finding.ReachTransitive
 	case reachedByOther(p, m):
 		return finding.ReachTransitive
 	}
@@ -254,21 +254,6 @@ func ProvesNotCalled(e model.Ecosystem) bool { return notCalledEcosystems[e] }
 // a pull request scan that the enricher did not read.
 func mayImport(q, p *model.Package) bool {
 	return !q.ID.Equal(p.ID) && (q.Usage == nil || q.Usage.Imported)
-}
-
-// weakestCall is the confidence of the weakest call on a path. A real scan
-// showed that a path through a call by name, or through an interface to
-// each type that implements it, is often not a call. So only a path of
-// high calls is called, and the confidence of a called finding is that of
-// its record.
-func weakestCall(path []model.PathHop) finding.Confidence {
-	c := finding.ConfidenceHigh
-	for _, h := range path {
-		if hc := finding.Confidence(h.Confidence); hc.Valid() && hc.Rank() < c.Rank() {
-			c = hc
-		}
-	}
-	return c
 }
 
 // reachedByOther reports another package that the code can import and

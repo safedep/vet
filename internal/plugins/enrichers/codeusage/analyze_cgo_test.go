@@ -13,6 +13,7 @@ import (
 	"testing/fstest"
 	"time"
 
+	"github.com/safedep/code/fileindex"
 	"github.com/safedep/dry/localdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -160,18 +161,18 @@ func TestSecondScanParsesNoFile(t *testing.T) {
 
 	first, err := analyze(context.Background(), dir)
 	require.NoError(t, err)
-	assert.Equal(t, map[string]string{"app.py": "indexed", "lib/util.js": "indexed"}, first.Files)
+	assert.Equal(t, map[string]fileindex.FileStatus{"app.py": fileindex.FileIndexed, "lib/util.js": fileindex.FileIndexed}, first.Files)
 
 	second, err := analyze(context.Background(), dir)
 	require.NoError(t, err)
-	assert.Equal(t, map[string]string{"app.py": "cached", "lib/util.js": "cached"}, second.Files)
+	assert.Equal(t, map[string]fileindex.FileStatus{"app.py": fileindex.FileCached, "lib/util.js": fileindex.FileCached}, second.Files)
 	assert.ElementsMatch(t, first.Usage, second.Usage, "the cache gives the usage of the first scan")
 	assert.ElementsMatch(t, first.Matches, second.Matches, "the cache gives the matches of the first scan")
 
 	write(t, dir, "lib/util.js", "const _ = require('lodash');\n_.filter([], x => x);\n")
 	third, err := analyze(context.Background(), dir)
 	require.NoError(t, err)
-	assert.Equal(t, map[string]string{"app.py": "cached", "lib/util.js": "indexed"}, third.Files, "a changed file parses again")
+	assert.Equal(t, map[string]fileindex.FileStatus{"app.py": fileindex.FileCached, "lib/util.js": fileindex.FileIndexed}, third.Files, "a changed file parses again")
 }
 
 func TestUsageLineIsTheImport(t *testing.T) {
@@ -203,11 +204,11 @@ func TestDeadlineMakesFilesMissing(t *testing.T) {
 			break
 		}
 		require.ErrorIs(t, err, context.DeadlineExceeded)
-		counts := map[string]int{}
+		counts := map[fileindex.FileStatus]int{}
 		for _, st := range a.Files {
 			counts[st]++
 		}
-		if len(a.Files) == 100 && counts[FileMissing] > 0 && counts["indexed"] > 0 {
+		if len(a.Files) == 100 && counts[fileindex.FileMissing] > 0 && counts[fileindex.FileIndexed] > 0 {
 			assert.Empty(t, a.Failed, "a file that the deadline cuts is missing, not failed")
 			return
 		}
@@ -272,7 +273,7 @@ func TestBrokenCacheParsesEveryFile(t *testing.T) {
 	broken := localdb.NewFileManager(localdb.Config{Dir: notADir, FileName: "cache.db"})
 	a, err := newAnalyzer(Options{Cache: broken})(context.Background(), dir)
 	require.NoError(t, err)
-	assert.Equal(t, map[string]string{"app.py": "indexed"}, a.Files)
+	assert.Equal(t, map[string]fileindex.FileStatus{"app.py": fileindex.FileIndexed}, a.Files)
 }
 
 func TestComputedImportIsDynamic(t *testing.T) {
@@ -356,28 +357,28 @@ func TestReachThroughVendoredCode(t *testing.T) {
 	render, unused := SymbolKey("go", "example.com/dep/html.render"), SymbolKey("go", "example.com/dep/html.Unused")
 	res, err := a.Reach(context.Background(), ReachQuery{Units: []Unit{unit}, Targets: []string{render, unused}})
 	require.NoError(t, err)
-	assert.Equal(t, reachFound, res.Answers[render].Status, "main calls Parse, and Parse calls render")
+	assert.Equal(t, ReachFound, res.Answers[render].Status, "main calls Parse, and Parse calls render")
 	require.NotEmpty(t, res.Answers[render].Path)
 	assert.Equal(t, "main", res.Answers[render].Path[0].Root)
-	assert.Equal(t, "not-found", res.Answers[unused].Status)
+	assert.Equal(t, ReachNotFound, res.Answers[unused].Status)
 	require.NotNil(t, res.Roots)
 
 	tested := SymbolKey("go", "example.com/dep/html.Tested")
 	testRes, err := a.Reach(context.Background(), ReachQuery{Units: []Unit{unit}, Targets: []string{tested}})
 	require.NoError(t, err)
-	assert.Equal(t, ReachAnswer{Status: reachFound, TestOnly: true, Path: testRes.Answers[tested].Path}, testRes.Answers[tested], "a path from a test only is a call")
+	assert.Equal(t, ReachAnswer{Status: ReachFound, TestOnly: true, Path: testRes.Answers[tested].Path}, testRes.Answers[tested], "a path from a test only is a call")
 	require.NotEmpty(t, testRes.Answers[tested].Path)
 	assert.False(t, res.Roots.Fallback)
 	assert.NotEmpty(t, res.Roots.List)
 
 	res, err = a.Reach(context.Background(), ReachQuery{Units: []Unit{unit}, Targets: []string{unused}, Sources: []string{"main.go:handle"}})
 	require.NoError(t, err)
-	require.Equal(t, reachFound, res.Answers[unused].Status, "a named entry point reaches what main does not")
+	require.Equal(t, ReachFound, res.Answers[unused].Status, "a named entry point reaches what main does not")
 	assert.Equal(t, "query", res.Answers[unused].Path[0].Root)
 
 	res, err = a.Reach(context.Background(), ReachQuery{Targets: []string{render}})
 	require.NoError(t, err)
-	assert.NotEqual(t, "not-found", res.Answers[render].Status, "with no code of the dependency, no path proves nothing")
+	assert.NotEqual(t, ReachNotFound, res.Answers[render].Status, "with no code of the dependency, no path proves nothing")
 
 	_, err = a.Reach(context.Background(), ReachQuery{Units: []Unit{unit}, Targets: []string{render}, Sources: []string{"main.go:nope"}})
 	assert.Equal(t, app.ExitUsage, app.ExitCode(err), "an entry point that names no function is a usage error")

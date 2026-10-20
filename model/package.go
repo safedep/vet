@@ -2,6 +2,7 @@ package model
 
 import (
 	"cmp"
+	"slices"
 	"time"
 )
 
@@ -230,6 +231,17 @@ const (
 	FunctionUnknown  = "unknown"
 )
 
+// HopHigh is the confidence of a call that the call graph resolves for
+// sure, as a direct call.
+const HopHigh = "high"
+
+// WeakPath reports a call path with a call that the call graph only
+// guesses, as a call by name or through an interface to each type that
+// implements it. A real scan showed that such a path is often not a call.
+func WeakPath(path []PathHop) bool {
+	return slices.ContainsFunc(path, func(h PathHop) bool { return h.Confidence != "" && h.Confidence != HopHigh })
+}
+
 // PathHop is one function of a call path, with the line of its call into
 // the next hop. The first hop is the entry point and Root names its kind.
 type PathHop struct {
@@ -264,4 +276,12 @@ type DynamicSite struct {
 type ImportSite struct {
 	File string `json:"file"`
 	Line int    `json:"line"`
+}
+
+// ProvableReach reports a package whose call paths can prove a finding:
+// the project imports it, and it is not the standard library of Go. Any
+// dependency can call another package or the standard library, through
+// code that the scan did not read.
+func (p *Package) ProvableReach() bool {
+	return p.Usage != nil && p.Usage.Imported && !p.ID.GoStdlib()
 }

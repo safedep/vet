@@ -37,9 +37,8 @@ const (
 	answerUnproved = "unproved"
 	// answerWeak is a path with a call that the graph only guesses. The
 	// engine keeps such a finding imported, so it is no claim.
-	answerWeak      = "weak path"
-	answerNoAnswer  = "no-answer"
-	statusFoundName = "found"
+	answerWeak     = "weak path"
+	answerNoAnswer = "no-answer"
 )
 
 type target struct {
@@ -180,11 +179,11 @@ func run(t *testing.T, c reachCase) []row {
 		answer := answerNoAnswer
 		switch {
 		case !found:
-		case a.Status == statusFoundName && slices.ContainsFunc(a.Path, func(h model.PathHop) bool { return h.Confidence != "" && h.Confidence != "high" }):
+		case a.Status == codeusage.ReachFound && model.WeakPath(a.Path):
 			answer = answerWeak
-		case a.Status == statusFoundName:
+		case a.Status == codeusage.ReachFound:
 			answer = answerFound
-		case a.Status == answerNotFound && !a.RootFallback:
+		case a.Status == codeusage.ReachNotFound && !a.RootFallback:
 			answer = answerNotFound
 		default:
 			answer = answerUnproved

@@ -32,10 +32,10 @@ const (
 // SourceName names the public symbol data in a record.
 const SourceName = "vuln-symbols"
 
-// staleAfter is the age of a bundle signature that vet warns about. A host
+// StaleAfter is the age of a bundle signature that vet warns about. A host
 // that stops publishing looks the same as a database with no new
 // advisories.
-const staleAfter = 7 * 24 * time.Hour
+const StaleAfter = 7 * 24 * time.Hour
 
 // Query asks for the records of one vulnerability of a package version.
 type Query struct {
@@ -138,16 +138,16 @@ func (p *Public) prepare(ctx context.Context) {
 		return
 	}
 	p.bundle = b
-	if signed := b.Info().SignedAt; stale(signed, p.now()) {
+	if signed := b.Info().SignedAt; Stale(signed, p.now()) {
 		p.warn(CodeStale, fmt.Sprintf("the symbol data is from %s, more than 7 days ago", signed.UTC().Format(time.DateOnly)))
 	}
 	log.Debugf("symbol data: bundle %s with %d records", b.Info().ID, b.Info().Records)
 }
 
-// stale reports a signature older than staleAfter. A bundle with no
+// Stale reports a signature older than StaleAfter. A bundle with no
 // verified time, as a local bundle in a test, is not stale.
-func stale(signed, now time.Time) bool {
-	return !signed.IsZero() && now.Sub(signed) > staleAfter
+func Stale(signed, now time.Time) bool {
+	return !signed.IsZero() && now.Sub(signed) > StaleAfter
 }
 
 // updateCode tells a host that does not answer from a bundle that fails a

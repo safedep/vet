@@ -167,9 +167,9 @@ func TestPrepare(t *testing.T) {
 
 func TestStale(t *testing.T) {
 	now := time.Date(2026, 10, 20, 0, 0, 0, 0, time.UTC)
-	assert.False(t, stale(time.Time{}, now), "a bundle with no verified time is not stale")
-	assert.False(t, stale(now.Add(-6*24*time.Hour), now))
-	assert.True(t, stale(now.Add(-8*24*time.Hour), now))
+	assert.False(t, Stale(time.Time{}, now), "a bundle with no verified time is not stale")
+	assert.False(t, Stale(now.Add(-6*24*time.Hour), now))
+	assert.True(t, Stale(now.Add(-8*24*time.Hour), now))
 }
 
 func TestNoBundleMatchesNothing(t *testing.T) {

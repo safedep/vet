@@ -101,7 +101,8 @@ the package, such as a project of `.jsx` files. A package that only test files i
 test-only mark. `--reach` sets the level, and `plugins.codeusage.options.reach` sets it for every
 run. `function`, the default, also follows the calls to the vulnerable functions of Go and Rust
 packages, and a finding with no record of its vulnerable functions stays `imported` with the cause
-`no-symbol-data`.
+`no-symbol-data`. `import` stops at the imports. `off` turns off the reach only, and the AI and
+crypto capabilities stay on.
 
 At the function level, vet links one call graph of the project and of the Go modules and Rust
 crates that it finds on the disk: the `vendor` directory first, then the module cache or the cargo
@@ -135,14 +136,17 @@ its cause says why. A `go.mod` holds no dependency graph, so a Go finding with n
 | `transitive` | Another dependency can call the package, through code that vet did not prove. |
 | `budget` | The time budget stopped the search. |
 | `analysis-failed` | The search failed. A diagnostic says why. |
-| `unproven-language` | The reach corpus of the language still has a call that the search misses. Rust is such a language today. | vet reads the vulnerable functions from the signed bundle of
+| `unproven-language` | The reach corpus of the language still has a call that the search misses. Rust is such a language today. |
+| `weak-path` | The path has a call that the graph only guesses, as a call by name or through an interface. The finding keeps the path as evidence. |
+| `no-symbol-data` | vuln-symbols has no record of the vulnerable functions of the advisory. |
+
+vet reads the vulnerable functions from the signed bundle of
 [vuln-symbols](https://github.com/safedep/vuln-symbols). It keeps the bundle in the cache directory
 and asks for a newer one at most once a day. `plugins.codeusage.options.symbols_update: false`
 stops the update, `symbols_bundle` reads a local copy of the bundle files and `symbols_pin` keeps a
 CI run on one bundle id. The report header names the bundle. A scan never fails because of the
-bundle: a missing, stale, unreachable or rejected bundle is a warning. `import` stops at the imports. `off` turns
-off the reach only, and the AI and crypto capabilities stay on. A lockfile, an SBOM, an image or a
-PURL has no source code, so the scan computes no reach and its header says so.
+bundle: a missing, stale, unreachable or rejected bundle is a warning. A lockfile, an SBOM, an
+image or a PURL has no source code, so the scan computes no reach and its header says so.
 
 A backend that does not answer does not fail the scan. The controls that need its data do not run,
 and the report has a diagnostic. `--strict` turns a diagnostic into exit code 3.

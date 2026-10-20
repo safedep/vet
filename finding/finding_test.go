@@ -248,3 +248,13 @@ func TestReachLabel(t *testing.T) {
 	assert.Greater(t, ReachCalled.Rank(), ReachImported.Rank())
 	assert.Greater(t, ReachUnknown.Rank(), ReachNotCalled.Rank(), "a reach that vet cannot place ranks above one that it proves")
 }
+
+func TestEachReachCauseHasHelp(t *testing.T) {
+	for _, c := range []ReachCause{
+		ReachNoGraph, ReachDynamicImport, ReachBudget, ReachUnreadFiles, ReachNoSourceFiles, ReachNoSymbolData,
+		ReachNoEntryPoint, ReachNoDependencySource, ReachNoSymbolInGraph, ReachBroadRecord, ReachUnreviewedRecord,
+		ReachUnresolvedCall, ReachDynamicFlag, ReachTransitive, ReachAnalysisFailed, ReachUnprovenLanguage, ReachWeakPath,
+	} {
+		assert.NotEmpty(t, c.Help(), c)
+	}
+}

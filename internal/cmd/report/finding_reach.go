@@ -9,22 +9,6 @@ import (
 	"github.com/safedep/vet/v2/report"
 )
 
-// reachHints say what a person can do about a cause of a reach that vet
-// cannot prove.
-var reachHints = map[finding.ReachCause]string{
-	finding.ReachNoEntryPoint:       "vet found no entry point. Name one with --entrypoint path:function.",
-	finding.ReachNoDependencySource: "The code of the package is not on the disk. Run go mod download or cargo fetch, then scan again.",
-	finding.ReachNoSymbolData:       "vuln-symbols has no record of the vulnerable functions of the advisory.",
-	finding.ReachNoSymbolInGraph:    "The call graph has no definition of a vulnerable function of the record.",
-	finding.ReachBroadRecord:        "The record does not name every vulnerable function.",
-	finding.ReachUnreviewedRecord:   "No maintainer verified the record.",
-	finding.ReachUnresolvedCall:     "A call on the way is a call that vet cannot resolve.",
-	finding.ReachDynamicFlag:        "The code calls through reflection or another dynamic call.",
-	finding.ReachTransitive:         "Another dependency can call the package through code that vet did not prove.",
-	finding.ReachBudget:             "The time budget stopped the analysis. Raise plugins.codeusage.options.budget.",
-	finding.ReachAnalysisFailed:     "The call graph search failed. The diagnostics of the scan say why.",
-}
-
 // reachRows adds the reach of a finding: its label and hint, the call
 // path, the entry points of a search that found no path, and the symbol
 // record.
@@ -33,7 +17,7 @@ func reachRows(r *finding.Reach, scan *report.ReachInfo, add func(k, v string)) 
 		return
 	}
 	add("reach", r.Label())
-	add("reach help", reachHints[r.Cause])
+	add("reach help", r.Cause.Help())
 	for i, h := range r.Path {
 		add("path", hopText(i, h))
 	}
@@ -60,7 +44,7 @@ func reachRows(r *finding.Reach, scan *report.ReachInfo, add func(k, v string)) 
 func hopText(i int, h model.PathHop) string {
 	if i == 0 {
 		root := h.Root
-		if root == "query" {
+		if root == report.RootQuery {
 			root = "--entrypoint"
 		}
 		return fmt.Sprintf("%s (root: %s)", h.Function, root)

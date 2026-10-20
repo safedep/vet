@@ -87,7 +87,7 @@ func (s Overview) ReachSummary() string {
 	parts := make([]string, 0, len(order))
 	for _, lv := range order {
 		l := levels[lv]
-		part := fmt.Sprintf("%d %s", l.n, strings.ReplaceAll(string(lv), "-", " "))
+		part := fmt.Sprintf("%d %s", l.n, lv.Text())
 		var causes []string
 		for _, c := range slices.Sorted(maps.Keys(l.causes)) {
 			causes = append(causes, fmt.Sprintf("%d %s", l.causes[c], c.Text()))

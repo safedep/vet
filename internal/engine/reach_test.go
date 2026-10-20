@@ -133,6 +133,14 @@ func TestReachOf(t *testing.T) {
 			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachBroadRecord, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render", "dep.Parse"}},
 		},
 		{
+			name: "an unknown reach of a package that only the graph reaches is transitive", level: report.ReachFunction,
+			usage: &model.Usage{Symbols: record(&model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoDependencySource)})}, appUsage: &model.Usage{Imported: true}, toolUsage: &model.Usage{},
+			want: &finding.Reach{
+				Level: finding.ReachImported, Cause: finding.ReachTransitive, Confidence: finding.ConfidenceMedium,
+				Via: []string{app.PURL(), dep.PURL()}, FixSites: []string{"dep.Render"},
+			},
+		},
+		{
 			name: "no path with an unread file stays imported", level: report.ReachFunction,
 			usage: &model.Usage{Imported: true, UnreadFiles: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
 			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachUnreadFiles, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},

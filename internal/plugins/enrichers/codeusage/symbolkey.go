@@ -2,7 +2,7 @@ package codeusage
 
 import "strings"
 
-// symbolKey turns the name of a fix site, as a symbol record writes it, into
+// SymbolKey turns the name of a fix site, as a symbol record writes it, into
 // the symbol key of safedep/code. A Go name is the import path, a dot and the
 // symbol, as golang.org/x/net/html.Tokenizer.Next. A Rust name is a path with
 // ::, as time::OffsetDateTime::now_local, and its crate name folds - to _.

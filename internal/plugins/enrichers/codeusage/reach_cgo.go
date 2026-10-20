@@ -89,7 +89,7 @@ func rootsOf(g *projectgraph.Graph, q reach.Query) *report.ReachRoots {
 		out.List = append(out.List, report.EntryPoint{Function: r.Key, Kind: string(r.Kind), Rule: r.Rule, File: r.Site.Path, Line: r.Site.Line})
 	}
 	for _, s := range q.Sources[:min(len(q.Sources), report.MaxRoots-len(out.List))] {
-		out.List = append(out.List, report.EntryPoint{Function: s.Key(), Kind: string(reach.RootQuery)})
+		out.List = append(out.List, report.EntryPoint{Function: s.Key(), Kind: report.RootQuery})
 	}
 	return out
 }
@@ -150,12 +150,12 @@ func entryPointError(err error) error {
 }
 
 func answerOf(r reach.Result, rootFallback bool) ReachAnswer {
-	a := ReachAnswer{Status: string(r.Status), RootFallback: rootFallback}
+	a := ReachAnswer{Status: ReachStatus(r.Status), RootFallback: rootFallback}
 	path := r.Path
 	if len(path) == 0 && len(r.TestPath) > 0 {
 		// Only a test reaches the target. That is still a call, so the
 		// answer is found with the test mark.
-		path, a.TestOnly, a.Status = r.TestPath, true, reachFound
+		path, a.TestOnly, a.Status = r.TestPath, true, ReachFound
 	}
 	for _, h := range path {
 		a.Path = append(a.Path, model.PathHop{

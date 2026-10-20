@@ -38,7 +38,8 @@ import (
 )
 
 // Name is the registered name of the enricher and the config key under
-// plugins. It is off by default, because it parses each source file.
+// plugins. It is on by default for a directory target on a build with
+// CGO. plugins.codeusage.enabled: false turns it off.
 const Name = "codeusage"
 
 // Version changes when the mapping or the signatures change.
@@ -93,13 +94,6 @@ type ExternalCall struct {
 	Module   string
 }
 
-// DynamicSite is one line of a source file that the analysis cannot follow.
-type DynamicSite struct {
-	FilePath string
-	Line     int
-	Kind     string
-}
-
 // FileFailure is a source file that the analysis could not read, parse
 // or analyze. The rest of the scan goes on without it.
 type FileFailure struct {
@@ -117,12 +111,12 @@ type Analysis struct {
 	Failed  []FileFailure
 	// Files holds the index status of each source file by name: indexed,
 	// cached, missing, failed or truncated.
-	Files map[string]string
+	Files map[string]fileindex.FileStatus
 	// DynamicImports holds the languages of the files that import a module
 	// by a computed name.
 	DynamicImports map[string]bool
 	Calls          []ExternalCall
-	Dynamic        []DynamicSite
+	Dynamic        []model.DynamicSite
 	// Languages holds the languages of the source files that the analysis
 	// found, and Unread the languages of a file that it could not read,
 	// parse or index whole.
@@ -152,8 +146,7 @@ type ReachQuery struct {
 
 // ReachAnswer is the answer for one target key.
 type ReachAnswer struct {
-	// Status is found, not-found, uncertain or no-such-target.
-	Status string
+	Status ReachStatus
 	Path   []model.PathHop
 	// TestOnly marks an answer whose only path starts at a test.
 	TestOnly bool
@@ -285,10 +278,6 @@ func PruneIndex(ctx context.Context, cache localdb.Manager, now time.Time) (int,
 	return st.Prune(ctx, now.Add(-indexRetention))
 }
 
-// FileMissing is the status of a file that the analysis did not reach in
-// its time budget.
-const FileMissing = "missing"
-
 // Analyzer analyzes the source files under a directory. When ctx is done,
 // it returns the analysis so far with the error of ctx.
 type Analyzer func(ctx context.Context, dir string) (Analysis, error)
@@ -348,7 +337,7 @@ type Enricher struct {
 	// sources and missingSources count the packages with a record whose
 	// code vet found and did not find.
 	sources, missingSources int
-	sites                   []DynamicSite
+	sites                   []model.DynamicSite
 	// hints holds the package hint of each imported module, by language
 	// and name, for the calls that name the module only.
 	hints    map[module]string
@@ -409,7 +398,7 @@ func (e *Enricher) Diagnostics() []report.Diagnostic {
 	if e.missingSources > 0 {
 		out = append(out, report.Diagnostic{
 			Level: report.DiagnosticWarning, Code: CodeSourceMissing, Component: Name,
-			Message: fmt.Sprintf("vet found no code of %d imported Go modules and Rust crates with a vulnerability, so their findings stay imported. Run go mod download or cargo fetch, then scan again.", e.missingSources),
+			Message: fmt.Sprintf("vet found no code of %d imported Go modules and Rust crates with a vulnerability, so their findings stay imported. %s", e.missingSources, finding.FetchHint),
 		})
 	}
 	if e.reachStopped {
@@ -523,8 +512,8 @@ func (e *Enricher) lookupSymbols(pkgs []*model.Package) {
 
 // functionReach searches the call graph for the fix sites of each record.
 // The engine gives the enricher every package in one call, so one graph
-// links the code of the project and of each dependency on disk. A call
-// path can pass through a dependency with no record.
+// links the code of the project and of each dependency on disk. The
+// enricher records each answer as it is, and the engine decides the reach.
 func (e *Enricher) functionReach(ctx context.Context, pkgs []*model.Package) error {
 	if err := e.checkEntrypoints(); err != nil {
 		return err
@@ -532,6 +521,30 @@ func (e *Enricher) functionReach(ctx context.Context, pkgs []*model.Package) err
 	if e.symbols == nil || e.reach == nil {
 		return nil
 	}
+	q, hasUnit := e.reachQuery(pkgs)
+	if len(q.Targets) == 0 {
+		return nil
+	}
+	res, failed, err := e.search(ctx, q)
+	if err != nil {
+		return err
+	}
+	for _, p := range pkgs {
+		if p.Usage == nil {
+			continue
+		}
+		for i := range p.Usage.Symbols {
+			r := &p.Usage.Symbols[i]
+			r.Reach = functionReachOf(r, res.Answers, hasUnit[p.ID.Key()], failed)
+		}
+	}
+	return nil
+}
+
+// reachQuery collects the target keys of every record, and the code of
+// each package whose call paths can prove a finding. The code of another
+// package costs time and proves nothing.
+func (e *Enricher) reachQuery(pkgs []*model.Package) (ReachQuery, map[model.PackageKey]bool) {
 	q := ReachQuery{Sources: e.o.Entrypoints, SourcesOnly: e.o.EntrypointsOnly}
 	hasUnit := map[model.PackageKey]bool{}
 	for _, p := range pkgs {
@@ -541,11 +554,7 @@ func (e *Enricher) functionReach(ctx context.Context, pkgs []*model.Package) err
 		for _, r := range p.Usage.Symbols {
 			q.Targets = append(q.Targets, r.Keys...)
 		}
-		// Only the code of an imported package can hold a path that proves
-		// a finding. The code of a transitive package costs time and
-		// proves nothing, because the engine keeps it imported. So does
-		// the standard library, which every module calls.
-		if !p.Usage.Imported || p.ID.GoStdlib() {
+		if !p.ProvableReach() {
 			continue
 		}
 		if u, ok := unitOf(e.dir, p.ID); ok {
@@ -556,10 +565,14 @@ func (e *Enricher) functionReach(ctx context.Context, pkgs []*model.Package) err
 			e.missingSources++
 		}
 	}
-	if len(q.Targets) == 0 {
-		return nil
-	}
 	q.Targets = slices.Compact(slices.Sorted(slices.Values(q.Targets)))
+	return q, hasUnit
+}
+
+// search runs the query in the budget. A search that did not finish gives
+// the cause of each record. Only a usage error or a stopped scan is an
+// error.
+func (e *Enricher) search(ctx context.Context, q ReachQuery) (ReachResult, finding.ReachCause, error) {
 	e.searched = true
 	rctx := ctx
 	if e.o.Budget > 0 {
@@ -569,35 +582,20 @@ func (e *Enricher) functionReach(ctx context.Context, pkgs []*model.Package) err
 	}
 	res, err := e.reach(rctx, q)
 	e.roots, e.versions = res.Roots, res.Versions
-	var failed finding.ReachCause
 	switch {
-	case err == nil && res.Stopped:
-		// The search stopped at its budget. Each answer with no path
-		// carries the budget uncertainty.
-		e.reachStopped = true
 	case err == nil:
+		// A search that stopped at its budget gives each answer with no
+		// path the budget uncertainty.
+		e.reachStopped = res.Stopped
+		return res, "", nil
 	case app.ExitCode(err) == app.ExitUsage || ctx.Err() != nil:
-		return err
+		return res, "", err
 	case errors.Is(err, context.DeadlineExceeded):
-		failed = finding.ReachBudget
 		e.reachStopped = true
-	default:
-		failed = finding.ReachAnalysisFailed
-		e.reachErr = err
+		return res, finding.ReachBudget, nil
 	}
-	for _, p := range pkgs {
-		if p.Usage == nil {
-			continue
-		}
-		for i := range p.Usage.Symbols {
-			r := &p.Usage.Symbols[i]
-			r.Reach = functionReachOf(r, res.Answers, hasUnit[p.ID.Key()], failed)
-			if (!p.Usage.Imported || p.ID.GoStdlib()) && r.Reach.Status != model.FunctionCalled {
-				r.Reach = &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachTransitive)}
-			}
-		}
-	}
-	return nil
+	e.reachErr = err
+	return res, finding.ReachAnalysisFailed, nil
 }
 
 // Search analyzes the code under dir and searches its call graph for the
@@ -652,17 +650,17 @@ func functionReachOf(r *model.SymbolRecord, answers map[string]ReachAnswer, hasU
 		switch {
 		case !ok:
 			cause = cmp.Or(cause, finding.ReachAnalysisFailed)
-		case a.Status == reachFound:
+		case a.Status == ReachFound:
 			if found == nil || (found.TestOnly && !a.TestOnly) {
 				found = &a
 			}
-		case a.Status == reachUncertain && a.Uncertain != "":
+		case a.Status == ReachUncertain && a.Uncertain != "":
 			cause = cmp.Or(cause, finding.ReachCause(a.Uncertain))
-		case a.Status == reachUncertain || a.RootFallback:
+		case a.Status == ReachUncertain || a.RootFallback:
 			cause = cmp.Or(cause, finding.ReachNoEntryPoint)
-		case a.Status == reachNoSuchTarget && !hasUnit:
+		case a.Status == ReachNoSuchTarget && !hasUnit:
 			cause = cmp.Or(cause, finding.ReachNoDependencySource)
-		case a.Status == reachNoSuchTarget:
+		case a.Status == ReachNoSuchTarget:
 			cause = cmp.Or(cause, finding.ReachNoSymbolInGraph)
 		}
 	}
@@ -685,11 +683,16 @@ func functionReachOf(r *model.SymbolRecord, answers map[string]ReachAnswer, hasU
 	return &model.FunctionReach{Status: model.FunctionNotFound}
 }
 
-// The statuses of a ReachAnswer.
+// ReachStatus is the answer of the call graph search for one target key.
+type ReachStatus string
+
+// The statuses of a ReachAnswer, as the reach query of safedep/code names
+// them.
 const (
-	reachFound        = "found"
-	reachUncertain    = "uncertain"
-	reachNoSuchTarget = "no-such-target"
+	ReachFound        ReachStatus = "found"
+	ReachNotFound     ReachStatus = "not-found"
+	ReachUncertain    ReachStatus = "uncertain"
+	ReachNoSuchTarget ReachStatus = "no-such-target"
 )
 
 // ReachReport adds the symbol data that the scan read, and the entry
@@ -726,8 +729,8 @@ func (e *Enricher) callsInto(id model.PackageVersion) []model.CallSite {
 func (e *Enricher) dynamicIn(files map[string]int) []model.DynamicSite {
 	var out []model.DynamicSite
 	for _, d := range e.sites {
-		if _, ok := files[d.FilePath]; ok {
-			out = append(out, model.DynamicSite{File: d.FilePath, Line: d.Line, Kind: d.Kind})
+		if _, ok := files[d.File]; ok {
+			out = append(out, d)
 			if len(out) == maxSites {
 				break
 			}
@@ -799,12 +802,12 @@ func (e *Enricher) index(ctx context.Context) error {
 		return err
 	}
 	e.stopped = err != nil
-	counts := map[string]int{}
+	counts := map[fileindex.FileStatus]int{}
 	for _, st := range a.Files {
 		counts[st]++
 	}
-	e.missing = counts[FileMissing]
-	log.Debugf("code index: %d source files, %d cached, %d indexed, %d missing", len(a.Files), counts["cached"], counts["indexed"], e.missing)
+	e.missing = counts[fileindex.FileMissing]
+	log.Debugf("code index: %d source files, %d cached, %d indexed, %d missing", len(a.Files), counts[fileindex.FileCached], counts[fileindex.FileIndexed], e.missing)
 	if e.own, err = ownRoots(e.dir); err != nil {
 		return err
 	}
@@ -819,8 +822,8 @@ func (e *Enricher) index(ctx context.Context) error {
 	slices.SortFunc(e.calls, func(x, y ExternalCall) int {
 		return cmp.Or(cmp.Compare(x.FilePath, y.FilePath), cmp.Compare(x.Line, y.Line), cmp.Compare(x.Callee, y.Callee))
 	})
-	slices.SortFunc(e.sites, func(x, y DynamicSite) int {
-		return cmp.Or(cmp.Compare(x.FilePath, y.FilePath), cmp.Compare(x.Line, y.Line), cmp.Compare(x.Kind, y.Kind))
+	slices.SortFunc(e.sites, func(x, y model.DynamicSite) int {
+		return cmp.Or(cmp.Compare(x.File, y.File), cmp.Compare(x.Line, y.Line), cmp.Compare(x.Kind, y.Kind))
 	})
 	e.failed = a.Failed
 	for i := range e.failed {

@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/safedep/code/fileindex"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -64,7 +65,7 @@ func TestBudgetKeepsThePartialAnalysis(t *testing.T) {
 		<-ctx.Done()
 		return Analysis{
 			Usage:     []Evidence{{PackageHint: "a", ModuleName: "a", FilePath: "a.js", Line: 1}},
-			Files:     map[string]string{"a.js": "indexed", "b.js": FileMissing, "c.js": FileMissing},
+			Files:     map[string]fileindex.FileStatus{"a.js": fileindex.FileIndexed, "b.js": fileindex.FileMissing, "c.js": fileindex.FileMissing},
 			Languages: map[string]bool{"javascript": true},
 		}, ctx.Err()
 	}
@@ -300,46 +301,46 @@ func TestFunctionReachOfARecord(t *testing.T) {
 	}{
 		{
 			name: "a path to a fix site is a call", vendored: true,
-			answer: ReachAnswer{Status: reachFound, Path: path},
+			answer: ReachAnswer{Status: ReachFound, Path: path},
 			want:   &model.FunctionReach{Status: model.FunctionCalled, Path: path},
 		},
 		{
 			name: "no path in an exact and verified record of vendored code", vendored: true,
-			answer: ReachAnswer{Status: "not-found"},
+			answer: ReachAnswer{Status: ReachNotFound},
 			want:   &model.FunctionReach{Status: model.FunctionNotFound},
 		},
 		{
-			name: "no path with no source of the package", answer: ReachAnswer{Status: "not-found"},
+			name: "no path with no source of the package", answer: ReachAnswer{Status: ReachNotFound},
 			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoDependencySource)}, diag: CodeSourceMissing,
 		},
 		{
-			name: "no path to a package that the code does not import", vendored: true, indirect: true, answer: ReachAnswer{Status: "not-found"},
-			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachTransitive)},
-		},
-		{
-			name: "no definition with no source of the package", answer: ReachAnswer{Status: reachNoSuchTarget},
+			name: "a package that the code does not import gives no code", vendored: true, indirect: true, answer: ReachAnswer{Status: ReachNotFound},
 			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoDependencySource)},
 		},
 		{
-			name: "no definition in the source of the package", vendored: true, answer: ReachAnswer{Status: reachNoSuchTarget},
+			name: "no definition with no source of the package", answer: ReachAnswer{Status: ReachNoSuchTarget},
+			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoDependencySource)},
+		},
+		{
+			name: "no definition in the source of the package", vendored: true, answer: ReachAnswer{Status: ReachNoSuchTarget},
 			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoSymbolInGraph)},
 		},
 		{
-			name: "no path in a broad record", vendored: true, answer: ReachAnswer{Status: "not-found"},
+			name: "no path in a broad record", vendored: true, answer: ReachAnswer{Status: ReachNotFound},
 			record: func(r *model.SymbolRecord) { r.Coverage = "broad" },
 			want:   &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachBroadRecord)},
 		},
 		{
-			name: "no path in an unreviewed record", vendored: true, answer: ReachAnswer{Status: "not-found"},
+			name: "no path in an unreviewed record", vendored: true, answer: ReachAnswer{Status: ReachNotFound},
 			record: func(r *model.SymbolRecord) { r.Verified = false },
 			want:   &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachUnreviewedRecord)},
 		},
 		{
-			name: "an unresolved call", vendored: true, answer: ReachAnswer{Status: reachUncertain, Uncertain: "unresolved-call"},
+			name: "an unresolved call", vendored: true, answer: ReachAnswer{Status: ReachUncertain, Uncertain: "unresolved-call"},
 			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachUnresolvedCall)},
 		},
 		{
-			name: "no entry point", vendored: true, answer: ReachAnswer{Status: "not-found", RootFallback: true},
+			name: "no entry point", vendored: true, answer: ReachAnswer{Status: ReachNotFound, RootFallback: true},
 			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoEntryPoint)},
 		},
 		{
@@ -404,14 +405,14 @@ func TestFunctionReachOfKeys(t *testing.T) {
 	record := func(keys ...string) *model.SymbolRecord {
 		return &model.SymbolRecord{Coverage: model.CoverageExact, Verified: true, FixSites: []string{"x.A", "x.B"}, Keys: keys}
 	}
-	notFound := map[string]ReachAnswer{a: {Status: "not-found"}, b: {Status: "not-found"}}
+	notFound := map[string]ReachAnswer{a: {Status: ReachNotFound}, b: {Status: ReachNotFound}}
 	assert.Equal(t, model.FunctionNotFound, functionReachOf(record(a, b), notFound, true, "").Status)
 	assert.Equal(t, &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoSymbolInGraph)},
 		functionReachOf(record(a), notFound, true, ""), "a fix site with no key leaves a hole in the search")
 	assert.Equal(t, &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachNoSymbolInGraph)},
-		functionReachOf(record(a, b), map[string]ReachAnswer{a: {Status: "not-found"}, b: {Status: reachNoSuchTarget}}, true, ""),
+		functionReachOf(record(a, b), map[string]ReachAnswer{a: {Status: ReachNotFound}, b: {Status: ReachNoSuchTarget}}, true, ""),
 		"one key that the graph does not hold leaves a hole")
-	called := map[string]ReachAnswer{a: {Status: reachFound, TestOnly: true}, b: {Status: reachFound, Path: []model.PathHop{{Function: "main"}}}}
+	called := map[string]ReachAnswer{a: {Status: ReachFound, TestOnly: true}, b: {Status: ReachFound, Path: []model.PathHop{{Function: "main"}}}}
 	assert.Equal(t, &model.FunctionReach{Status: model.FunctionCalled, Path: []model.PathHop{{Function: "main"}}},
 		functionReachOf(record(a, b), called, true, ""), "a path that is not from a test wins")
 }

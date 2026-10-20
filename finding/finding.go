@@ -73,7 +73,8 @@ const (
 	// ReachDynamicImport is a project that imports a module by a computed
 	// name in the language of the package.
 	ReachDynamicImport ReachCause = "dynamic-import"
-	// ReachBudget is an analysis that its time budget stopped.
+	// ReachBudget is an analysis that its time budget or a limit of the
+	// call graph stopped.
 	ReachBudget ReachCause = "budget"
 	// ReachUnreadFiles is a project with a source file of the language of
 	// the package that the analysis could not read, parse or index whole.
@@ -174,7 +175,7 @@ func (r *Reach) Label() string {
 	if r == nil {
 		return ""
 	}
-	label := strings.ReplaceAll(string(r.Level), "-", " ")
+	label := r.Level.Text()
 	switch {
 	case r.Level == ReachCalled && len(r.Path) == 2:
 		label += " · 1 hop"
@@ -188,6 +189,37 @@ func (r *Reach) Label() string {
 	}
 	return label
 }
+
+// FetchHint is the action that puts the code of the dependencies on the
+// disk, for a call graph search.
+const FetchHint = "Run go mod download or cargo fetch, then scan again."
+
+// causeHelp says what a person can do about each cause.
+var causeHelp = map[ReachCause]string{
+	ReachNoGraph:            "The lockfile holds no dependency graph, so another dependency can call the package.",
+	ReachDynamicImport:      "The code imports a module by a computed name, so vet cannot tell which package it loads.",
+	ReachBudget:             "The time budget or a limit of the call graph stopped the analysis. Raise plugins.codeusage.options.budget.",
+	ReachUnreadFiles:        "vet could not read, parse or index a source file of the language. The diagnostics of the scan name it.",
+	ReachNoSourceFiles:      "vet parses no source file of the language of the package in this project.",
+	ReachNoSymbolData:       "vuln-symbols has no record of the vulnerable functions of the advisory.",
+	ReachNoEntryPoint:       "vet found no entry point. Name one with --entrypoint path:function.",
+	ReachNoDependencySource: "The code of the package is not on the disk. " + FetchHint,
+	ReachNoSymbolInGraph:    "The call graph has no definition of a vulnerable function of the record.",
+	ReachBroadRecord:        "The record does not name every vulnerable function.",
+	ReachUnreviewedRecord:   "No maintainer verified the record.",
+	ReachUnresolvedCall:     "A call on the way is a call that vet cannot resolve.",
+	ReachDynamicFlag:        "The code calls through reflection or another dynamic call.",
+	ReachTransitive:         "Another dependency can call the package through code that vet did not prove.",
+	ReachAnalysisFailed:     "The call graph search failed. The diagnostics of the scan say why.",
+	ReachUnprovenLanguage:   "The reach corpus of the language has a call that the search misses, so vet does not say not-called for it.",
+	ReachWeakPath:           "The path has a call that the call graph only guesses. Read the path to decide.",
+}
+
+// Help says what a person can do about the cause, or "".
+func (c ReachCause) Help() string { return causeHelp[c] }
+
+// Text is the level as words, as "not called".
+func (l ReachLevel) Text() string { return strings.ReplaceAll(string(l), "-", " ") }
 
 // Text is the cause as words, as "no symbol data".
 func (c ReachCause) Text() string { return strings.ReplaceAll(string(c), "-", " ") }

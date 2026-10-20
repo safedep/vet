@@ -150,6 +150,9 @@ type ReachRoots struct {
 	List  []EntryPoint `json:"list,omitempty"`
 }
 
+// RootQuery is the kind of an entry point that the user names.
+const RootQuery = "query"
+
 // EntryPoint is one entry point of the call graph search.
 type EntryPoint struct {
 	// Function is the key of the function, as cmd/app/main.go//main.

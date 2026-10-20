@@ -21,8 +21,8 @@ func newCapability(a *app.App) *cobra.Command {
 		Short: "Read the AI and crypto capabilities of a saved scan",
 		Long: `Read the capabilities of a saved scan: the AI SDKs, models and agent
 frameworks, and the cryptographic algorithms, protocols and certificates
-that the code calls. A scan finds them when plugins.codeusage.enabled is
-true.`,
+that the code calls. A scan of a directory on a vet build with CGO finds
+them, unless plugins.codeusage.enabled is false.`,
 	}
 	c.AddCommand(newCapabilityList(a))
 	return c
@@ -86,7 +86,7 @@ func capabilityRows(caps []*report.Capability, delta bool) printer.Rows {
 	}
 	rows := printer.Rows{
 		Headers: append(headers, "WHERE", "CALL"),
-		Empty:   "The scan has no capability. Set plugins.codeusage.enabled to true, then scan again.",
+		Empty:   "The scan has no capability. A scan of a directory on a vet build with CGO finds them.",
 	}
 	for _, c := range caps {
 		row := []string{strings.ToUpper(string(c.Kind())), escape.Line(c.Name()), escape.Line(strings.Join(c.DetailTags(), ", "))}
