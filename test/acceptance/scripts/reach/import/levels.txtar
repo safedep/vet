@@ -5,12 +5,12 @@
 [!cgo] skip 'code analysis needs a vet built with CGO'
 cd proj
 exec vet scan . -o jsonl --mode agent
-stdout '"reach":\{"level":"function","status":"computed"\}'
-stdout '"name":"left-pad".*"reach":\{"level":"imported","cause":"no-symbol-data","confidence":"high","imports":\[\{"file":"index.js","line":1\}\]\}'
-stdout '"name":"minimist".*"reach":\{"level":"imported","cause":"no-symbol-data","confidence":"medium","via":\["pkg:npm/left-pad@1.3.0","pkg:npm/minimist@1.2.0"\]\}'
+stdout '"reach":\{"level":"import","status":"computed"\}'
+stdout '"name":"left-pad".*"reach":\{"level":"imported","confidence":"high","imports":\[\{"file":"index.js","line":1\}\]\}'
+stdout '"name":"minimist".*"reach":\{"level":"imported","confidence":"medium","via":\["pkg:npm/left-pad@1.3.0","pkg:npm/minimist@1.2.0"\]\}'
 
-exec vet scan . -o jsonl --mode agent --reach import
-stdout '"name":"left-pad".*"reach":\{"level":"imported","confidence":"high"'
+exec vet scan . -o jsonl --mode agent --reach function
+stdout '"name":"left-pad".*"reach":\{"level":"imported","cause":"no-symbol-data","confidence":"high"'
 
 exec vet scan . -o jsonl --mode agent --reach off
 stdout '"reach":\{"level":"off","status":"off"\}'
@@ -26,7 +26,7 @@ stdout '"name":"left-pad".*"reach":\{"level":"unused","confidence":"medium"\}'
 
 cd ..
 exec vet scan proj/package-lock.json -o jsonl --mode agent
-stdout '"reach":\{"level":"function","status":"no-source"\}'
+stdout '"reach":\{"level":"import","status":"no-source"\}'
 exec vet scan proj/package-lock.json --mode plain -o table
 stderr 'Reach: not computed, the target has no source code'
 ! stdout 'REACH'

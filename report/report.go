@@ -86,7 +86,7 @@ const (
 func ParseReachLevel(s string) (ReachLevel, error) {
 	switch l := ReachLevel(s); l {
 	case "":
-		return ReachFunction, nil
+		return ReachImport, nil
 	case ReachOff, ReachImport, ReachFunction:
 		return l, nil
 	}

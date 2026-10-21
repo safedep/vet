@@ -487,6 +487,12 @@ func codeAnalysisOf(cfg *config.Config, o Options) (codeAnalysis, error) {
 		return codeAnalysis{}, app.UsageError("entrypoints_only needs at least one entry point",
 			"Add --entrypoint cmd/app/main.go:main, or set plugins.codeusage.options.entrypoints.")
 	}
+	// An entry point only starts a call graph search. At another level it
+	// would change nothing, and a user would think the scan used it.
+	if len(set.Entrypoints) > 0 && set.Reach != report.ReachFunction {
+		return codeAnalysis{}, app.UsageError("an entry point needs the function reach level",
+			"Add --reach function, or set plugins.codeusage.options.reach to function.")
+	}
 	c := codeAnalysis{on: o.Source == nil && cfg.PluginEnabled(codeusage.Name, true), budget: set.Budget, reach: report.ReachInfo{Level: set.Reach}, config: set}
 	p, ok := cfg.Plugins[codeusage.Name]
 	explicit := ok && p.Enabled != nil

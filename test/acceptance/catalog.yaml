@@ -903,7 +903,7 @@
   title: "a vulnerability finding says whether the code imports its package"
   category: reach
   tier: P1
-  guarantee: "A scan of a directory sets the reach of each vulnerability finding. A package that a source file imports is imported, with its import lines. A package that an imported package depends on is imported, with the dependency path. A package that no file imports and no imported package depends on is unused. --reach off removes the reach, and a lockfile target has no source code, so its report header says no-source, the table has no REACH column, and the view says that vet computed no reach. A bad --reach value exits 2."
+  guarantee: "A scan of a directory sets the reach of each vulnerability finding at the import level by default. A package that a source file imports is imported, with its import lines. A package that an imported package depends on is imported, with the dependency path. A package that no file imports and no imported package depends on is unused. --reach off removes the reach, and a lockfile target has no source code, so its report header says no-source, the table has no REACH column, and the view says that vet computed no reach. A bad --reach value exits 2."
   labels: [reach, enrichers]
 - id: reach/function/no-symbol-data
   title: "a scan with no symbol data never says not called"
@@ -915,5 +915,5 @@
   title: "a bad entry point exits 2 before a scan runs"
   category: reach
   tier: P1
-  guarantee: "An --entrypoint that is not path:function exits 2, and so does --entrypoints-only with no entry point. An --entrypoint in a file that the target does not have exits 2, also when no search runs. A good --entrypoint does not change a scan with no symbol data, and vet report root list says that the scan searched no call path."
+  guarantee: "An --entrypoint that is not path:function exits 2, and so does --entrypoints-only with no entry point. An --entrypoint at the default import level exits 2. An --entrypoint in a file that the target does not have exits 2, also when no search runs. A good --entrypoint does not change a scan with no symbol data, and vet report root list says that the scan searched no call path."
   labels: [reach, enrichers, cli]

@@ -99,10 +99,11 @@ vet never shows `unknown` as safe. A source file that vet could not read or pars
 of its language `unknown`. So does a project with no source file that vet parses in the language of
 the package, such as a project of `.jsx` files. A package that only test files import is `imported`, with a
 test-only mark. `--reach` sets the level, and `plugins.codeusage.options.reach` sets it for every
-run. `function`, the default, also follows the calls to the vulnerable functions of Go and Rust
-packages, and a finding with no record of its vulnerable functions stays `imported` with the cause
-`no-symbol-data`. `import` stops at the imports. `off` turns off the reach only, and the AI and
-crypto capabilities stay on.
+run. `import`, the default, stops at the imports. `function` also follows the calls to the
+vulnerable functions of Go and Rust packages, and a finding with no record of its vulnerable
+functions stays `imported` with the cause `no-symbol-data`. The function level is opt-in. It parses
+the code of the dependencies, and it gives few `called` or `not-called` answers on real projects
+yet. `off` turns off the reach only, and the AI and crypto capabilities stay on.
 
 At the function level, vet links one call graph of the project and of the Go modules and Rust
 crates that it finds on the disk: the `vendor` directory first, then the module cache or the cargo
@@ -110,7 +111,8 @@ registry. vet never downloads a dependency. The search starts at the entry point
 the main functions, the framework handlers, the tests and the exported functions of a library.
 `vet report root list` lists them. `--entrypoint cmd/app/main.go:main` adds an entry point, and
 `plugins.codeusage.options.entrypoints` adds a list for every run. The flag values join the
-config list. `--entrypoints-only`, or `entrypoints_only: true`, starts the search from the named
+config list. An entry point needs `--reach function`. At another level it exits with code 2.
+`--entrypoints-only`, or `entrypoints_only: true`, starts the search from the named
 entry points alone. An entry point that names no file or no function of the project exits with
 code 2. The call graph search has its own time budget, the same as
 `plugins.codeusage.options.budget`, after the code index.

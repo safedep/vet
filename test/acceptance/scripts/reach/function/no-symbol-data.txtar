@@ -3,7 +3,7 @@
 # vulnerable function.
 [!cgo] skip 'code analysis needs a vet built with CGO'
 cd proj
-exec vet scan . -o jsonl --mode agent
+exec vet scan . -o jsonl --mode agent --reach function
 stdout '"reach":\{"level":"function","status":"computed","symbol_data":true\}'
 stdout '"code":"symbol_data_missing"'
 stdout '"name":"github.com/Masterminds/goutils".*"reach":\{"level":"imported","cause":"no-symbol-data"'

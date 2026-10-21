@@ -181,7 +181,7 @@ const DefaultBudget = 5 * time.Minute
 // Settings are plugins.codeusage.options.
 type Settings struct {
 	// Reach is the reach level of the vulnerability findings: off, import
-	// or function. The default is function. --reach overrides it.
+	// or function. The default is import. --reach overrides it.
 	Reach string `json:"reach,omitempty" jsonschema:"enum=off,enum=import,enum=function"`
 	// Budget bounds the time of the code analysis, as 90s or 10m. The
 	// default is 5m.

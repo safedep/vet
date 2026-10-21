@@ -33,18 +33,19 @@ func TestCodeAnalysisOf(t *testing.T) {
 		want    codeAnalysis
 		usage   bool
 	}{
-		{name: "on by default at function level", want: codeAnalysis{on: defaultOn, budget: codeusage.DefaultBudget, reach: report.ReachInfo{Level: report.ReachFunction, Status: defaultStatus}}},
+		{name: "on by default at import level", want: codeAnalysis{on: defaultOn, budget: codeusage.DefaultBudget, reach: report.ReachInfo{Level: report.ReachImport, Status: defaultStatus}}},
 		{
 			name: "the flag overrides the config", plugins: plugins(nil, map[string]any{"reach": "function", "budget": "90s"}), flag: "import",
 			want: codeAnalysis{on: defaultOn, budget: 90 * time.Second, reach: report.ReachInfo{Level: report.ReachImport, Status: defaultStatus}},
 		},
 		{name: "reach off keeps the code analysis", flag: "off", want: codeAnalysis{on: defaultOn, budget: codeusage.DefaultBudget, reach: report.ReachInfo{Level: report.ReachOff, Status: defaultStatus}}},
 		{name: "enabled false turns off all code analysis", plugins: plugins(&off, nil), want: codeAnalysis{budget: codeusage.DefaultBudget, reach: report.ReachInfo{Level: report.ReachOff}}},
-		{name: "an explicit enabled keeps the enricher", plugins: plugins(&on, nil), want: codeAnalysis{on: true, budget: codeusage.DefaultBudget, reach: report.ReachInfo{Level: report.ReachFunction}}},
+		{name: "an explicit enabled keeps the enricher", plugins: plugins(&on, nil), want: codeAnalysis{on: true, budget: codeusage.DefaultBudget, reach: report.ReachInfo{Level: report.ReachImport}}},
 		{name: "a replaced source reads no code", source: true, want: codeAnalysis{budget: codeusage.DefaultBudget, reach: report.ReachInfo{Level: report.ReachOff}}},
 		{name: "a bad flag", flag: "deep", usage: true},
 		{name: "a bad budget", plugins: plugins(nil, map[string]any{"budget": "soon"}), usage: true},
 		{name: "a bad level", plugins: plugins(nil, map[string]any{"reach": "all"}), usage: true},
+		{name: "an entry point at the import level", plugins: plugins(nil, map[string]any{"entrypoints": []any{"main.go:main"}}), usage: true},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -76,7 +77,7 @@ func TestSymbolOptionsOfCodeusage(t *testing.T) {
 	cfg := &config.Config{Plugins: map[string]config.PluginConfig{codeusage.Name: {Options: map[string]any{
 		"symbols_update": false, "symbols_pin": "ab",
 	}}}}
-	c, err := codeAnalysisOf(cfg, Options{})
+	c, err := codeAnalysisOf(cfg, Options{Reach: "function"})
 	require.NoError(t, err)
 	assert.False(t, c.config.SymbolsUpdate)
 	c.on = true
