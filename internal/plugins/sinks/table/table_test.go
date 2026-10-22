@@ -429,3 +429,14 @@ func TestReachColumn(t *testing.T) {
 	r = vulnReport()
 	assert.NotContains(t, write(t, nil, r), "REACH", "a scan with no reach has no REACH column")
 }
+
+// A narrow table shows the reach level alone. A row with no reach, as the
+// scorecard row, has an empty REACH cell.
+func TestNarrowReachWithARowOfNoReach(t *testing.T) {
+	withWidth(t, 60)
+	r := vulnReport()
+	r.FindingList[0].Reach = &finding.Reach{Level: finding.ReachCalled, Confidence: finding.ConfidenceHigh}
+	got := write(t, nil, r)
+	assert.Contains(t, got, "REACH")
+	assert.Contains(t, got, finding.ReachCalled.Text())
+}

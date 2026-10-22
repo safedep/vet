@@ -261,11 +261,7 @@ func findingLayout(rows []row, idLen int, delta, control, where, fullReach bool)
 		}
 		row = append(row, render.Subject(f))
 		if reach {
-			label := r.reach().Label()
-			if !fullReach {
-				label = r.reach().Level.Text()
-			}
-			row = append(row, label)
+			row = append(row, reachText(r.reach(), fullReach))
 		}
 		row = append(row, "")
 		if where {
@@ -325,6 +321,18 @@ func (r row) gate() *finding.GateRecord {
 
 // reach is the reach of the row: the riskiest reach of its findings, so a
 // called vulnerability is never hidden behind one that is not called.
+// reachText is the REACH cell: the label, or the level alone in a narrow
+// table. A row with no reach has an empty cell.
+func reachText(r *finding.Reach, full bool) string {
+	switch {
+	case r == nil:
+		return ""
+	case full:
+		return r.Label()
+	}
+	return r.Level.Text()
+}
+
 func (r row) reach() *finding.Reach {
 	var top *finding.Reach
 	for _, f := range r {
