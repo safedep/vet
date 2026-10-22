@@ -50,5 +50,6 @@ it:
 ## Requirements
 
 The code analysis runs on your machine and sends no source code. It needs a vet build with CGO.
-Each channel of [install.md](install.md) ships one. A build with `CGO_ENABLED=0` records a
-diagnostic and scans with no code usage.
+Each channel of [install.md](install.md) ships one. A build with `CGO_ENABLED=0` scans with no
+code usage, and the scan view says that the build has no code analysis. Only an explicit
+`plugins.codeusage.enabled: true` also records a diagnostic.

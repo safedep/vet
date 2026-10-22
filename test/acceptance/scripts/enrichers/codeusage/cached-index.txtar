@@ -1,18 +1,14 @@
-# With plugins.codeusage.enabled, cache.db keeps the index of each source
-# file. A second scan of the same tree parses no file.
+# By default, cache.db keeps the index of each source file. A second scan
+# of the same tree parses no file.
 [!cgo] skip 'code analysis needs a vet built with CGO'
 cd proj
-exec vet --config $WORK/config.yml scan . -o json --log $WORK/first.log
+exec vet scan . --mode plain -o json --log $WORK/first.log
 grep 'code index: 2 source files, 0 cached, 2 indexed' $WORK/first.log
 
-exec vet --config $WORK/config.yml scan . -o json --log $WORK/second.log
+exec vet scan . --mode plain -o json --log $WORK/second.log
 grep 'code index: 2 source files, 2 cached, 0 indexed' $WORK/second.log
 stdout 'index.js imports the package\.'
 
--- config.yml --
-plugins:
-  codeusage:
-    enabled: true
 -- proj/index.js --
 const pkg = require('safedep-test-pkg');
 pkg.run();

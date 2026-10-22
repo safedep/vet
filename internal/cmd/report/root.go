@@ -75,7 +75,7 @@ func rootRows(roots *report.ReachRoots) printer.Rows {
 		if r.Line > 0 {
 			where = fmt.Sprintf("%s:%d", r.File, r.Line)
 		}
-		rows.Rows = append(rows.Rows, []string{r.Kind, escape.Line(r.Function), escape.Line(where), escape.Line(r.Rule)})
+		rows.Rows = append(rows.Rows, []string{escape.Line(r.Kind), escape.Line(r.Function), escape.Line(where), escape.Line(r.Rule)})
 	}
 	if more := roots.Total - len(roots.List); more > 0 {
 		rows.Footer = fmt.Sprintf("The scan lists the first %d entry points. It has %d more.", len(roots.List), more)

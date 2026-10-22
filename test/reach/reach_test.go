@@ -126,6 +126,21 @@ func readCases(t *testing.T) []reachCase {
 	return cases
 }
 
+// moduleOf names the unit of the case that holds a target, as a record
+// names its package. The longest module path wins, as Go resolves it.
+func (c reachCase) moduleOf(name string) string {
+	best := ""
+	for _, u := range c.units {
+		_, rest, _ := strings.Cut(u.Key, ":")
+		mod, _, _ := strings.Cut(rest, "@")
+		in := strings.HasPrefix(name, mod+".") || strings.HasPrefix(name, mod+"/") || strings.HasPrefix(name, mod+"::")
+		if in && len(mod) > len(best) {
+			best = mod
+		}
+	}
+	return best
+}
+
 // row is the result for one target of a case.
 type row struct {
 	c      reachCase
@@ -167,7 +182,7 @@ func run(t *testing.T, c reachCase) []row {
 	}
 	keys := make([]string, len(c.targets))
 	for i, tg := range c.targets {
-		keys[i] = codeusage.SymbolKey(c.language, tg.name)
+		keys[i] = codeusage.SymbolKey(c.language, c.moduleOf(tg.name), tg.name)
 		require.NotEmpty(t, keys[i], "%s has no symbol key", tg.name)
 		q.Targets = append(q.Targets, keys[i])
 	}

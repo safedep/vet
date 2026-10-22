@@ -1,6 +1,6 @@
 # main calls an interface method, and the dependency type implements it
 lang: go
-miss: the call goes through an interface, and vet does not call a path with a cha call a call. A cha call can be a guess
+miss: the call goes through an interface, so the path has a cha call. vet does not say called for a path with a cha call, because a cha call can be a guess
 unit: go:example.com/dep@v1.2.0 vendor/example.com/dep
 called: example.com/dep/html.Writer.Write
 -- go.mod --

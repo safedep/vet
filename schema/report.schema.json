@@ -1425,7 +1425,6 @@
       "type": "object",
       "required": [
         "id",
-        "signed_at",
         "records"
       ]
     },

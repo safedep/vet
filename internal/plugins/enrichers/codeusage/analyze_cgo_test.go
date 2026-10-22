@@ -324,7 +324,7 @@ func TestUnreadFileAndUnknownExtension(t *testing.T) {
 // the same function, or function reach never finds a call.
 func TestSymbolKeyMatchesTheCallGraph(t *testing.T) {
 	dir := t.TempDir()
-	write(t, dir, "main.go", "package main\n\nimport (\n\t\"net/http\"\n\n\t\"golang.org/x/net/html\"\n)\n\nfunc main() {\n\thtml.Render(w, n)\n\thttp.ServeContent(w, r, name, t, f)\n}\n")
+	write(t, dir, "main.go", "package main\n\nimport (\n\t\"net/http\"\n\n\t\"golang.org/x/net/html\"\n\t\"gopkg.in/yaml.v3\"\n)\n\nfunc main() {\n\thtml.Render(w, n)\n\thttp.ServeContent(w, r, name, t, f)\n\tyaml.Unmarshal(b, &v)\n}\n")
 	write(t, dir, "src/main.rs", "fn main() {\n    let now = time::OffsetDateTime::now_local();\n}\n")
 	a, err := newAnalyzer(Options{})(context.Background(), dir)
 	require.NoError(t, err)
@@ -332,12 +332,13 @@ func TestSymbolKeyMatchesTheCallGraph(t *testing.T) {
 	for _, c := range a.Calls {
 		targets = append(targets, c.Callee)
 	}
-	for _, row := range []struct{ language, name string }{
-		{"go", "golang.org/x/net/html.Render"},
-		{"go", "net/http.ServeContent"},
-		{"rust", "time::OffsetDateTime::now_local"},
+	for _, row := range []struct{ language, module, name string }{
+		{"go", "golang.org/x/net", "golang.org/x/net/html.Render"},
+		{"go", "stdlib", "net/http.ServeContent"},
+		{"go", "gopkg.in/yaml.v3", "gopkg.in/yaml.v3.Unmarshal"},
+		{"rust", "time", "time::OffsetDateTime::now_local"},
 	} {
-		assert.Contains(t, targets, SymbolKey(row.language, row.name), row.name)
+		assert.Contains(t, targets, SymbolKey(row.language, row.module, row.name), row.name)
 	}
 }
 
@@ -356,7 +357,7 @@ func TestReachThroughVendoredCode(t *testing.T) {
 	require.NotNil(t, a.Reach)
 	unit, ok := unitOf(dir, model.MustPackageVersion(model.EcosystemGo, "example.com/dep", "v1.2.0"))
 	require.True(t, ok)
-	render, unused := SymbolKey("go", "example.com/dep/html.render"), SymbolKey("go", "example.com/dep/html.Unused")
+	render, unused := SymbolKey("go", "example.com/dep", "example.com/dep/html.render"), SymbolKey("go", "example.com/dep", "example.com/dep/html.Unused")
 	res, err := a.Reach(context.Background(), ReachQuery{Units: []Unit{unit}, Targets: []string{render, unused}})
 	require.NoError(t, err)
 	assert.Equal(t, ReachFound, res.Answers[render].Status, "main calls Parse, and Parse calls render")
@@ -365,7 +366,7 @@ func TestReachThroughVendoredCode(t *testing.T) {
 	assert.Equal(t, ReachNotFound, res.Answers[unused].Status)
 	require.NotNil(t, res.Roots)
 
-	tested := SymbolKey("go", "example.com/dep/html.Tested")
+	tested := SymbolKey("go", "example.com/dep", "example.com/dep/html.Tested")
 	testRes, err := a.Reach(context.Background(), ReachQuery{Units: []Unit{unit}, Targets: []string{tested}})
 	require.NoError(t, err)
 	assert.Equal(t, ReachAnswer{Status: ReachFound, TestOnly: true, Path: testRes.Answers[tested].Path}, testRes.Answers[tested], "a path from a test only is a call")
@@ -399,7 +400,7 @@ func TestReachOfALibraryWithNoMain(t *testing.T) {
 	require.NoError(t, err)
 	unit, ok := unitOf(dir, model.MustPackageVersion(model.EcosystemGo, "example.com/dep", "v1.2.0"))
 	require.True(t, ok)
-	unused := SymbolKey("go", "example.com/dep/html.Unused")
+	unused := SymbolKey("go", "example.com/dep", "example.com/dep/html.Unused")
 	res, err := a.Reach(context.Background(), ReachQuery{Units: []Unit{unit}, Targets: []string{unused}})
 	require.NoError(t, err)
 	require.NotNil(t, res.Roots)

@@ -507,7 +507,7 @@ func (e *Enricher) lookupSymbols(pkgs []*model.Package) {
 		lang := ecosystemLanguages[owners[i].ID.Ecosystem()][0]
 		for _, r := range recs {
 			for _, site := range r.FixSites {
-				if k := SymbolKey(lang, site); k != "" {
+				if k := SymbolKey(lang, owners[i].ID.RawName(), site); k != "" {
 					r.Keys = append(r.Keys, k)
 				}
 			}

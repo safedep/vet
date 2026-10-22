@@ -82,7 +82,7 @@ const (
 	ReachFunction ReachLevel = "function"
 )
 
-// ParseReachLevel reads a reach level. Empty is ReachFunction.
+// ParseReachLevel reads a reach level. Empty is ReachImport.
 func ParseReachLevel(s string) (ReachLevel, error) {
 	switch l := ReachLevel(s); l {
 	case "":
@@ -172,8 +172,9 @@ type EntryPoint struct {
 type SymbolBundle struct {
 	ID string `json:"id"`
 	// SignedAt is the verified time of the signature, which is the time of
-	// the last change of the records.
-	SignedAt time.Time `json:"signed_at,omitzero"`
+	// the last change of the records. A local bundle with no signature has
+	// none. omitempty keeps the field optional in the schema.
+	SignedAt time.Time `json:"signed_at,omitempty,omitzero"`
 	Records  int       `json:"records"`
 }
 
