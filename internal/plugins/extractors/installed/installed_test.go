@@ -48,7 +48,8 @@ func TestInInstallDir(t *testing.T) {
 }
 
 // TestGoBinaryStdlib reads the test binary, which is a Go binary with build
-// information. Go 1.27 writes the dependency list of a test binary too.
+// information. Go 1.27 records the modules of a test binary and Go 1.26 does
+// not, so the test checks the two renames and not the module list.
 func TestGoBinaryStdlib(t *testing.T) {
 	exe, err := os.Executable()
 	require.NoError(t, err)
@@ -67,8 +68,8 @@ func TestGoBinaryStdlib(t *testing.T) {
 	for _, p := range inv.Packages {
 		names = append(names, p.Name)
 	}
-	require.NotEmpty(t, names)
-	assert.Equal(t, "stdlib", names[0], "the toolchain is stdlib")
+	assert.Contains(t, names, "stdlib", "the toolchain is stdlib")
+	assert.NotContains(t, names, "go", "the toolchain is stdlib")
 	assert.NotContains(t, names, "github.com/safedep/vet/v2", "the main module of a test build has no release version")
 }
 
