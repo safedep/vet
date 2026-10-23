@@ -1,15 +1,14 @@
 package pnpmlock
 
 import (
-	"bufio"
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"errors"
 	"io"
 	"io/fs"
 	"maps"
 	"path"
-	"regexp"
 	"slices"
 	"strings"
 
@@ -25,7 +24,7 @@ import (
 // installs for itself, in the first document of the lockfile.
 const packageManagerField = "packageManager"
 
-var packageManagerLine = regexp.MustCompile(`^\s*"packageManager"\s*:`)
+var errNotObject = errors.New("the document is not a JSON object")
 
 // maxPackageJSON bounds the read of package.json. A package.json of a
 // project is a few kilobytes.
@@ -79,9 +78,10 @@ func installsProject(lf pnpmLockfile) bool {
 }
 
 // readPackageManager returns the packageManager field of package.json and
-// its line, or "" when the file or the field does not exist. It reads
-// only a regular file, not a link, and at most maxPackageJSON bytes, as the
-// walk of the scan reads files.
+// its line, or "" when the file or the field does not exist. It reads at
+// most maxPackageJSON bytes, as the walk of the scan reads files. On a
+// directory it reads only a regular file, not a link. The FS of an image
+// has no Lstat, so it follows a link, but only to a file in the image.
 func readPackageManager(fsys fs.FS, name string) (value string, line int, err error) {
 	info, err := fs.Lstat(fsys, name)
 	switch {
@@ -102,24 +102,41 @@ func readPackageManager(fsys fs.FS, name string) (value string, line int, err er
 		return "", 0, err
 	}
 	// The packagejson extractor reports a package.json that does not parse.
-	var pj map[string]any
-	if err := json.Unmarshal(data, &pj); err != nil {
-		log.Warnf("pnpmlock: %s does not parse, so a fix of pnpm names the lockfile: %v", name, err)
+	value, line, perr := packageManager(data)
+	if perr != nil {
+		log.Warnf("pnpmlock: %s does not parse, so a fix of pnpm names the lockfile: %v", name, perr)
 		return "", 0, nil
 	}
-	value, _ = pj[packageManagerField].(string)
-	return value, fieldLine(data), nil
+	return value, line, nil
 }
 
-// fieldLine is the line of the packageManager field, or 0.
-func fieldLine(data []byte) int {
-	sc := bufio.NewScanner(bytes.NewReader(data))
-	for n := 1; sc.Scan(); n++ {
-		if packageManagerLine.Match(sc.Bytes()) {
-			return n
+// packageManager returns the top-level packageManager field of a
+// package.json and its line. A nested key of the same name, as in
+// devEngines, is not the field. The last field wins, as in json.Unmarshal.
+func packageManager(data []byte) (value string, line int, err error) {
+	dec := json.NewDecoder(bytes.NewReader(data))
+	if t, err := dec.Token(); err != nil || t != json.Delim('{') {
+		return "", 0, cmp.Or(err, errNotObject)
+	}
+	for dec.More() {
+		key, err := dec.Token()
+		if err != nil {
+			return "", 0, err
+		}
+		at := dec.InputOffset()
+		var v any
+		if err := dec.Decode(&v); err != nil {
+			return "", 0, err
+		}
+		if key == packageManagerField {
+			value, _ = v.(string)
+			line = bytes.Count(data[:at], []byte("\n")) + 1
 		}
 	}
-	return 0
+	if _, err := dec.Token(); err != nil {
+		return "", 0, err
+	}
+	return value, line, nil
 }
 
 // installedBy returns the keys of root and of each package that root

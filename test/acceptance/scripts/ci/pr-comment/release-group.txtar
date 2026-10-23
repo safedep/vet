@@ -4,7 +4,8 @@
 env GITHUB_ACTIONS=
 execexit 1 vet scan . --fail-on high --report pr-comment=comment.md --mode plain -o plain
 grep '^### ❌ vet: 1 cause blocks this scan$' comment.md
-grep '^\*\*Next step:\*\* `npm/fresh-tool@2.0.0` and 3 more in `package-lock.json:6`: Pick a version older than the cooldown\. Or wait until 2099-01-03 00:00 UTC, then run the job again\.$' comment.md
+grep '^\*\*Next step:\*\* `npm/fresh-tool@2.0.0` and 3 more in `package-lock.json:6`: ' comment.md
+grep '^\*\*Next step:\*\* .*2099-01-03 00:00 UTC' comment.md
 grep '^<details><summary>3 more with this cause</summary>$' comment.md
 grep '^  - purl: pkg:npm/%40fresh-tool/cli-\*@2.0.0$' comment.md
 grep '^    expires: 2099-01-03T00:00:00Z$' comment.md

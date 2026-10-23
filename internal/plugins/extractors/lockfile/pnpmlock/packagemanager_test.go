@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/lockmeta"
+	"github.com/safedep/vet/v2/model"
 )
 
 func envLockfile() pnpmLockfile {
@@ -44,13 +45,19 @@ func declared(pkgs []*extractor.Package) []bool {
 
 func TestDeclarePackageManager(t *testing.T) {
 	const pj = "{\n  \"name\": \"app\",\n  \"packageManager\": \"pnpm@10.11.0+sha512.00\"\n}\n"
+	const nested = "{\n  \"devEngines\": {\n    \"packageManager\": {\"name\": \"pnpm\"}\n  },\n  \"packageManager\": \"pnpm@10.11.0\"\n}\n"
 	cases := []struct {
 		name  string
 		setup func(t *testing.T, dir string)
 		lf    func() pnpmLockfile
 		want  []bool
+		line  int
 	}{
-		{name: "the field names pnpm", setup: func(t *testing.T, dir string) { write(t, dir, pj) }, want: []bool{true, true, false}},
+		{name: "the field names pnpm", setup: func(t *testing.T, dir string) { write(t, dir, pj) }, want: []bool{true, true, false}, line: 3},
+		{name: "a nested key of the same name", setup: func(t *testing.T, dir string) { write(t, dir, nested) }, want: []bool{true, true, false}, line: 5},
+		{name: "only a nested key", setup: func(t *testing.T, dir string) {
+			write(t, dir, "{\"devEngines\": {\"packageManager\": \"pnpm@10.11.0\"}}")
+		}, want: []bool{false, false, false}},
 		{name: "no package.json", setup: func(*testing.T, string) {}, want: []bool{false, false, false}},
 		{name: "the field names another tool", setup: func(t *testing.T, dir string) { write(t, dir, strings.Replace(pj, "pnpm@", "yarn@", 1)) }, want: []bool{false, false, false}},
 		{name: "a link", setup: func(t *testing.T, dir string) {
@@ -80,6 +87,10 @@ func TestDeclarePackageManager(t *testing.T) {
 			pkgs, keys := envPackages()
 			require.NoError(t, declarePackageManager(os.DirFS(dir), "pnpm-lock.yaml", lf, pkgs, keys))
 			assert.Equal(t, tc.want, declared(pkgs))
+			if tc.want[0] {
+				assert.Equal(t, &model.Declaration{Path: "package.json", Line: tc.line, Field: "packageManager", Package: "pnpm"},
+					pkgs[0].Metadata.(*lockmeta.Metadata).DeclaredAt)
+			}
 		})
 	}
 }

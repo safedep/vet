@@ -428,3 +428,31 @@ func TestUpgradeComment(t *testing.T) {
 	assert.Equal(t, 1, strings.Count(body, "[About this control]"), "one card")
 	assert.NotContains(t, lines[5], ".github/vet/policy.yml", "the status line has no policy path")
 }
+
+// The closed list says how many findings it cuts, also when the cut falls
+// inside the last control.
+func TestDetailsCountsTheCut(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		sizes []int
+		want  string
+	}{
+		{"cut in the only control", []int{15}, "- 5 more in the full report"},
+		{"cut in the last control", []int{7, 7}, "- 4 more in the full report"},
+		{"cut at a control", []int{10, 10}, "- 10 more in the full report"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var rest []*finding.Finding
+			for c, size := range tc.sizes {
+				for i := range size {
+					p := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, fmt.Sprintf("p%d-%d", c, i), "1.0.0")}
+					f := finding.ForPackage(finding.Meta{ControlID: fmt.Sprintf("control-%d", c), Family: finding.FamilyHygiene, Severity: finding.SeverityLow, Title: "Low"}, "package-lock.json", p, finding.Key{})
+					rest = append(rest, &f)
+				}
+			}
+			var b strings.Builder
+			newInput(t, pkgReport()).details(&b, sections{rest: rest}, 10)
+			assert.Contains(t, b.String(), tc.want)
+		})
+	}
+}

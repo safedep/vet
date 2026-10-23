@@ -54,7 +54,7 @@ stdout 'vet: 1 cause blocks this pull request'
 stdout 'gh run download 7 -R acme/app -n vet-report -D vet-report'
 
 env ACTION_REPORT_ARTIFACT='bad name'
-! exec bash $VET_SRC/action/scan.sh
+execexit 1 bash $VET_SRC/action/scan.sh
 stdout 'The report-artifact input is not valid'
 
 -- empty.txt --

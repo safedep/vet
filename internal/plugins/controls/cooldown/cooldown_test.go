@@ -152,19 +152,31 @@ func TestNewRejectsBadDays(t *testing.T) {
 
 // pnpm and the packages that it installs for itself share the
 // "packageManager" field, so they share one fix and one place.
+// A package that pnpm installs keeps pnpm, so its fix names the previous
+// version of pnpm, not its own.
 func TestFixOfAPackageManagerRelease(t *testing.T) {
-	c, err := New(plugin.MapConfig(nil))
-	require.NoError(t, err)
-	c.(*Control).now = func() time.Time { return now }
-	decl := &model.Declaration{Path: "package.json", Line: 119, Field: "packageManager", Package: "pnpm"}
-	pnpm, exe := pkg("pnpm", at(time.Hour)), pkg("@pnpm/exe.linux-x64", at(time.Hour))
-	for _, p := range []*model.Package{pnpm, exe} {
-		p.Change, p.PreviousVersion, p.Declared = model.ChangeUpgraded, "0.9.0", decl
-	}
-	fs := plugintest.TestControl(t, c, &model.Manifest{ID: "m1", Path: "pnpm-lock.yaml", Packages: []*model.Package{pnpm, exe}}, nil)
-	require.Len(t, fs, 2)
-	for _, f := range fs {
-		assert.Equal(t, `Keep "packageManager" at pnpm@0.9.0 in package.json.`, f.Remediation.Summary)
-		assert.Equal(t, &finding.Locus{Path: "package.json", StartLine: 119}, f.Locus)
+	for _, tc := range []struct {
+		name, pnpmPrevious, want string
+	}{
+		{"upgrade", "0.9.0", `Keep "packageManager" at pnpm@0.9.0 in package.json.`},
+		{"new pnpm", "", `Set "packageManager" in package.json to a version older than the cooldown.`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			c, err := New(plugin.MapConfig(nil))
+			require.NoError(t, err)
+			c.(*Control).now = func() time.Time { return now }
+			decl := &model.Declaration{Path: "package.json", Line: 119, Field: "packageManager", Package: "pnpm"}
+			pnpm, exe := pkg("pnpm", at(time.Hour)), pkg("@pnpm/exe.linux-x64", at(time.Hour))
+			pnpm.PreviousVersion, exe.PreviousVersion = tc.pnpmPrevious, "0.7.3"
+			for _, p := range []*model.Package{pnpm, exe} {
+				p.Change, p.Declared = model.ChangeUpgraded, decl
+			}
+			fs := plugintest.TestControl(t, c, &model.Manifest{ID: "m1", Path: "pnpm-lock.yaml", Packages: []*model.Package{pnpm, exe}}, nil)
+			require.Len(t, fs, 2)
+			for _, f := range fs {
+				assert.Equal(t, tc.want, f.Remediation.Summary)
+				assert.Equal(t, &finding.Locus{Path: "package.json", StartLine: 119}, f.Locus)
+			}
+		})
 	}
 }

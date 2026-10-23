@@ -148,7 +148,7 @@ posts it. The comment shows:
 - a warning box when a check did not complete, or when vet cannot read a file. The box leaves out a
   file that the change does not edit
 - the blocking causes, with the fix and a link to the docs of the control. A cause is the findings of
-  one control, one gate rule and one fix, so a release with 14 platform packages shows once. An attack
+  one control, one gate rule, one fix and one file to edit, so a release with 14 platform packages shows once. An attack
   finding is always a cause of its own
 - the other findings in a collapsed section, under one heading for each control
 - what the last push resolved, and what it added

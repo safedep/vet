@@ -72,12 +72,9 @@ func UpgradeReport() *MemState {
 		cooldown(pkg("@pnpm/exe."+b, "12.15.0", "12.8.2", 20+i*5), published.Add(time.Duration(i)*7*time.Second))
 	}
 
-	other := func(f finding.Finding) {
-		f.Change = model.ChangeAdded
-		findings = append(findings, &f)
-	}
 	onPackage := func(control string, family finding.Family, sev finding.Severity, title string, p *model.Package) {
-		other(finding.ForPackage(finding.Meta{ControlID: control, Family: family, Severity: sev, Title: title}, m.Path, p, finding.Key{}))
+		f := finding.ForPackage(finding.Meta{ControlID: control, Family: family, Severity: sev, Title: title}, m.Path, p, finding.Key{})
+		findings = append(findings, &f)
 	}
 	for _, n := range []struct {
 		name, version string
@@ -104,10 +101,12 @@ func UpgradeReport() *MemState {
 		unbash.ID.String()+": the upgrade jumps from 4.0.11 to 6.0.0", unbash)
 	onPackage("scorecard-low", finding.FamilyHygiene, finding.SeverityInfo,
 		"source-map-js has an OpenSSF Scorecard score of 2.8", pkg("source-map-js", "1.2.2", "", 5129))
-	other(finding.ForFile(finding.Meta{
+	claude := finding.ForFile(finding.Meta{
 		ControlID: "agent-instruction-change", Family: finding.FamilyAgentConfig, Severity: finding.SeverityInfo,
 		Title: "Agent instruction file CLAUDE.md",
-	}, finding.Locus{Path: "CLAUDE.md", StartLine: 1, EndLine: 1}, finding.Key{Discriminator: "instructions"}))
+	}, finding.Locus{Path: "CLAUDE.md", StartLine: 1, EndLine: 1}, finding.Key{Discriminator: "instructions"})
+	claude.Change = model.ChangeAdded
+	findings = append(findings, &claude)
 
 	s := &MemState{ManifestList: []*model.Manifest{m}, FindingList: findings}
 	h := s.Header()

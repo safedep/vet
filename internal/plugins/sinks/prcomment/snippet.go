@@ -2,7 +2,6 @@ package prcomment
 
 import (
 	"fmt"
-	"slices"
 	"strings"
 	"unicode/utf8"
 
@@ -68,13 +67,17 @@ func suppressions(g render.Group, all []*finding.Finding) []suppression {
 		b.byName[id.RawName()] = append(b.byName[id.RawName()], f)
 	}
 
+	inGroup := make(map[*finding.Finding]bool, len(g.Findings))
+	for _, f := range g.Findings {
+		inGroup[f] = true
+	}
 	entry := func(eco model.Ecosystem, name, version string, fs []*finding.Finding) (suppression, bool) {
 		id, err := model.NewPackageVersion(eco, name, version)
 		if err != nil {
 			return suppression{}, false
 		}
 		s := suppression{PURL: strings.ReplaceAll(id.PURL(), "%2A", "*"), Control: lead.ControlID, Expires: expires}
-		return s, exactly(s, fs, g, all)
+		return s, exactly(s, fs, inGroup, all)
 	}
 	var out []suppression
 	for _, b := range buckets {
@@ -135,7 +138,7 @@ func commonPrefix(names []string) string {
 
 // exactly reports whether the PURL of s matches each finding of fs, and no
 // finding of the control outside the group.
-func exactly(s suppression, fs []*finding.Finding, g render.Group, all []*finding.Finding) bool {
+func exactly(s suppression, fs []*finding.Finding, inGroup map[*finding.Finding]bool, all []*finding.Finding) bool {
 	p, err := model.ParsePackagePattern(s.PURL)
 	if err != nil {
 		return false
@@ -146,7 +149,7 @@ func exactly(s suppression, fs []*finding.Finding, g render.Group, all []*findin
 		}
 	}
 	for _, f := range all {
-		if f.ControlID != s.Control || slices.Contains(g.Findings, f) {
+		if f.ControlID != s.Control || inGroup[f] {
 			continue
 		}
 		if id, ok := packageOf(f); ok && p.Matches(id) {

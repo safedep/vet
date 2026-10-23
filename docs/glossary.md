@@ -487,7 +487,7 @@ declare. The pnpm extractor gives pnpm, and each package that pnpm installs for 
 _Avoid_: fix site, origin
 
 **Finding group**:
-The findings of one cause: one control, one gate record and one fix. The pull request comment shows
+The findings of one cause: one control, one gate record, one fix and one file to edit. The pull request comment shows
 each group once, as a card or a line, and counts groups as "causes". The **lead** names the group: a
 direct dependency, else the shortest name, else the first PURL. An attack finding, and a finding with no
 fix, is a group of its own. `render.Group`, from `render.Groups`, in

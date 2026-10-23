@@ -554,7 +554,6 @@ func (c *input) details(b *strings.Builder, sec sections, lines int) {
 	n := 0
 	for _, id := range controls {
 		if n == lines {
-			fmt.Fprintf(b, "- %d more in the full report\n\n", len(fs)-lines)
 			break
 		}
 		group := byControl[id]
@@ -567,6 +566,9 @@ func (c *input) details(b *strings.Builder, sec sections, lines int) {
 			n++
 		}
 		b.WriteString("\n")
+	}
+	if n < len(fs) {
+		fmt.Fprintf(b, "- %d more in the full report\n\n", len(fs)-n)
 	}
 	c.close(b)
 }
