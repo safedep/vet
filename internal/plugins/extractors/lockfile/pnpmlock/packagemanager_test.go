@@ -58,6 +58,8 @@ func TestDeclarePackageManager(t *testing.T) {
 		{name: "only a nested key", setup: func(t *testing.T, dir string) {
 			write(t, dir, "{\"devEngines\": {\"packageManager\": \"pnpm@10.11.0\"}}")
 		}, want: []bool{false, false, false}},
+		{name: "data after the object", setup: func(t *testing.T, dir string) { write(t, dir, pj+"garbage") }, want: []bool{false, false, false}},
+		{name: "a second object", setup: func(t *testing.T, dir string) { write(t, dir, pj+"{}") }, want: []bool{false, false, false}},
 		{name: "no package.json", setup: func(*testing.T, string) {}, want: []bool{false, false, false}},
 		{name: "the field names another tool", setup: func(t *testing.T, dir string) { write(t, dir, strings.Replace(pj, "pnpm@", "yarn@", 1)) }, want: []bool{false, false, false}},
 		{name: "a link", setup: func(t *testing.T, dir string) {

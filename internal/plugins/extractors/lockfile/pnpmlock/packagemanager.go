@@ -24,7 +24,10 @@ import (
 // installs for itself, in the first document of the lockfile.
 const packageManagerField = "packageManager"
 
-var errNotObject = errors.New("the document is not a JSON object")
+var (
+	errNotObject = errors.New("the document is not a JSON object")
+	errTrailing  = errors.New("data follows the JSON object")
+)
 
 // maxPackageJSON bounds the read of package.json. A package.json of a
 // project is a few kilobytes.
@@ -135,6 +138,9 @@ func packageManager(data []byte) (value string, line int, err error) {
 	}
 	if _, err := dec.Token(); err != nil {
 		return "", 0, err
+	}
+	if _, err := dec.Token(); !errors.Is(err, io.EOF) {
+		return "", 0, cmp.Or(err, errTrailing)
 	}
 	return value, line, nil
 }
