@@ -22,6 +22,7 @@ vet has one page for each command. The table lists every command in the order of
 | [`vet report diff`](report-diff.md) | Compare the findings of two saved scans. |
 | [`vet report finding show`](report-finding-show.md) | Show one finding of a saved scan. |
 | [`vet report capability list`](report-capability-list.md) | List the AI and crypto capabilities of a saved scan. |
+| [`vet report root list`](report-root-list.md) | List the entry points of the call graph of a saved scan. |
 | [`vet report schema get`](report-schema-get.md) | Print the JSON Schema of the report. |
 | [`vet policy init`](policy-init.md) | Write a starter policy file. |
 | [`vet policy validate`](policy-validate.md) | Check a policy file. |

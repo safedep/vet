@@ -76,6 +76,10 @@ func (c *Cache) Close() error { return c.mgr.Close() }
 // Path returns the path of cache.db.
 func (c *Cache) Path() string { return c.mgr.Path() }
 
+// FileManager returns the manager of cache.db. The code index keeps its own
+// module in the same file, so one delete of cache.db clears both.
+func (c *Cache) FileManager() localdb.FileManager { return c.mgr }
+
 // Lookup sets the cached data of an enricher on each package that has a
 // live entry. It returns the results of the hits and the packages that
 // the enricher must still enrich.

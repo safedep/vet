@@ -1,0 +1,31 @@
+# main calls an exported function, which calls the vulnerable function inside the dependency
+lang: go
+unit: go:example.com/dep@v1.2.0 vendor/example.com/dep
+called: example.com/dep/html.parseTag
+not-called: example.com/dep/html.unusedTag
+-- go.mod --
+module example.com/app
+
+go 1.27
+
+require example.com/dep v1.2.0
+-- vendor/modules.txt --
+# example.com/dep v1.2.0
+## explicit
+example.com/dep/html
+-- main.go --
+package main
+
+import "example.com/dep/html"
+
+func main() {
+	html.Parse("<a>")
+}
+-- vendor/example.com/dep/html/html.go --
+package html
+
+func Parse(s string) { parseTag(s) }
+
+func parseTag(s string) {}
+
+func unusedTag(s string) {}

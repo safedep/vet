@@ -12,7 +12,10 @@ import (
 )
 
 func TestProvides(t *testing.T) {
-	pv := provider{autoload: map[string]string{`GuzzleHttp\`: "guzzlehttp/guzzle", `GuzzleHttp\Psr7\`: "guzzlehttp/psr7"}}
+	pv := provider{
+		autoload:  map[string]string{`GuzzleHttp\`: "guzzlehttp/guzzle", `GuzzleHttp\Psr7\`: "guzzlehttp/psr7"},
+		goModules: []string{"github.com/foo/bar", "github.com/foo/bar/v2", "example.com/lib"},
+	}
 	id := func(eco model.Ecosystem, namespace, name string) model.PackageVersion {
 		sep := "/"
 		if eco == model.EcosystemMaven {
@@ -51,6 +54,9 @@ func TestProvides(t *testing.T) {
 		{"gem hint", id(model.EcosystemRubyGems, "", "ruby-openai"), module{"ruby", "ruby-openai", "openai"}, true},
 		{"gem path", id(model.EcosystemRubyGems, "", "rspec-core"), module{"ruby", "rspec", "rspec/core"}, true},
 		{"go module", id(model.EcosystemGo, "", "github.com/sashabaranov/go-openai"), module{"go", "github.com/sashabaranov/go-openai", "github.com/sashabaranov/go-openai/jsonschema"}, true},
+		{"go module with a longer module in the scan", id(model.EcosystemGo, "", "github.com/foo/bar"), module{"go", "", "github.com/foo/bar/v2/x"}, false},
+		{"go longer module", id(model.EcosystemGo, "", "github.com/foo/bar/v2"), module{"go", "", "github.com/foo/bar/v2/x"}, true},
+		{"go package directory v2 of a module", id(model.EcosystemGo, "", "example.com/lib"), module{"go", "", "example.com/lib/v2"}, true},
 		{"composer autoload", id(model.EcosystemPackagist, "guzzlehttp", "psr7"), module{"php", "", `GuzzleHttp\Psr7\Response`}, true},
 		{"composer longest prefix", id(model.EcosystemPackagist, "guzzlehttp", "guzzle"), module{"php", "", `GuzzleHttp\Psr7\Response`}, false},
 		{"composer leading separator", id(model.EcosystemPackagist, "guzzlehttp", "guzzle"), module{"php", "", `\GuzzleHttp\Client`}, true},

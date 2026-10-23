@@ -5,7 +5,6 @@
       "kind": "sbom",
       "ecosystem": "maven",
       "packages": [
-        "github-actions/oss-security-labs/janusgraph [+]",
         "maven/ch.qos.logback:logback-classic@1.2.11 [+]",
         "maven/ch.qos.logback:logback-core@1.2.11 [+]",
         "maven/com.carrotsearch:hppc@0.9.1 [+]",
@@ -224,6 +223,7 @@
     "sbom.spdx.json: package actions:ncipollo/release-action@1 has no PURL",
     "sbom.spdx.json: package actions:ory/build-buf-action@0 has no PURL",
     "sbom.spdx.json: package actions:shrink/actions-docker-registry-tag@3 has no PURL",
-    "sbom.spdx.json: package actions:sqren/backport-github-action@9.3.0 has no PURL"
+    "sbom.spdx.json: package actions:sqren/backport-github-action@9.3.0 has no PURL",
+    "sbom.spdx.json: unknown ecosystem: PURL type \"github\""
   ]
 }

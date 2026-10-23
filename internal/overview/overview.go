@@ -6,7 +6,10 @@ package overview
 
 import (
 	"context"
+	"fmt"
+	"maps"
 	"slices"
+	"strings"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/model"
@@ -55,6 +58,46 @@ func Read(ctx context.Context, r plugin.Report) (Overview, error) {
 	}
 	slices.SortStableFunc(s.Findings, finding.Compare)
 	return s, nil
+}
+
+// ReachSummary counts the reach of the vulnerability findings, riskiest
+// first, with the causes of each level, as "1 called, 2 imported (1 no
+// symbol data, 1 transitive), 1 not called". It is empty with no reach.
+func (s Overview) ReachSummary() string {
+	type level struct {
+		n      int
+		causes map[finding.ReachCause]int
+	}
+	levels := map[finding.ReachLevel]*level{}
+	for _, f := range s.Findings {
+		if f.Reach == nil {
+			continue
+		}
+		l := levels[f.Reach.Level]
+		if l == nil {
+			l = &level{causes: map[finding.ReachCause]int{}}
+			levels[f.Reach.Level] = l
+		}
+		l.n++
+		if f.Reach.Cause != "" {
+			l.causes[f.Reach.Cause]++
+		}
+	}
+	order := slices.SortedFunc(maps.Keys(levels), func(a, b finding.ReachLevel) int { return b.Rank() - a.Rank() })
+	parts := make([]string, 0, len(order))
+	for _, lv := range order {
+		l := levels[lv]
+		part := fmt.Sprintf("%d %s", l.n, lv.Text())
+		var causes []string
+		for _, c := range slices.Sorted(maps.Keys(l.causes)) {
+			causes = append(causes, fmt.Sprintf("%d %s", l.causes[c], c.Text()))
+		}
+		if len(causes) > 0 {
+			part += " (" + strings.Join(causes, ", ") + ")"
+		}
+		parts = append(parts, part)
+	}
+	return strings.Join(parts, ", ")
 }
 
 func (s *Overview) addPackage(p *report.PackageEntry) {

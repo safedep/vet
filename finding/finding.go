@@ -31,7 +31,206 @@ type Finding struct {
 	// The engine sets Attack when the control of the finding is an attack
 	// control. It reads the control info, so a control cannot set it.
 	Attack *Attack `json:"attack,omitempty"`
+	// Advisory is the id of the advisory of a vulnerability finding.
+	Advisory string `json:"advisory,omitempty"`
+	// The engine sets Reach on a vulnerability finding of a scan with
+	// source code. A control cannot set it.
+	Reach *Reach `json:"reach,omitempty"`
 }
+
+// ReachLevel says how far the code of the project reaches the package of a
+// finding.
+type ReachLevel string
+
+const (
+	// ReachCalled is a vulnerable function that a call path from an entry
+	// point of the project reaches. Path holds the path.
+	ReachCalled ReachLevel = "called"
+	// ReachNotCalled is a vulnerable function that no call path reaches.
+	// vet says it only when the symbol record names every fix site, a
+	// maintainer verified the record, vet read the code of the package,
+	// and the project alone imports the package.
+	ReachNotCalled ReachLevel = "not-called"
+	// ReachImported is a package that the code imports, or that the
+	// dependency graph reaches from a package that the code imports.
+	ReachImported ReachLevel = "imported"
+	// ReachUnused is a package that no source file imports and that no
+	// imported package depends on. A package that the project runs with no
+	// import, as a build tool from a script, is unused too.
+	ReachUnused ReachLevel = "unused"
+	// ReachUnknown is a package that vet cannot place. Cause says why. A
+	// report never shows it as safe.
+	ReachUnknown ReachLevel = "unknown"
+)
+
+// ReachCause says why a reach is unknown, or what limits it.
+type ReachCause string
+
+const (
+	// ReachNoGraph is a manifest with no dependency graph, so vet cannot
+	// tell an unused package from a transitive one.
+	ReachNoGraph ReachCause = "no-graph"
+	// ReachDynamicImport is a project that imports a module by a computed
+	// name in the language of the package.
+	ReachDynamicImport ReachCause = "dynamic-import"
+	// ReachBudget is an analysis that its time budget or a limit of the
+	// call graph stopped.
+	ReachBudget ReachCause = "budget"
+	// ReachUnreadFiles is a project with a source file of the language of
+	// the package that the analysis could not read, parse or index whole.
+	ReachUnreadFiles ReachCause = "unread-files"
+	// ReachNoSourceFiles is a project with no source file that vet parses
+	// in the language of the package, such as a project of .jsx files.
+	ReachNoSourceFiles ReachCause = "no-source-files"
+	// ReachNoSymbolData is an imported package with no record of its
+	// vulnerable functions, so function reach falls back to the import.
+	ReachNoSymbolData ReachCause = "no-symbol-data"
+	// ReachNoEntryPoint is a project where vet found no entry point, so it
+	// searched from every exported function.
+	ReachNoEntryPoint ReachCause = "no-entry-point"
+	// ReachNoDependencySource is a package with no source on the disk, in
+	// the vendor directory or in the module or crate cache.
+	ReachNoDependencySource ReachCause = "no-dependency-source"
+	// ReachNoSymbolInGraph is a record with a fix site that the call graph
+	// of the code of the package does not hold.
+	ReachNoSymbolInGraph ReachCause = "no-symbol-in-graph"
+	// ReachBroadRecord is a record that does not name every fix site.
+	ReachBroadRecord ReachCause = "broad-record"
+	// ReachUnreviewedRecord is a record that no maintainer verified.
+	ReachUnreviewedRecord ReachCause = "unreviewed-record"
+	// ReachUnresolvedCall is a call path that ends at a call that vet
+	// cannot resolve.
+	ReachUnresolvedCall ReachCause = "unresolved-call"
+	// ReachDynamicFlag is a call path through code that the call graph
+	// marks dynamic, such as reflection, or a dynamic site in a file that
+	// imports the package.
+	ReachDynamicFlag ReachCause = "dynamic-flag"
+	// ReachTransitive is a package that another dependency can call, so no
+	// path in the code that vet read proves that nothing calls it.
+	ReachTransitive ReachCause = "transitive"
+	// ReachAnalysisFailed is a call graph search that failed.
+	ReachAnalysisFailed ReachCause = "analysis-failed"
+	// ReachWeakPath is a call path with a call that the call graph only
+	// guesses, as a call by name or through an interface to each type
+	// that implements it. The finding keeps the path as evidence.
+	ReachWeakPath ReachCause = "weak-path"
+	// ReachUnprovenLanguage is a package of a language whose reach corpus
+	// still has a call that the search does not find, so vet does not say
+	// not-called for it.
+	ReachUnprovenLanguage ReachCause = "unproven-language"
+)
+
+// Reach is the reach of the package of a finding.
+type Reach struct {
+	Level      ReachLevel `json:"level" jsonschema:"enum=called,enum=not-called,enum=imported,enum=unused,enum=unknown"`
+	Cause      ReachCause `json:"cause,omitempty" jsonschema:"enum=no-graph,enum=dynamic-import,enum=budget,enum=unread-files,enum=no-source-files,enum=no-symbol-data,enum=no-entry-point,enum=no-dependency-source,enum=no-symbol-in-graph,enum=broad-record,enum=unreviewed-record,enum=unresolved-call,enum=dynamic-flag,enum=transitive,enum=analysis-failed,enum=unproven-language,enum=weak-path"`
+	Confidence Confidence `json:"confidence"`
+	// Via is the dependency path from a package that the code imports to
+	// the package of the finding, as PURLs, when no file imports it.
+	Via []string `json:"via,omitempty"`
+	// TestOnly marks a package that only test files import.
+	TestOnly bool `json:"test_only,omitempty"`
+	// Imports are the import lines of the package.
+	Imports []model.ImportSite `json:"imports,omitempty"`
+	// FixSites are the functions that hold the vulnerable code, from the
+	// symbol record of the advisory.
+	FixSites []string `json:"fix_sites,omitempty"`
+	// Path is the call path from an entry point to a fix site.
+	Path []model.PathHop `json:"path,omitempty"`
+	// Symbols describes the symbol record of the advisory, at the function
+	// level.
+	Symbols *ReachSymbols `json:"symbols,omitempty"`
+}
+
+// ReachSymbols describes the symbol record that a function reach reads.
+type ReachSymbols struct {
+	Record   string `json:"record"`
+	Coverage string `json:"coverage"`
+	Review   string `json:"review,omitempty"`
+	Source   string `json:"source,omitempty"`
+	License  string `json:"license,omitempty"`
+}
+
+// Rank orders the reach levels by risk. A called function ranks first, and
+// a level that the code does not reach ranks last.
+func (l ReachLevel) Rank() int {
+	switch l {
+	case ReachCalled:
+		return 5
+	case ReachImported:
+		return 4
+	case ReachUnknown:
+		return 3
+	case ReachNotCalled:
+		return 2
+	case ReachUnused:
+		return 1
+	}
+	return 0
+}
+
+// Label is the short text of a reach that names its evidence, as
+// "called · 3 hops", "imported · no symbol data" or "unknown · budget".
+func (r *Reach) Label() string {
+	if r == nil {
+		return ""
+	}
+	label := r.Level.Text()
+	switch {
+	case r.Level == ReachCalled && len(r.Path) == 2:
+		label += " · 1 hop"
+	case r.Level == ReachCalled && len(r.Path) > 2:
+		label += fmt.Sprintf(" · %d hops", len(r.Path)-1)
+	case r.Cause != "":
+		label += " · " + r.Cause.Text()
+	}
+	if r.TestOnly {
+		label += " · tests only"
+	}
+	return label
+}
+
+// FetchHint is the action that puts the code of the dependencies of an
+// ecosystem on the disk, for a call graph search.
+func FetchHint(eco model.Ecosystem) string {
+	switch eco {
+	case model.EcosystemGo:
+		return "Run go mod download, then scan again."
+	case model.EcosystemCargo:
+		return "Run cargo fetch, then scan again."
+	}
+	return "Download the code of the dependencies, then scan again. The scan warning names the command."
+}
+
+// causeHelp says what a person can do about each cause.
+var causeHelp = map[ReachCause]string{
+	ReachNoGraph:            "The lockfile holds no dependency graph, so another dependency can call the package.",
+	ReachDynamicImport:      "The code imports a module by a computed name, so vet cannot tell which package it loads.",
+	ReachBudget:             "The time budget or a limit of the call graph stopped the analysis. Raise plugins.codeusage.options.budget.",
+	ReachUnreadFiles:        "vet could not read, parse or index a source file of the language. The diagnostics of the scan name it.",
+	ReachNoSourceFiles:      "vet parses no source file of the language of the package in this project.",
+	ReachNoSymbolData:       "vuln-symbols has no record of the vulnerable functions of the advisory.",
+	ReachNoEntryPoint:       "vet found no entry point. Name one with --entrypoint path:function.",
+	ReachNoDependencySource: "The code of the package is not in the vendor directory or the package cache, so vet cannot search the calls into it.",
+	ReachNoSymbolInGraph:    "The call graph has no definition of a vulnerable function of the record.",
+	ReachBroadRecord:        "The record does not name every vulnerable function.",
+	ReachUnreviewedRecord:   "No maintainer verified the record.",
+	ReachUnresolvedCall:     "A call on the way is a call that vet cannot resolve.",
+	ReachDynamicFlag:        "The code calls through reflection or another dynamic call.",
+	ReachTransitive:         "Another dependency can call the package through code that vet did not prove.",
+	ReachAnalysisFailed:     "The call graph search failed. The diagnostics of the scan say why.",
+	ReachUnprovenLanguage:   "The reach corpus of the language has a call that the search misses, so vet does not say not-called for it.",
+	ReachWeakPath:           "The path has a call that the call graph only guesses. Read the path to decide.",
+}
+
+// Help says what a person can do about the cause, or "".
+func (c ReachCause) Help() string { return causeHelp[c] }
+
+// Text is the level as words, as "not called".
+func (l ReachLevel) Text() string { return strings.ReplaceAll(string(l), "-", " ") }
+
+// Text is the cause as words, as "no symbol data".
+func (c ReachCause) Text() string { return strings.ReplaceAll(string(c), "-", " ") }
 
 // Attack marks a finding of an attack control. The attacks gate fails on
 // it, and a report shows it before the other findings.

@@ -372,19 +372,25 @@
   title: "a finding says where the code imports the package"
   category: enrichers
   tier: P2
-  guarantee: "With plugins.codeusage.enabled, on a build with CGO, a package finding gets codeusage evidence that names the importing files. The severity does not change."
+  guarantee: "With the code analysis on, as by default on a build with CGO, a package finding gets codeusage evidence that names the importing files. The severity does not change."
   labels: [enrichers, config]
+- id: enrichers/codeusage/cached-index
+  title: "a second scan of the same tree parses no file"
+  category: enrichers
+  tier: P2
+  guarantee: "With the code analysis on, as by default on a build with CGO, cache.db keeps the index of each source file. A second vet scan of an unchanged tree reads every file from the cache and parses none. The findings keep their codeusage evidence."
+  labels: [enrichers, config, cache]
 - id: enrichers/codeusage/capabilities
   title: "the code signatures that match are the xBOM"
   category: enrichers
   tier: P2
-  guarantee: "With plugins.codeusage.enabled, on a build with CGO, each code signature that matches is a capability record in the JSON report and an xbom:<signature id> component with source code analysis evidence in the CycloneDX BOM."
+  guarantee: "With the code analysis on, as by default on a build with CGO, each code signature that matches is a capability record in the JSON report and an xbom:<signature id> component with source code analysis evidence in the CycloneDX BOM."
   labels: [enrichers, config, sinks]
 - id: report/capability/list
   title: "the scan view and report capability list show the AI and crypto capabilities"
   category: report
   tier: P2
-  guarantee: "With plugins.codeusage.enabled, on a build with CGO, the table view lists the capabilities with a weak badge on weak crypto, and vet report capability list lists each call site of the last scan and filters by tag."
+  guarantee: "With the code analysis on, as by default on a build with CGO, the table view lists the capabilities with a weak badge on weak crypto, and vet report capability list lists each call site of the last scan and filters by tag."
   labels: [report, enrichers]
 - id: controls/reputation/ai-capability-added
   title: "a change that adds an AI call is a finding"
@@ -893,3 +899,21 @@
   tier: P1
   guarantee: "vet ci update moves the safedep/vet and actions/checkout pins of the vet workflow to the newest release, and keeps each other line."
   labels: [action, ci-setup]
+- id: reach/import/levels
+  title: "a vulnerability finding says whether the code imports its package"
+  category: reach
+  tier: P1
+  guarantee: "A scan of a directory sets the reach of each vulnerability finding at the import level by default. A package that a source file imports is imported, with its import lines. A package that an imported package depends on is imported, with the dependency path. A package that no file imports and no imported package depends on is unused. --reach off removes the reach, and a lockfile target has no source code, so its report header says no-source, the table has no REACH column, and the view says that vet computed no reach. A bad --reach value exits 2."
+  labels: [reach, enrichers]
+- id: reach/function/no-symbol-data
+  title: "a scan with no symbol data never says not called"
+  category: reach
+  tier: P1
+  guarantee: "A first scan with no symbol bundle and no network reports symbol_data_missing. A vulnerability finding of an imported Go package stays imported with the cause no-symbol-data, and never says that the code calls no vulnerable function."
+  labels: [reach, enrichers]
+- id: reach/function/entrypoints
+  title: "a bad entry point exits 2 before a scan runs"
+  category: reach
+  tier: P1
+  guarantee: "An --entrypoint that is not path:function exits 2, and so does --entrypoints-only with no entry point. An --entrypoint at the default import level exits 2. An --entrypoint in a file that the target does not have exits 2, also when no search runs. A good --entrypoint does not change a scan with no symbol data, and vet report root list says that the scan searched no call path."
+  labels: [reach, enrichers, cli]

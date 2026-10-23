@@ -3,7 +3,9 @@
 package codeusage
 
 import (
+	"crypto/sha256"
 	"embed"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -31,6 +33,25 @@ type signatureFile struct {
 // loadSignatures reads and checks the embedded signatures once.
 var loadSignatures = sync.OnceValues(func() ([]*callgraphv1.Signature, error) {
 	return readSignatures(signatureFiles)
+})
+
+// signaturesHash is the SHA-256 of the signature files, in walk order. The
+// cached analysis of a file holds its matches, so a new signature must miss
+// every stored artifact.
+var signaturesHash = sync.OnceValues(func() (string, error) {
+	h := sha256.New()
+	err := fs.WalkDir(signatureFiles, ".", func(p string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		data, err := fs.ReadFile(signatureFiles, p)
+		if err != nil {
+			return err
+		}
+		_, err = fmt.Fprintf(h, "%s\x00%d\x00%s", p, len(data), data)
+		return err
+	})
+	return hex.EncodeToString(h.Sum(nil))[:16], err
 })
 
 // readSignatures reads every signature file of fsys. The YAML keys are the

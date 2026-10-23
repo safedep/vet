@@ -1,0 +1,35 @@
+# main calls a trait method on a trait object of a type of the dependency
+lang: rust
+miss: the search links no method call on a trait object, FOU-578
+unit: cargo:dep@1.2.0 vendor/dep-1.2.0
+called: dep::Html::write
+-- Cargo.toml --
+[package]
+name = "app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dep = "1.2.0"
+-- vendor/dep-1.2.0/Cargo.toml --
+[package]
+name = "dep"
+version = "1.2.0"
+edition = "2021"
+-- src/main.rs --
+use dep::{Html, Write};
+
+fn main() {
+    let w: Box<dyn Write> = Box::new(Html {});
+    w.write();
+}
+-- vendor/dep-1.2.0/src/lib.rs --
+pub trait Write {
+    fn write(&self);
+}
+
+pub struct Html {}
+
+impl Write for Html {
+    fn write(&self) {}
+}

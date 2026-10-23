@@ -1,0 +1,92 @@
+package runner
+
+import (
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/v2/internal/app"
+	"github.com/safedep/vet/v2/internal/config"
+	"github.com/safedep/vet/v2/internal/plugins/enrichers/codeusage"
+	"github.com/safedep/vet/v2/internal/plugins/sources/purl"
+	"github.com/safedep/vet/v2/report"
+)
+
+func TestCodeAnalysisOf(t *testing.T) {
+	off, on := false, true
+	plugins := func(enabled *bool, options map[string]any) map[string]config.PluginConfig {
+		return map[string]config.PluginConfig{codeusage.Name: {Enabled: enabled, Options: options}}
+	}
+	// A build with no CGO turns the default off, and an explicit enabled
+	// keeps the enricher, so its diagnostic says why no code is read.
+	defaultOn, defaultStatus := codeusage.Available(), report.ReachStatus("")
+	if !defaultOn {
+		defaultStatus = report.ReachUnavailable
+	}
+	cases := []struct {
+		name    string
+		plugins map[string]config.PluginConfig
+		flag    string
+		source  bool
+		want    codeAnalysis
+		usage   bool
+	}{
+		{name: "on by default at import level", want: codeAnalysis{on: defaultOn, budget: codeusage.DefaultBudget, reach: report.ReachInfo{Level: report.ReachImport, Status: defaultStatus}}},
+		{
+			name: "the flag overrides the config", plugins: plugins(nil, map[string]any{"reach": "function", "budget": "90s"}), flag: "import",
+			want: codeAnalysis{on: defaultOn, budget: 90 * time.Second, reach: report.ReachInfo{Level: report.ReachImport, Status: defaultStatus}},
+		},
+		{name: "reach off keeps the code analysis", flag: "off", want: codeAnalysis{on: defaultOn, budget: codeusage.DefaultBudget, reach: report.ReachInfo{Level: report.ReachOff, Status: defaultStatus}}},
+		{name: "enabled false turns off all code analysis", plugins: plugins(&off, nil), want: codeAnalysis{budget: codeusage.DefaultBudget, reach: report.ReachInfo{Level: report.ReachOff}}},
+		{name: "an explicit enabled keeps the enricher", plugins: plugins(&on, nil), want: codeAnalysis{on: true, budget: codeusage.DefaultBudget, reach: report.ReachInfo{Level: report.ReachImport}}},
+		{name: "a replaced source reads no code", source: true, want: codeAnalysis{budget: codeusage.DefaultBudget, reach: report.ReachInfo{Level: report.ReachOff}}},
+		{name: "a bad flag", flag: "deep", usage: true},
+		{name: "a bad budget", plugins: plugins(nil, map[string]any{"budget": "soon"}), usage: true},
+		{name: "a bad level", plugins: plugins(nil, map[string]any{"reach": "all"}), usage: true},
+		{name: "an entry point at the import level", plugins: plugins(nil, map[string]any{"entrypoints": []any{"main.go:main"}}), usage: true},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			o := Options{Reach: c.flag}
+			if c.source {
+				o.Source = purl.New(purl.Options{Target: "pkg:npm/a@1.0.0"})
+			}
+			got, err := codeAnalysisOf(&config.Config{Plugins: c.plugins}, o)
+			if c.usage {
+				require.Error(t, err)
+				assert.Equal(t, app.ExitUsage, app.ExitCode(err))
+				return
+			}
+			require.NoError(t, err)
+			got.config = codeusage.Config{}
+			assert.Equal(t, c.want, got)
+		})
+	}
+}
+
+func TestReachFlagIsLockable(t *testing.T) {
+	assert.Contains(t, Options{Reach: "off"}.lockableKeys(false), codeusage.ReachKey)
+	assert.NotContains(t, Options{}.lockableKeys(false), codeusage.ReachKey)
+	assert.Contains(t, Options{Entrypoints: []string{"main.go:main"}}.lockableKeys(false), codeusage.EntrypointsKey)
+	assert.NotContains(t, Options{}.lockableKeys(false), codeusage.EntrypointsKey)
+}
+
+func TestSymbolOptionsOfCodeusage(t *testing.T) {
+	cfg := &config.Config{Plugins: map[string]config.PluginConfig{codeusage.Name: {Options: map[string]any{
+		"symbols_update": false, "symbols_pin": "ab",
+	}}}}
+	c, err := codeAnalysisOf(cfg, Options{Reach: "function"})
+	require.NoError(t, err)
+	assert.False(t, c.config.SymbolsUpdate)
+	c.on = true
+	_, err = c.options(Options{}, nil, t.TempDir())
+	require.Error(t, err, "a pin that is not a SHA-256 is a usage error")
+	assert.Equal(t, app.ExitUsage, app.ExitCode(err))
+
+	c.reach.Level = report.ReachImport
+	opts, err := c.options(Options{}, nil, t.TempDir())
+	require.NoError(t, err)
+	assert.Nil(t, opts.Symbols, "the import level reads no symbol data")
+}

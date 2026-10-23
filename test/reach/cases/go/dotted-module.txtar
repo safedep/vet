@@ -1,0 +1,30 @@
+# main calls a function of a module whose last path element has a dot
+lang: go
+unit: go:gopkg.in/yaml.v3@v3.0.1 vendor/gopkg.in/yaml.v3
+called: gopkg.in/yaml.v3.Unmarshal
+not-called: gopkg.in/yaml.v3.Marshal
+-- go.mod --
+module example.com/app
+
+go 1.27
+
+require gopkg.in/yaml.v3 v3.0.1
+-- vendor/modules.txt --
+# gopkg.in/yaml.v3 v3.0.1
+## explicit
+gopkg.in/yaml.v3
+-- main.go --
+package main
+
+import "gopkg.in/yaml.v3"
+
+func main() {
+	var v any
+	_ = yaml.Unmarshal(nil, &v)
+}
+-- vendor/gopkg.in/yaml.v3/yaml.go --
+package yaml
+
+func Unmarshal(in []byte, out any) error { return nil }
+
+func Marshal(in any) ([]byte, error) { return nil, nil }

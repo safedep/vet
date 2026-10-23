@@ -51,6 +51,10 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 		cols = append(cols, "Change")
 	}
 	cols = append(cols, "Title")
+	reach := h.Scan.Reach != nil && h.Scan.Reach.Status == report.ReachComputed
+	if reach {
+		cols = append(cols, "Reach")
+	}
 	gated := t.Gate.Outcome != report.GateNone
 	if gated {
 		cols = append(cols, "Gate")
@@ -74,6 +78,9 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 			cells = append(cells, strings.ToLower(string(f.Change)))
 		}
 		cells = append(cells, cell(render.Truncate(render.Text(f.Title), maxTitle)))
+		if reach {
+			cells = append(cells, cell(f.Reach.Label()))
+		}
 		if gated {
 			cells = append(cells, gateCell(f.Gate))
 		}

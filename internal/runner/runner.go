@@ -10,11 +10,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"slices"
 	"strings"
 	"time"
 
+	"github.com/safedep/dry/localdb"
 	"github.com/safedep/dry/usefulerror"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
@@ -39,6 +39,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/sources/git"
 	"github.com/safedep/vet/v2/internal/policy"
 	"github.com/safedep/vet/v2/internal/state"
+	"github.com/safedep/vet/v2/internal/symbols"
 	"github.com/safedep/vet/v2/internal/tui"
 	"github.com/safedep/vet/v2/internal/tui/banner"
 	"github.com/safedep/vet/v2/internal/tui/output"
@@ -61,6 +62,13 @@ type Options struct {
 	FailOn  string
 	Policy  string
 	Reports []string
+	// Reach is the --reach value, or empty.
+	Reach string
+	// Entrypoints are the --entrypoint values. They join the entry points
+	// of the config.
+	Entrypoints []string
+	// EntrypointsOnly is --entrypoints-only.
+	EntrypointsOnly bool
 	// Packages is the --packages value, or empty.
 	Packages string
 
@@ -141,6 +149,15 @@ func (o Options) lockableKeys(ephemeral bool) []string {
 	if o.CooldownDays > 0 {
 		keys = append(keys, cooldown.DaysKey)
 	}
+	if o.Reach != "" {
+		keys = append(keys, codeusage.ReachKey)
+	}
+	if len(o.Entrypoints) > 0 {
+		keys = append(keys, codeusage.EntrypointsKey)
+	}
+	if o.EntrypointsOnly {
+		keys = append(keys, codeusage.EntrypointsOnlyKey)
+	}
 	return keys
 }
 
@@ -166,6 +183,18 @@ type hashed struct {
 	Tenant    string   `json:"tenant,omitempty"`
 	Enrichers []string `json:"enrichers,omitempty"`
 	Packages  string   `json:"packages,omitempty"`
+	// Reach changes the reach of each finding, so a stopped scan with
+	// another level does not continue.
+	Reach report.ReachLevel `json:"reach,omitempty"`
+	// Budget changes which files a stopped analysis reads.
+	Budget time.Duration `json:"budget,omitempty"`
+	// The entry points change the call paths of each finding.
+	Entrypoints     []string `json:"entrypoints,omitempty"`
+	EntrypointsOnly bool     `json:"entrypoints_only,omitempty"`
+	// The symbol options choose the bundle, so a stopped scan does not mix
+	// the records of two bundles.
+	SymbolsBundle string `json:"symbols_bundle,omitempty"`
+	SymbolsPin    string `json:"symbols_pin,omitempty"`
 }
 
 // Scan runs a scan, writes the report to its destinations and returns the
@@ -232,6 +261,10 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	if err != nil {
 		return configError(err)
 	}
+	code, err := codeAnalysisOf(cfg, o)
+	if err != nil {
+		return err
+	}
 
 	dirs, err := state.PrepareDirs(state.DirRequest{Dirs: rt.Dirs, Ephemeral: ephemeral})
 	if err != nil {
@@ -241,6 +274,10 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		tui.Warning("%s", dirs.Warning)
 	}
 	return withState(ctx, dirs, cfg.Cache.Enabled, func(store *state.Store, cache *state.Cache) error {
+		codeOpts, err := code.options(o, cache, dirs.Cache)
+		if err != nil {
+			return err
+		}
 		ttl, err := cfg.Cache.TTL.Value()
 		if err != nil {
 			return app.UsageError("cache.ttl: "+err.Error(), "Set a duration such as 24h or 7d.")
@@ -248,9 +285,8 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		set, err := enrichers.Build(enrichers.Options{
 			APIURL: cfg.Cloud.Endpoints.API, CommunityURL: cfg.Cloud.Endpoints.Community,
 			Credentials: creds, Workers: cfg.Scan.Concurrency, TTL: ttl,
-			CodeUsageDir: codeUsageDir(cfg, o),
-			CodeUsage:    codeusage.Options{BaseRef: o.BaseRef},
-			ActionRefs:   refs,
+			CodeUsage:  codeOpts,
+			ActionRefs: refs,
 		})
 		if err != nil {
 			return err
@@ -264,7 +300,9 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		exclude := append(append([]string{}, cfg.Scan.Exclude...), o.Exclude...)
 		hash, err := state.OptionsHash(hashed{
 			BaseRef: o.BaseRef, Exclude: exclude, API: cfg.Cloud.Endpoints.API, Anonymous: creds.Anonymous(),
-			Tenant: creds.TenantDomain(), Enrichers: enricherIDs(set), Packages: string(packages),
+			Tenant: creds.TenantDomain(), Enrichers: enricherIDs(set), Packages: string(packages), Reach: code.reach.Level, Budget: code.budget,
+			Entrypoints: code.config.Entrypoints, EntrypointsOnly: code.config.EntrypointsOnly,
+			SymbolsBundle: code.config.SymbolsBundle, SymbolsPin: code.config.SymbolsPin,
 		})
 		if err != nil {
 			return err
@@ -287,7 +325,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			Kind: kind, Mode: mode, BaseRef: o.BaseRef, OptionsHash: hash, VetVersion: version.Version(),
 			Resume: o.Resume, Fresh: o.Fresh, ContinueWithin: within, Strict: o.Strict || cfg.Scan.Strict,
 			Diagnostics: pol.diagnostics(),
-			BatchSize:   100, Observer: v, Opened: notContinued,
+			BatchSize:   100, Observer: v, Opened: notContinued, Reach: code.reach,
 			Finalize: func(ctx context.Context, s *state.Scan) (report.Gate, error) {
 				if err := syncInventory(ctx, cfg, store, s); err != nil {
 					return report.Gate{}, err
@@ -416,21 +454,80 @@ func Outputs(cfg *config.Config, out string, reports []string, extra map[string]
 	return outs, nil
 }
 
-// codeUsageDir returns the directory of a scan of a local directory when
-// plugins.codeusage is on, else "".
-func codeUsageDir(cfg *config.Config, o Options) string {
-	if o.Source != nil || !cfg.PluginEnabled(codeusage.Name, false) {
-		return ""
-	}
-	info, err := os.Stat(o.Target)
-	if err != nil || !info.IsDir() {
-		return ""
-	}
-	dir, err := filepath.Abs(o.Target)
+// codeAnalysis is the code analysis of a scan and its reach.
+type codeAnalysis struct {
+	on     bool
+	budget time.Duration
+	reach  report.ReachInfo
+	config codeusage.Config
+}
+
+// codeAnalysisOf reads plugins.codeusage and --reach. Code analysis is on
+// by default. A build with no CGO turns the default off with no
+// diagnostic. A config that turns it on there gets the diagnostic of the
+// enricher.
+func codeAnalysisOf(cfg *config.Config, o Options) (codeAnalysis, error) {
+	set, err := codeusage.ParseSettings(plugin.MapConfig(cfg.PluginOptions(codeusage.Name)))
 	if err != nil {
-		return ""
+		return codeAnalysis{}, app.UsageError("plugins."+codeusage.Name+".options: "+err.Error(), "Fix the option in the config file.")
 	}
-	return dir
+	if o.Reach != "" {
+		if set.Reach, err = report.ParseReachLevel(o.Reach); err != nil {
+			return codeAnalysis{}, app.UsageError("--reach: "+err.Error(), "Use --reach off, import or function.")
+		}
+	}
+	for _, ep := range o.Entrypoints {
+		if _, _, err := codeusage.ParseEntrypoint(ep); err != nil {
+			return codeAnalysis{}, app.UsageError("--entrypoint: "+err.Error(), "Name an entry point as cmd/app/main.go:main.")
+		}
+	}
+	set.Entrypoints = append(slices.Clone(set.Entrypoints), o.Entrypoints...)
+	set.EntrypointsOnly = set.EntrypointsOnly || o.EntrypointsOnly
+	if set.EntrypointsOnly && len(set.Entrypoints) == 0 {
+		return codeAnalysis{}, app.UsageError("entrypoints_only needs at least one entry point",
+			"Add --entrypoint cmd/app/main.go:main, or set plugins.codeusage.options.entrypoints.")
+	}
+	// An entry point only starts a call graph search. At another level it
+	// would change nothing, and a user would think the scan used it.
+	if len(set.Entrypoints) > 0 && set.Reach != report.ReachFunction {
+		return codeAnalysis{}, app.UsageError("an entry point needs the function reach level",
+			"Add --reach function, or set plugins.codeusage.options.reach to function.")
+	}
+	c := codeAnalysis{on: o.Source == nil && cfg.PluginEnabled(codeusage.Name, true), budget: set.Budget, reach: report.ReachInfo{Level: set.Reach}, config: set}
+	p, ok := cfg.Plugins[codeusage.Name]
+	explicit := ok && p.Enabled != nil
+	switch {
+	case !c.on:
+		c.reach = report.ReachInfo{Level: report.ReachOff}
+	case !codeusage.Available() && !explicit:
+		c.on = false
+		c.reach.Status = report.ReachUnavailable
+	}
+	return c, nil
+}
+
+// options returns the options of the codeusage enricher, or nil when the
+// code analysis is off. The function level reads the symbol data, which
+// the SDK keeps in the cache directory.
+func (c codeAnalysis) options(o Options, cache *state.Cache, cacheDir string) (*codeusage.Options, error) {
+	if !c.on {
+		return nil, nil
+	}
+	opts := &codeusage.Options{
+		BaseRef: o.BaseRef, Cache: cacheFile(cache), Budget: c.budget,
+		Entrypoints: c.config.Entrypoints, EntrypointsOnly: c.config.EntrypointsOnly,
+	}
+	if c.reach.Level != report.ReachFunction {
+		return opts, nil
+	}
+	src, err := symbols.NewPublic(symbols.Options{
+		CacheDir: cacheDir, Update: c.config.SymbolsUpdate, LocalBundle: c.config.SymbolsBundle, Pin: c.config.SymbolsPin,
+	})
+	if err != nil {
+		return nil, app.UsageError("plugins."+codeusage.Name+".options: "+err.Error(), "Fix symbols_pin or symbols_bundle in the config file.")
+	}
+	opts.Symbols = src
+	return opts, nil
 }
 
 // actionRefs builds the actionrefs enricher, or nil when the config turns
@@ -527,7 +624,7 @@ func enricherSpecs(set *enrichers.Set) []engine.Enricher {
 	for _, s := range set.Specs {
 		out = append(out, engine.Enricher{
 			Name: s.Name, Version: s.Version, TTL: s.TTL, Plugin: s.Plugin,
-			Prior: s.Name == insights.Name, Local: s.Local, SkipEmpty: s.SkipEmpty,
+			Prior: s.Name == insights.Name, Local: s.Local, SkipEmpty: s.SkipEmpty, Whole: s.Whole,
 		})
 	}
 	return out
@@ -647,9 +744,22 @@ func applyRetention(ctx context.Context, cfg *config.Config, store *state.Store,
 		tui.Warning("retention: %v", err)
 		return
 	}
-	if n > 0 {
+	indexed, err := codeusage.PruneIndex(ctx, cache.FileManager(), time.Now())
+	if err != nil {
+		tui.Warning("retention: %v", err)
+	}
+	if n += int64(indexed); n > 0 {
 		tui.Faint("Retention deleted %d expired cache entries.", n)
 	}
+}
+
+// cacheFile returns the manager of cache.db, or nil with no cache. A nil
+// *state.Cache must not become a non-nil interface.
+func cacheFile(cache *state.Cache) localdb.Manager {
+	if cache == nil {
+		return nil
+	}
+	return cache.FileManager()
 }
 
 func animate() bool {

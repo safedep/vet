@@ -55,6 +55,10 @@ func MustPackageVersion(eco Ecosystem, name, version string) PackageVersion {
 	return p
 }
 
+// PURLTypeGitHubActions is the PURL type of a GitHub Action. The purl spec
+// has no type for an action, and its type "github" names a repository.
+const PURLTypeGitHubActions = "githubactions"
+
 // ErrUnknownEcosystem means vet does not read the ecosystem of a PURL type.
 // No enricher has data for it, so vet skips its packages.
 var ErrUnknownEcosystem = errors.New("unknown ecosystem")
@@ -64,7 +68,7 @@ var ErrUnknownEcosystem = errors.New("unknown ecosystem")
 var purlTypes = map[string]bool{
 	"npm": true, "pypi": true, "pip": true, "maven": true, "golang": true, "go": true,
 	"cargo": true, "gem": true, "rubygems": true, "nuget": true, "composer": true, "pub": true,
-	"github": true, "actions": true, "githubactions": true, "terraform": true,
+	"actions": true, PURLTypeGitHubActions: true, "terraform": true,
 	"vscode": true, "vsix": true, "vsx": true, "openvsx": true,
 }
 
@@ -347,6 +351,16 @@ var purlSpecName = map[packagev1.Ecosystem]func(string) string{
 	packagev1.Ecosystem_ECOSYSTEM_PYPI: func(name string) string {
 		return strings.ReplaceAll(strings.ToLower(name), "_", "-")
 	},
+	// The cargo type keeps the name as the registry publishes it, as
+	// tokio-util, though the identity folds it to tokio_util.
+	packagev1.Ecosystem_ECOSYSTEM_CARGO: func(name string) string { return name },
+}
+
+// purlURNName holds the ecosystems whose canonical name is the purl-spec
+// name: the composer type lowers the name, and GitHub lowers owner/repo.
+var purlURNName = map[packagev1.Ecosystem]bool{
+	packagev1.Ecosystem_ECOSYSTEM_PACKAGIST:      true,
+	packagev1.Ecosystem_ECOSYSTEM_GITHUB_ACTIONS: true,
 }
 
 // String is "<ecosystem>/<raw name>@<raw version>", for display.
@@ -357,6 +371,10 @@ func (p PackageVersion) String() string {
 	}
 	return s
 }
+
+// Identity returns the identity value of dry, for a library that takes it,
+// as the vuln-symbols SDK. A caller passes it on and reads nothing from it.
+func (p PackageVersion) Identity() pb.PackageVersion { return p.pv }
 
 // RawProto is the wire form of the package version: the raw name and
 // version. Only the clients of the SafeDep API call it.
@@ -490,4 +508,10 @@ func (p PackagePattern) Matches(id PackageVersion) bool {
 		return false
 	}
 	return version == "" || id.Equal(id.WithVersion(version))
+}
+
+// GoStdlib reports the Go standard library, which a go.mod names as the
+// package stdlib.
+func (p PackageVersion) GoStdlib() bool {
+	return p.Ecosystem() == EcosystemGo && p.RawName() == "stdlib"
 }

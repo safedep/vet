@@ -32,7 +32,7 @@ func TestParsePURL(t *testing.T) {
 		{"maven", "pkg:maven/org.apache/commons@1.0", EcosystemMaven, "org.apache:commons", "1.0", "org.apache:commons"},
 		{"go keeps case", "pkg:golang/github.com/Masterminds/goutils@v1.1.0", EcosystemGo, "github.com/Masterminds/goutils", "v1.1.0", "github.com/Masterminds/goutils"},
 		{"github actions", "pkg:githubactions/actions/checkout@v4", EcosystemGitHubActions, "actions/checkout", "v4", "actions/checkout"},
-		{"github action subpath", "pkg:github/github/codeql-action@v3#init", EcosystemGitHubActions, "github/codeql-action", "v3", "github/codeql-action"},
+		{"github action subpath", "pkg:githubactions/github/codeql-action@v3#init", EcosystemGitHubActions, "github/codeql-action", "v3", "github/codeql-action"},
 		{"terraform provider", "pkg:terraform/registry.terraform.io/hashicorp/aws@5.31.0", EcosystemTerraformProvider, "registry.terraform.io/hashicorp/aws", "5.31.0", "registry.terraform.io/hashicorp/aws"},
 		{"pub", "pkg:pub/http@1.2.0", EcosystemPub, "http", "1.2.0", "http"},
 	}
@@ -138,7 +138,8 @@ func TestPURLSpecNameCoversEachNameFold(t *testing.T) {
 			if id.Name() == id.RawName() {
 				return
 			}
-			assert.Contains(t, purlSpecName, ecosystems[eco], "the PURL of %s has no purl-spec name rule", eco)
+			_, fold := purlSpecName[ecosystems[eco]]
+			assert.True(t, fold || purlURNName[ecosystems[eco]], "the PURL of %s has no purl-spec name rule", eco)
 		})
 	}
 }

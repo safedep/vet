@@ -47,6 +47,7 @@ func project(t *testing.T) string {
 type fakeEnricher struct {
 	mu    sync.Mutex
 	seen  int
+	calls int
 	err   error
 	delay time.Duration
 }
@@ -62,6 +63,7 @@ func (f *fakeEnricher) Enrich(ctx context.Context, pkgs []*model.Package) error 
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.seen += len(pkgs)
+	f.calls++
 	if f.err != nil {
 		return f.err
 	}

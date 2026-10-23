@@ -1,0 +1,37 @@
+# main calls a method on a value that Type::new returns
+lang: rust
+unit: cargo:dep@1.2.0 vendor/dep-1.2.0
+called: dep::Tokenizer::next
+not-called: dep::Tokenizer::reset
+-- Cargo.toml --
+[package]
+name = "app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dep = "1.2.0"
+-- vendor/dep-1.2.0/Cargo.toml --
+[package]
+name = "dep"
+version = "1.2.0"
+edition = "2021"
+-- src/main.rs --
+use dep::Tokenizer;
+
+fn main() {
+    let mut t = Tokenizer::new();
+    t.next();
+}
+-- vendor/dep-1.2.0/src/lib.rs --
+pub struct Tokenizer {}
+
+impl Tokenizer {
+    pub fn new() -> Self {
+        Tokenizer {}
+    }
+
+    pub fn next(&mut self) {}
+
+    pub fn reset(&mut self) {}
+}

@@ -96,6 +96,18 @@ func TestScanGolden(t *testing.T) {
 	empty.Summary = report.Summary{}
 	machine := *sample.Header()
 	machine.Scan.Kind = report.ScanKindEndpoint
+	reached := *sample.Header()
+	reached.Scan.Reach = &report.ReachInfo{
+		Level: report.ReachFunction, Status: report.ReachComputed,
+		Symbols: &report.SymbolBundle{ID: "f2e47dc1", SignedAt: time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC), Records: 1220},
+	}
+	noSource := *sample.Header()
+	noSource.Scan.Reach = &report.ReachInfo{Level: report.ReachFunction, Status: report.ReachNoSource}
+	reachSummary := summary
+	called, imported := vulnerability(), vulnerability()
+	called.Reach = &finding.Reach{Level: finding.ReachCalled, Path: []model.PathHop{{Function: "main"}, {Function: "pad"}}}
+	imported.Reach = &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachNoSymbolData}
+	reachSummary.Findings = append(slices.Clone(summary.Findings), called, imported)
 
 	cases := []struct {
 		name    string
@@ -112,6 +124,8 @@ func TestScanGolden(t *testing.T) {
 		{name: "saved", opts: Options{Saved: true}, header: sample.Header(), trailer: &failOn, summary: summary},
 		{name: "no-manifest", opts: Options{Target: "."}, header: sample.Header(), trailer: &empty},
 		{name: "endpoint", opts: Options{Kind: report.ScanKindEndpoint}, header: &machine, trailer: &empty},
+		{name: "reach", opts: Options{Target: "."}, header: &reached, trailer: sample.Trailer(), summary: reachSummary},
+		{name: "reach-no-source", opts: Options{Target: "."}, header: &noSource, trailer: sample.Trailer(), summary: summary},
 	}
 	modes := map[string]output.Mode{"rich": output.Rich, "plain": output.Plain, "agent": output.Agent}
 	for _, tc := range cases {

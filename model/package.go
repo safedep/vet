@@ -2,6 +2,7 @@ package model
 
 import (
 	"cmp"
+	"slices"
 	"time"
 )
 
@@ -149,4 +150,141 @@ type MalwareAnalysis struct {
 type Usage struct {
 	Imported bool     `json:"imported"`
 	Files    []string `json:"files,omitempty"`
+	// Imports hold the first import of the package in each file of Files.
+	Imports []ImportSite `json:"imports,omitempty"`
+	// TestOnly marks a package that only test files import.
+	TestOnly bool `json:"test_only,omitempty"`
+	// Incomplete marks an analysis that its time budget stopped. A
+	// missing import then proves nothing.
+	Incomplete bool `json:"incomplete,omitempty"`
+	// UnreadFiles marks a project with a source file of a language of the
+	// package that the analysis could not read, parse or index whole.
+	UnreadFiles bool `json:"unread_files,omitempty"`
+	// NoSourceFiles marks a project with no source file that the analysis
+	// parses in a language of the package.
+	NoSourceFiles bool `json:"no_source_files,omitempty"`
+	// DynamicImport marks a project that imports a module by a computed
+	// name in a language of the package. A missing import then proves
+	// nothing.
+	DynamicImport bool `json:"dynamic_import,omitempty"`
+	// Calls are the calls of the code into the package, at most 200.
+	Calls []CallSite `json:"calls,omitempty"`
+	// Dynamic are the dynamic sites of the files that import the package.
+	Dynamic []DynamicSite `json:"dynamic,omitempty"`
+	// Symbols are the symbol records of the vulnerabilities of an imported
+	// package.
+	Symbols []SymbolRecord `json:"symbols,omitempty"`
+}
+
+// SymbolRecord is what the symbol data says about one vulnerability of a
+// package: the functions that hold the vulnerable code.
+type SymbolRecord struct {
+	// Advisory is the id of the vulnerability, as Insights names it.
+	Advisory string `json:"advisory"`
+	// Record is the id of the symbol record.
+	Record string `json:"record"`
+	// Coverage is exact when the list of fix sites is complete, and broad
+	// when it can miss some.
+	Coverage string `json:"coverage"`
+	// Verified marks a record that its maintainers reviewed. Only an exact
+	// and verified record can prove that the code calls no fix site.
+	Verified bool `json:"verified,omitempty"`
+	// Review is the review state of the record, as verified or unreviewed.
+	Review string `json:"review,omitempty"`
+	// Source names the symbol data, as vuln-symbols, and License the
+	// license of the record.
+	Source   string   `json:"source,omitempty"`
+	License  string   `json:"license,omitempty"`
+	FixSites []string `json:"fix_sites"`
+	// Keys are the symbol keys of the fix sites in the call graph, as
+	// golang.org//x//net//html//Render. A fix site with no key rule has
+	// none.
+	Keys []string `json:"keys,omitempty"`
+	// Reach is what the call graph says about the fix sites, or nil when
+	// vet did not search.
+	Reach *FunctionReach `json:"reach,omitempty"`
+}
+
+// FunctionReach is the answer of the call graph for the fix sites of one
+// record.
+type FunctionReach struct {
+	// Status is called, not-found or unknown. Not-found is no path in the
+	// graph of the project and the dependency code that vet read. Only the
+	// engine turns it into not called, because another dependency can
+	// call the fix site.
+	Status string `json:"status"`
+	// Cause says why the status is unknown.
+	Cause string `json:"cause,omitempty"`
+	// Path is the call path from an entry point to a fix site.
+	Path []PathHop `json:"path,omitempty"`
+	// TestOnly marks a path that only a test reaches.
+	TestOnly bool `json:"test_only,omitempty"`
+}
+
+// CoverageExact is the coverage of a record that names every fix site.
+const CoverageExact = "exact"
+
+// The statuses of a FunctionReach.
+const (
+	FunctionCalled   = "called"
+	FunctionNotFound = "not-found"
+	FunctionUnknown  = "unknown"
+)
+
+// HopHigh is the confidence of a call that the call graph resolves for
+// sure, as a direct call.
+const HopHigh = "high"
+
+// WeakPath reports a call path with a call that the call graph only
+// guesses, as a call by name or through an interface to each type that
+// implements it. A real scan showed that such a path is often not a call.
+func WeakPath(path []PathHop) bool {
+	// The first hop is the entry point and has no call. A later hop with no
+	// confidence is weak, so a call that the graph does not rate never
+	// counts as high.
+	return len(path) > 1 && slices.ContainsFunc(path[1:], func(h PathHop) bool { return h.Confidence != HopHigh })
+}
+
+// PathHop is one function of a call path, with the line of its call into
+// the next hop. The first hop is the entry point and Root names its kind.
+type PathHop struct {
+	Function string `json:"function"`
+	File     string `json:"file,omitempty"`
+	Line     int    `json:"line,omitempty"`
+	Root     string `json:"root,omitempty"`
+	// Edge is the kind of the call into the hop, as direct or cha, and
+	// Confidence is how sure the call graph is of it.
+	Edge       string `json:"edge,omitempty"`
+	Confidence string `json:"confidence,omitempty"`
+}
+
+// CallSite is one call of the code into a package. Callee is the call
+// target with "//" between its parts, as golang.org//x//net//html//Render.
+type CallSite struct {
+	File   string `json:"file"`
+	Line   int    `json:"line"`
+	Callee string `json:"callee"`
+}
+
+// DynamicSite is a line of a source file that the static analysis cannot
+// follow, such as eval or an import by a computed name. Kind names it as
+// safedep/code does.
+type DynamicSite struct {
+	File string `json:"file"`
+	Line int    `json:"line"`
+	Kind string `json:"kind"`
+}
+
+// ImportSite is the line of a source file that imports a package.
+type ImportSite struct {
+	File string `json:"file"`
+	Line int    `json:"line"`
+}
+
+// ProvableReach reports a package whose call paths can prove a finding:
+// the project imports it, and it is not the standard library of Go. Any
+// dependency can call another package or the standard library, through
+// code that the scan did not read.
+func (p *Package) ProvableReach() bool {
+	return p.Usage != nil && p.Usage.Imported && !p.ID.GoStdlib()
 }

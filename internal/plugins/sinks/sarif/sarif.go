@@ -59,6 +59,9 @@ type text struct {
 type properties struct {
 	SecuritySeverity string   `json:"security-severity,omitempty"`
 	Tags             []string `json:"tags,omitempty"`
+	// Reach is the reach label of a vulnerability finding, as
+	// "called · 2 hops".
+	Reach string `json:"reach,omitempty"`
 }
 
 type result struct {
@@ -177,7 +180,10 @@ func toResult(f *finding.Finding) result {
 	res := result{
 		RuleID: ruleID(f), Level: level(f.Severity), Message: text{Text: msg},
 		PartialFingerprints: map[string]string{fingerprint: f.ID},
-		Properties:          properties{SecuritySeverity: securitySeverity(f.Severity), Tags: append([]string{string(f.Severity), string(f.Family)}, attackTags(f)...)},
+		Properties: properties{
+			SecuritySeverity: securitySeverity(f.Severity), Tags: append([]string{string(f.Severity), string(f.Family)}, attackTags(f)...),
+			Reach: f.Reach.Label(),
+		},
 	}
 	if loc := locationOf(f); loc != nil {
 		res.Locations = []location{*loc}

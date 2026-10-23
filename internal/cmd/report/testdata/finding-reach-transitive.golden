@@ -1,0 +1,3 @@
+reach: imported · transitive
+reach help: Another dependency can call the package through code that vet did not prove.
+via: pkg:golang/a@v1.0.0 → pkg:golang/b@v1.0.0

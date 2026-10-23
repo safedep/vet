@@ -54,6 +54,35 @@ func pullRequest() *plugintest.MemState {
 	return s
 }
 
+// withReach is the sample report with two vulnerability findings of a scan
+// that searched the call graph: one called, one not called.
+func withReach() *plugintest.MemState {
+	s := plugintest.SampleReport()
+	h := *s.Header()
+	h.Scan.Reach = &report.ReachInfo{
+		Level: report.ReachFunction, Status: report.ReachComputed,
+		Symbols: &report.SymbolBundle{ID: "f2e47dc1", SignedAt: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), Records: 1220},
+	}
+	s.HeaderValue = &h
+	pad := s.ManifestList[0].Packages[1]
+	vuln := func(id string, sev finding.Severity, r *finding.Reach) *finding.Finding {
+		f := finding.ForPackage(finding.Meta{
+			ControlID: "vulnerability", Family: finding.FamilyVulnerability, Severity: sev, Title: id + " in left-pad",
+		}, s.ManifestList[0].Path, pad, finding.Key{Discriminator: id})
+		f.Advisory, f.Reach = id, r
+		return &f
+	}
+	called := &finding.Reach{Level: finding.ReachCalled, Confidence: finding.ConfidenceHigh, Path: []model.PathHop{
+		{Function: "src/index.js//main", Root: "main"},
+		{Function: "src/pad.js//render", File: "src/index.js", Line: 4, Edge: "direct", Confidence: "high"},
+		{Function: "left-pad//index.js//leftPad", File: "src/pad.js", Line: 9, Edge: "import", Confidence: "high"},
+	}}
+	s.FindingList = append(s.FindingList,
+		vuln("GHSA-stub-0001", finding.SeverityHigh, called),
+		vuln("GHSA-stub-0002", finding.SeverityLow, &finding.Reach{Level: finding.ReachNotCalled, Confidence: finding.ConfidenceMedium}))
+	return s
+}
+
 // clean is a report with packages and no findings.
 func clean() *plugintest.MemState {
 	s := plugintest.SampleReport()
@@ -64,7 +93,7 @@ func clean() *plugintest.MemState {
 func TestSinksGolden(t *testing.T) {
 	output.SetWidthOverride(120)
 	t.Cleanup(func() { output.SetWidthOverride(0) })
-	reports := map[string]func() *plugintest.MemState{"sample": plugintest.SampleReport, "pull-request": pullRequest, "clean": clean}
+	reports := map[string]func() *plugintest.MemState{"sample": plugintest.SampleReport, "pull-request": pullRequest, "clean": clean, "reach": withReach}
 	modes := map[string]output.Mode{"rich": output.Rich, "plain": output.Plain}
 
 	for _, spec := range sinks.Builtin() {

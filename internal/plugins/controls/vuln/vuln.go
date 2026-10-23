@@ -62,6 +62,7 @@ func newFinding(m *model.Manifest, p *model.Package, v model.Vulnerability) find
 		ControlID: Name, Family: finding.FamilyVulnerability, Severity: sev, Confidence: conf,
 		Title: title, Description: v.Summary,
 	}, m.Path, p, finding.Key{Discriminator: v.ID})
+	f.Advisory = v.ID
 	f.Evidence = []finding.Evidence{{Source: "insights", Summary: evidence(v), URL: advisoryURL(v.ID)}}
 	f.References = []string{advisoryURL(v.ID)}
 	f.Remediation = remediation(p, v)

@@ -9,10 +9,12 @@ import (
 	"github.com/safedep/vet/v2/plugin"
 )
 
-// defaultAnalyzer needs tree-sitter, which needs CGO. A static vet build
-// has no code analysis.
-func defaultAnalyzer(context.Context, string) (Analysis, error) {
-	return Analysis{}, fmt.Errorf("this vet build has no code analysis, because it has no CGO: %w", plugin.ErrUnavailable)
+// newAnalyzer needs tree-sitter, which needs CGO. A static vet build has
+// no code analysis.
+func newAnalyzer(Options) Analyzer {
+	return func(context.Context, string) (Analysis, error) {
+		return Analysis{}, fmt.Errorf("this vet build has no code analysis, because it has no CGO: %w", plugin.ErrUnavailable)
+	}
 }
 
 // Available reports that this build has code analysis.

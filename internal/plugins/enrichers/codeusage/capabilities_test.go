@@ -17,7 +17,7 @@ import (
 )
 
 // lineAnalyzer matches the signature <id> on each line "call <id>" of the
-// files under dir. It skips installed code, as the real analyzer does, and
+// files under dir, and names each file relative to dir, as safedep/code does. It skips installed code, as the real analyzer does, and
 // records the files of each analysis.
 type lineAnalyzer struct{ runs [][]string }
 
@@ -29,13 +29,18 @@ func (l *lineAnalyzer) analyze(_ context.Context, dir string) (Analysis, error) 
 		if err != nil {
 			return err
 		}
+		rel, err := filepath.Rel(dir, p)
+		if err != nil {
+			return err
+		}
 		if d.IsDir() {
-			if skippedDir(d.Name()) {
+			if p != dir && skippedDir(filepath.ToSlash(rel)) {
 				return filepath.SkipDir
 			}
 			return nil
 		}
-		files = append(files, relTo(dir, p))
+		rel = filepath.ToSlash(rel)
+		files = append(files, rel)
 		f, err := os.Open(p)
 		if err != nil {
 			return err
@@ -46,7 +51,7 @@ func (l *lineAnalyzer) analyze(_ context.Context, dir string) (Analysis, error) 
 			if id, ok := strings.CutPrefix(sc.Text(), "call "); ok {
 				out.Matches = append(out.Matches, Match{
 					Signature: Signature{ID: id, Vendor: "V", Product: "P", Tags: []string{"ai"}},
-					FilePath:  p, Line: line, Column: 1, Language: "python", Callee: id,
+					FilePath:  rel, Line: line, Column: 1, Language: "python", Callee: id,
 				})
 			}
 		}

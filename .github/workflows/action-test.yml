@@ -82,7 +82,7 @@ jobs:
       - name: Run the action
         id: vet
         if: steps.ready.outputs.ready == 'true'
-        uses: $/
+        uses: ./
         with:
           comment: never
           fail-on: none
@@ -101,6 +101,28 @@ jobs:
             pass | fail | none) ;;
             *) echo "::error::The gate output is '$GATE'"; exit 1 ;;
           esac
+
+      # The first run saved the vet cache, so the second run restores it.
+      - name: Run the action again
+        id: again
+        if: steps.ready.outputs.ready == 'true'
+        uses: ./
+        with:
+          comment: never
+          fail-on: none
+
+      - name: Check the cache hit
+        if: steps.ready.outputs.ready == 'true'
+        shell: bash
+        env:
+          KEY: ${{ steps.again.outputs.cache-key }}
+        run: |
+          set -euo pipefail
+          if [ -z "$KEY" ]; then
+            echo "::error::The second run restored no vet cache"
+            exit 1
+          fi
+          echo "The second run restored $KEY"
 
   scan:
     strategy:

@@ -1,0 +1,30 @@
+# main imports the crate and calls another function of it
+lang: rust
+unit: cargo:dep@1.2.0 vendor/dep-1.2.0
+called: dep::html::escape
+not-called: dep::html::render
+-- Cargo.toml --
+[package]
+name = "app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dep = "1.2.0"
+-- vendor/dep-1.2.0/Cargo.toml --
+[package]
+name = "dep"
+version = "1.2.0"
+edition = "2021"
+-- src/main.rs --
+use dep::html;
+
+fn main() {
+    html::escape();
+}
+-- vendor/dep-1.2.0/src/lib.rs --
+pub mod html;
+-- vendor/dep-1.2.0/src/html.rs --
+pub fn render() {}
+
+pub fn escape() {}

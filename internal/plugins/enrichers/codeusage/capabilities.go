@@ -30,6 +30,9 @@ const maxBaseFile = 4 << 20
 // gets its change against the base commit, and a capability of the base
 // that the head does not have is removed.
 func (e *Enricher) Capabilities(ctx context.Context) ([]report.Capability, error) {
+	if e.dir == "" {
+		return nil, nil
+	}
 	if err := e.load(ctx); err != nil {
 		return nil, err
 	}
@@ -104,7 +107,7 @@ func (e *Enricher) baseMatches(ctx context.Context) (out []Match, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return append(out, e.external(a.Matches, tmp)...), nil
+	return append(out, e.external(a.Matches)...), nil
 }
 
 // sameAsHead reports whether the head file has the content of the base
@@ -126,7 +129,7 @@ func skippedPath(rel string) bool {
 		return true
 	}
 	for dir := path.Dir(rel); dir != "." && dir != "/"; dir = path.Dir(dir) {
-		if skippedDir(path.Base(dir)) {
+		if skippedDir(dir) {
 			return true
 		}
 	}

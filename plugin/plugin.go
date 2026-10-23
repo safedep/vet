@@ -117,6 +117,39 @@ type CapabilityFinder interface {
 	Capabilities(ctx context.Context) ([]report.Capability, error)
 }
 
+// Diagnoser is an enricher that reports the limits of its work, such as
+// source files that it could not parse. The engine reads the diagnostics
+// once for each scan, after the enrichers, and adds them to the report.
+type Diagnoser interface {
+	Diagnostics() []report.Diagnostic
+}
+
+// SourceEnricher is an enricher that reads the source code of the target.
+// The engine calls UseSource once, before Prepare and Enrich, with the
+// directory of a directory artifact, such as a local directory or a git
+// clone. It passes "" for a target with no source code.
+type SourceEnricher interface {
+	UseSource(dir string)
+}
+
+// ReachReporter is an enricher that searches the call graph. ReachReport
+// adds the symbol data that it read, the entry points and the dependency
+// code of its search to the reach of the scan header. It leaves a field
+// that it did not use as it is.
+type ReachReporter interface {
+	ReachReport(info *report.ReachInfo)
+}
+
+// Preparer is an enricher with work that needs no package, such as the
+// index of the source files. The engine calls Prepare once in its own
+// goroutine when the scan starts, so the work runs while the extraction
+// and the network enrichers run. Enrich must give the same result with or
+// without Prepare. The engine reports no error of Prepare, so Enrich or
+// Diagnostics must report it.
+type Preparer interface {
+	Prepare(ctx context.Context) error
+}
+
 // Control evaluates one manifest, loaded with its packages, and returns
 // findings. A control that looks across manifests reads State.
 type Control interface {

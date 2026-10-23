@@ -5,7 +5,6 @@
       "kind": "sbom",
       "ecosystem": "pypi",
       "packages": [
-        "github-actions/psf/requests [+]",
         "pypi/httpbin@0.10.0 [+]",
         "pypi/pytest-httpbin@2.0.0 [+]",
         "pypi/sphinx@4.2.0 [+]"
@@ -19,6 +18,7 @@
     "sbom.spdx.json: package actions:github/codeql-action/analyze@5b6282e01c62d02e720b81eb8a51204f527c3624 has no PURL",
     "sbom.spdx.json: package actions:github/codeql-action/autobuild@5b6282e01c62d02e720b81eb8a51204f527c3624 has no PURL",
     "sbom.spdx.json: package actions:github/codeql-action/init@5b6282e01c62d02e720b81eb8a51204f527c3624 has no PURL",
-    "sbom.spdx.json: package actions:pre-commit/action@646c83fcd040023954eafda54b4db0192ce70507 has no PURL"
+    "sbom.spdx.json: package actions:pre-commit/action@646c83fcd040023954eafda54b4db0192ce70507 has no PURL",
+    "sbom.spdx.json: unknown ecosystem: PURL type \"github\""
   ]
 }

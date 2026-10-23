@@ -1,0 +1,59 @@
+# A vulnerability finding of a directory scan gets a reach from the
+# imports of the code and the dependency graph. --reach off removes it, and
+# a target with no source code computes none. left-pad depends on minimist
+# in the lockfile, so the code reaches minimist through left-pad.
+[!cgo] skip 'code analysis needs a vet built with CGO'
+cd proj
+exec vet scan . -o jsonl --mode agent
+stdout '"reach":\{"level":"import","status":"computed"\}'
+stdout '"name":"left-pad".*"reach":\{"level":"imported","confidence":"high","imports":\[\{"file":"index.js","line":1\}\]\}'
+stdout '"name":"minimist".*"reach":\{"level":"imported","confidence":"medium","via":\["pkg:npm/left-pad@1.3.0","pkg:npm/minimist@1.2.0"\]\}'
+
+exec vet scan . -o jsonl --mode agent --reach function
+stdout '"name":"left-pad".*"reach":\{"level":"imported","cause":"no-symbol-data","confidence":"high"'
+
+exec vet scan . -o jsonl --mode agent --reach off
+stdout '"reach":\{"level":"off","status":"off"\}'
+! stdout '"level":"imported"'
+
+! exec vet scan . --reach deep
+stderr 'reach level "deep" is not valid'
+
+cd ../unused
+exec vet scan . -o jsonl --mode agent
+stdout '"name":"minimist".*"reach":\{"level":"unused","confidence":"medium"\}'
+stdout '"name":"left-pad".*"reach":\{"level":"unused","confidence":"medium"\}'
+
+cd ..
+exec vet scan proj/package-lock.json -o jsonl --mode agent
+stdout '"reach":\{"level":"import","status":"no-source"\}'
+exec vet scan proj/package-lock.json --mode plain -o table
+stderr 'Reach: not computed, the target has no source code'
+! stdout 'REACH'
+! stdout '"level":"imported"'
+
+-- proj/index.js --
+const pad = require('left-pad');
+pad('x', 3);
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz", "dependencies": {"minimist": "1.2.0"}},
+    "node_modules/minimist": {"version": "1.2.0", "resolved": "https://registry.npmjs.org/minimist/-/minimist-1.2.0.tgz"}
+  }
+}
+-- unused/index.js --
+console.log(1);
+-- unused/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz", "dependencies": {"minimist": "1.2.0"}},
+    "node_modules/minimist": {"version": "1.2.0", "resolved": "https://registry.npmjs.org/minimist/-/minimist-1.2.0.tgz"}
+  }
+}

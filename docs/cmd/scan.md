@@ -8,6 +8,7 @@ Scan a project, a repository, an image, an SBOM or a package.
 vet scan [TARGET] [--base-ref REF] [--fail-on SEVERITY|attacks] [--policy FILE|NAME]
          [--report FORMAT=PATH]... [--strict] [--resume | --fresh] [--no-cache]
          [--exclude GLOB]... [--packages declared|installed|all] [--cooldown-days N]
+         [--reach off|import|function] [--entrypoint PATH:FUNCTION]... [--entrypoints-only]
          [--state-dir DIR] [--cache-dir DIR] [--ephemeral]
          [-o table|plain|json|jsonl|sarif|markdown|cyclonedx|gitlab|bitbucket]
 ```
@@ -74,13 +75,86 @@ A scan of a root file system does not enter `proc`, `sys`, `dev` and the macOS `
 On Linux, vet also skips each pseudo file system, such as proc, sysfs and cgroup, wherever it is
 mounted. A path that the user cannot read gives one diagnostic with a count.
 
-With `plugins.codeusage.enabled: true`, vet also reads the source files of a directory target. It
-records which packages the code imports, and the AI and crypto capabilities that the code calls.
-The `cyclonedx` report writes them as an xBOM and a CBOM. The code analysis needs a vet build with
-CGO. A static build records a diagnostic and scans with no code usage.
+vet reads the source files of a directory target and of a git clone. It records which packages the
+code imports, and the AI and crypto capabilities that the code calls. The `cyclonedx` report writes
+the capabilities as an xBOM and a CBOM. `cache.db` keeps the index of each file, so the next scan
+parses only the files that changed. vet parses the code while it waits for SafeDep Insights.
+`plugins.codeusage.options.budget` bounds the time, 5m by default. A file that the budget stops is
+not in the report, and a diagnostic counts these files. `plugins.codeusage.enabled: false` turns off
+all code analysis. The code analysis needs a vet build with CGO. A static build scans with no code
+analysis.
+
+Each vulnerability finding gets a reach. It says how far the code of the project reaches the
+vulnerable package.
+
+| Reach | Meaning |
+| --- | --- |
+| `called` | A call path from an entry point of the project reaches a vulnerable function. The finding shows the path. |
+| `not-called` | No call path reaches a vulnerable function, and vet can prove it. See below. |
+| `imported` | A source file imports the package, or a package that the code imports depends on it. |
+| `unused` | No source file imports the package, and no imported package depends on it. A tool that the project runs from a script with no import, as a build tool, is `unused` too. |
+| `unknown` | vet cannot tell. The cause names why: `no-graph`, `dynamic-import`, `budget`, `unread-files` or `no-source-files`. |
+
+vet never shows `unknown` as safe. A source file that vet could not read or parse makes the packages
+of its language `unknown`. So does a project with no source file that vet parses in the language of
+the package, such as a project of `.jsx` files. A package that only test files import is `imported`, with a
+test-only mark. `--reach` sets the level, and `plugins.codeusage.options.reach` sets it for every
+run. `import`, the default, stops at the imports. `function` also follows the calls to the
+vulnerable functions of Go and Rust packages, and a finding with no record of its vulnerable
+functions stays `imported` with the cause `no-symbol-data`. The function level is opt-in. It parses
+the code of the dependencies, and it gives few `called` or `not-called` answers on real projects
+yet. `off` turns off the reach only, and the AI and crypto capabilities stay on.
+
+At the function level, vet links one call graph of the project and of the Go modules and Rust
+crates that it finds on the disk: the `vendor` directory first, then the module cache or the cargo
+registry. vet never downloads a dependency. The search starts at the entry points that vet finds:
+the main functions, the framework handlers, the tests and the exported functions of a library.
+`vet report root list` lists them. `--entrypoint cmd/app/main.go:main` adds an entry point, and
+`plugins.codeusage.options.entrypoints` adds a list for every run. The flag values join the
+config list. An entry point needs `--reach function`. At another level it exits with code 2.
+`--entrypoints-only`, or `entrypoints_only: true`, starts the search from the named
+entry points alone. An entry point that names no file or no function of the project exits with
+code 2. The call graph search has its own time budget, the same as
+`plugins.codeusage.options.budget`, after the code index.
+
+A finding is `not-called` only when all of these are true: the reach corpus of the language
+(`test/reach`) has no call that the search misses, the record of the advisory names every
+vulnerable function, a maintainer verified the record, vet read the code of the package, vet found
+an entry point, the project imports the package, no other dependency that the project imports
+depends on the package, no local package (such as a Cargo path dependency) can call it, and no file
+that imports the package has a dynamic call. In each other case the finding stays `imported`, and
+its cause says why. vet reads the dependency graph only from a lockfile, because an SBOM can list
+only some edges. A `go.mod` holds no dependency graph, so a Go finding with no call path stays
+`imported` with the cause `no-graph`:
+
+| Cause | Why vet cannot prove `not-called` |
+| --- | --- |
+| `no-graph` | The lockfile holds no dependency graph, so another dependency can depend on the package. |
+| `no-entry-point` | vet found no entry point, so the search started from every exported function. |
+| `no-dependency-source` | The code of the package is not in `vendor`, in the module cache or in the cargo registry. |
+| `no-symbol-in-graph` | The code of the package does not define a vulnerable function of the record. |
+| `broad-record` | The record does not name every vulnerable function. |
+| `unreviewed-record` | No maintainer verified the record. |
+| `unresolved-call` | A call on the path is a call that vet cannot resolve. |
+| `dynamic-flag` | A call on the path is dynamic, as reflection. |
+| `transitive` | Another dependency can call the package, through code that vet did not prove. |
+| `budget` | The time budget stopped the search. |
+| `analysis-failed` | The search failed. A diagnostic says why. |
+| `unproven-language` | The reach corpus of the language still has a call that the search misses. Rust is such a language today. |
+| `weak-path` | The path has a call that the graph only guesses, as a call by name or through an interface. The finding keeps the path as evidence. |
+| `no-symbol-data` | vuln-symbols has no record of the vulnerable functions of the advisory. |
+
+vet reads the vulnerable functions from the signed bundle of
+[vuln-symbols](https://github.com/safedep/vuln-symbols). It keeps the bundle in the cache directory
+and asks for a newer one at most once a day. `plugins.codeusage.options.symbols_update: false`
+stops the update, `symbols_bundle` reads a local copy of the bundle files and `symbols_pin` keeps a
+CI run on one bundle id. The report header names the bundle. A scan never fails because of the
+bundle: a missing, stale, unreachable or rejected bundle is a warning. A lockfile, an SBOM, an
+image or a PURL has no source code, so the scan computes no reach and its header says so.
 
 A backend that does not answer does not fail the scan. The controls that need its data do not run,
-and the report has a diagnostic. `--strict` turns a diagnostic into exit code 3.
+and the report has a diagnostic. `--strict` turns a diagnostic into exit code 3. That includes the
+warnings of the code analysis, as a stale symbol bundle or a dependency with no code on the disk.
 
 vet saves each scan in the state directory. `vet report show` renders it again with no new scan. A
 scan that a signal stops saves its progress, and the next `vet scan` of the target continues it. A

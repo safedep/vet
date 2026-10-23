@@ -14,6 +14,7 @@ import (
 	"github.com/safedep/vet/v2/internal/tui/printer"
 	"github.com/safedep/vet/v2/internal/tui/table"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/report"
 )
 
 // CodeNoFinding is the error code of a finding id that no finding has. The
@@ -69,7 +70,7 @@ finding.`,
 			if err != nil {
 				return err
 			}
-			return p.Print(match[0], findingRows(match[0]))
+			return p.Print(match[0], findingRows(match[0], doc.Header().Scan.Reach))
 		},
 	}
 	c.Flags().StringVar(&scan, "scan", "", "Scan id prefix, last, or report file. The default is the last scan")
@@ -77,7 +78,7 @@ finding.`,
 	return c
 }
 
-func findingRows(f *finding.Finding) printer.Rows {
+func findingRows(f *finding.Finding, scanReach *report.ReachInfo) printer.Rows {
 	rows := printer.Rows{Headers: []string{"FIELD", "VALUE"}, Columns: []table.Column{{Fit: table.Keep}, {Fit: table.Wrap}}}
 	add := func(k, v string) {
 		if v != "" {
@@ -103,6 +104,7 @@ func findingRows(f *finding.Finding) printer.Rows {
 	for _, e := range f.Evidence {
 		add("evidence", strings.TrimSpace(e.Source+": "+e.Summary+" "+e.URL))
 	}
+	reachRows(f.Reach, scanReach, add)
 	if r := f.Remediation; r != nil {
 		add("fix", r.Summary)
 		add("fixed version", r.FixedVersion)

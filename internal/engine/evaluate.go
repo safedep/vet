@@ -61,6 +61,7 @@ func (r *run) evaluateManifest(ctx context.Context, m *model.Manifest) []finding
 			}
 			seen[f.ID] = true
 			annotateUsage(&f, m)
+			r.setReach(&f, m)
 			out = append(out, f)
 		}
 	}
@@ -154,32 +155,25 @@ func attacksOf(cs []Control) map[string]map[string]finding.Attack {
 // evidence (control catalog, phase 3: reachability annotation). It changes
 // no severity.
 func annotateUsage(f *finding.Finding, m *model.Manifest) {
-	if f.Subject.Kind != finding.SubjectPackage || f.Subject.Package == nil {
+	p := packageOf(f, m)
+	if p == nil || p.Usage == nil {
 		return
 	}
-	id, err := f.Subject.Package.PackageVersion()
-	if err != nil {
-		return
-	}
-	for _, p := range m.Packages {
-		if !p.ID.Equal(id) || p.Usage == nil {
-			continue
+	summary := "No source file of the project imports the package."
+	switch n := len(p.Usage.Files); {
+	case !p.Usage.Imported && p.Usage.Incomplete:
+		summary = "vet stopped the code analysis before it read every source file, so it cannot tell whether the project imports the package."
+	case !p.Usage.Imported:
+	case n == 0:
+		summary = "The project imports the package."
+	case n == 1:
+		summary = fmt.Sprintf("%s imports the package.", p.Usage.Files[0])
+	default:
+		others := "1 other file"
+		if n > 2 {
+			others = fmt.Sprintf("%d other files", n-1)
 		}
-		summary := "No source file of the project imports the package."
-		switch n := len(p.Usage.Files); {
-		case !p.Usage.Imported:
-		case n == 0:
-			summary = "The project imports the package."
-		case n == 1:
-			summary = fmt.Sprintf("%s imports the package.", p.Usage.Files[0])
-		default:
-			others := "1 other file"
-			if n > 2 {
-				others = fmt.Sprintf("%d other files", n-1)
-			}
-			summary = fmt.Sprintf("%s and %s import the package.", p.Usage.Files[0], others)
-		}
-		f.Evidence = append(f.Evidence, finding.Evidence{Source: "codeusage", Summary: summary})
-		return
+		summary = fmt.Sprintf("%s and %s import the package.", p.Usage.Files[0], others)
 	}
+	f.Evidence = append(f.Evidence, finding.Evidence{Source: "codeusage", Summary: summary})
 }

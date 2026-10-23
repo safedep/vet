@@ -1,0 +1,40 @@
+# a function calls a method on a parameter of type &mut T<u8>, and main calls the function
+lang: rust
+unit: cargo:dep@1.2.0 vendor/dep-1.2.0
+called: dep::Reader::read
+-- Cargo.toml --
+[package]
+name = "app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dep = "1.2.0"
+-- vendor/dep-1.2.0/Cargo.toml --
+[package]
+name = "dep"
+version = "1.2.0"
+edition = "2021"
+-- src/main.rs --
+use dep::Reader;
+
+fn pump(r: &mut Reader<u8>) {
+    r.read();
+}
+
+fn main() {
+    let mut r = Reader::new();
+    pump(&mut r);
+}
+-- vendor/dep-1.2.0/src/lib.rs --
+pub struct Reader<T> {
+    buf: Vec<T>,
+}
+
+impl<T> Reader<T> {
+    pub fn new() -> Self {
+        Reader { buf: Vec::new() }
+    }
+
+    pub fn read(&mut self) {}
+}

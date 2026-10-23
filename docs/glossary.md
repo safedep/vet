@@ -232,9 +232,60 @@ _Avoid_: fork commit, orphan commit, dangling commit
 
 **Code usage**:
 The evidence that the target's code imports a package, and in which files. `model.Usage`, set by the
-`codeusage` enricher. The engine adds it to package findings as evidence. It is import-level evidence,
-not call-graph reachability.
+`codeusage` enricher. `Usage.Imports` holds the import line of each file, and `Usage.TestOnly` marks a
+package that only test files import. `Usage.Calls` holds the calls into the package, and
+`Usage.Dynamic` the dynamic sites of the files that import it, such as eval or an import by a
+computed name. The engine adds it to package findings as evidence. It is
+import-level evidence, not call-graph reachability.
 _Avoid_: reachability (except in "reachability annotation"), usage graph
+
+**Reach**:
+How far the code of the project reaches the package of a vulnerability finding. `finding.Reach`,
+set by the engine from the code usage, the dependency graph and the call path. The levels are
+`called`, `not-called`, `imported`, `unused` and `unknown`. A reach that vet cannot prove names its
+cause, and a report never shows it as safe. A **reach level** is how deep vet looks: `off`, `import`
+or `function` (`report.ReachLevel`). The scan header records the level, whether the scan computed
+reach, and what the call graph search read in `report.ReachInfo`.
+_Avoid_: reachability (for the field), usage (for the level)
+
+**Call path**:
+The chain of calls from an entry point to a fix site, in the call graph of the project and of the
+dependency code. `finding.Reach.Path` holds it as `model.PathHop` values, and `model.FunctionReach`
+holds the answer of the search for one symbol record. A finding with a call path is `called`.
+_Avoid_: trace, stack (a call path is static)
+
+**Entry point**:
+A function where the call graph search starts: a main function, a framework handler, a test, the
+exported surface of a library, or a function that `--entrypoint` names. `report.EntryPoint`, listed
+in `report.ReachRoots` and by `vet report root list`. safedep/code calls it a root.
+_Avoid_: source (safedep/code uses that word for a named entry point)
+
+**Reach corpus**:
+The synthetic Go and Rust projects in `test/reach` with the truth of each call, and the release bar
+of reach: no false `called` and no missed call where vet says `not-called`. A **weak path** is a
+call path with a call that the graph only guesses. The engine keeps its finding `imported`.
+_Avoid_: benchmark (the corpus is a gate)
+
+**Dependency unit**:
+The source code of one Go module or Rust crate on the disk, in `vendor` or in the module or crate
+cache, with its unit key, as `go:golang.org/x/net@v0.20.0`. `codeusage.Unit`. The call graph links
+the units of the imported packages with a symbol record. vet never downloads one.
+_Avoid_: dependency source (for the type)
+
+**Symbol data**:
+The records of the functions that hold the vulnerable code of an advisory, from the signed bundle of
+`safedep/vuln-symbols`. `internal/symbols` reads it through the SDK, and `model.Usage.Symbols` holds
+the records of a package. A **fix site** is one such function. A record is `exact` when its list of
+fix sites is complete and `broad` when it can miss some.
+_Avoid_: vulnerable symbols (for the records), signatures (that word names a code signature)
+
+**Code index**:
+The index of each source file of a target, from the indexer of `safedep/code`, with the usage and the
+signature matches of the file. It lives in the `code_graph` module of `cache.db`. Its key holds the
+path and the content hash of the file and the versions of the index, the grammar and the analysis, so
+a second scan parses only the changed files. Retention deletes a file that no
+scan read for 30 days.
+_Avoid_: code cache, AST cache
 
 **Signature**:
 A rule that names a call in source code, such as a call to the OpenAI client. The `codeusage` enricher

@@ -51,6 +51,25 @@
       },
       "type": "object"
     },
+    "CallSite": {
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        },
+        "callee": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "file",
+        "line",
+        "callee"
+      ]
+    },
     "Capability": {
       "properties": {
         "id": {
@@ -139,6 +158,49 @@
         "code",
         "component",
         "message"
+      ]
+    },
+    "DynamicSite": {
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        },
+        "kind": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "file",
+        "line",
+        "kind"
+      ]
+    },
+    "EntryPoint": {
+      "properties": {
+        "function": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "rule": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "required": [
+        "function",
+        "kind"
       ]
     },
     "Evidence": {
@@ -263,6 +325,12 @@
         },
         "attack": {
           "$ref": "#/$defs/Attack"
+        },
+        "advisory": {
+          "type": "string"
+        },
+        "reach": {
+          "$ref": "#/$defs/Reach"
         }
       },
       "type": "object",
@@ -275,6 +343,29 @@
         "subject",
         "title",
         "description"
+      ]
+    },
+    "FunctionReach": {
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "cause": {
+          "type": "string"
+        },
+        "path": {
+          "items": {
+            "$ref": "#/$defs/PathHop"
+          },
+          "type": "array"
+        },
+        "test_only": {
+          "type": "boolean"
+        }
+      },
+      "type": "object",
+      "required": [
+        "status"
       ]
     },
     "Gate": {
@@ -371,6 +462,21 @@
         "schema_version",
         "tool",
         "scan"
+      ]
+    },
+    "ImportSite": {
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "required": [
+        "file",
+        "line"
       ]
     },
     "Insight": {
@@ -899,6 +1005,215 @@
         "raw_name"
       ]
     },
+    "PathHop": {
+      "properties": {
+        "function": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        },
+        "root": {
+          "type": "string"
+        },
+        "edge": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "function"
+      ]
+    },
+    "Reach": {
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": [
+            "called",
+            "not-called",
+            "imported",
+            "unused",
+            "unknown"
+          ]
+        },
+        "cause": {
+          "type": "string",
+          "enum": [
+            "no-graph",
+            "dynamic-import",
+            "budget",
+            "unread-files",
+            "no-source-files",
+            "no-symbol-data",
+            "no-entry-point",
+            "no-dependency-source",
+            "no-symbol-in-graph",
+            "broad-record",
+            "unreviewed-record",
+            "unresolved-call",
+            "dynamic-flag",
+            "transitive",
+            "analysis-failed",
+            "unproven-language",
+            "weak-path"
+          ]
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "via": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "test_only": {
+          "type": "boolean"
+        },
+        "imports": {
+          "items": {
+            "$ref": "#/$defs/ImportSite"
+          },
+          "type": "array"
+        },
+        "fix_sites": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "path": {
+          "items": {
+            "$ref": "#/$defs/PathHop"
+          },
+          "type": "array"
+        },
+        "symbols": {
+          "$ref": "#/$defs/ReachSymbols"
+        }
+      },
+      "type": "object",
+      "required": [
+        "level",
+        "confidence"
+      ]
+    },
+    "ReachInfo": {
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": [
+            "off",
+            "import",
+            "function"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "computed",
+            "off",
+            "no-source",
+            "unavailable",
+            "failed"
+          ]
+        },
+        "symbol_data": {
+          "type": "boolean"
+        },
+        "symbols": {
+          "$ref": "#/$defs/SymbolBundle"
+        },
+        "roots": {
+          "$ref": "#/$defs/ReachRoots"
+        },
+        "sources": {
+          "$ref": "#/$defs/ReachSources"
+        },
+        "versions": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "type": "object",
+      "required": [
+        "level",
+        "status"
+      ]
+    },
+    "ReachRoots": {
+      "properties": {
+        "fallback": {
+          "type": "boolean"
+        },
+        "total": {
+          "type": "integer"
+        },
+        "list": {
+          "items": {
+            "$ref": "#/$defs/EntryPoint"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object",
+      "required": [
+        "total"
+      ]
+    },
+    "ReachSources": {
+      "properties": {
+        "found": {
+          "type": "integer"
+        },
+        "missing": {
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "required": [
+        "found",
+        "missing"
+      ]
+    },
+    "ReachSymbols": {
+      "properties": {
+        "record": {
+          "type": "string"
+        },
+        "coverage": {
+          "type": "string"
+        },
+        "review": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "record",
+        "coverage"
+      ]
+    },
     "Remediation": {
       "properties": {
         "summary": {
@@ -956,6 +1271,9 @@
         },
         "git_sha": {
           "type": "string"
+        },
+        "reach": {
+          "$ref": "#/$defs/ReachInfo"
         }
       },
       "type": "object",
@@ -1081,6 +1399,72 @@
         "reason"
       ]
     },
+    "SymbolBundle": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "signed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "records": {
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "required": [
+        "id",
+        "records"
+      ]
+    },
+    "SymbolRecord": {
+      "properties": {
+        "advisory": {
+          "type": "string"
+        },
+        "record": {
+          "type": "string"
+        },
+        "coverage": {
+          "type": "string"
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "review": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        },
+        "fix_sites": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "keys": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "reach": {
+          "$ref": "#/$defs/FunctionReach"
+        }
+      },
+      "type": "object",
+      "required": [
+        "advisory",
+        "record",
+        "coverage",
+        "fix_sites"
+      ]
+    },
     "Tool": {
       "properties": {
         "name": {
@@ -1128,6 +1512,45 @@
         "files": {
           "items": {
             "type": "string"
+          },
+          "type": "array"
+        },
+        "imports": {
+          "items": {
+            "$ref": "#/$defs/ImportSite"
+          },
+          "type": "array"
+        },
+        "test_only": {
+          "type": "boolean"
+        },
+        "incomplete": {
+          "type": "boolean"
+        },
+        "unread_files": {
+          "type": "boolean"
+        },
+        "no_source_files": {
+          "type": "boolean"
+        },
+        "dynamic_import": {
+          "type": "boolean"
+        },
+        "calls": {
+          "items": {
+            "$ref": "#/$defs/CallSite"
+          },
+          "type": "array"
+        },
+        "dynamic": {
+          "items": {
+            "$ref": "#/$defs/DynamicSite"
+          },
+          "type": "array"
+        },
+        "symbols": {
+          "items": {
+            "$ref": "#/$defs/SymbolRecord"
           },
           "type": "array"
         }

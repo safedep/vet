@@ -80,6 +80,20 @@ func (c Confidence) Valid() bool {
 	return false
 }
 
+// Rank orders the confidence levels. A higher rank is a stronger level, and
+// an unknown level ranks 0.
+func (c Confidence) Rank() int {
+	switch c {
+	case ConfidenceHigh:
+		return 3
+	case ConfidenceMedium:
+		return 2
+	case ConfidenceLow:
+		return 1
+	}
+	return 0
+}
+
 // Family groups controls for the report summary.
 type Family string
 

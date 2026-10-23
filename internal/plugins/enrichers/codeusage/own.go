@@ -24,7 +24,11 @@ func readManifests(dir string, match func(name string) bool, read func(path stri
 			return nil
 		}
 		if d.IsDir() {
-			if path != dir && skippedDir(d.Name()) {
+			rel, err := filepath.Rel(dir, path)
+			if err != nil {
+				return err
+			}
+			if path != dir && skippedDir(filepath.ToSlash(rel)) {
 				return filepath.SkipDir
 			}
 			return nil

@@ -1,0 +1,34 @@
+# main calls a method on a value that a constructor of the dependency returns
+lang: go
+unit: go:example.com/dep@v1.2.0 vendor/example.com/dep
+called: example.com/dep/html.Tokenizer.Next
+not-called: example.com/dep/html.Tokenizer.Reset
+-- go.mod --
+module example.com/app
+
+go 1.27
+
+require example.com/dep v1.2.0
+-- vendor/modules.txt --
+# example.com/dep v1.2.0
+## explicit
+example.com/dep/html
+-- main.go --
+package main
+
+import "example.com/dep/html"
+
+func main() {
+	z := html.NewTokenizer("<a>")
+	z.Next()
+}
+-- vendor/example.com/dep/html/token.go --
+package html
+
+type Tokenizer struct{ s string }
+
+func NewTokenizer(s string) *Tokenizer { return &Tokenizer{s: s} }
+
+func (z *Tokenizer) Next() int { return 0 }
+
+func (z *Tokenizer) Reset() {}

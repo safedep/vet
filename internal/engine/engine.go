@@ -12,6 +12,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/safedep/vet/v2/finding"
@@ -63,6 +64,11 @@ type Enricher struct {
 	// cache, so the next scan asks again. A malware verdict that is not
 	// ready yet must not hide the verdict for the whole TTL.
 	SkipEmpty bool
+	// Whole gives the enricher every package of the scan in one call, also
+	// the unchanged ones of a pull request scan. A call graph links the code
+	// of all the packages, and the reach of a changed package depends on the
+	// imports of the unchanged ones, so a batch must not split them.
+	Whole bool
 }
 
 // Control is one control of a scan.
@@ -109,6 +115,10 @@ type Options struct {
 
 	// BatchSize is the number of packages for each enricher call.
 	BatchSize int
+
+	// Reach is the reach level of the scan. A Status that the caller sets,
+	// such as unavailable, stays. Else the engine sets it from the target.
+	Reach report.ReachInfo
 
 	Finalize Finalizer
 	Observer Observer
@@ -297,6 +307,13 @@ type run struct {
 	// attacks maps the id of a control plugin and the id of each attack
 	// control that it describes to the attack that its findings get.
 	attacks map[string]map[string]finding.Attack
+	// prepared holds the Prepare goroutines of the enrichers.
+	prepared sync.WaitGroup
+	// reach is the reach of the scan, as its header records it.
+	reach report.ReachInfo
+	// reachChanged marks a reach that the enrich stage changed after the
+	// header recorded it.
+	reachChanged bool
 }
 
 // rootOf returns the file system that a manifest was read from, for the
@@ -325,6 +342,10 @@ func (r *run) stages(ctx context.Context, artifacts []plugin.Artifact) error {
 		r.diags.put(&c)
 	}
 	r.artifacts = artifacts
+	if err := r.bindSource(ctx); err != nil {
+		return err
+	}
+	defer r.prepare(ctx)()
 	steps := []struct {
 		name string
 		fn   func(context.Context) error

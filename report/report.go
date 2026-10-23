@@ -66,6 +66,116 @@ type ScanInfo struct {
 	BaseRef   string    `json:"base_ref,omitempty"`
 	GitRef    string    `json:"git_ref,omitempty"`
 	GitSHA    string    `json:"git_sha,omitempty"`
+	// Reach says how far the scan traced the code of the target into its
+	// vulnerable packages. A scan of an older vet has none.
+	Reach *ReachInfo `json:"reach,omitempty"`
+}
+
+// ReachLevel is how deep vet traces the code into a package.
+type ReachLevel string
+
+const (
+	ReachOff ReachLevel = "off"
+	// ReachImport finds the packages that the code imports.
+	ReachImport ReachLevel = "import"
+	// ReachFunction also follows the calls to the vulnerable functions.
+	ReachFunction ReachLevel = "function"
+)
+
+// ParseReachLevel reads a reach level. Empty is ReachImport.
+func ParseReachLevel(s string) (ReachLevel, error) {
+	switch l := ReachLevel(s); l {
+	case "":
+		return ReachImport, nil
+	case ReachOff, ReachImport, ReachFunction:
+		return l, nil
+	}
+	return "", fmt.Errorf("reach level %q is not valid: use off, import or function", s)
+}
+
+// ReachStatus says whether the scan computed reach, and why not.
+type ReachStatus string
+
+const (
+	ReachComputed ReachStatus = "computed"
+	// ReachNotComputed is a scan with reach off or with code analysis off.
+	ReachNotComputed ReachStatus = "off"
+	// ReachNoSource is a target with no source code, such as a lockfile, an
+	// SBOM, an image or a PURL.
+	ReachNoSource ReachStatus = "no-source"
+	// ReachUnavailable is a vet build with no code analysis.
+	ReachUnavailable ReachStatus = "unavailable"
+	// ReachFailed is a scan whose code analysis failed. The diagnostics say
+	// why.
+	ReachFailed ReachStatus = "failed"
+)
+
+// ReachInfo is the reach of a scan.
+type ReachInfo struct {
+	Level  ReachLevel  `json:"level" jsonschema:"enum=off,enum=import,enum=function"`
+	Status ReachStatus `json:"status" jsonschema:"enum=computed,enum=off,enum=no-source,enum=unavailable,enum=failed"`
+	// SymbolData marks a scan with Go or Rust code, which needs symbol
+	// data. Symbols is the symbol data of the scan, or nil when the scan
+	// read none.
+	SymbolData bool          `json:"symbol_data,omitempty"`
+	Symbols    *SymbolBundle `json:"symbols,omitempty"`
+	// Roots are the entry points where the call graph search started, or
+	// nil when the scan searched no call path.
+	Roots *ReachRoots `json:"roots,omitempty"`
+	// Sources counts the Go modules and Rust crates with a vulnerability
+	// record whose code vet found on the disk, and those it did not find.
+	Sources *ReachSources `json:"sources,omitempty"`
+	// Versions are the versions of the code analysis, by component, as
+	// codeusage, projectgraph and reach. A change of one can change a
+	// reach.
+	Versions map[string]string `json:"versions,omitempty"`
+}
+
+// ReachSources counts the dependency code of a call graph search.
+type ReachSources struct {
+	Found   int `json:"found"`
+	Missing int `json:"missing"`
+}
+
+// MaxRoots bounds the entry points that a scan header lists. A project
+// with many tests has thousands.
+const MaxRoots = 1000
+
+// ReachRoots are the entry points of the call graph search.
+type ReachRoots struct {
+	// Fallback marks a project where vet found no entry point. The search
+	// then started from every exported function, and List is empty.
+	Fallback bool `json:"fallback,omitempty"`
+	// Total counts the entry points. List holds the first MaxRoots of
+	// them, in function order.
+	Total int          `json:"total"`
+	List  []EntryPoint `json:"list,omitempty"`
+}
+
+// RootQuery is the kind of an entry point that the user names.
+const RootQuery = "query"
+
+// EntryPoint is one entry point of the call graph search.
+type EntryPoint struct {
+	// Function is the key of the function, as cmd/app/main.go//main.
+	Function string `json:"function"`
+	// Kind is main, manifest, framework, test, library-surface, or query
+	// for an entry point that the user names.
+	Kind string `json:"kind"`
+	// Rule names the rule that marks the entry point.
+	Rule string `json:"rule,omitempty"`
+	File string `json:"file,omitempty"`
+	Line int    `json:"line,omitempty"`
+}
+
+// SymbolBundle is the signed bundle of symbol records that a scan read.
+type SymbolBundle struct {
+	ID string `json:"id"`
+	// SignedAt is the verified time of the signature, which is the time of
+	// the last change of the records. A local bundle with no signature has
+	// none. omitempty keeps the field optional in the schema.
+	SignedAt time.Time `json:"signed_at,omitempty,omitzero"`
+	Records  int       `json:"records"`
 }
 
 // Kind names the field that a record holds.

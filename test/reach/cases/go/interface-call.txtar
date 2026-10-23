@@ -1,0 +1,34 @@
+# main calls an interface method, and the dependency type implements it
+lang: go
+miss: the call goes through an interface, so the path has a cha call. vet does not say called for a path with a cha call, because a cha call can be a guess
+unit: go:example.com/dep@v1.2.0 vendor/example.com/dep
+called: example.com/dep/html.Writer.Write
+-- go.mod --
+module example.com/app
+
+go 1.27
+
+require example.com/dep v1.2.0
+-- vendor/modules.txt --
+# example.com/dep v1.2.0
+## explicit
+example.com/dep/html
+-- main.go --
+package main
+
+import "example.com/dep/html"
+
+type writer interface{ Write(s string) }
+
+func main() {
+	var w writer = html.NewWriter()
+	w.Write("<a>")
+}
+-- vendor/example.com/dep/html/writer.go --
+package html
+
+type Writer struct{}
+
+func NewWriter() *Writer { return &Writer{} }
+
+func (w *Writer) Write(s string) {}

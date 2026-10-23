@@ -68,7 +68,7 @@ func ToManifest(in Converted) (*model.Manifest, []error) {
 		if localGoReplacement(sp) {
 			continue
 		}
-		p, err := toPackage(sp)
+		p, err := toPackage(sp, kind)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", in.Path, err))
 			continue
@@ -140,10 +140,15 @@ func localGoReplacement(sp *extractor.Package) bool {
 		(strings.HasPrefix(sp.Name, ".") || strings.HasPrefix(sp.Name, "/") || filepath.IsAbs(sp.Name))
 }
 
-func toPackage(sp *extractor.Package) (*model.Package, error) {
+func toPackage(sp *extractor.Package, kind model.ManifestKind) (*model.Package, error) {
 	pu := sp.PURL()
 	if pu == nil {
 		return nil, fmt.Errorf("package %s@%s has no PURL", sp.Name, sp.Version)
+	}
+	// Scalibr writes a GitHub Action as pkg:github, which the purl spec
+	// keeps for a repository.
+	if kind == model.ManifestKindWorkflow && pu.Type == purl.TypeGithub {
+		pu.Type = model.PURLTypeGitHubActions
 	}
 	fromPURL, err := model.ParsePURL(pu.String())
 	if err != nil {
