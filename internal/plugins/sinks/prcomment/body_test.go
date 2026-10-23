@@ -399,7 +399,8 @@ func TestUpgradeComment(t *testing.T) {
 
 	lines := strings.Split(body, "\n")
 	assert.Equal(t, "### ❌ vet: 1 cause blocks this pull request", lines[1])
-	assert.True(t, strings.HasPrefix(lines[3], "**Next step:** `npm/pnpm@12.15.0` and 14 more in [`pnpm-lock.yaml:92`]"), lines[3])
+	assert.True(t, strings.HasPrefix(lines[3], "**Next step:** `npm/pnpm@12.15.0` and 14 more in [`package.json:119`]"), lines[3])
+	assert.Contains(t, lines[3], `Keep "packageManager" at pnpm@12.8.2 in package.json`)
 	assert.Contains(t, lines[3], "The wait ends at 2026-10-23 11:17 UTC.", "the group waits for its last package")
 	assert.Equal(t, 1, strings.Count(body, "[About this control]"), "one card")
 	assert.NotContains(t, lines[5], ".github/vet/policy.yml", "the status line has no policy path")

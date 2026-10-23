@@ -32,6 +32,12 @@ type Package struct {
 	// Integrity is the checksum that a lockfile records, when it records one.
 	Integrity string `json:"integrity,omitempty"`
 
+	// Declared is the place where the project sets the version of a package
+	// that the manifest records but does not declare, as the
+	// "packageManager" field of package.json for pnpm and the packages that
+	// pnpm installs for itself. A fix edits that place.
+	Declared *Declaration `json:"declared,omitempty"`
+
 	// Local marks a package that the project builds from its own tree, such
 	// as a workspace member or an editable install. It is not a registry
 	// package, so vet does not look it up.
@@ -287,4 +293,17 @@ type ImportSite struct {
 // code that the scan did not read.
 func (p *Package) ProvableReach() bool {
 	return p.Usage != nil && p.Usage.Imported && !p.ID.GoStdlib()
+}
+
+// Declaration is the field of a project file that sets the version of a
+// package, such as "packageManager" in package.json.
+type Declaration struct {
+	// Path is the file, relative to the scan target, with "/".
+	Path string `json:"path"`
+	// Line is the line of the field, or 0 when vet does not know it.
+	Line  int    `json:"line,omitempty"`
+	Field string `json:"field"`
+	// Package is the name of the package that the field sets. The packages
+	// that it installs share its declaration.
+	Package string `json:"package"`
 }

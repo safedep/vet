@@ -74,6 +74,8 @@ func TestTitleDropsTheSubject(t *testing.T) {
 
 func TestMarkdown(t *testing.T) {
 	assert.Equal(t, `\[x\](http://a) \<img\> @`+"\u200b"+`org \*b\* \# h \&\#64;`, Markdown("[x](http://a) <img> @org *b* # h &#64;"))
+	assert.Equal(t, "@\u200borg, (@\u200bx) pnpm@12.8.2 a\\_@b", Markdown("@org, (@x) pnpm@12.8.2 a_@b"), "an @ after a word mark starts no mention")
+	assert.Equal(t, "@\u200b@\u200bx", Markdown("@@x"))
 	assert.Equal(t, "`a'b c`", Code("a`b\nc"))
 }
 

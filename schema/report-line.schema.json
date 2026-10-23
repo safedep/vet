@@ -118,6 +118,28 @@
         "occurrences"
       ]
     },
+    "Declaration": {
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        },
+        "field": {
+          "type": "string"
+        },
+        "package": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "path",
+        "field",
+        "package"
+      ]
+    },
     "Diagnostic": {
       "properties": {
         "level": {
@@ -846,6 +868,9 @@
         },
         "integrity": {
           "type": "string"
+        },
+        "declared": {
+          "$ref": "#/$defs/Declaration"
         },
         "local": {
           "type": "boolean"

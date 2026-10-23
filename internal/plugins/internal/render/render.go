@@ -118,15 +118,34 @@ func Code(s string) string {
 }
 
 // markdownText escapes free text for markdown. The text cannot start a
-// link, an image, an HTML tag or entity, a heading, a table cell or a
-// mention: a zero-width space follows each "@".
+// link, an image, an HTML tag or entity, a heading or a table cell.
 var markdownText = strings.NewReplacer(
 	`\`, `\\`, "`", "\\`", "*", `\*`, "_", `\_`, "[", `\[`, "]", `\]`, "<", `\<`, ">", `\>`, "&", `\&`,
-	"#", `\#`, "|", `\|`, "~", `\~`, "!", `\!`, "@", "@\u200b", "\n", " ",
+	"#", `\#`, "|", `\|`, "~", `\~`, "!", `\!`, "\n", " ",
 )
 
-// Markdown escapes free text for markdown.
-func Markdown(s string) string { return markdownText.Replace(s) }
+// Markdown escapes free text for markdown. The text cannot mention a
+// person: a zero-width space follows each "@" where GitHub starts a
+// mention, at the start or after a mark that is not a letter, a digit or
+// "_". An "@" in a version, as in pnpm@12.8.2, starts none and stays.
+func Markdown(s string) string {
+	var b strings.Builder
+	prev := ' '
+	for _, r := range markdownText.Replace(s) {
+		b.WriteRune(r)
+		if r == '@' && !wordMark(prev) {
+			b.WriteRune('\u200b')
+		}
+		prev = r
+	}
+	return b.String()
+}
+
+// wordMark is an ASCII letter, digit or "_". A wider set, such as the
+// letters of other scripts, could let a mention through.
+func wordMark(r rune) bool {
+	return r == '_' || r >= '0' && r <= '9' || r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z'
+}
 
 // Truncate cuts s to at most n runes, with an ellipsis at the cut.
 func Truncate(s string, n int) string {

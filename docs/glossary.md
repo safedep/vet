@@ -479,6 +479,13 @@ marker at the start finds it, and a key keeps apart the comments of two vet step
 `githubci` with the token of the run, or `ghcp` through the comment proxy.
 _Avoid_: PR bot, sticky comment, review
 
+**Declaration**:
+The field of a project file that sets the version of a package that a lockfile records but does not
+declare. The pnpm extractor gives pnpm, and each package that pnpm installs for itself, the
+`"packageManager"` field of package.json. A fix edits that field. `model.Package.Declared`, a
+`model.Declaration`.
+_Avoid_: fix site, origin
+
 **Finding group**:
 The findings of one cause: one control, one gate record and one fix. The pull request comment shows
 each group once, as a card or a line, and counts groups as "causes". The **lead** names the group: a

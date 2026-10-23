@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/plugin/plugintest"
@@ -146,5 +147,24 @@ func TestNewRejectsBadDays(t *testing.T) {
 	for _, opts := range []plugin.MapConfig{{"days": 0}, {"days": "five"}, {"window": 5}} {
 		_, err := New(opts)
 		assert.Error(t, err, "%v", opts)
+	}
+}
+
+// pnpm and the packages that it installs for itself share the
+// "packageManager" field, so they share one fix and one place.
+func TestFixOfAPackageManagerRelease(t *testing.T) {
+	c, err := New(plugin.MapConfig(nil))
+	require.NoError(t, err)
+	c.(*Control).now = func() time.Time { return now }
+	decl := &model.Declaration{Path: "package.json", Line: 119, Field: "packageManager", Package: "pnpm"}
+	pnpm, exe := pkg("pnpm", at(time.Hour)), pkg("@pnpm/exe.linux-x64", at(time.Hour))
+	for _, p := range []*model.Package{pnpm, exe} {
+		p.Change, p.PreviousVersion, p.Declared = model.ChangeUpgraded, "0.9.0", decl
+	}
+	fs := plugintest.TestControl(t, c, &model.Manifest{ID: "m1", Path: "pnpm-lock.yaml", Packages: []*model.Package{pnpm, exe}}, nil)
+	require.Len(t, fs, 2)
+	for _, f := range fs {
+		assert.Equal(t, `Keep "packageManager" at pnpm@0.9.0 in package.json, or wait until 2026-10-04.`, f.Remediation.Summary)
+		assert.Equal(t, &finding.Locus{Path: "package.json", StartLine: 119}, f.Locus)
 	}
 }

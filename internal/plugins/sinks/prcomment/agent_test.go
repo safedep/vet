@@ -71,8 +71,8 @@ func TestAnnotations(t *testing.T) {
 	c := upgradeInput(t)
 	c.links.Prefix = "web/"
 	assert.Equal(t, []ci.Annotation{{
-		Level: ci.AnnotationError, Path: "web/pnpm-lock.yaml", Line: 92, Title: "vet: Published 1 day ago",
-		Text: "npm/pnpm@12.15.0 and 14 more: Keep version 12.8.2, or wait until 2026-10-23. The wait ends at 2026-10-23 11:17 UTC.",
+		Level: ci.AnnotationError, Path: "web/package.json", Line: 119, Title: "vet: Published 1 day ago",
+		Text: `npm/pnpm@12.15.0 and 14 more: Keep "packageManager" at pnpm@12.8.2 in package.json, or wait until 2026-10-23. The wait ends at 2026-10-23 11:17 UTC.`,
 	}}, c.annotations())
 
 	c.links.NoFiles = true

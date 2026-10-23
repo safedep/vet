@@ -80,6 +80,9 @@ type pnpmImporter struct {
 	Dependencies         map[string]pnpmImporterDep `yaml:"dependencies"`
 	DevDependencies      map[string]pnpmImporterDep `yaml:"devDependencies"`
 	OptionalDependencies map[string]pnpmImporterDep `yaml:"optionalDependencies"`
+	// PackageManagerDependencies is pnpm itself, in the first document of a
+	// lockfile of pnpm 10 and later.
+	PackageManagerDependencies map[string]pnpmImporterDep `yaml:"packageManagerDependencies"`
 }
 
 // pnpmImporterDep is the version of a project dependency: a scalar in
@@ -358,7 +361,7 @@ func pnpmParents(lockfile pnpmLockfile) map[string]map[string]bool {
 func pnpmDirect(lockfile pnpmLockfile) map[string]bool {
 	direct := map[string]bool{}
 	for _, imp := range append(slices.Collect(maps.Values(lockfile.Importers)), lockfile.Root) {
-		for _, group := range []map[string]pnpmImporterDep{imp.Dependencies, imp.DevDependencies, imp.OptionalDependencies} {
+		for _, group := range []map[string]pnpmImporterDep{imp.Dependencies, imp.DevDependencies, imp.OptionalDependencies, imp.PackageManagerDependencies} {
 			for name, dep := range group {
 				if key, ok := pnpmDependencyKey(name, dep.Version, lockfile.Version); ok {
 					direct[key] = true
@@ -455,6 +458,9 @@ func (e Extractor) Extract(ctx context.Context, input *filesystem.ScanInput) (in
 
 		packages, keys, err := parsePnpmLock(parsedLockfile, packageLineMap, input.Path)
 		if err != nil {
+			errs = append(errs, err)
+		}
+		if err := declarePackageManager(input.FS, input.Path, parsedLockfile, packages, keys); err != nil {
 			errs = append(errs, err)
 		}
 		if err := graph.Link(packages, keys, pnpmParents(parsedLockfile), pnpmDirect(parsedLockfile)); err != nil {

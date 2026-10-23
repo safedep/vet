@@ -8,6 +8,8 @@ import (
 	"github.com/google/osv-scalibr/binary/proto/metadata"
 	"github.com/google/osv-scalibr/extractor"
 	"github.com/google/osv-scalibr/extractor/filesystem/osv"
+
+	"github.com/safedep/vet/v2/model"
 )
 
 // Metadata wraps the metadata of a package and records that the root
@@ -42,6 +44,14 @@ func (m *Metadata) Local() bool {
 		return l.Local()
 	}
 	return false
+}
+
+// Declared returns the declaration of the wrapped metadata, or nil.
+func (m *Metadata) Declared() *model.Declaration {
+	if d, ok := m.Protoable.(interface{ Declared() *model.Declaration }); ok {
+		return d.Declared()
+	}
+	return nil
 }
 
 // DepGroups returns the dependency groups of the wrapped metadata.

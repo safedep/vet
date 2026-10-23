@@ -7,6 +7,8 @@ package lockmeta
 import (
 	"github.com/google/osv-scalibr/binary/proto/metadata"
 	"github.com/google/osv-scalibr/extractor/filesystem/osv"
+
+	"github.com/safedep/vet/v2/model"
 )
 
 // Metadata wraps the scalibr metadata of an entry.
@@ -17,7 +19,13 @@ type Metadata struct {
 	// LocalSource marks an entry that the project builds from its own
 	// tree: a workspace member, a path or an editable install.
 	LocalSource bool
+	// DeclaredAt is the field of a project file that sets the version of
+	// the entry, or nil when the manifest declares it.
+	DeclaredAt *model.Declaration
 }
+
+// Declared returns the field that sets the version of the entry, or nil.
+func (m *Metadata) Declared() *model.Declaration { return m.DeclaredAt }
 
 // Resolved returns the URL that the entry resolves from.
 func (m *Metadata) Resolved() string { return m.ResolvedURL }

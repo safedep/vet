@@ -2,6 +2,7 @@ package plugintest
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/safedep/vet/v2/finding"
@@ -15,6 +16,10 @@ var pnpmBinaries = []string{
 	"linux-arm64", "linux-arm64-musl", "linux-ppc64", "linux-riscv64", "linux-s390x",
 	"linux-x64", "linux-x64-musl", "win32-arm64", "win32-x64",
 }
+
+// pnpmDecl is the "packageManager" field that sets the version of pnpm and
+// of the packages that pnpm installs for itself.
+var pnpmDecl = &model.Declaration{Path: "package.json", Line: 119, Field: "packageManager", Package: "pnpm"}
 
 // UpgradeReport returns a pull request report that upgrades pnpm and its 14
 // platform packages to a version inside the cooldown window. A policy rule
@@ -30,6 +35,9 @@ func UpgradeReport() *MemState {
 		}
 		if previous == "" {
 			p.Change = model.ChangeAdded
+		}
+		if name == "pnpm" || strings.HasPrefix(name, "@pnpm/exe.") {
+			p.Declared = pnpmDecl
 		}
 		m.Packages = append(m.Packages, p)
 		return p
@@ -51,12 +59,15 @@ func UpgradeReport() *MemState {
 		}, m.Path, p, finding.Key{})
 		f.Change = p.Change
 		f.Evidence = []finding.Evidence{{Source: "insights", Summary: "published at " + at.Format(time.RFC3339)}}
-		f.Remediation = &finding.Remediation{Summary: "Keep version " + p.PreviousVersion + ", or wait until 2026-10-23.", WaitUntil: &eligible}
+		f.Remediation = &finding.Remediation{Summary: `Keep "packageManager" at pnpm@` + p.PreviousVersion + " in package.json, or wait until 2026-10-23.", WaitUntil: &eligible}
+		f.Locus = &finding.Locus{Path: pnpmDecl.Path, StartLine: pnpmDecl.Line}
 		f.Gate = gate
 		findings = append(findings, &f)
 		blocked = append(blocked, f.ID)
 	}
-	cooldown(pkg("pnpm", "12.15.0", "12.8.2", 92), published)
+	pnpm := pkg("pnpm", "12.15.0", "12.8.2", 92)
+	pnpm.Direct = true
+	cooldown(pnpm, published)
 	for i, b := range pnpmBinaries {
 		cooldown(pkg("@pnpm/exe."+b, "12.15.0", "12.8.2", 20+i*5), published.Add(time.Duration(i)*7*time.Second))
 	}

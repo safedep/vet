@@ -1218,5 +1218,25 @@
   "id": "vet-readers_multi-with-invalid_package-lock.json",
   "group": "vet:package-lock.json",
   "file": "package-lock.json"
+ },
+ {
+  "id": "vet-pnpm-package-manager.v6",
+  "group": "vet:pnpm-lock.yaml",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "vet-pnpm-package-manager.v9",
+  "group": "vet:pnpm-lock.yaml",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "vet-pnpm-package-manager-no-field.v9",
+  "group": "vet:pnpm-lock.yaml",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "vet-pnpm-package-manager-no-package-json.v9",
+  "group": "vet:pnpm-lock.yaml",
+  "file": "pnpm-lock.yaml"
  }
 ]

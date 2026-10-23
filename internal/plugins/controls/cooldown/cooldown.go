@@ -130,12 +130,28 @@ func (c *Control) finding(m *model.Manifest, p *model.Package, published time.Ti
 			humanize.Minute(published), humanize.Count(c.days, "day"), c.sourceText(), humanize.Minute(eligible)),
 	}, m.Path, p, finding.Key{})
 	f.Evidence = []finding.Evidence{{Source: "insights", Summary: "published at " + published.Format(time.RFC3339)}}
-	summary := fmt.Sprintf("Keep the version that you used before, or wait until %s.", eligible.Format(time.DateOnly))
-	if p.PreviousVersion != "" {
-		summary = fmt.Sprintf("Keep version %s, or wait until %s.", p.PreviousVersion, eligible.Format(time.DateOnly))
+	f.Remediation = &finding.Remediation{Summary: keep(p, eligible), WaitUntil: &eligible}
+	if d := p.Declared; d != nil {
+		f.Locus = &finding.Locus{Path: d.Path, StartLine: d.Line}
 	}
-	f.Remediation = &finding.Remediation{Summary: summary, WaitUntil: &eligible}
 	return f
+}
+
+// keep is the fix: keep the version of before, or wait. A package that a
+// field of a project file declares, as pnpm in "packageManager", is kept in
+// that field. The packages that pnpm installs for itself share the field,
+// so the fix of the release is one text.
+func keep(p *model.Package, eligible time.Time) string {
+	wait := eligible.Format(time.DateOnly)
+	switch d := p.Declared; {
+	case d != nil && p.PreviousVersion != "":
+		return fmt.Sprintf("Keep %q at %s@%s in %s, or wait until %s.", d.Field, d.Package, p.PreviousVersion, d.Path, wait)
+	case d != nil:
+		return fmt.Sprintf("Keep %q in %s at the version that you used before, or wait until %s.", d.Field, d.Path, wait)
+	case p.PreviousVersion != "":
+		return fmt.Sprintf("Keep version %s, or wait until %s.", p.PreviousVersion, wait)
+	}
+	return fmt.Sprintf("Keep the version that you used before, or wait until %s.", wait)
 }
 
 // sourceText says where the window comes from.
