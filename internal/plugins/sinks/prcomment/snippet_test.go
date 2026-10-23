@@ -1,8 +1,10 @@
 package prcomment
 
 import (
+	"fmt"
 	"regexp"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -108,4 +110,77 @@ func TestSnippetOfOnePackageWithTwoAdvisories(t *testing.T) {
 
 	got := suppressed(t, s, time.Now())
 	assert.Equal(t, []string{high.ID}, got)
+}
+
+// pkgReport is a failed gate on one cooldown finding for each name.
+func pkgReport(names ...string) *plugintest.MemState {
+	s := pullRequest(report.GateFail)
+	m := s.ManifestList[0]
+	s.FindingList, s.DiagnosticList = nil, nil
+	s.TrailerValue.Gate.FindingIDs = nil
+	for _, n := range names {
+		p := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, n, "1.0.0"), Change: model.ChangeAdded}
+		m.Packages = append(m.Packages, p)
+		f := finding.ForPackage(finding.Meta{ControlID: "dependency-cooldown", Family: finding.FamilyCooldown, Severity: finding.SeverityHigh, Title: "Published 1 day ago"},
+			m.Path, p, finding.Key{})
+		f.Remediation = &finding.Remediation{Summary: "Wait."}
+		f.Gate = &finding.GateRecord{Action: finding.GateActionFail, Rules: []string{"r"}}
+		s.FindingList = append(s.FindingList, &f)
+		s.TrailerValue.Gate.FindingIDs = append(s.TrailerValue.Gate.FindingIDs, f.ID)
+	}
+	return s
+}
+
+// Each entry must also match its own findings: a glob mark in a name, or
+// a prefix cut inside a rune, would accept nothing.
+func TestSnippetAcceptsItsOwnFindings(t *testing.T) {
+	for name, names := range map[string][]string{
+		"a name with a glob mark":  {"a[b]c"},
+		"names that share a byte":  {"@x/a.é1", "@x/a.ñ1"},
+		"a name with a ? mark":     {"q?x"},
+		"one package in two rows":  {"pnpm", "pnpm"},
+		"a release with platforms": {"tool", "@tool/cli-linux", "@tool/cli-win32"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			s := pkgReport(names...)
+			got := suppressed(t, s, time.Now())
+			assert.ElementsMatch(t, s.TrailerValue.Gate.FindingIDs, got)
+		})
+	}
+}
+
+func TestSnippetOfOnePackageInTwoRowsHasNoGlob(t *testing.T) {
+	body := newInput(t, pkgReport("pnpm", "pnpm")).body()
+	assert.NotContains(t, body, "pnpm*")
+}
+
+func TestSnippetIsBounded(t *testing.T) {
+	var names []string
+	for i := range 300 {
+		names = append(names, fmt.Sprintf("pkg%d", i))
+	}
+	body := newInput(t, pkgReport(names...)).body()
+	assert.Contains(t, body, "**Next step:**", "the comment still fits with its next step")
+	assert.LessOrEqual(t, strings.Count(body, "control: dependency-cooldown"), maxEntries)
+}
+
+// A gate of policy rules fails on one finding. An attack that the gate
+// does not fail still gets a card, not a line in the closed list.
+func TestAttackOutsideTheGateGetsACard(t *testing.T) {
+	s := pkgReport("left-pad-two")
+	evil := pullRequest(report.GateFail).FindingList[0]
+	s.FindingList = append(s.FindingList, evil)
+	c := newInput(t, s)
+	c.dialect = dialect{}
+	body := c.body()
+	assert.Contains(t, body, "#### Attacks to review")
+	assert.Contains(t, body, "`npm/evil-colors@1.4.1`: **Malicious package**")
+	assert.Contains(t, body, "1 attack to review")
+}
+
+func TestVisibleIgnoresMarkupInNames(t *testing.T) {
+	s := pkgReport("x")
+	s.FindingList[0].Subject.Package.RawName = "<details>x"
+	body := newInput(t, s).body()
+	assert.Contains(t, visible(body), "**Gate failed**")
 }

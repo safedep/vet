@@ -44,7 +44,7 @@ npm uninstall evil-colors
 
 <details><summary>Maintainers: accept this cause</summary>
 
-Add the entries to `.github/vet/policy.yml` on the base branch, then run the job again. Each entry accepts its cause and no other finding.
+Add the entries to `.github/vet/policy.yml` on the base branch, then run the job again. Each entry matches no other finding of this scan. An entry with no expires stays until you remove it.
 
 ```yaml
 suppressions:

@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/plugins/internal/render"
@@ -18,12 +19,12 @@ type suppression struct {
 
 // suppressions accepts the group and no other finding of all. The packages
 // of one version with a common name stem, as @pnpm/exe.linux-x64 and
-// @pnpm/exe.win32-x64, share one name glob. A glob that also matches a
-// finding outside the group falls back to the exact names, and an exact
-// name that matches another finding of the control, as a second advisory
-// of the package, falls back to the finding ids. A broad entry hides a
-// real finding. An attack finding, and a finding of another subject, get
-// their finding id.
+// @pnpm/exe.win32-x64, share one name glob. Each entry must match each
+// finding that it is for and no other finding of the control. A glob that
+// fails falls back to the exact names, and an exact name that fails, as a
+// name with a glob mark or a package with a second advisory, falls back to
+// the finding ids. A broad entry hides a real finding. An attack finding,
+// and a finding of another subject, get their finding id.
 func suppressions(g render.Group, all []*finding.Finding) []suppression {
 	lead := g.Lead()
 	expires := ""
@@ -41,11 +42,13 @@ func suppressions(g render.Group, all []*finding.Finding) []suppression {
 		return ids(g.Findings)
 	}
 
+	// A bucket holds the names of one ecosystem, version and stem, each
+	// name with its findings, in group order.
 	type bucket struct {
 		eco     model.Ecosystem
 		version string
-		fs      []*finding.Finding
 		names   []string
+		byName  map[string][]*finding.Finding
 	}
 	var buckets []*bucket
 	at := map[string]*bucket{}
@@ -59,39 +62,41 @@ func suppressions(g render.Group, all []*finding.Finding) []suppression {
 		k := strings.Join([]string{string(id.Ecosystem()), id.RawVersion(), stem(id.RawName())}, "\x00")
 		b, ok := at[k]
 		if !ok {
-			b = &bucket{eco: id.Ecosystem(), version: id.RawVersion()}
+			b = &bucket{eco: id.Ecosystem(), version: id.RawVersion(), byName: map[string][]*finding.Finding{}}
 			at[k] = b
 			buckets = append(buckets, b)
 		}
-		b.fs = append(b.fs, f)
-		b.names = append(b.names, id.RawName())
+		if _, ok := b.byName[id.RawName()]; !ok {
+			b.names = append(b.names, id.RawName())
+		}
+		b.byName[id.RawName()] = append(b.byName[id.RawName()], f)
 	}
 
-	entry := func(eco model.Ecosystem, name, version string) (suppression, bool) {
+	entry := func(eco model.Ecosystem, name, version string, fs []*finding.Finding) (suppression, bool) {
 		id, err := model.NewPackageVersion(eco, name, version)
 		if err != nil {
 			return suppression{}, false
 		}
 		s := suppression{PURL: strings.ReplaceAll(id.PURL(), "%2A", "*"), Control: lead.ControlID, Expires: expires}
-		return s, onlyGroup(s, g, all)
+		return s, exactly(s, fs, g, all)
 	}
 	var out []suppression
-	seen := map[suppression]bool{}
 	for _, b := range buckets {
 		if len(b.names) > 1 {
-			if s, ok := entry(b.eco, commonPrefix(b.names)+"*", b.version); ok {
+			var fs []*finding.Finding
+			for _, n := range b.names {
+				fs = append(fs, b.byName[n]...)
+			}
+			if s, ok := entry(b.eco, commonPrefix(b.names)+"*", b.version, fs); ok {
 				out = append(out, s)
 				continue
 			}
 		}
-		for i, n := range b.names {
-			s, ok := entry(b.eco, n, b.version)
-			switch {
-			case !ok:
-				other = append(other, b.fs[i])
-			case !seen[s]:
-				seen[s] = true
+		for _, n := range b.names {
+			if s, ok := entry(b.eco, n, b.version, b.byName[n]); ok {
 				out = append(out, s)
+			} else {
+				other = append(other, b.byName[n]...)
 			}
 		}
 	}
@@ -117,6 +122,8 @@ func stem(name string) string {
 	return name
 }
 
+// commonPrefix is the longest common prefix of the names that ends on a
+// whole rune.
 func commonPrefix(names []string) string {
 	p := names[0]
 	for _, n := range names[1:] {
@@ -124,15 +131,23 @@ func commonPrefix(names []string) string {
 			p = p[:len(p)-1]
 		}
 	}
+	for !utf8.ValidString(p) {
+		p = p[:len(p)-1]
+	}
 	return p
 }
 
-// onlyGroup reports whether the PURL of s matches no finding of the
-// control outside the group.
-func onlyGroup(s suppression, g render.Group, all []*finding.Finding) bool {
+// exactly reports whether the PURL of s matches each finding of fs, and no
+// finding of the control outside the group.
+func exactly(s suppression, fs []*finding.Finding, g render.Group, all []*finding.Finding) bool {
 	p, err := model.ParsePackagePattern(s.PURL)
 	if err != nil {
 		return false
+	}
+	for _, f := range fs {
+		if id, ok := packageOf(f); !ok || !p.Matches(id) {
+			return false
+		}
 	}
 	for _, f := range all {
 		if f.ControlID != s.Control || slices.Contains(g.Findings, f) {
@@ -157,11 +172,12 @@ func (c *input) snippet(b *strings.Builder, gs []render.Group) {
 	if _, path, ok := strings.Cut(c.trailer.Gate.Policy, ":"); ok && c.policyURL() != "" {
 		file = code(path)
 	}
-	fmt.Fprintf(b, "Add the entries to %s on the base branch, then run the job again. Each entry accepts its cause and no other finding.\n\n", file)
+	fmt.Fprintf(b, "Add the entries to %s on the base branch, then run the job again. Each entry matches no other finding of this scan. An entry with no expires stays until you remove it.\n\n", file)
 	b.WriteString("```yaml\nsuppressions:\n")
 	for _, g := range gs {
 		fmt.Fprintf(b, "  # %s\n", yamlComment(render.Subject(g.Lead())+more(g)))
-		for _, e := range suppressions(g, c.view.Findings) {
+		entries := suppressions(g, c.view.Findings)
+		for _, e := range entries[:min(len(entries), maxEntries)] {
 			var lines []string
 			for _, kv := range [][2]string{{"id", e.ID}, {"purl", e.PURL}, {"control", e.Control}, {"reason", "Why this is acceptable"}, {"expires", e.Expires}} {
 				if kv[1] != "" {
@@ -175,6 +191,9 @@ func (c *input) snippet(b *strings.Builder, gs []render.Group) {
 				}
 				fmt.Fprintf(b, "  %s%s\n", mark, l)
 			}
+		}
+		if n := len(entries) - maxEntries; n > 0 {
+			fmt.Fprintf(b, "  # %d more entries. The agent block and the report have the finding ids.\n", n)
 		}
 	}
 	b.WriteString("```\n\n")

@@ -22,13 +22,16 @@ import (
 const (
 	// maxBody bounds the comment, and maxVisible the text outside a closed
 	// details block. A long comment buries the next step, and the full
-	// cards are in the step summary and the report artifact.
+	// cards are in the step summary and the report artifact. A dialect with
+	// no details block shows each line, so it has the body budget only.
 	maxBody    = 12000
 	maxVisible = 2500
 	// maxFull bounds the groups that show as a card, and maxMembers the
 	// names in the closed list of a card.
 	maxFull    = 5
 	maxMembers = 50
+	// maxEntries bounds the snippet entries of one group.
+	maxEntries = 20
 	// maxField bounds a name, a title or a path, and maxText a description,
 	// so that no single finding fills the comment.
 	maxField = 200
@@ -49,21 +52,27 @@ type level struct {
 	full int
 	// lines bounds each list of lines. A list with no lines shows a count.
 	lines int
-	state bool
+	// snippet shows the policy snippet, and state the state block and the
+	// agent block.
+	snippet, state bool
 }
 
 var levels = []level{
-	{full: maxFull, lines: 100, state: true},
-	{full: 3, lines: 100, state: true},
-	{full: 1, lines: 100, state: true},
-	{full: 1, lines: 30, state: true},
-	{full: 0, lines: 30, state: true},
-	{full: 0, lines: 10, state: true},
+	{full: maxFull, lines: 100, snippet: true, state: true},
+	{full: 3, lines: 100, snippet: true, state: true},
+	{full: 1, lines: 100, snippet: true, state: true},
+	{full: 1, lines: 30, snippet: true, state: true},
+	{full: 0, lines: 30, snippet: true, state: true},
+	{full: 0, lines: 10, snippet: true, state: true},
 	{full: 0, state: true},
 	{},
 }
 
-var hidden = regexp.MustCompile(`(?s)<details>.*?</details>|<!--.*?-->`)
+// hidden matches the details blocks and the HTML comments that the comment
+// writes. Each one starts at the start of a line. Text from the scanned
+// code never starts a line, so a name such as "<details>" in a code span
+// does not hide text from the count.
+var hidden = regexp.MustCompile(`(?ms)^<details><summary>.*?^</details>$|^<!--.*?-->$`)
 
 // visible is the text that a reader sees before they open a details block.
 func visible(body string) string { return hidden.ReplaceAllString(body, "") }
@@ -151,16 +160,22 @@ type sections struct {
 	blocking bool
 	// count is the number of findings in shown.
 	count int
-	rest  []*finding.Finding
+	// attacks are the attack groups that do not fail a gate that fails on
+	// other findings, as with a gate of policy rules only. An attack never
+	// goes to the closed list.
+	attacks []render.Group
+	rest    []*finding.Finding
 }
 
 func (c *input) sections() sections {
 	g := c.trailer.Gate
-	var blocking, review, rest []*finding.Finding
+	var blocking, attacks, review, rest []*finding.Finding
 	for _, f := range c.view.Findings {
 		switch {
 		case g.Outcome == report.GateFail && slices.Contains(g.FindingIDs, f.ID):
 			blocking = append(blocking, f)
+		case f.Attack != nil:
+			attacks = append(attacks, f)
 		case f.Severity.AtLeast(finding.SeverityHigh):
 			review = append(review, f)
 		default:
@@ -170,8 +185,10 @@ func (c *input) sections() sections {
 	if len(blocking) > 0 {
 		rest = append(review, rest...)
 		slices.SortStableFunc(rest, finding.Compare)
-		return sections{shown: render.Groups(blocking), blocking: true, count: len(blocking), rest: rest}
+		return sections{shown: render.Groups(blocking), blocking: true, count: len(blocking), attacks: render.Groups(attacks), rest: rest}
 	}
+	review = append(attacks, review...)
+	slices.SortStableFunc(review, finding.Compare)
 	return sections{shown: render.Groups(review), count: len(review), rest: rest}
 }
 
@@ -191,8 +208,11 @@ func (c *input) render(l level) string {
 		title = "Blocking"
 	}
 	c.section(&b, title, sec.shown, l)
+	c.section(&b, "Attacks to review", sec.attacks, l)
 	c.details(&b, sec, l.lines)
-	c.snippet(&b, sec.shown[:min(len(sec.shown), maxFull)])
+	if l.snippet {
+		c.snippet(&b, slices.Concat(sec.shown, sec.attacks)[:min(len(sec.shown)+len(sec.attacks), maxFull)])
+	}
 	if l.state {
 		c.agent(&b, sec)
 	}
@@ -399,6 +419,9 @@ func (c *input) status(b *strings.Builder, sec sections) {
 		parts = append(parts, fmt.Sprintf("%d blocking", sec.count))
 	case sec.count > 0:
 		parts = append(parts, fmt.Sprintf("%d to review", sec.count))
+	}
+	if n := len(sec.attacks); n > 0 {
+		parts = append(parts, humanize.Count(n, "attack")+" to review")
 	}
 	coverage := "Checked " + humanize.Count(c.trailer.Summary.Packages, "package")
 	if ch := c.view.Changes; c.delta() {

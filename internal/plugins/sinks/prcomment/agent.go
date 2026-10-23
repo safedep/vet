@@ -3,6 +3,7 @@ package prcomment
 import (
 	"fmt"
 	"io/fs"
+	"slices"
 	"strings"
 	"time"
 
@@ -63,7 +64,7 @@ func (c *input) agent(b *strings.Builder, sec sections) {
 		block.Report = cmd
 		block.Finding = fmt.Sprintf("vet report finding show <id> --scan %s/report.json -o json", reportDir)
 	}
-	for _, g := range sec.shown {
+	for _, g := range slices.Concat(sec.shown, sec.attacks) {
 		block.Causes = append(block.Causes, cause(g))
 	}
 	block.Other = capIDs(ids(sec.rest))

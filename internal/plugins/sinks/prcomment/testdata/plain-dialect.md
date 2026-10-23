@@ -37,7 +37,7 @@ npm uninstall evil-colors
 
 **Maintainers: accept this cause**
 
-Add the entries to the policy file on the base branch, then run the job again. Each entry accepts its cause and no other finding.
+Add the entries to the policy file on the base branch, then run the job again. Each entry matches no other finding of this scan. An entry with no expires stays until you remove it.
 
 ```yaml
 suppressions:
