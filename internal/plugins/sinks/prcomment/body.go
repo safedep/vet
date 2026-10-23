@@ -500,7 +500,7 @@ func (c *input) card(b *strings.Builder, g render.Group) {
 // groupLine writes one group on one line.
 func (c *input) groupLine(b *strings.Builder, g render.Group) {
 	f := g.Lead()
-	line := fmt.Sprintf("- %s %s%s: %s · %s", code(render.Kind(f)), code(render.Subject(f)), g.More(), md(render.Title(f), maxField), code(render.Where(f)))
+	line := fmt.Sprintf("- %s %s%s: %s · %s", code(g.Kind()), code(render.Subject(f)), g.More(), md(render.Title(f), maxField), code(render.Where(f)))
 	if gr := f.Gate; gr != nil {
 		line += " · " + strings.ToLower(gr.Label()) + " " + md(render.Text(gr.Cause()), maxField)
 	}

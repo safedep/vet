@@ -81,7 +81,7 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	}
 	for _, g := range groups {
 		f := g.Lead()
-		cells := []string{render.Kind(f), cell(f.ControlID), code(render.Subject(f)) + g.More(), code(render.Where(f))}
+		cells := []string{g.Kind(), cell(f.ControlID), code(render.Subject(f)) + g.More(), code(render.Where(f))}
 		if delta {
 			cells = append(cells, strings.ToLower(string(f.Change)))
 		}

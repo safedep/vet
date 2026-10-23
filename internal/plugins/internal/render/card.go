@@ -35,6 +35,15 @@ func Kind(f *finding.Finding) string {
 	return string(f.Severity)
 }
 
+// Kind is the label of a group: "cooldown", or the highest severity of
+// the group, so a lead of lower severity cannot hide a severe finding.
+func (g Group) Kind() string {
+	if g.Lead().Family == finding.FamilyCooldown {
+		return "cooldown"
+	}
+	return string(g.Severity())
+}
+
 // More counts the findings of a group after its lead, as " and 14 more".
 func (g Group) More() string {
 	if n := len(g.Findings) - 1; n > 0 {
@@ -87,7 +96,7 @@ type Card struct {
 // NewCard builds the card of a group.
 func NewCard(g Group) Card {
 	f := g.Lead()
-	c := Card{Head: fmt.Sprintf("%s%s: **%s** · %s", ShortCode(Subject(f)), g.More(), Bounded(Title(f), MaxField), ShortCode(Kind(f)))}
+	c := Card{Head: fmt.Sprintf("%s%s: **%s** · %s", ShortCode(Subject(f)), g.More(), Bounded(Title(f), MaxField), ShortCode(g.Kind()))}
 	add := func(format string, args ...any) { c.Body = append(c.Body, fmt.Sprintf(format, args...)) }
 	if f.Description != "" {
 		add("%s", Bounded(Text(f.Description), MaxText))

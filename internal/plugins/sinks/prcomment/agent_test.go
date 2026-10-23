@@ -91,3 +91,14 @@ func TestAnnotationOfAnAttackOutsideTheGate(t *testing.T) {
 	assert.Equal(t, ci.AnnotationWarning, got[1].Level)
 	assert.Equal(t, "vet: Malicious package", got[1].Title)
 }
+
+// An attack that is the only cause, with a gate that passes, still gets a
+// warning in the diff.
+func TestAnnotationOfAnAttackWithNoGate(t *testing.T) {
+	for _, gate := range []report.GateOutcome{report.GatePass, report.GateNone} {
+		got := newInput(t, pullRequest(gate)).annotations()
+		require.Len(t, got, 1, gate)
+		assert.Equal(t, ci.AnnotationWarning, got[0].Level, gate)
+		assert.Equal(t, "vet: Malicious package", got[0].Title, gate)
+	}
+}

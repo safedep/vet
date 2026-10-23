@@ -73,3 +73,18 @@ func TestGroupSeverityAndWait(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, late, until, "the group waits for its last finding")
 }
+
+// A lead of lower severity cannot hide a severe finding of its group.
+func TestGroupKind(t *testing.T) {
+	medium := pkgFinding("1", "c", "a", finding.SeverityMedium, "fix")
+	medium.Subject.Package.Direct = true
+	high := pkgFinding("2", "c", "bb", finding.SeverityHigh, "fix")
+	g := Groups([]*finding.Finding{medium, high})
+	require.Len(t, g, 1)
+	require.Equal(t, "1", g[0].Lead().ID)
+	assert.Equal(t, "high", g[0].Kind())
+
+	cooldown := pkgFinding("3", "c", "a", finding.SeverityHigh, "fix")
+	cooldown.Family = finding.FamilyCooldown
+	assert.Equal(t, "cooldown", Groups([]*finding.Finding{cooldown})[0].Kind())
+}

@@ -115,9 +115,12 @@ func (c *input) annotations() []ci.Annotation {
 		level ci.AnnotationLevel
 	}
 	var gs []marked
-	if sec.blocking {
-		for _, g := range sec.shown {
+	for _, g := range sec.shown {
+		switch {
+		case sec.blocking:
 			gs = append(gs, marked{g, ci.AnnotationError})
+		case g.Lead().Attack != nil:
+			gs = append(gs, marked{g, ci.AnnotationWarning})
 		}
 	}
 	for _, g := range sec.attacks {
