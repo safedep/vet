@@ -4,8 +4,8 @@
 # command line and maps the report to the outputs.
 #
 # Environment: ACTION_FAIL_ON, ACTION_POLICY, ACTION_COMMENT,
-# ACTION_COMMENT_PROXY, ACTION_SARIF, ACTION_ARGS, ACTION_CACHE_DIR, GH_TOKEN
-# and the variables of GitHub Actions.
+# ACTION_COMMENT_PROXY, ACTION_SARIF, ACTION_ARGS, ACTION_CACHE_DIR,
+# ACTION_REPORT_ARTIFACT, GH_TOKEN and the variables of GitHub Actions.
 set -euo pipefail
 
 # The action restores this directory before the scan and saves it after.
@@ -50,6 +50,9 @@ case ${ACTION_SARIF:=false} in
   false) ;;
   *) fail "The sarif input is not valid: '$ACTION_SARIF'. Use true or false" ;;
 esac
+if [ -n "${ACTION_REPORT_ARTIFACT:-}" ] && ! [[ $ACTION_REPORT_ARTIFACT =~ ^[A-Za-z0-9._-]+$ ]]; then
+  fail "The report-artifact input is not valid: '$ACTION_REPORT_ARTIFACT'. Use only A-Z, a-z, 0-9, ., _ and -"
+fi
 case ${ACTION_FAIL_ON:=attacks} in
   none) ;;
   *) args+=(--fail-on "$ACTION_FAIL_ON") ;;
@@ -90,6 +93,10 @@ if [ -n "$base" ]; then
     args+=(--report pr-comment)
     export VET_PLUGINS_PR_COMMENT_OPTIONS_CREATE=$create
     export VET_PLUGINS_PR_COMMENT_OPTIONS_PROXY=$ACTION_COMMENT_PROXY
+    # The next step of the action uploads the report as this artifact.
+    if [ -n "${ACTION_REPORT_ARTIFACT:-}" ]; then
+      export VET_PLUGINS_PR_COMMENT_OPTIONS_ARTIFACT=$ACTION_REPORT_ARTIFACT
+    fi
   fi
 fi
 

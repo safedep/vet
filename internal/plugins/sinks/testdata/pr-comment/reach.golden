@@ -59,6 +59,29 @@ suppressions:
 
 </details>
 
+<details><summary>For AI agents</summary>
+
+```yaml
+vet-agent: v1
+gate: none
+causes:
+  - gate: none
+    control: malware
+    subject: pkg:npm/evil-colors@1.4.1
+    place: package-lock.json:42
+    fix: Remove evil-colors.
+    fixed_version: 1.3.9
+    findings: [f-f7017b227d6ad796]
+  - gate: none
+    control: vulnerability
+    subject: pkg:npm/left-pad@1.3.0
+    place: package-lock.json
+    findings: [f-68be2d562f0682bb]
+other: [f-e815bb3b5e0846f1, f-ff61bff9fc367aea]
+```
+
+</details>
+
 <sub>[vet](https://github.com/safedep/vet) test · open source, by SafeDep · [Wrong result?](https://github.com/safedep/vet/issues/new?template=false-positive.yml&version=test) · [Add vet to your repo](https://github.com/safedep/vet/blob/v2/docs/github-action.md)</sub>
 
 <!-- vet:state eyJ2IjoxLCJoZWFkIjoiIiwiaWRzIjpbImYtNjhiZTJkNTYyZjA2ODJiYiIsImYtZTgxNWJiM2I1ZTA4NDZmMSIsImYtZjcwMTdiMjI3ZDZhZDc5NiIsImYtZmY2MWJmZjlmYzM2N2FlYSJdLCJmaXJzdCI6dHJ1ZX0= -->

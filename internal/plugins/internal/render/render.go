@@ -59,13 +59,17 @@ func SubjectID(f *finding.Finding) string {
 // "GHSA-1234: Prototype pollution" for "GHSA-1234 in npm/x@1.0.0: Prototype
 // pollution", "has no provenance" for "npm/x@1.0.0 has no provenance", and
 // "is not pinned to a commit SHA" for "actions/checkout@v4 is not pinned to a
-// commit SHA". A title that is only the subject stays as it is.
+// commit SHA", and "Malicious package" for "Malicious package npm/x@1.0.0". A
+// title that is only the subject stays as it is.
 func Title(f *finding.Finding) string {
 	t := f.Title
 	switch s := f.Subject; {
 	case s.Package != nil:
 		t = strings.Replace(t, " in "+packageSubject(s.Package), "", 1)
 		t = trimLead(t, packageSubject(s.Package)+": ", packageSubject(s.Package)+" ", s.Package.RawName+" ")
+		if rest, ok := strings.CutSuffix(t, " "+packageSubject(s.Package)); ok && rest != "" {
+			t = rest
+		}
 	case s.File != nil && s.File.Element != "":
 		t = trimLead(t, s.File.Element+" ")
 	}

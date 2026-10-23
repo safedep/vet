@@ -1,8 +1,9 @@
 # action/scan.sh is the contract between the GitHub Action and vet. A
 # pinned action runs its scan.sh with each newer vet. This row runs
 # scan.sh with the real binary. A pull request that adds a malicious
-# package gets the comment, the step summary, the SARIF file and the
-# outputs, and the step fails.
+# package gets the comment with the download command of the report, an
+# annotation at the lockfile line, the step summary, the SARIF file and
+# the outputs, and the step fails.
 [!git] skip 'needs git'
 [!exec:bash] skip 'needs bash'
 [!exec:jq] skip 'needs jq'
@@ -12,6 +13,7 @@ env GITHUB_REPOSITORY=acme/app
 env GITHUB_SERVER_URL=https://github.com
 env GITHUB_API_URL=$STUB_URL
 env GITHUB_RUN_ID=7
+env GITHUB_WORKSPACE=$WORK/repo
 env GITHUB_EVENT_NAME=pull_request
 env GITHUB_EVENT_PATH=$WORK/event.json
 env GITHUB_OUTPUT=$WORK/output.txt
@@ -25,6 +27,7 @@ env ACTION_COMMENT=auto
 env ACTION_COMMENT_PROXY=true
 env ACTION_SARIF=true
 env 'ACTION_ARGS=--mode plain'
+env ACTION_REPORT_ARTIFACT=vet-report
 cp $WORK/empty.txt $WORK/output.txt
 cp $WORK/empty.txt $WORK/summary.md
 mkdir $WORK/runner
@@ -37,6 +40,7 @@ exec bash -c 'printf ''{"pull_request": {"number": 1, "base": {"sha": "%s"}, "he
 cp $WORK/evil-lock.json package-lock.json
 execexit 1 bash $VET_SRC/action/scan.sh
 stderr 'vet applies no policy file, because the base ref [0-9a-f]+ has no .github/vet/policy.yml'
+stderr '^::error file=package-lock.json,line=1,title=vet%3A '
 grep '^gate=fail$' $WORK/output.txt
 grep '^findings=1$' $WORK/output.txt
 grep '^report=.*report.json$' $WORK/output.txt
@@ -47,6 +51,11 @@ exec bash -c 'jq -r .trailer.gate.fail_on "$(sed -n "s/^report=//p" "$GITHUB_OUT
 stdout '^attacks$'
 stub comments
 stdout 'vet: 1 cause blocks this pull request'
+stdout 'gh run download 7 -R acme/app -n vet-report -D vet-report'
+
+env ACTION_REPORT_ARTIFACT='bad name'
+! exec bash $VET_SRC/action/scan.sh
+stdout 'The report-artifact input is not valid'
 
 -- empty.txt --
 -- repo/package-lock.json --

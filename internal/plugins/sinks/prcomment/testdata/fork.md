@@ -52,6 +52,26 @@ suppressions:
 
 </details>
 
+<details><summary>For AI agents</summary>
+
+```yaml
+vet-agent: v1
+gate: fail
+head: "2222222222222222222222222222222222222222"
+causes:
+  - gate: none
+    control: malware
+    subject: pkg:npm/evil-colors@1.4.1
+    place: package-lock.json:42
+    fix: Remove evil-colors.
+    fixed_version: 1.3.9
+    command: npm uninstall evil-colors
+    findings: [f-f7017b227d6ad796]
+other: [f-e815bb3b5e0846f1]
+```
+
+</details>
+
 <sub>[vet](https://github.com/safedep/vet) 2.0.0-alpha.20261005063951 · open source, by SafeDep · [Full report](https://github.com/acme/app/actions/runs/99) · [Wrong result?](https://github.com/safedep/vet/issues/new?template=false-positive.yml&version=2.0.0-alpha.20261005063951) · [Add vet to your repo](https://github.com/safedep/vet/blob/v2.0.0-alpha.20261005063951/docs/github-action.md)</sub>
 
 <sub>Posted by the SafeDep comment proxy, because the workflow token of a fork cannot write comments.</sub>

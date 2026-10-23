@@ -62,6 +62,7 @@ func TestTitleDropsTheSubject(t *testing.T) {
 		{name: "name at the start", f: pkg("django is new: its first version is 9 days old"), want: "is new: its first version is 9 days old"},
 		{name: "name inside a word", f: pkg("djangorest is new"), want: "djangorest is new"},
 		{name: "only the subject", f: pkg("pypi/django@2.2.0"), want: "pypi/django@2.2.0"},
+		{name: "subject at the end", f: pkg("Malicious package pypi/django@2.2.0"), want: "Malicious package"},
 		{name: "element not at the start", f: file("Job build asks for write-all permissions", "permissions: write-all"), want: "Job build asks for write-all permissions"},
 	}
 	for _, tc := range cases {

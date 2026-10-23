@@ -89,7 +89,7 @@ func markerOf(key string) string {
 
 // links point to the change on its platform. Each field can be empty.
 type links struct {
-	Server, Repository, Head, Run string
+	Server, Repository, Head, Run, RunID string
 	// Prefix is the path of the scan target in the repository, with a
 	// trailing "/", or "" for the root. File links need it.
 	Prefix string
@@ -111,6 +111,9 @@ type input struct {
 	via string
 	// marker is the first line of the comment.
 	marker string
+	// artifact is the name of the workflow artifact with the JSON report,
+	// or "".
+	artifact string
 }
 
 // body renders the comment at the first level that fits. When no level
@@ -190,6 +193,9 @@ func (c *input) render(l level) string {
 	c.section(&b, title, sec.shown, l)
 	c.details(&b, sec, l.lines)
 	c.snippet(&b, sec.shown[:min(len(sec.shown), maxFull)])
+	if l.state {
+		c.agent(&b, sec)
+	}
 	c.footer(&b)
 	if l.state {
 		if block, ok := c.stateBlock(); ok {
@@ -240,13 +246,16 @@ func (c *input) next(b *strings.Builder, gs []render.Group) {
 	b.WriteString(line + "\n\n")
 }
 
-// fix is the fix of a group, with the end of its wait, or "".
-func (c *input) fix(g render.Group) string {
+// fix is the fix of a group in markdown, or "".
+func (c *input) fix(g render.Group) string { return md(fixText(g), maxText) }
+
+// fixText is the fix of a group, with the end of its wait, or "".
+func fixText(g render.Group) string {
 	r := g.Lead().Remediation
 	if r == nil || r.Summary == "" {
 		return ""
 	}
-	fix := md(render.Text(r.Summary), maxText)
+	fix := render.Text(r.Summary)
 	if until, ok := g.WaitUntil(); ok {
 		fix += " The wait ends at " + humanize.Minute(until) + "."
 	}
@@ -609,6 +618,9 @@ func (c *input) footer(b *strings.Builder) {
 	if c.links.Run != "" {
 		parts = append(parts, fmt.Sprintf("[Full report](%s)", c.links.Run))
 	}
+	if cmd := c.download(); cmd != "" {
+		parts = append(parts, "Report file: "+code(cmd))
+	}
 	if u := c.policyURL(); u != "" {
 		parts = append(parts, fmt.Sprintf("[Policy](%s)", u))
 	}
@@ -626,6 +638,15 @@ func (c *input) stateBlock() (string, bool) {
 	s.Since, s.First = c.baseline()
 	s.First = !s.First
 	return encodeState(s)
+}
+
+// download is the command that downloads the JSON report of the run into
+// the directory reportDir, or "".
+func (c *input) download() string {
+	if c.artifact == "" || c.links.RunID == "" || c.links.Repository == "" {
+		return ""
+	}
+	return fmt.Sprintf("gh run download %s -R %s -n %s -D %s", c.links.RunID, c.links.Repository, c.artifact, reportDir)
 }
 
 // policyURL links the policy file at the base ref that the gate read, or

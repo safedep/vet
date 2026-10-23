@@ -488,6 +488,17 @@ fix, is a group of its own. `render.Group`, from `render.Groups`, in
 latest end of a wait of its findings, as the end of a cooldown.
 _Avoid_: bucket, cluster, issue
 
+**Agent block**:
+The closed "For AI agents" YAML block of the pull request comment. It holds the gate, each shown
+finding group with its fix as data, the finding ids and the command that downloads the report
+artifact. `vet-agent: v1` is its version. `internal/plugins/sinks/prcomment/agent.go`.
+_Avoid_: machine block, bot data
+
+**Report artifact**:
+The workflow artifact that holds the JSON report of a run of the GitHub Action, `vet-report` by
+default. The `report-artifact` input names it.
+_Avoid_: report upload
+
 **State block**:
 The hidden block at the end of the pull request comment. It holds the head commit and the finding ids
 of the last run, so the next run can say what a push resolved. It never changes the gate. A block
