@@ -364,12 +364,6 @@ func TestCardsOfAPackageWithAnAttack(t *testing.T) {
 	assert.NotContains(t, body, "javascript:", "the comment drops a link that is not http or https")
 }
 
-func TestSafeURL(t *testing.T) {
-	assert.Equal(t, "https://wiki.example.com/a%28b%29", safeURL("https://wiki.example.com/a(b)"))
-	assert.Empty(t, safeURL("javascript:alert(1)"))
-	assert.Empty(t, safeURL("https://"))
-}
-
 func TestPolicyURL(t *testing.T) {
 	cases := []struct{ policy, want string }{
 		{"1c8a58d:.github/vet/policy.yml", "https://github.com/acme/app/blob/1c8a58d/.github/vet/policy.yml"},

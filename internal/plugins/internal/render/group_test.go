@@ -58,7 +58,7 @@ func TestLeadIsTheDirectDependency(t *testing.T) {
 	g := Groups([]*finding.Finding{short, direct})
 	require.Len(t, g, 1)
 	assert.Equal(t, "2", g[0].Lead().ID)
-	assert.Equal(t, 1, g[0].More())
+	assert.Equal(t, " and 1 more", g[0].More())
 }
 
 func TestGroupSeverityAndWait(t *testing.T) {

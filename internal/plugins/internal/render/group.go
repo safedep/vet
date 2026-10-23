@@ -22,9 +22,6 @@ type Group struct {
 // Lead is the finding that names the group.
 func (g Group) Lead() *finding.Finding { return g.Findings[0] }
 
-// More is the number of findings after the lead.
-func (g Group) More() int { return len(g.Findings) - 1 }
-
 // Severity is the highest severity in the group.
 func (g Group) Severity() finding.Severity {
 	s := g.Lead().Severity

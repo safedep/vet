@@ -14,7 +14,6 @@ import (
 	"github.com/safedep/vet/v2/internal/overview"
 	"github.com/safedep/vet/v2/internal/plugins/internal/render"
 	"github.com/safedep/vet/v2/internal/tui/humanize"
-	"github.com/safedep/vet/v2/internal/weburl"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/report"
 )
@@ -26,16 +25,12 @@ const (
 	// no details block shows each line, so it has the body budget only.
 	maxBody    = 12000
 	maxVisible = 2500
-	// maxFull bounds the groups that show as a card, and maxMembers the
-	// names in the closed list of a card.
-	maxFull    = 5
-	maxMembers = 50
+	// maxFull bounds the groups that show as a card.
+	maxFull = 5
 	// maxEntries bounds the snippet entries of one group.
 	maxEntries = 20
-	// maxField bounds a name, a title or a path, and maxText a description,
-	// so that no single finding fills the comment.
-	maxField = 200
-	maxText  = 1000
+	maxField   = render.MaxField
+	maxText    = render.MaxText
 	// maxAlerts bounds the lines of an alert.
 	maxAlerts = 5
 
@@ -251,11 +246,11 @@ func (c *input) next(b *strings.Builder, gs []render.Group) {
 		return
 	}
 	g := gs[0]
-	fix := c.fix(g)
+	fix := md(g.Fix(), maxText)
 	if fix == "" {
 		return
 	}
-	line := "**Next step:** " + code(render.Subject(g.Lead())) + more(g)
+	line := "**Next step:** " + code(render.Subject(g.Lead())) + g.More()
 	if where := c.where(g.Lead()); where != "" {
 		line += " in " + where
 	}
@@ -264,30 +259,6 @@ func (c *input) next(b *strings.Builder, gs []render.Group) {
 		line += " Run " + code(render.Text(r.Command)) + "."
 	}
 	b.WriteString(line + "\n\n")
-}
-
-// fix is the fix of a group in markdown, or "".
-func (c *input) fix(g render.Group) string { return md(fixText(g), maxText) }
-
-// fixText is the fix of a group, with the end of its wait, or "".
-func fixText(g render.Group) string {
-	r := g.Lead().Remediation
-	if r == nil || r.Summary == "" {
-		return ""
-	}
-	fix := render.Text(r.Summary)
-	if until, ok := g.WaitUntil(); ok {
-		fix += " The wait ends at " + humanize.Minute(until) + "."
-	}
-	return fix
-}
-
-// more counts the findings of a group after its lead.
-func more(g render.Group) string {
-	if g.More() == 0 {
-		return ""
-	}
-	return fmt.Sprintf(" and %d more", g.More())
 }
 
 // caution names each attack. An attack needs action before the merge.
@@ -490,39 +461,18 @@ func (c *input) section(b *strings.Builder, title string, gs []render.Group, l l
 // one link to the control and one to report a wrong result.
 func (c *input) card(b *strings.Builder, g render.Group) {
 	f := g.Lead()
-	head := fmt.Sprintf("%s%s: **%s** · %s", code(render.Subject(f)), more(g), md(render.Title(f), maxField), code(kind(f)))
+	card := render.NewCard(g)
+	head := card.Head
 	if where := c.placeOf(f); where != "" {
 		head += " · " + where
 	}
 	b.WriteString(head + "\n\n")
-	if f.Description != "" {
-		b.WriteString(md(render.Text(f.Description), maxText) + "\n\n")
+	for _, p := range card.Body {
+		b.WriteString(p + "\n\n")
 	}
-	c.gate(b, f)
-	if fix := c.fix(g); fix != "" {
-		fmt.Fprintf(b, "**Fix:** %s\n\n", fix)
-	}
-	if r := f.Remediation; r != nil && r.Command != "" {
-		fmt.Fprintf(b, "```sh\n%s\n```\n\n", strings.ReplaceAll(render.Truncate(render.Text(r.Command), maxText), "```", "'''"))
-	}
-	if len(f.Evidence) > 0 {
-		fmt.Fprintf(b, "**Evidence:** %s\n\n", md(render.Text(f.Evidence[0].Summary), maxText))
-	}
-	if g.More() > 0 {
-		c.open(b, fmt.Sprintf("%d more with this cause", g.More()))
-		title := render.Title(f)
-		for i, m := range g.Findings[1:] {
-			if i == maxMembers {
-				fmt.Fprintf(b, "- %d more in the full report\n", g.More()-maxMembers)
-				break
-			}
-			line := "- " + code(render.Subject(m))
-			if t := render.Title(m); t != title {
-				line += ": " + md(t, maxField)
-			}
-			b.WriteString(line + "\n")
-		}
-		b.WriteString("\n")
+	if len(card.Members) > 0 {
+		c.open(b, fmt.Sprintf("%d more with this cause", len(g.Findings)-1))
+		b.WriteString(strings.Join(card.Members, "\n") + "\n\n")
 		c.close(b)
 	}
 	fmt.Fprintf(b, "[About this control](%s) · [Wrong result?](%s) · %s\n\n", c.docURL(f.ControlID), c.formURL(f), code(f.ID))
@@ -531,7 +481,7 @@ func (c *input) card(b *strings.Builder, g render.Group) {
 // groupLine writes one group on one line.
 func (c *input) groupLine(b *strings.Builder, g render.Group) {
 	f := g.Lead()
-	line := fmt.Sprintf("- %s %s%s: %s · %s", code(kind(f)), code(render.Subject(f)), more(g), md(render.Title(f), maxField), code(render.Where(f)))
+	line := fmt.Sprintf("- %s %s%s: %s · %s", code(render.Kind(f)), code(render.Subject(f)), g.More(), md(render.Title(f), maxField), code(render.Where(f)))
 	if gr := f.Gate; gr != nil {
 		line += " · " + strings.ToLower(gr.Label()) + " " + md(render.Text(gr.Cause()), maxField)
 	}
@@ -547,40 +497,6 @@ func (c *input) placeOf(f *finding.Finding) string {
 	return where
 }
 
-// gate says what blocks or warns on the finding, with the help and the
-// link of the rule.
-func (c *input) gate(b *strings.Builder, f *finding.Finding) {
-	g := f.Gate
-	if g == nil {
-		return
-	}
-	fmt.Fprintf(b, "**%s:** %s\n\n", g.Label(), md(render.Text(g.Cause()), maxField))
-	var help []string
-	if g.Help != "" && (f.Remediation == nil || g.Help != f.Remediation.Summary) {
-		help = append(help, md(render.Text(g.Help), maxText))
-	}
-	if u := safeURL(g.Link); u != "" {
-		help = append(help, fmt.Sprintf("[Policy guidance](%s)", u))
-	}
-	if len(help) > 0 {
-		fmt.Fprintf(b, "**Policy help:** %s\n\n", strings.Join(help, " · "))
-	}
-}
-
-// safeURL returns an http or https link that is safe in a markdown link
-// target, or "". The policy validates the link. A report file can come
-// from anywhere, so the comment checks it again.
-func safeURL(s string) string {
-	if !weburl.Valid(s) {
-		return ""
-	}
-	u, err := url.Parse(s)
-	if err != nil {
-		return ""
-	}
-	return strings.NewReplacer("(", "%28", ")", "%29", " ", "%20", `\`, "%5C", "<", "%3C", ">", "%3E", `"`, "%22").Replace(u.String())
-}
-
 // details lists the findings that the comment does not show as a group,
 // closed, under one heading for each control.
 func (c *input) details(b *strings.Builder, sec sections, lines int) {
@@ -593,7 +509,7 @@ func (c *input) details(b *strings.Builder, sec sections, lines int) {
 	var controls []string
 	byControl := map[string][]*finding.Finding{}
 	for _, f := range fs {
-		k := kind(f)
+		k := render.Kind(f)
 		if count[k] == 0 {
 			kinds = append(kinds, k)
 		}
@@ -623,7 +539,7 @@ func (c *input) details(b *strings.Builder, sec sections, lines int) {
 			break
 		}
 		group := byControl[id]
-		fmt.Fprintf(b, "**%s** · %s\n\n", md(render.ControlTitle(id), maxField), code(kind(group[0])))
+		fmt.Fprintf(b, "**%s** · %s\n\n", md(render.ControlTitle(id), maxField), code(render.Kind(group[0])))
 		for _, f := range group {
 			if n == lines {
 				break
@@ -771,21 +687,10 @@ func (c *input) small(b *strings.Builder, line string) {
 	b.WriteString(line + "\n\n")
 }
 
-// kind is the label of a finding in the comment: its severity, or
-// "cooldown" for a version that waits for its cooldown. The report keeps
-// the severity of a cooldown finding, but "high" reads as a high risk.
-func kind(f *finding.Finding) string {
-	if f.Family == finding.FamilyCooldown {
-		return "cooldown"
-	}
-	return string(f.Severity)
-}
-
-// md escapes free text for markdown and bounds it to n runes.
-func md(s string, n int) string { return render.Markdown(render.Truncate(s, n)) }
-
-// code puts a name or a path in a code span, bounded to maxField runes.
-func code(s string) string { return render.Code(render.Truncate(s, maxField)) }
+var (
+	md   = render.Bounded
+	code = render.ShortCode
+)
 
 func ids(fs []*finding.Finding) []string {
 	out := make([]string, 0, len(fs))

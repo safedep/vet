@@ -333,15 +333,7 @@ func reachText(r *finding.Reach, full bool) string {
 	return r.Level.Text()
 }
 
-func (r row) reach() *finding.Reach {
-	var top *finding.Reach
-	for _, f := range r {
-		if f.Reach != nil && (top == nil || f.Reach.Level.Rank() > top.Level.Rank()) {
-			top = f.Reach
-		}
-	}
-	return top
-}
+func (r row) reach() *finding.Reach { return render.TopReach(r) }
 
 func (r row) failing() bool { return slices.ContainsFunc(r, (*finding.Finding).Fails) }
 

@@ -1,5 +1,6 @@
 // Package markdown is the markdown format, for a pull request comment or
-// a job summary: the counts, the gate and a table of the findings.
+// a job summary: the counts, the gate, a table with one row for each cause
+// and the card of each cause.
 package markdown
 
 import (
@@ -46,7 +47,7 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	}
 
 	delta := h.Scan.Mode == report.ScanModeDelta
-	cols := []string{"Severity", "Control", "Subject", "Where"}
+	cols := []string{"Kind", "Control", "Subject", "Where"}
 	if delta {
 		cols = append(cols, "Change")
 	}
@@ -60,55 +61,73 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 		cols = append(cols, "Gate")
 	}
 	cols = append(cols, "Finding")
+	var open []*finding.Finding
 	var suppressed []string
-	wrote := false
 	err := render.EachFinding(ctx, r, func(f *finding.Finding) error {
 		if f.Suppressed() {
 			suppressed = append(suppressed, fmt.Sprintf("- `%s` %s: %s", cell(f.ControlID), code(render.Subject(f)), cell(render.Text(f.Suppression.Reason))))
 			return nil
 		}
-		if !wrote {
-			if err := tableHeader(w, cols); err != nil {
-				return err
-			}
-			wrote = true
-		}
-		cells := []string{string(f.Severity), cell(f.ControlID), code(render.Subject(f)), code(render.Where(f))}
+		open = append(open, f)
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	groups := render.Groups(open)
+	b.Reset()
+	if len(groups) > 0 {
+		writeHeader(&b, cols)
+	}
+	for _, g := range groups {
+		f := g.Lead()
+		cells := []string{render.Kind(f), cell(f.ControlID), code(render.Subject(f)) + g.More(), code(render.Where(f))}
 		if delta {
 			cells = append(cells, strings.ToLower(string(f.Change)))
 		}
-		cells = append(cells, cell(render.Truncate(render.Text(f.Title), maxTitle)))
+		cells = append(cells, cell(render.Truncate(render.Title(f), maxTitle)))
 		if reach {
-			cells = append(cells, cell(f.Reach.Label()))
+			cells = append(cells, cell(g.Reach().Label()))
 		}
 		if gated {
 			cells = append(cells, gateCell(f.Gate))
 		}
 		cells = append(cells, fmt.Sprintf("`%s`", f.ID))
-		_, err := io.WriteString(w, "| "+strings.Join(cells, " | ")+" |\n")
-		return err
-	})
-	if err != nil {
-		return err
+		b.WriteString("| " + strings.Join(cells, " | ") + " |\n")
 	}
-	var tail strings.Builder
-	if !wrote {
-		fmt.Fprintf(&tail, "No findings. %d packages checked.\n", sum.Packages)
+	if len(groups) > 0 {
+		b.WriteString("\n### Causes\n\n")
+	}
+	for _, g := range groups {
+		card := render.NewCard(g)
+		fmt.Fprintf(&b, "%s · %s\n\n", card.Head, render.ShortCode(render.Where(g.Lead())))
+		for _, p := range card.Body {
+			b.WriteString(p + "\n\n")
+		}
+		if len(card.Members) > 0 {
+			fmt.Fprintf(&b, "<details><summary>%d more with this cause</summary>\n\n%s\n\n</details>\n\n", len(g.Findings)-1, strings.Join(card.Members, "\n"))
+		}
+		fmt.Fprintf(&b, "`%s`\n\n", g.Lead().ID)
+	}
+	if len(groups) == 0 {
+		fmt.Fprintf(&b, "No findings. %d packages checked.\n", sum.Packages)
 	}
 	if len(suppressed) > 0 {
-		fmt.Fprintf(&tail, "\n<details><summary>%d suppressed</summary>\n\n%s\n\n</details>\n", len(suppressed), strings.Join(suppressed, "\n"))
+		if len(groups) == 0 {
+			b.WriteString("\n")
+		}
+		fmt.Fprintf(&b, "<details><summary>%d suppressed</summary>\n\n%s\n\n</details>\n", len(suppressed), strings.Join(suppressed, "\n"))
 	}
-	_, err = io.WriteString(w, tail.String())
+	_, err = io.WriteString(w, b.String())
 	return err
 }
 
-func tableHeader(w io.Writer, cols []string) error {
+func writeHeader(b *strings.Builder, cols []string) {
 	sep := make([]string, len(cols))
 	for i := range sep {
 		sep[i] = "---"
 	}
-	_, err := io.WriteString(w, "| "+strings.Join(cols, " | ")+" |\n| "+strings.Join(sep, " | ")+" |\n")
-	return err
+	b.WriteString("| " + strings.Join(cols, " | ") + " |\n| " + strings.Join(sep, " | ") + " |\n")
 }
 
 func gate(g report.Gate) string {

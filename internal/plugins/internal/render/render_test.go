@@ -76,3 +76,9 @@ func TestMarkdown(t *testing.T) {
 	assert.Equal(t, `\[x\](http://a) \<img\> @`+"\u200b"+`org \*b\* \# h \&\#64;`, Markdown("[x](http://a) <img> @org *b* # h &#64;"))
 	assert.Equal(t, "`a'b c`", Code("a`b\nc"))
 }
+
+func TestSafeURL(t *testing.T) {
+	assert.Equal(t, "https://wiki.example.com/a%28b%29", SafeURL("https://wiki.example.com/a(b)"))
+	assert.Empty(t, SafeURL("javascript:alert(1)"))
+	assert.Empty(t, SafeURL("https://"))
+}

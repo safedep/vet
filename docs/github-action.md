@@ -176,8 +176,8 @@ The comment ends with a closed "For AI agents" block. It is YAML with these keys
 A key with no value is not in the block. Each list holds at most 100 ids. The report has each finding.
 
 The comment stays under 12,000 characters, with at most 2,500 outside the collapsed sections. A
-larger result shows fewer cards and more one-line items. The step summary and the report file have
-each finding.
+larger result shows fewer cards and more one-line items. The step summary has a card for each cause,
+and the report file has each finding. A vulnerability card shows its reach when the scan computed it.
 
 `comment: auto` posts a comment when the change adds or upgrades a package or a workflow, or has a
 finding. A change that only removes a package gets no new comment. `comment: findings` posts only when the change has a finding. `comment: never`

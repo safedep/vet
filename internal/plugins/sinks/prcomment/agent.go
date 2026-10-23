@@ -82,7 +82,7 @@ func (c *input) agent(b *strings.Builder, sec sections) {
 
 func cause(g render.Group) agentCause {
 	f := g.Lead()
-	out := agentCause{Gate: "none", Control: f.ControlID, Subject: render.SubjectID(f), Place: render.Where(f), Fix: fixText(g), Findings: capIDs(ids(g.Findings))}
+	out := agentCause{Gate: "none", Control: f.ControlID, Subject: render.SubjectID(f), Place: render.Where(f), Fix: g.Fix(), Findings: capIDs(ids(g.Findings))}
 	if gr := f.Gate; gr != nil {
 		out.Gate, out.Rules, out.FailOn = string(gr.Action), gr.Rules, gr.FailOn
 	}
@@ -118,8 +118,8 @@ func (c *input) annotations() []ci.Annotation {
 			continue
 		}
 		title := "vet: " + render.Title(f)
-		text := render.Subject(f) + more(g)
-		if fix := fixText(g); fix != "" {
+		text := render.Subject(f) + g.More()
+		if fix := g.Fix(); fix != "" {
 			text += ": " + fix
 		}
 		out = append(out, ci.Annotation{Path: c.links.Prefix + path, Line: line, Title: render.Truncate(title, maxField), Text: render.Truncate(text, maxText)})

@@ -175,7 +175,7 @@ func (c *input) snippet(b *strings.Builder, gs []render.Group) {
 	fmt.Fprintf(b, "Add the entries to %s on the base branch, then run the job again. Each entry matches no other finding of this scan. An entry with no expires stays until you remove it.\n\n", file)
 	b.WriteString("```yaml\nsuppressions:\n")
 	for _, g := range gs {
-		fmt.Fprintf(b, "  # %s\n", yamlComment(render.Subject(g.Lead())+more(g)))
+		fmt.Fprintf(b, "  # %s\n", yamlComment(render.Subject(g.Lead())+g.More()))
 		entries := suppressions(g, c.view.Findings)
 		for _, e := range entries[:min(len(entries), maxEntries)] {
 			var lines []string
