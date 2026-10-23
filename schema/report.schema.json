@@ -1234,6 +1234,10 @@
         },
         "command": {
           "type": "string"
+        },
+        "wait_until": {
+          "type": "string",
+          "format": "date-time"
         }
       },
       "type": "object",

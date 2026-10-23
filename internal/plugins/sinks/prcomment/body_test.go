@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -200,7 +199,7 @@ func TestBodyCutsToSize(t *testing.T) {
 	s.TrailerValue.Gate.FindingIDs = append(s.TrailerValue.Gate.FindingIDs, failed...)
 
 	body := newInput(t, s).body()
-	assert.LessOrEqual(t, utf8.RuneCountInString(body), maxChars)
+	assert.LessOrEqual(t, utf8.RuneCountInString(body), maxBody)
 	assert.Contains(t, body, "more in the full report")
 	assert.NotContains(t, body, stateOpen, "the state goes before the cards")
 	assert.True(t, strings.HasPrefix(body, markerOf("")), "the marker stays")
@@ -337,23 +336,28 @@ func TestNoteOfAFirstPolicy(t *testing.T) {
 	assert.Contains(t, newInput(t, s).body(), "This change adds a policy. The base branch has no policy, so the gate applies none.")
 }
 
-func TestOneCardForEachPackage(t *testing.T) {
+func TestCardsOfAPackageWithAnAttack(t *testing.T) {
 	s := pullRequest(report.GateFail)
 	evil := s.FindingList[0]
 	evil.Gate = &finding.GateRecord{Action: finding.GateActionFail, FailOn: string(report.FailOnAttacks)}
 	cooldown := *evil
-	cooldown.ID, cooldown.ControlID, cooldown.Family, cooldown.Severity = "f-1111111111111111", "dependency-cooldown", finding.FamilyCooldown, finding.SeverityHigh
-	cooldown.Title, cooldown.Description, cooldown.Evidence, cooldown.Remediation = "Version inside the cooldown window", "", nil, nil
+	cooldown.ID, cooldown.ControlID, cooldown.Family, cooldown.Severity, cooldown.Attack = "f-1111111111111111", "dependency-cooldown", finding.FamilyCooldown, finding.SeverityHigh, nil
+	cooldown.Title, cooldown.Description, cooldown.Evidence = "Version inside the cooldown window", "", nil
+	cooldown.Remediation = &finding.Remediation{Summary: "Remove evil-colors."}
 	cooldown.Gate = &finding.GateRecord{Action: finding.GateActionFail, Rules: []string{"critical-or-high"}, Help: "Wait, or suppress the finding.", Link: "javascript:alert(1)"}
 	s.FindingList = append(s.FindingList, &cooldown)
 	tr := *s.Trailer()
 	tr.Gate.FindingIDs = append(tr.Gate.FindingIDs, cooldown.ID)
 	s.TrailerValue = &tr
 
-	body := newInput(t, s).body()
-	assert.Equal(t, 1, strings.Count(body, "`npm/evil-colors@1.4.1` · added in"), "the package heading shows once")
-	assert.Contains(t, body, "**Malicious package** · `critical` · `malware`")
-	assert.Contains(t, body, "**Version inside the cooldown window** · `cooldown` · `dependency-cooldown`")
+	c := newInput(t, s)
+	c.dialect = dialect{}
+	body := c.body()
+	assert.Contains(t, body, "### ❌ vet: 2 causes block this pull request", "the attack does not fold into a group with the same fix")
+	assert.Contains(t, body, "`npm/evil-colors@1.4.1`: **Malicious package** · `critical`")
+	assert.Contains(t, body, "`npm/evil-colors@1.4.1`: **Version inside the cooldown window** · `cooldown`")
+	assert.Less(t, strings.Index(body, "**Malicious package**"), strings.Index(body, "**Version inside the cooldown window**"), "the attack comes first")
+	assert.Contains(t, body, "**Next step:** `npm/evil-colors@1.4.1` in [`package-lock.json:42`]")
 	assert.Contains(t, body, "**Blocked by:** --fail-on attacks")
 	assert.Contains(t, body, "**Blocked by:** policy rule critical-or-high")
 	assert.Contains(t, body, "**Policy help:** Wait, or suppress the finding.\n")
@@ -364,32 +368,6 @@ func TestSafeURL(t *testing.T) {
 	assert.Equal(t, "https://wiki.example.com/a%28b%29", safeURL("https://wiki.example.com/a(b)"))
 	assert.Empty(t, safeURL("javascript:alert(1)"))
 	assert.Empty(t, safeURL("https://"))
-}
-
-func TestGroups(t *testing.T) {
-	pkg := func(id, name, manifest string) *finding.Finding {
-		f := finding.ForPackage(finding.Meta{ControlID: "c", Title: id}, manifest, &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, name, "1.0.0")}, finding.Key{})
-		f.ID = id
-		return &f
-	}
-	a1, b, a2, other := pkg("1", "a", "package-lock.json"), pkg("2", "b", "package-lock.json"), pkg("3", "a", "package-lock.json"), pkg("4", "a", "web/package-lock.json")
-	file := &finding.Finding{ID: "5", Subject: finding.Subject{Kind: finding.SubjectFile, File: &finding.FileSubject{Path: "ci.yml"}}}
-	got := groups([]*finding.Finding{a1, b, file, a2, other})
-	assert.Equal(t, [][]*finding.Finding{{a1, a2}, {b}, {file}, {other}}, got, "one package in two manifests makes two groups")
-}
-
-var hidden = regexp.MustCompile(`(?s)<details>.*?</details>|<!--.*?-->`)
-
-// visible is the text that a reader sees before they open a details block.
-func visible(body string) string { return hidden.ReplaceAllString(body, "") }
-
-// The upgrade report is a real pull request that got a 21,000 character
-// comment for one cause. The limits record the size today.
-func TestUpgradeCommentSize(t *testing.T) {
-	body := newInput(t, plugintest.UpgradeReport()).body()
-	assert.LessOrEqual(t, utf8.RuneCountInString(body), 17838)
-	assert.LessOrEqual(t, utf8.RuneCountInString(visible(body)), 15549)
-	assert.NotContains(t, body, "\u200b", "a package name copies as it is")
 }
 
 func TestPolicyURL(t *testing.T) {
@@ -415,4 +393,20 @@ func TestPolicyHelpThatRepeatsTheFix(t *testing.T) {
 	assert.NotContains(t, newInput(t, s).body(), "**Policy help:**")
 	f.Gate.Help = "Ask the security team."
 	assert.Contains(t, newInput(t, s).body(), "**Policy help:** Ask the security team.")
+}
+
+// The upgrade report is a real pull request that got a 21,000 character
+// comment with 15 cards for one cause.
+func TestUpgradeComment(t *testing.T) {
+	body := newInput(t, plugintest.UpgradeReport()).body()
+	assert.LessOrEqual(t, utf8.RuneCountInString(body), 6500)
+	assert.LessOrEqual(t, utf8.RuneCountInString(visible(body)), maxVisible)
+	assert.NotContains(t, body, "\u200b", "a package name copies as it is")
+
+	lines := strings.Split(body, "\n")
+	assert.Equal(t, "### ❌ vet: 1 cause blocks this pull request", lines[1])
+	assert.True(t, strings.HasPrefix(lines[3], "**Next step:** `npm/pnpm@12.15.0` and 14 more in [`pnpm-lock.yaml:92`]"), lines[3])
+	assert.Contains(t, lines[3], "The wait ends at 2026-10-23 11:17 UTC.", "the group waits for its last package")
+	assert.Equal(t, 1, strings.Count(body, "[About this control]"), "one card")
+	assert.NotContains(t, lines[5], ".github/vet/policy.yml", "the status line has no policy path")
 }

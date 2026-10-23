@@ -881,6 +881,12 @@
   tier: P1
   guarantee: "Outside a pull request run, --report pr-comment posts nothing and warns. --report pr-comment=FILE writes the comment body. Neither changes the exit code."
   labels: [pr-comment]
+- id: ci/pr-comment/release-group
+  title: "A release with platform packages is one blocking item"
+  category: ci
+  tier: P1
+  guarantee: "The comment shows the findings of one control, gate rule and fix as one item, led by the main package. A next step names the fix and the end of the wait, and the snippet accepts the item with a name glob until the cooldown ends."
+  labels: [pr-comment]
 - id: ci/action/scan
   title: "The scan script of the GitHub Action works with this vet"
   category: ci

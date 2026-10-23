@@ -42,15 +42,16 @@ func UpgradeReport() *MemState {
 	var findings []*finding.Finding
 	var blocked []string
 	cooldown := func(p *model.Package, at time.Time) {
+		eligible := at.AddDate(0, 0, 2)
 		f := finding.ForPackage(finding.Meta{
 			ControlID: "dependency-cooldown", Family: finding.FamilyCooldown, Severity: finding.SeverityHigh,
 			Title: "Published 1 day ago",
-			Description: fmt.Sprintf("The registry published this version on %s. The cooldown is 2 days (flag --cooldown-days). The version can merge after %s.",
-				minute(at), minute(at.AddDate(0, 0, 2))),
+			Description: "The registry published this version on " + at.Format(time.DateTime) +
+				" UTC. The cooldown is 2 days (flag --cooldown-days). The version can merge after " + eligible.Format(time.DateTime) + " UTC.",
 		}, m.Path, p, finding.Key{})
 		f.Change = p.Change
 		f.Evidence = []finding.Evidence{{Source: "insights", Summary: "published at " + at.Format(time.RFC3339)}}
-		f.Remediation = &finding.Remediation{Summary: "Wait until 2026-10-23, or keep version " + p.PreviousVersion + "."}
+		f.Remediation = &finding.Remediation{Summary: "Keep version " + p.PreviousVersion + ", or wait until 2026-10-23.", WaitUntil: &eligible}
 		f.Gate = gate
 		findings = append(findings, &f)
 		blocked = append(blocked, f.ID)
@@ -106,9 +107,4 @@ func UpgradeReport() *MemState {
 		Rules: []string{"package-cooldown"}, FindingIDs: blocked,
 	}
 	return s
-}
-
-// minute shows t to the minute, rounded up, as the cooldown control does.
-func minute(t time.Time) string {
-	return t.Add(time.Minute-time.Nanosecond).Truncate(time.Minute).Format("2006-01-02 15:04") + " UTC"
 }

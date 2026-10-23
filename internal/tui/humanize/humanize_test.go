@@ -52,3 +52,9 @@ func TestBytes(t *testing.T) {
 		})
 	}
 }
+
+func TestMinute(t *testing.T) {
+	assert.Equal(t, "2026-10-23 11:16 UTC", Minute(time.Date(2026, 10, 23, 11, 15, 31, 0, time.UTC)))
+	assert.Equal(t, "2026-10-23 11:15 UTC", Minute(time.Date(2026, 10, 23, 11, 15, 0, 0, time.UTC)))
+	assert.Equal(t, "2026-10-23 09:16 UTC", Minute(time.Date(2026, 10, 23, 11, 15, 1, 0, time.FixedZone("CEST", 2*3600))))
+}

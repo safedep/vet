@@ -1,10 +1,12 @@
 <!-- vet:pr-comment v1 -->
-### ❌ vet: 1 finding blocks this pull request
+### ❌ vet: 1 cause blocks this pull request
 
 > [!CAUTION]
 > `npm/evil-colors@1.4.1`: Malicious package
 >
 > Do not merge this change. Treat each machine and each CI run that installed or ran it as exposed.
+
+**Next step:** `npm/evil-colors@1.4.1` in [`package-lock.json:42`](https://github.com/acme/app/blob/2222222222222222222222222222222222222222/package-lock.json#L42): Remove evil-colors. Run `npm uninstall evil-colors`.
 
 > [!WARNING]
 > Some checks did not complete, so a finding can be missing. Run the job again before you merge.
@@ -29,20 +31,23 @@ npm uninstall evil-colors
 
 [About this control](https://github.com/safedep/vet/blob/v2.0.0-alpha.20261005063951/docs/controls.md#malware) · [Wrong result?](https://github.com/safedep/vet/issues/new?control=malware&finding=f-f7017b227d6ad796&subject=pkg%3Anpm%2Fevil-colors%401.4.1&template=false-positive.yml&version=2.0.0-alpha.20261005063951) · `f-f7017b227d6ad796`
 
-<details><summary>1 more finding (medium and lower)</summary>
+<details><summary>1 finding does not block: 1 medium</summary>
 
-- `medium` `tj-actions/changed-files@v44`: is not pinned to a commit SHA · `.github/workflows/ci.yml:8` · `f-e815bb3b5e0846f1`
+**Action not pinned to a commit SHA** · `medium`
+
+- `tj-actions/changed-files@v44`: is not pinned to a commit SHA
 
 </details>
 
-<details><summary>Maintainers: accept a finding</summary>
+<details><summary>Maintainers: accept this cause</summary>
 
-Add a suppression to the policy file. Merge it to the base branch, then run the job again.
+Add the entries to the policy file on the base branch, then run the job again. Each entry accepts its cause and no other finding.
 
 ```yaml
 suppressions:
+  # npm/evil-colors@1.4.1
   - id: f-f7017b227d6ad796
-    reason: Why this finding is acceptable
+    reason: Why this is acceptable
 ```
 
 </details>

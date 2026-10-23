@@ -70,7 +70,8 @@ func TestRemediationNamesThePreviousVersion(t *testing.T) {
 	p.Change, p.PreviousVersion = model.ChangeUpgraded, "0.9.0"
 	fs := plugintest.TestControl(t, c, &model.Manifest{ID: "m1", Path: "package-lock.json", Packages: []*model.Package{p}}, nil)
 	require.Len(t, fs, 1)
-	assert.Contains(t, fs[0].Remediation.Summary, "keep version 0.9.0")
+	assert.Equal(t, "Keep version 0.9.0, or wait until 2026-10-04.", fs[0].Remediation.Summary)
+	assert.Equal(t, now.Add(-time.Hour).AddDate(0, 0, DefaultDays), *fs[0].Remediation.WaitUntil)
 	assert.Equal(t, model.ChangeUpgraded, fs[0].Change)
 }
 
@@ -102,11 +103,6 @@ func TestDescriptionNamesTheWindowAndItsSource(t *testing.T) {
 			assert.Contains(t, fs[0].Description, tc.want)
 		})
 	}
-}
-
-func TestMinuteRoundsUp(t *testing.T) {
-	assert.Equal(t, "2026-10-23 11:16 UTC", minute(time.Date(2026, 10, 23, 11, 15, 31, 0, time.UTC)))
-	assert.Equal(t, "2026-10-23 11:15 UTC", minute(time.Date(2026, 10, 23, 11, 15, 0, 0, time.UTC)))
 }
 
 func TestSkip(t *testing.T) {

@@ -142,13 +142,21 @@ vet keeps one comment on a pull request, and edits it on each push. The `comment
 posts it. The comment shows:
 
 - a caution box for an attack, with what to do when a person or a CI run installed the package
+- the next step: the fix of the first blocking cause, with the file, the end of a wait and the command
 - a warning box when a check did not complete, or when vet cannot read a file. The box leaves out a
   file that the change does not edit
-- the blocking findings, with the fix and a link to the docs of the control
-- the other findings in a collapsed section
+- the blocking causes, with the fix and a link to the docs of the control. A cause is the findings of
+  one control, one gate rule and one fix, so a release with 14 platform packages shows once. An attack
+  finding is always a cause of its own
+- the other findings in a collapsed section, under one heading for each control
 - what the last push resolved, and what it added
-- the policy snippet that accepts a finding
+- the policy snippet that accepts each cause and no other finding, with a name glob for a release
+  and an end date for a cooldown
 - a "Wrong result?" link to the [issue form](https://github.com/safedep/vet/issues/new?template=false-positive.yml)
+
+The comment stays under 12,000 characters, with at most 2,500 outside the collapsed sections. A
+larger result shows fewer cards and more one-line items. The step summary and the report file have
+each finding.
 
 `comment: auto` posts a comment when the change adds or upgrades a package or a workflow, or has a
 finding. A change that only removes a package gets no new comment. `comment: findings` posts only when the change has a finding. `comment: never`

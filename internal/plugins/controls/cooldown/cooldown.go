@@ -127,24 +127,19 @@ func (c *Control) finding(m *model.Manifest, p *model.Package, published time.Ti
 		ControlID: Name, Family: finding.FamilyCooldown, Severity: finding.SeverityHigh,
 		Title: "Published " + ago(days),
 		Description: fmt.Sprintf("The registry published this version on %s. The cooldown is %s (%s). The version can merge after %s.",
-			minute(published), humanize.Count(c.days, "day"), c.sourceText(), minute(eligible)),
+			humanize.Minute(published), humanize.Count(c.days, "day"), c.sourceText(), humanize.Minute(eligible)),
 	}, m.Path, p, finding.Key{})
 	f.Evidence = []finding.Evidence{{Source: "insights", Summary: "published at " + published.Format(time.RFC3339)}}
-	summary := fmt.Sprintf("Wait until %s, or keep the version that you used before.", eligible.Format(time.DateOnly))
+	summary := fmt.Sprintf("Keep the version that you used before, or wait until %s.", eligible.Format(time.DateOnly))
 	if p.PreviousVersion != "" {
-		summary = fmt.Sprintf("Wait until %s, or keep version %s.", eligible.Format(time.DateOnly), p.PreviousVersion)
+		summary = fmt.Sprintf("Keep version %s, or wait until %s.", p.PreviousVersion, eligible.Format(time.DateOnly))
 	}
-	f.Remediation = &finding.Remediation{Summary: summary}
+	f.Remediation = &finding.Remediation{Summary: summary, WaitUntil: &eligible}
 	return f
 }
 
 // sourceText says where the window comes from.
 func (c *Control) sourceText() string { return cmp.Or(c.source, "vet default") }
-
-// minute shows t to the minute, rounded up, so that "after" holds.
-func minute(t time.Time) string {
-	return t.Add(time.Minute-time.Nanosecond).Truncate(time.Minute).Format("2006-01-02 15:04") + " UTC"
-}
 
 func ago(days int) string {
 	switch {

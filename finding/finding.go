@@ -311,6 +311,9 @@ type Remediation struct {
 	Summary      string `json:"summary"`
 	FixedVersion string `json:"fixed_version,omitempty"`
 	Command      string `json:"command,omitempty"`
+	// WaitUntil is the time after which the finding ends with no change to
+	// the code, as the end of a cooldown.
+	WaitUntil *time.Time `json:"wait_until,omitempty"`
 }
 
 // Suppression records the policy suppression that matched the finding. A

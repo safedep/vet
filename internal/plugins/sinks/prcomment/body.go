@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/url"
+	"regexp"
 	"slices"
 	"strings"
 	"unicode/utf8"
@@ -19,14 +20,19 @@ import (
 )
 
 const (
-	// maxChars is the size limit of a GitHub comment.
-	maxChars = 65536
+	// maxBody bounds the comment, and maxVisible the text outside a closed
+	// details block. A long comment buries the next step, and the full
+	// cards are in the step summary and the report artifact.
+	maxBody    = 12000
+	maxVisible = 2500
+	// maxFull bounds the groups that show as a card, and maxMembers the
+	// names in the closed list of a card.
+	maxFull    = 5
+	maxMembers = 50
 	// maxField bounds a name, a title or a path, and maxText a description,
 	// so that no single finding fills the comment.
 	maxField = 200
 	maxText  = 1000
-	// maxLines bounds the one-line lists of the last cut level.
-	maxLines = 100
 	// maxAlerts bounds the lines of an alert.
 	maxAlerts = 5
 
@@ -35,16 +41,32 @@ const (
 	formFile = "false-positive.yml"
 )
 
-// The cut levels, from the full comment to the smallest one. The body
-// takes the first level that fits in maxChars.
-const (
-	cutNone = iota
-	cutDetails
-	cutState
-	cutReview
-	cutBlocking
-	cutLevels
-)
+// level is how much of the comment shows. The body takes the first level
+// that fits in the budget.
+type level struct {
+	// full is the number of groups that show as a card. The other groups
+	// show as one line each.
+	full int
+	// lines bounds each list of lines. A list with no lines shows a count.
+	lines int
+	state bool
+}
+
+var levels = []level{
+	{full: maxFull, lines: 100, state: true},
+	{full: 3, lines: 100, state: true},
+	{full: 1, lines: 100, state: true},
+	{full: 1, lines: 30, state: true},
+	{full: 0, lines: 30, state: true},
+	{full: 0, lines: 10, state: true},
+	{full: 0, state: true},
+	{},
+}
+
+var hidden = regexp.MustCompile(`(?s)<details>.*?</details>|<!--.*?-->`)
+
+// visible is the text that a reader sees before they open a details block.
+func visible(body string) string { return hidden.ReplaceAllString(body, "") }
 
 // dialect is what the markup of a platform renders.
 type dialect struct {
@@ -91,33 +113,50 @@ type input struct {
 	marker string
 }
 
-// body renders the comment at the first cut level that fits. When no
-// level fits, it renders the verdict, the status and the footer only.
+// body renders the comment at the first level that fits. When no level
+// fits, it renders the verdict, the status and the footer only.
 func (c *input) body() string {
-	for level := cutNone; level < cutLevels; level++ {
-		if b := c.render(level); utf8.RuneCountInString(b) <= maxChars {
+	for _, l := range levels {
+		if b := c.render(l); c.fits(b) {
 			return b
 		}
 	}
-	blocking, review, rest := c.sections()
+	sec := c.sections()
 	var b strings.Builder
 	b.WriteString(c.marker + "\n")
-	fmt.Fprintf(&b, "### %s\n\n", c.heading(len(blocking), len(review), len(rest)))
-	c.status(&b, len(blocking), len(review))
+	fmt.Fprintf(&b, "### %s\n\n", c.heading(sec))
+	c.status(&b, sec)
 	b.WriteString("The findings do not fit in a comment. The full report has them.\n\n")
 	c.footer(&b)
 	return b.String()
 }
 
+func (c *input) fits(body string) bool {
+	if utf8.RuneCountInString(body) > maxBody {
+		return false
+	}
+	return !c.dialect.HTML || utf8.RuneCountInString(visible(body)) <= maxVisible
+}
+
 func (c *input) delta() bool { return c.header.Scan.Mode == report.ScanModeDelta }
 
-// sections splits the open findings: the findings that fail the gate,
-// the critical and high findings to review, and the rest.
-func (c *input) sections() (blocking, review, rest []*finding.Finding) {
-	failed := c.trailer.Gate.FindingIDs
+// sections splits the open findings. The comment shows the groups that
+// fail the gate, else the groups of critical and high findings to review.
+// The rest show in a closed list.
+type sections struct {
+	shown    []render.Group
+	blocking bool
+	// count is the number of findings in shown.
+	count int
+	rest  []*finding.Finding
+}
+
+func (c *input) sections() sections {
+	g := c.trailer.Gate
+	var blocking, review, rest []*finding.Finding
 	for _, f := range c.view.Findings {
 		switch {
-		case c.trailer.Gate.Outcome == report.GateFail && slices.Contains(failed, f.ID):
+		case g.Outcome == report.GateFail && slices.Contains(g.FindingIDs, f.ID):
 			blocking = append(blocking, f)
 		case f.Severity.AtLeast(finding.SeverityHigh):
 			review = append(review, f)
@@ -125,25 +164,34 @@ func (c *input) sections() (blocking, review, rest []*finding.Finding) {
 			rest = append(rest, f)
 		}
 	}
-	return blocking, review, rest
+	if len(blocking) > 0 {
+		rest = append(review, rest...)
+		slices.SortStableFunc(rest, finding.Compare)
+		return sections{shown: render.Groups(blocking), blocking: true, count: len(blocking), rest: rest}
+	}
+	return sections{shown: render.Groups(review), count: len(review), rest: rest}
 }
 
-func (c *input) render(level int) string {
-	blocking, review, rest := c.sections()
+func (c *input) render(l level) string {
+	sec := c.sections()
 	var b strings.Builder
 	b.WriteString(c.marker + "\n")
-	fmt.Fprintf(&b, "### %s\n\n", c.heading(len(blocking), len(review), len(rest)))
+	fmt.Fprintf(&b, "### %s\n\n", c.heading(sec))
 	c.caution(&b)
+	c.next(&b, sec.shown)
 	c.warning(&b)
 	c.note(&b)
 	c.progress(&b)
-	c.status(&b, len(blocking), len(review))
-	c.section(&b, "Blocking", blocking, level >= cutBlocking)
-	c.section(&b, "Review", review, level >= cutReview)
-	c.details(&b, rest, level >= cutDetails)
-	c.snippet(&b, append(slices.Clone(blocking), review...))
+	c.status(&b, sec)
+	title := "Review"
+	if sec.blocking {
+		title = "Blocking"
+	}
+	c.section(&b, title, sec.shown, l)
+	c.details(&b, sec, l.lines)
+	c.snippet(&b, sec.shown[:min(len(sec.shown), maxFull)])
 	c.footer(&b)
-	if level < cutState {
+	if l.state {
 		if block, ok := c.stateBlock(); ok {
 			b.WriteString(block + "\n")
 		}
@@ -151,22 +199,66 @@ func (c *input) render(level int) string {
 	return b.String()
 }
 
-// heading counts the blocking findings, then the critical and high ones to
-// review. A lower finding needs no review, so it does not count here.
-func (c *input) heading(blocking, review, rest int) string {
+// heading counts the groups that block, then the groups to review. A
+// group is one cause, so a release with 14 platform packages counts once.
+func (c *input) heading(sec sections) string {
 	where := "this scan"
 	if c.delta() {
 		where = "this pull request"
 	}
+	n := len(sec.shown)
 	switch {
-	case blocking > 0:
-		return fmt.Sprintf("❌ vet: %s %s %s", humanize.Count(blocking, "finding"), verb(blocking, "blocks", "block"), where)
-	case review > 0:
-		return fmt.Sprintf("⚠️ vet: %s to review in %s", humanize.Count(review, "finding"), where)
-	case rest > 0:
+	case sec.blocking:
+		return fmt.Sprintf("❌ vet: %s %s %s", humanize.Count(n, "cause"), verb(n, "blocks", "block"), where)
+	case n > 0:
+		return fmt.Sprintf("⚠️ vet: %s to review in %s", humanize.Count(n, "cause"), where)
+	case len(sec.rest) > 0:
 		return "✅ vet: nothing to review in " + where
 	}
 	return "✅ vet: no findings in " + where
+}
+
+// next is the first thing to do: the fix of the first group, with the file,
+// the end of a wait and the command.
+func (c *input) next(b *strings.Builder, gs []render.Group) {
+	if len(gs) == 0 {
+		return
+	}
+	g := gs[0]
+	fix := c.fix(g)
+	if fix == "" {
+		return
+	}
+	line := "**Next step:** " + code(render.Subject(g.Lead())) + more(g)
+	if where := c.where(g.Lead()); where != "" {
+		line += " in " + where
+	}
+	line += ": " + fix
+	if r := g.Lead().Remediation; r.Command != "" {
+		line += " Run " + code(render.Text(r.Command)) + "."
+	}
+	b.WriteString(line + "\n\n")
+}
+
+// fix is the fix of a group, with the end of its wait, or "".
+func (c *input) fix(g render.Group) string {
+	r := g.Lead().Remediation
+	if r == nil || r.Summary == "" {
+		return ""
+	}
+	fix := md(render.Text(r.Summary), maxText)
+	if until, ok := g.WaitUntil(); ok {
+		fix += " The wait ends at " + humanize.Minute(until) + "."
+	}
+	return fix
+}
+
+// more counts the findings of a group after its lead.
+func more(g render.Group) string {
+	if g.More() == 0 {
+		return ""
+	}
+	return fmt.Sprintf(" and %d more", g.More())
 }
 
 // caution names each attack. An attack needs action before the merge.
@@ -291,14 +383,13 @@ func (c *input) baseline() ([]string, bool) {
 	return c.old.Findings, true
 }
 
-func (c *input) status(b *strings.Builder, blocking, review int) {
-	g := c.trailer.Gate
-	parts := []string{"**" + gateText(g.Outcome) + "**"}
-	if blocking > 0 {
-		parts = append(parts, fmt.Sprintf("%d blocking", blocking))
-	}
-	if review > 0 {
-		parts = append(parts, fmt.Sprintf("%d to review", review))
+func (c *input) status(b *strings.Builder, sec sections) {
+	parts := []string{"**" + gateText(c.trailer.Gate.Outcome) + "**"}
+	switch {
+	case sec.blocking:
+		parts = append(parts, fmt.Sprintf("%d blocking", sec.count))
+	case sec.count > 0:
+		parts = append(parts, fmt.Sprintf("%d to review", sec.count))
 	}
 	coverage := "Checked " + humanize.Count(c.trailer.Summary.Packages, "package")
 	if ch := c.view.Changes; c.delta() {
@@ -338,72 +429,37 @@ func gateText(o report.GateOutcome) string {
 	return "No gate"
 }
 
-// section writes a card for each finding, or one line each when short.
-// The findings of one package in one manifest share a card.
-func (c *input) section(b *strings.Builder, title string, fs []*finding.Finding, short bool) {
-	if len(fs) == 0 {
+// section writes a card for each of the first full groups, and one line
+// for each other group.
+func (c *input) section(b *strings.Builder, title string, gs []render.Group, l level) {
+	if len(gs) == 0 {
 		return
 	}
 	fmt.Fprintf(b, "#### %s\n\n", title)
-	if short {
-		c.lines(b, fs)
+	full := min(l.full, len(gs))
+	for _, g := range gs[:full] {
+		c.card(b, g)
+	}
+	rest := gs[full:]
+	if len(rest) == 0 {
 		return
 	}
-	for _, g := range groups(fs) {
-		if len(g) == 1 {
-			c.card(b, g[0], true, "")
-			continue
+	for i, g := range rest {
+		if i == l.lines {
+			fmt.Fprintf(b, "- %d more in the full report\n", len(rest)-l.lines)
+			break
 		}
-		place := c.placeOf(g[0])
-		head := code(render.Subject(g[0]))
-		if place != "" {
-			head += " · " + place
-		}
-		b.WriteString(head + "\n\n")
-		for _, f := range g {
-			c.card(b, f, false, place)
-		}
+		c.groupLine(b, g)
 	}
+	b.WriteString("\n")
 }
 
-// groups puts the findings of one package in one manifest together, in
-// the order of their first finding. A finding of another subject is a
-// group of its own.
-func groups(fs []*finding.Finding) [][]*finding.Finding {
-	var out [][]*finding.Finding
-	at := map[string]int{}
-	for _, f := range fs {
-		k, ok := render.PackageGroup(f)
-		if !ok {
-			out = append(out, []*finding.Finding{f})
-			continue
-		}
-		if i, ok := at[k]; ok {
-			out[i] = append(out[i], f)
-			continue
-		}
-		at[k] = len(out)
-		out = append(out, []*finding.Finding{f})
-	}
-	return out
-}
-
-// card writes one finding. With subject false, the card follows the
-// heading of its package and starts with the title. It shows its place
-// when the place differs from the place of the heading.
-func (c *input) card(b *strings.Builder, f *finding.Finding, subject bool, heading string) {
-	head := fmt.Sprintf("**%s** · %s", md(render.Title(f), maxField), code(kind(f)))
-	where := c.placeOf(f)
-	switch {
-	case subject:
-		head = code(render.Subject(f)) + ": " + head
-	default:
-		head += " · " + code(f.ControlID)
-		if where == heading {
-			where = ""
-		}
-	}
-	if where != "" {
+// card writes one group: its lead in full, the other findings by name, and
+// one link to the control and one to report a wrong result.
+func (c *input) card(b *strings.Builder, g render.Group) {
+	f := g.Lead()
+	head := fmt.Sprintf("%s%s: **%s** · %s", code(render.Subject(f)), more(g), md(render.Title(f), maxField), code(kind(f)))
+	if where := c.placeOf(f); where != "" {
 		head += " · " + where
 	}
 	b.WriteString(head + "\n\n")
@@ -411,8 +467,8 @@ func (c *input) card(b *strings.Builder, f *finding.Finding, subject bool, headi
 		b.WriteString(md(render.Text(f.Description), maxText) + "\n\n")
 	}
 	c.gate(b, f)
-	if r := f.Remediation; r != nil && r.Summary != "" {
-		fmt.Fprintf(b, "**Fix:** %s\n\n", md(render.Text(r.Summary), maxText))
+	if fix := c.fix(g); fix != "" {
+		fmt.Fprintf(b, "**Fix:** %s\n\n", fix)
 	}
 	if r := f.Remediation; r != nil && r.Command != "" {
 		fmt.Fprintf(b, "```sh\n%s\n```\n\n", strings.ReplaceAll(render.Truncate(render.Text(r.Command), maxText), "```", "'''"))
@@ -420,7 +476,34 @@ func (c *input) card(b *strings.Builder, f *finding.Finding, subject bool, headi
 	if len(f.Evidence) > 0 {
 		fmt.Fprintf(b, "**Evidence:** %s\n\n", md(render.Text(f.Evidence[0].Summary), maxText))
 	}
+	if g.More() > 0 {
+		c.open(b, fmt.Sprintf("%d more with this cause", g.More()))
+		title := render.Title(f)
+		for i, m := range g.Findings[1:] {
+			if i == maxMembers {
+				fmt.Fprintf(b, "- %d more in the full report\n", g.More()-maxMembers)
+				break
+			}
+			line := "- " + code(render.Subject(m))
+			if t := render.Title(m); t != title {
+				line += ": " + md(t, maxField)
+			}
+			b.WriteString(line + "\n")
+		}
+		b.WriteString("\n")
+		c.close(b)
+	}
 	fmt.Fprintf(b, "[About this control](%s) · [Wrong result?](%s) · %s\n\n", c.docURL(f.ControlID), c.formURL(f), code(f.ID))
+}
+
+// groupLine writes one group on one line.
+func (c *input) groupLine(b *strings.Builder, g render.Group) {
+	f := g.Lead()
+	line := fmt.Sprintf("- %s %s%s: %s · %s", code(kind(f)), code(render.Subject(f)), more(g), md(render.Title(f), maxField), code(render.Where(f)))
+	if gr := f.Gate; gr != nil {
+		line += " · " + strings.ToLower(gr.Label()) + " " + md(render.Text(gr.Cause()), maxField)
+	}
+	fmt.Fprintf(b, "%s · %s\n", line, code(f.ID))
 }
 
 // placeOf is the place of a finding with its change in pull request mode.
@@ -466,46 +549,58 @@ func safeURL(s string) string {
 	return strings.NewReplacer("(", "%28", ")", "%29", " ", "%20", `\`, "%5C", "<", "%3C", ">", "%3E", `"`, "%22").Replace(u.String())
 }
 
-// lines writes one line for each finding, up to maxLines.
-func (c *input) lines(b *strings.Builder, fs []*finding.Finding) {
-	for i, f := range fs {
-		if i == maxLines {
-			fmt.Fprintf(b, "- %d more in the full report\n", len(fs)-maxLines)
-			break
-		}
-		line := fmt.Sprintf("- %s %s: %s · %s", code(kind(f)), code(render.Subject(f)), md(render.Title(f), maxField), code(render.Where(f)))
-		if g := f.Gate; g != nil {
-			line += " · " + strings.ToLower(g.Label()) + " " + md(render.Text(g.Cause()), maxField)
-		}
-		fmt.Fprintf(b, "%s · %s\n", line, code(f.ID))
-	}
-	b.WriteString("\n")
-}
-
-// details holds the medium and lower findings, closed.
-func (c *input) details(b *strings.Builder, fs []*finding.Finding, short bool) {
+// details lists the findings that the comment does not show as a group,
+// closed, under one heading for each control.
+func (c *input) details(b *strings.Builder, sec sections, lines int) {
+	fs := sec.rest
 	if len(fs) == 0 {
 		return
 	}
-	summary := fmt.Sprintf("%d more %s (medium and lower)", len(fs), verb(len(fs), "finding", "findings"))
-	if short {
-		fmt.Fprintf(b, "%s are in the full report.\n\n", summary)
+	var kinds []string
+	count := map[string]int{}
+	var controls []string
+	byControl := map[string][]*finding.Finding{}
+	for _, f := range fs {
+		k := kind(f)
+		if count[k] == 0 {
+			kinds = append(kinds, k)
+		}
+		count[k]++
+		if _, ok := byControl[f.ControlID]; !ok {
+			controls = append(controls, f.ControlID)
+		}
+		byControl[f.ControlID] = append(byControl[f.ControlID], f)
+	}
+	var tally []string
+	for _, k := range kinds {
+		tally = append(tally, fmt.Sprintf("%d %s", count[k], k))
+	}
+	summary := fmt.Sprintf("%s: %s", humanize.Count(len(fs), "more finding"), strings.Join(tally, ", "))
+	if sec.blocking {
+		summary = fmt.Sprintf("%s %s: %s", humanize.Count(len(fs), "finding"), verb(len(fs), "does not block", "do not block"), strings.Join(tally, ", "))
+	}
+	if lines == 0 {
+		fmt.Fprintf(b, "%s. The full report has them.\n\n", summary)
 		return
 	}
 	c.open(b, summary)
-	c.lines(b, fs)
-	c.close(b)
-}
-
-// snippet shows how a maintainer accepts a finding. vet reads the policy
-// of the base branch, so the suppression must merge first.
-func (c *input) snippet(b *strings.Builder, fs []*finding.Finding) {
-	if len(fs) == 0 {
-		return
+	n := 0
+	for _, id := range controls {
+		if n == lines {
+			fmt.Fprintf(b, "- %d more in the full report\n\n", len(fs)-lines)
+			break
+		}
+		group := byControl[id]
+		fmt.Fprintf(b, "**%s** · %s\n\n", md(render.ControlTitle(id), maxField), code(kind(group[0])))
+		for _, f := range group {
+			if n == lines {
+				break
+			}
+			fmt.Fprintf(b, "- %s: %s\n", code(render.Subject(f)), md(render.Title(f), maxField))
+			n++
+		}
+		b.WriteString("\n")
 	}
-	c.open(b, "Maintainers: accept a finding")
-	b.WriteString("Add a suppression to the policy file. Merge it to the base branch, then run the job again.\n\n")
-	fmt.Fprintf(b, "```yaml\nsuppressions:\n  - id: %s\n    reason: Why this finding is acceptable\n```\n\n", fs[0].ID)
 	c.close(b)
 }
 

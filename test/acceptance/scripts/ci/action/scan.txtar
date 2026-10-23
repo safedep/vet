@@ -46,7 +46,7 @@ grep 'safedep-test-pkg' $WORK/summary.md
 exec bash -c 'jq -r .trailer.gate.fail_on "$(sed -n "s/^report=//p" "$GITHUB_OUTPUT")"'
 stdout '^attacks$'
 stub comments
-stdout 'vet: 1 finding blocks this pull request'
+stdout 'vet: 1 cause blocks this pull request'
 
 -- empty.txt --
 -- repo/package-lock.json --

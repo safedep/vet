@@ -479,6 +479,15 @@ marker at the start finds it, and a key keeps apart the comments of two vet step
 `githubci` with the token of the run, or `ghcp` through the comment proxy.
 _Avoid_: PR bot, sticky comment, review
 
+**Finding group**:
+The findings of one cause: one control, one gate record and one fix. The pull request comment shows
+each group once, as a card or a line, and counts groups as "causes". The **lead** names the group: a
+direct dependency, else the shortest name, else the first PURL. An attack finding, and a finding with no
+fix, is a group of its own. `render.Group`, from `render.Groups`, in
+`internal/plugins/internal/render`. The **wait end** (`Remediation.WaitUntil`) of a group is the
+latest end of a wait of its findings, as the end of a cooldown.
+_Avoid_: bucket, cluster, issue
+
 **State block**:
 The hidden block at the end of the pull request comment. It holds the head commit and the finding ids
 of the last run, so the next run can say what a push resolved. It never changes the gate. A block
