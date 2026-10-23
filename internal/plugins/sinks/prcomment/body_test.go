@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -93,6 +94,7 @@ func TestBodyGolden(t *testing.T) {
 			s.TrailerValue.Gate.PolicyChanged = true
 			return newInput(t, s)
 		},
+		"upgrade": func(t *testing.T) *input { return newInput(t, plugintest.UpgradeReport()) },
 		"plain-dialect": func(t *testing.T) *input {
 			c := newInput(t, pullRequest(report.GateFail))
 			c.dialect = dialect{}
@@ -374,4 +376,17 @@ func TestGroups(t *testing.T) {
 	file := &finding.Finding{ID: "5", Subject: finding.Subject{Kind: finding.SubjectFile, File: &finding.FileSubject{Path: "ci.yml"}}}
 	got := groups([]*finding.Finding{a1, b, file, a2, other})
 	assert.Equal(t, [][]*finding.Finding{{a1, a2}, {b}, {file}, {other}}, got, "one package in two manifests makes two groups")
+}
+
+var hidden = regexp.MustCompile(`(?s)<details>.*?</details>|<!--.*?-->`)
+
+// visible is the text that a reader sees before they open a details block.
+func visible(body string) string { return hidden.ReplaceAllString(body, "") }
+
+// The upgrade report is a real pull request that got a 21,000 character
+// comment for one cause. The limits record the size today.
+func TestUpgradeCommentSize(t *testing.T) {
+	body := newInput(t, plugintest.UpgradeReport()).body()
+	assert.LessOrEqual(t, utf8.RuneCountInString(body), 20028)
+	assert.LessOrEqual(t, utf8.RuneCountInString(visible(body)), 17351)
 }
