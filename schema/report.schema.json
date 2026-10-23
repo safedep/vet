@@ -118,6 +118,21 @@
         "occurrences"
       ]
     },
+    "ControlName": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "id",
+        "title"
+      ]
+    },
     "Declaration": {
       "properties": {
         "path": {
@@ -499,6 +514,12 @@
         },
         "scan": {
           "$ref": "#/$defs/ScanInfo"
+        },
+        "controls": {
+          "items": {
+            "$ref": "#/$defs/ControlName"
+          },
+          "type": "array"
         }
       },
       "type": "object",

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"slices"
 	"strings"
-	"time"
 	"unicode/utf8"
 
 	"github.com/safedep/vet/v2/finding"
@@ -27,10 +26,7 @@ type suppression struct {
 // and a finding of another subject, get their finding id.
 func suppressions(g render.Group, all []*finding.Finding) []suppression {
 	lead := g.Lead()
-	expires := ""
-	if until, ok := g.WaitUntil(); ok {
-		expires = until.UTC().Format(time.RFC3339)
-	}
+	expires := g.WaitUntilText()
 	ids := func(fs []*finding.Finding) []suppression {
 		out := make([]suppression, 0, len(fs))
 		for _, f := range fs {

@@ -51,7 +51,7 @@ func (g Group) Fix() string {
 	}
 	fix := Text(r.Summary)
 	if until, ok := g.WaitUntil(); ok {
-		fix += " The wait ends at " + humanize.Minute(until) + "."
+		fix += " Or wait until " + humanize.MinuteAfter(until) + ", then run the job again."
 	}
 	return fix
 }

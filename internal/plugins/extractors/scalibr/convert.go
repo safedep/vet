@@ -84,7 +84,11 @@ func ToManifest(in Converted) (*model.Manifest, []error) {
 		if prev, dup := seen[p.ID.Key()]; dup {
 			prev.Direct = prev.Direct || p.Direct
 			prev.Dev = prev.Dev && p.Dev
-			prev.Declared = cmp.Or(prev.Declared, p.Declared)
+			// A package that a project document also installs keeps the
+			// lockfile as its place to edit.
+			if p.Declared == nil {
+				prev.Declared = nil
+			}
 			continue
 		}
 		seen[p.ID.Key()] = p

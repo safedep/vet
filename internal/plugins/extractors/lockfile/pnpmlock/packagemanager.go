@@ -5,9 +5,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"io/fs"
+	"maps"
 	"path"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/google/osv-scalibr/extractor"
@@ -24,11 +27,16 @@ const packageManagerField = "packageManager"
 
 var packageManagerLine = regexp.MustCompile(`^\s*"packageManager"\s*:`)
 
+// maxPackageJSON bounds the read of package.json. A package.json of a
+// project is a few kilobytes.
+const maxPackageJSON = 1 << 20
+
 // declarePackageManager marks each package that the lockfile document
 // installs for the package manager with the "packageManager" field of the
 // package.json next to the lockfile. A fix of such a package edits that
-// field, not the lockfile. A document with no packageManagerDependencies,
-// or a project with no such field, marks nothing.
+// field, not the lockfile. Only a document that installs the package
+// manager and no project dependency marks packages, so a crafted lockfile
+// cannot move the fix of a project package to package.json.
 func declarePackageManager(fsys fs.FS, lockPath string, lf pnpmLockfile, pkgs []*extractor.Package, keys []string) error {
 	roots := map[string]string{}
 	for name, dep := range lf.Importers["."].PackageManagerDependencies {
@@ -36,29 +44,19 @@ func declarePackageManager(fsys fs.FS, lockPath string, lf pnpmLockfile, pkgs []
 			roots[key] = name
 		}
 	}
-	if len(roots) == 0 || fsys == nil {
+	if len(roots) == 0 || fsys == nil || installsProject(lf) {
 		return nil
 	}
 	manifest := path.Join(path.Dir(lockPath), "package.json")
-	data, err := fs.ReadFile(fsys, manifest)
-	switch {
-	case errors.Is(err, fs.ErrNotExist):
-		return nil
-	case err != nil:
+	value, line, err := readPackageManager(fsys, manifest)
+	if err != nil || value == "" {
 		return err
 	}
-	// The packagejson extractor reports a package.json that does not parse.
-	var pj map[string]any
-	if err := json.Unmarshal(data, &pj); err != nil {
-		log.Warnf("pnpmlock: %s does not parse, so the pnpm packages keep the lockfile as their fix site: %v", manifest, err)
-		return nil
-	}
-	value, _ := pj[packageManagerField].(string)
 	for key, name := range roots {
 		if !strings.HasPrefix(value, name+"@") {
 			continue
 		}
-		decl := &model.Declaration{Path: manifest, Line: fieldLine(data), Field: packageManagerField, Package: name}
+		decl := &model.Declaration{Path: manifest, Line: line, Field: packageManagerField, Package: name}
 		installed := installedBy(lf, key)
 		for i, p := range pkgs {
 			if m, ok := p.Metadata.(*lockmeta.Metadata); ok && installed[keys[i]] {
@@ -67,6 +65,50 @@ func declarePackageManager(fsys fs.FS, lockPath string, lf pnpmLockfile, pkgs []
 		}
 	}
 	return nil
+}
+
+// installsProject reports a lockfile document that installs a dependency
+// of a project.
+func installsProject(lf pnpmLockfile) bool {
+	for _, imp := range append(slices.Collect(maps.Values(lf.Importers)), lf.Root) {
+		if len(imp.Dependencies)+len(imp.DevDependencies)+len(imp.OptionalDependencies) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// readPackageManager returns the packageManager field of package.json and
+// its line, or "" when the file or the field does not exist. It reads
+// only a regular file, not a link, and at most maxPackageJSON bytes, as the
+// walk of the scan reads files.
+func readPackageManager(fsys fs.FS, name string) (value string, line int, err error) {
+	info, err := fs.Lstat(fsys, name)
+	switch {
+	case errors.Is(err, fs.ErrNotExist):
+		return "", 0, nil
+	case err != nil:
+		return "", 0, err
+	case !info.Mode().IsRegular() || info.Size() > maxPackageJSON:
+		return "", 0, nil
+	}
+	f, err := fsys.Open(name)
+	if err != nil {
+		return "", 0, err
+	}
+	defer func() { err = errors.Join(err, f.Close()) }()
+	data, err := io.ReadAll(io.LimitReader(f, maxPackageJSON))
+	if err != nil {
+		return "", 0, err
+	}
+	// The packagejson extractor reports a package.json that does not parse.
+	var pj map[string]any
+	if err := json.Unmarshal(data, &pj); err != nil {
+		log.Warnf("pnpmlock: %s does not parse, so a fix of pnpm names the lockfile: %v", name, err)
+		return "", 0, nil
+	}
+	value, _ = pj[packageManagerField].(string)
+	return value, fieldLine(data), nil
 }
 
 // fieldLine is the line of the packageManager field, or 0.

@@ -206,6 +206,12 @@
   tier: P1
   guarantee: "plugins.dependency-cooldown.options.days changes the window."
   labels: [controls]
+- id: controls/cooldown/package-manager
+  title: "cooldown: the fix of pnpm names packageManager"
+  category: controls
+  tier: P1
+  guarantee: "pnpm and the packages that pnpm-lock.yaml installs for pnpm itself point their cooldown finding and its fix to the packageManager field of package.json, not to the lockfile."
+  labels: [controls, pr-comment]
 - id: controls/cooldown/skip-and-source
   title: "cooldown: skip, source and glob suppression"
   category: controls

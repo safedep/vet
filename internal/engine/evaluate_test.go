@@ -11,6 +11,7 @@ import (
 	"github.com/safedep/vet/v2/internal/technique"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/report"
 )
 
 func TestAnnotateUsage(t *testing.T) {
@@ -75,4 +76,11 @@ func TestValidSetsTheAttackFromTheControlInfo(t *testing.T) {
 
 	got = r.valid("q", "m", []finding.Finding{payload}, nil)
 	assert.Nil(t, got[0].Attack, "a plugin cannot use the id of an attack control of another plugin")
+}
+
+func TestControlNames(t *testing.T) {
+	p := describedControl{infos: []plugin.ControlInfo{{ID: "b", Title: "B"}, {ID: "a", Title: "A"}}}
+	dup := describedControl{infos: []plugin.ControlInfo{{ID: "a", Title: "A"}}}
+	got := controlNames([]Control{{ID: "p", Plugin: p}, {ID: "q", Plugin: dup}, {ID: "r", Plugin: nil}})
+	assert.Equal(t, []report.ControlName{{ID: "a", Title: "A"}, {ID: "b", Title: "B"}}, got)
 }

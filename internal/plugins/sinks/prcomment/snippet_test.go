@@ -63,7 +63,7 @@ func TestSnippetGlobFallsBackToNames(t *testing.T) {
 	other := finding.ForPackage(finding.Meta{
 		ControlID: "dependency-cooldown", Family: finding.FamilyCooldown, Severity: finding.SeverityHigh, Title: "Published 1 day ago",
 	}, m.Path, p, finding.Key{})
-	other.Remediation = &finding.Remediation{Summary: "Keep the version that you used before, or wait until 2026-10-23."}
+	other.Remediation = &finding.Remediation{Summary: "Pick a version older than the cooldown."}
 	s.FindingList = append(s.FindingList, &other)
 
 	got := suppressed(t, s, time.Date(2026, 10, 22, 0, 0, 0, 0, time.UTC))
@@ -161,7 +161,9 @@ func TestSnippetIsBounded(t *testing.T) {
 	}
 	body := newInput(t, pkgReport(names...)).body()
 	assert.Contains(t, body, "**Next step:**", "the comment still fits with its next step")
-	assert.LessOrEqual(t, strings.Count(body, "control: dependency-cooldown"), maxEntries)
+	m := snippetYAML.FindStringSubmatch(body)
+	require.Len(t, m, 2)
+	assert.LessOrEqual(t, strings.Count(m[1], "control: dependency-cooldown"), maxEntries)
 }
 
 // A gate of policy rules fails on one finding. An attack that the gate

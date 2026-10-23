@@ -4,13 +4,9 @@ import (
 	"cmp"
 	"slices"
 	"strings"
-	"sync"
 	"time"
 
-	"github.com/safedep/dry/log"
-
 	"github.com/safedep/vet/v2/finding"
-	"github.com/safedep/vet/v2/internal/plugins/controls"
 )
 
 // Group is the findings of one cause: one control, one gate record and one
@@ -45,8 +41,17 @@ func (g Group) WaitUntil() (time.Time, bool) {
 	return until, !until.IsZero()
 }
 
+// WaitUntilText is the latest end of a wait in the group in RFC 3339, for a
+// policy expiry or an agent, or "".
+func (g Group) WaitUntilText() string {
+	if until, ok := g.WaitUntil(); ok {
+		return until.UTC().Format(time.RFC3339)
+	}
+	return ""
+}
+
 // Groups puts the findings of one cause together. The key is the control,
-// the gate record and the fix. An attack finding, or a finding with no fix,
+// the gate record, the fix and the file to edit. An attack finding, or a finding with no fix,
 // is a group of its own, so that a fold never hides an attack. Groups come
 // in this order: attacks, then the highest severity, then the most
 // findings, then the order of their first finding.
@@ -96,7 +101,10 @@ func groupKey(f *finding.Finding) (string, bool) {
 	if g := f.Gate; g != nil {
 		gate = strings.Join([]string{string(g.Action), g.FailOn, strings.Join(g.Rules, ","), strings.Join(g.Broken, ",")}, "\x01")
 	}
-	return strings.Join([]string{f.ControlID, gate, r.Summary, r.Command}, "\x00"), true
+	// The file to edit is in the key, so that one cause has one place to
+	// edit, and one annotation marks it.
+	path, _ := Place(f)
+	return strings.Join([]string{f.ControlID, gate, r.Summary, r.Command, path}, "\x00"), true
 }
 
 // leadFirst puts the finding that names a group first: a direct dependency,
@@ -122,25 +130,4 @@ func leadFirst(a, b *finding.Finding) int {
 		return c
 	}
 	return cmp.Compare(a.ID, b.ID)
-}
-
-var controlTitles = sync.OnceValue(func() map[string]string {
-	list, err := controls.Catalog()
-	if err != nil {
-		log.Warnf("read the control catalog: %v", err)
-	}
-	out := make(map[string]string, len(list))
-	for _, c := range list {
-		out[c.ID] = c.Title
-	}
-	return out
-})
-
-// ControlTitle is the title of a built-in control, or the control id for
-// a control that the catalog does not know.
-func ControlTitle(id string) string {
-	if t, ok := controlTitles()[id]; ok {
-		return t
-	}
-	return id
 }

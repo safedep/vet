@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -121,6 +122,21 @@ func (r *run) attack(pluginID, controlID string) *finding.Attack {
 		return nil
 	}
 	return &finding.Attack{Technique: a.Technique, MITRE: slices.Clone(a.MITRE)}
+}
+
+// controlNames lists the title of each control id that the control
+// plugins describe, in id order, for the report header.
+func controlNames(cs []Control) []report.ControlName {
+	var out []report.ControlName
+	for _, c := range cs {
+		if d, ok := c.Plugin.(plugin.Describer); ok {
+			for _, info := range d.Controls() {
+				out = append(out, report.ControlName{ID: info.ID, Title: info.Title})
+			}
+		}
+	}
+	slices.SortFunc(out, func(a, b report.ControlName) int { return cmp.Compare(a.ID, b.ID) })
+	return slices.CompactFunc(out, func(a, b report.ControlName) bool { return a.ID == b.ID })
 }
 
 // attacksOf reads the attack controls from the info of each control

@@ -665,11 +665,12 @@ Some words name more than one thing in the code. Qualify them.
 | --- | --- | --- |
 | base | the base ref of pull request mode; the older scan of `vet report diff` | base ref; base scan |
 | cache | the enrichment cache; the base extraction cache; the `cache` config section | enrichment cache; base cache |
+| cause | a finding group, as the pull request comment counts it; the reach cause of a vulnerability finding | cause in the comment and its docs; finding group in code; reach cause |
 | check | a `vet doctor` check; `plugin.Checker`; an OpenSSF Scorecard check | doctor check; Scorecard check. Never for a control |
 | cooldown | the dependency cooldown of the `dependency-cooldown` control; the release cooldown of the action | dependency cooldown; release cooldown |
 | endpoint | the machine; a SafeDep service URL | endpoint; service URL |
 | key | package key; finding key; target key | the full term |
-| kind | scan, artifact, manifest, record, subject, inventory, capability and plugin kinds | the full term |
+| kind | scan, artifact, manifest, record, subject, inventory, capability and plugin kinds; the label of a finding in a markdown report (`render.Kind`) | the full term |
 | mode | scan mode (`full`, `delta`); messaging mode (`--mode`) | scan mode or pull request mode; messaging mode |
 | report | the report stream; `plugin.Report`; a report format; the `cloud` report sink | the full term |
 | root | the roots of a dependency graph; `Artifact.Root`; an application root | graph root; target root; application root |

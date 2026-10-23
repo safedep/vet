@@ -30,6 +30,27 @@ type Header struct {
 	SchemaVersion string   `json:"schema_version"`
 	Tool          Tool     `json:"tool"`
 	Scan          ScanInfo `json:"scan"`
+	// Controls names each control id of the scan, so a format can head the
+	// findings of a control with its title. A report of an older vet has
+	// none.
+	Controls []ControlName `json:"controls,omitempty"`
+}
+
+// ControlName is the title of one control id.
+type ControlName struct {
+	ID    string `json:"id"`
+	Title string `json:"title"`
+}
+
+// ControlTitle is the title of a control id, or the id when the header
+// does not name it.
+func (h *Header) ControlTitle(id string) string {
+	for _, c := range h.Controls {
+		if c.ID == id {
+			return c.Title
+		}
+	}
+	return id
 }
 
 // Tool names the program that wrote the report.

@@ -71,7 +71,7 @@ func TestRemediationNamesThePreviousVersion(t *testing.T) {
 	p.Change, p.PreviousVersion = model.ChangeUpgraded, "0.9.0"
 	fs := plugintest.TestControl(t, c, &model.Manifest{ID: "m1", Path: "package-lock.json", Packages: []*model.Package{p}}, nil)
 	require.Len(t, fs, 1)
-	assert.Equal(t, "Keep version 0.9.0, or wait until 2026-10-04.", fs[0].Remediation.Summary)
+	assert.Equal(t, "Keep version 0.9.0.", fs[0].Remediation.Summary)
 	assert.Equal(t, now.Add(-time.Hour).AddDate(0, 0, DefaultDays), *fs[0].Remediation.WaitUntil)
 	assert.Equal(t, model.ChangeUpgraded, fs[0].Change)
 }
@@ -164,7 +164,7 @@ func TestFixOfAPackageManagerRelease(t *testing.T) {
 	fs := plugintest.TestControl(t, c, &model.Manifest{ID: "m1", Path: "pnpm-lock.yaml", Packages: []*model.Package{pnpm, exe}}, nil)
 	require.Len(t, fs, 2)
 	for _, f := range fs {
-		assert.Equal(t, `Keep "packageManager" at pnpm@0.9.0 in package.json, or wait until 2026-10-04.`, f.Remediation.Summary)
+		assert.Equal(t, `Keep "packageManager" at pnpm@0.9.0 in package.json.`, f.Remediation.Summary)
 		assert.Equal(t, &finding.Locus{Path: "package.json", StartLine: 119}, f.Locus)
 	}
 }

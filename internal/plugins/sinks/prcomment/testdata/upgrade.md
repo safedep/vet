@@ -1,7 +1,7 @@
 <!-- vet:pr-comment v1 -->
 ### ❌ vet: 1 cause blocks this pull request
 
-**Next step:** `npm/pnpm@12.15.0` and 14 more in [`package.json:119`](https://github.com/acme/app/blob/2222222222222222222222222222222222222222/package.json#L119): Keep "packageManager" at pnpm@12.8.2 in package.json, or wait until 2026-10-23. The wait ends at 2026-10-23 11:17 UTC.
+**Next step:** `npm/pnpm@12.15.0` and 14 more in [`package.json:119`](https://github.com/acme/app/blob/2222222222222222222222222222222222222222/package.json#L119): Keep "packageManager" at pnpm@12.8.2 in package.json. Or wait until 2026-10-23 11:17 UTC, then run the job again.
 
 **Gate failed** · 15 blocking · Checked 23 added or upgraded packages at `2222222`.
 
@@ -9,13 +9,13 @@
 
 `npm/pnpm@12.15.0` and 14 more: **Published 1 day ago** · `cooldown` · upgraded in [`package.json:119`](https://github.com/acme/app/blob/2222222222222222222222222222222222222222/package.json#L119)
 
-The registry published this version on 2026-10-21 11:15:00 UTC. The cooldown is 2 days (flag --cooldown-days). The version can merge after 2026-10-23 11:15:00 UTC.
+The registry published this version on 2026-10-21 11:15 UTC. The cooldown is 2 days (flag --cooldown-days). The version can merge after 2026-10-23 11:15 UTC.
 
 **Blocked by:** policy rule package-cooldown
 
 **Policy help:** Wait until the version is older than the cooldown, or pin an older version.
 
-**Fix:** Keep "packageManager" at pnpm@12.8.2 in package.json, or wait until 2026-10-23. The wait ends at 2026-10-23 11:17 UTC.
+**Fix:** Keep "packageManager" at pnpm@12.8.2 in package.json. Or wait until 2026-10-23 11:17 UTC, then run the job again.
 
 **Evidence:** published at 2026-10-21T11:15:00Z
 
@@ -99,7 +99,7 @@ causes:
     rules: [package-cooldown]
     subject: pkg:npm/pnpm@12.15.0
     place: package.json:119
-    fix: Keep "packageManager" at pnpm@12.8.2 in package.json, or wait until 2026-10-23.
+    fix: Keep "packageManager" at pnpm@12.8.2 in package.json.
     wait_until: "2026-10-23T11:16:31Z"
     findings: [f-492e6ab63797f149, f-b0579d0afabfedb4, f-46785b90e9ebad16, f-a69b600775bf23f9, f-c2e9551e506c31e0, f-f19b1ce17d468eb4, f-9d02a3f59502f5a9, f-6a8763a80c9ecd27, f-32ac2a286ed795cb, f-6a841e98056181b4, f-836594314dfde5fd, f-0904cb2689c6085e, f-92fe51002f0610e6, f-8aa7abcb83588720, f-23bd63dd8af8ed23]
 other: [f-4c153369825a13c7, f-5040d4c508043032, f-6af0f2aca8e112d7, f-822a48b188a3640a, f-8c4ab1869e91f60f, f-a49e47daf6246e48, f-4b90087f9be39568, f-2680d5d001a6098f, f-10063743abfd4c01]

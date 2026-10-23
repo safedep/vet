@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -199,10 +200,32 @@ func TestBodyCutsToSize(t *testing.T) {
 	s.TrailerValue.Gate.FindingIDs = append(s.TrailerValue.Gate.FindingIDs, failed...)
 
 	body := newInput(t, s).body()
-	assert.LessOrEqual(t, utf8.RuneCountInString(body), maxBody)
+	assert.LessOrEqual(t, utf8.RuneCountInString(body), maxComment)
+	human := machineBlocks.ReplaceAllString(body, "")
+	assert.LessOrEqual(t, utf8.RuneCountInString(human), maxBody, "the state block and the agent block count only against the GitHub limit")
 	assert.Contains(t, body, "more in the full report")
-	assert.NotContains(t, body, stateOpen, "the state goes before the cards")
+	assert.Contains(t, body, stateOpen, "the next run keeps its baseline")
 	assert.True(t, strings.HasPrefix(body, markerOf("")), "the marker stays")
+}
+
+var machineBlocks = regexp.MustCompile(`(?ms)^<details><summary>For AI agents</summary>.*?^</details>\n\n|^<!-- vet:state .*?-->\n`)
+
+// A scan with hundreds of findings keeps its lines and its state block, as
+// the review of a real scan of 289 findings showed.
+func TestLargeScanKeepsItsLines(t *testing.T) {
+	s := pullRequest(report.GatePass)
+	pad := s.ManifestList[0].Packages[1]
+	for i := range 300 {
+		f := finding.ForPackage(finding.Meta{
+			ControlID: "scorecard-low", Family: finding.FamilyHygiene, Severity: finding.SeverityInfo,
+			Title: fmt.Sprintf("score %d", i),
+		}, "package-lock.json", pad, finding.Key{Discriminator: fmt.Sprintf("s-%d", i)})
+		s.FindingList = append(s.FindingList, &f)
+	}
+	body := newInput(t, s).body()
+	assert.Contains(t, body, stateOpen)
+	assert.Contains(t, body, "**Low OpenSSF Scorecard**")
+	assert.Contains(t, body, "For AI agents")
 }
 
 func TestUntrustedTextIsBounded(t *testing.T) {
@@ -401,7 +424,7 @@ func TestUpgradeComment(t *testing.T) {
 	assert.Equal(t, "### ❌ vet: 1 cause blocks this pull request", lines[1])
 	assert.True(t, strings.HasPrefix(lines[3], "**Next step:** `npm/pnpm@12.15.0` and 14 more in [`package.json:119`]"), lines[3])
 	assert.Contains(t, lines[3], `Keep "packageManager" at pnpm@12.8.2 in package.json`)
-	assert.Contains(t, lines[3], "The wait ends at 2026-10-23 11:17 UTC.", "the group waits for its last package")
+	assert.Contains(t, lines[3], "Or wait until 2026-10-23 11:17 UTC, then run the job again.", "the group waits for its last package")
 	assert.Equal(t, 1, strings.Count(body, "[About this control]"), "one card")
 	assert.NotContains(t, lines[5], ".github/vet/policy.yml", "the status line has no policy path")
 }

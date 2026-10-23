@@ -25,6 +25,12 @@ const (
 	// no details block shows each line, so it has the body budget only.
 	maxBody    = 12000
 	maxVisible = 2500
+	// maxComment is the size limit of a GitHub comment. The state block and
+	// the agent block are for machines, so they count only against it.
+	maxComment = 65536
+	// maxURL bounds a file link. A longer link shows the path with no link,
+	// so that one long path cannot push the comment out of its budget.
+	maxURL = 500
 	// maxFull bounds the groups that show as a card.
 	maxFull = 5
 	// maxEntries bounds the snippet entries of one group.
@@ -59,7 +65,9 @@ var levels = []level{
 	{full: 1, lines: 30, snippet: true, state: true},
 	{full: 0, lines: 30, snippet: true, state: true},
 	{full: 0, lines: 10, snippet: true, state: true},
-	{full: 0, state: true},
+	{full: 0, lines: 10, state: true},
+	{full: 0, lines: 10, snippet: true},
+	{full: 0, lines: 10},
 	{},
 }
 
@@ -121,25 +129,29 @@ type input struct {
 }
 
 // body renders the comment at the first level that fits. When no level
-// fits, it renders the verdict, the status and the footer only.
+// fits, it renders the verdict, the attacks, the status and the footer.
 func (c *input) body() string {
+	sec := c.sections()
 	for _, l := range levels {
-		if b := c.render(l); c.fits(b) {
+		if b, machine := c.render(l, sec); c.fits(b, machine) {
 			return b
 		}
 	}
-	sec := c.sections()
 	var b strings.Builder
 	b.WriteString(c.marker + "\n")
 	fmt.Fprintf(&b, "### %s\n\n", c.heading(sec))
+	c.caution(&b)
 	c.status(&b, sec)
 	b.WriteString("The findings do not fit in a comment. The full report has them.\n\n")
 	c.footer(&b)
 	return b.String()
 }
 
-func (c *input) fits(body string) bool {
-	if utf8.RuneCountInString(body) > maxBody {
+// fits reports whether a body fits in the budget. machine is the size of
+// the state block and the agent block of the body.
+func (c *input) fits(body string, machine int) bool {
+	n := utf8.RuneCountInString(body)
+	if n > maxComment || n-machine > maxBody {
 		return false
 	}
 	return !c.dialect.HTML || utf8.RuneCountInString(visible(body)) <= maxVisible
@@ -187,8 +199,9 @@ func (c *input) sections() sections {
 	return sections{shown: render.Groups(review), count: len(review), rest: rest}
 }
 
-func (c *input) render(l level) string {
-	sec := c.sections()
+// render renders the comment at one level. It returns the body and the
+// size of its state block and agent block.
+func (c *input) render(l level, sec sections) (string, int) {
 	var b strings.Builder
 	b.WriteString(c.marker + "\n")
 	fmt.Fprintf(&b, "### %s\n\n", c.heading(sec))
@@ -208,16 +221,20 @@ func (c *input) render(l level) string {
 	if l.snippet {
 		c.snippet(&b, slices.Concat(sec.shown, sec.attacks)[:min(len(sec.shown)+len(sec.attacks), maxFull)])
 	}
+	machine := 0
 	if l.state {
+		before := utf8.RuneCountInString(b.String())
 		c.agent(&b, sec)
+		machine = utf8.RuneCountInString(b.String()) - before
 	}
 	c.footer(&b)
 	if l.state {
 		if block, ok := c.stateBlock(); ok {
 			b.WriteString(block + "\n")
+			machine += utf8.RuneCountInString(block) + 1
 		}
 	}
-	return b.String()
+	return b.String(), machine
 }
 
 // heading counts the groups that block, then the groups to review. A
@@ -242,14 +259,12 @@ func (c *input) heading(sec sections) string {
 // next is the first thing to do: the fix of the first group, with the file,
 // the end of a wait and the command.
 func (c *input) next(b *strings.Builder, gs []render.Group) {
-	if len(gs) == 0 {
+	i := slices.IndexFunc(gs, func(g render.Group) bool { return g.Fix() != "" })
+	if i < 0 {
 		return
 	}
-	g := gs[0]
+	g := gs[i]
 	fix := md(g.Fix(), maxText)
-	if fix == "" {
-		return
-	}
 	line := "**Next step:** " + code(render.Subject(g.Lead())) + g.More()
 	if where := c.where(g.Lead()); where != "" {
 		line += " in " + where
@@ -444,7 +459,11 @@ func (c *input) section(b *strings.Builder, title string, gs []render.Group, l l
 		c.card(b, g)
 	}
 	rest := gs[full:]
-	if len(rest) == 0 {
+	switch {
+	case len(rest) == 0:
+		return
+	case l.lines == 0:
+		fmt.Fprintf(b, "%s %s in the full report.\n\n", humanize.Count(len(rest), "more cause"), verb(len(rest), "is", "are"))
 		return
 	}
 	for i, g := range rest {
@@ -539,7 +558,7 @@ func (c *input) details(b *strings.Builder, sec sections, lines int) {
 			break
 		}
 		group := byControl[id]
-		fmt.Fprintf(b, "**%s** · %s\n\n", md(render.ControlTitle(id), maxField), code(render.Kind(group[0])))
+		fmt.Fprintf(b, "**%s** · %s\n\n", md(c.header.ControlTitle(id), maxField), code(render.Kind(group[0])))
 		for _, f := range group {
 			if n == lines {
 				break
@@ -612,6 +631,9 @@ func (c *input) where(f *finding.Finding) string {
 	u := fmt.Sprintf("%s/%s/blob/%s/%s", c.links.Server, c.links.Repository, url.PathEscape(c.links.Head), pathEscape(c.links.Prefix+path))
 	if line > 0 {
 		u += fmt.Sprintf("#L%d", line)
+	}
+	if len(u) > maxURL {
+		return code(w)
 	}
 	return fmt.Sprintf("[%s](%s)", code(w), u)
 }

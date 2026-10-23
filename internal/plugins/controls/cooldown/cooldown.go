@@ -127,31 +127,35 @@ func (c *Control) finding(m *model.Manifest, p *model.Package, published time.Ti
 		ControlID: Name, Family: finding.FamilyCooldown, Severity: finding.SeverityHigh,
 		Title: "Published " + ago(days),
 		Description: fmt.Sprintf("The registry published this version on %s. The cooldown is %s (%s). The version can merge after %s.",
-			humanize.Minute(published), humanize.Count(c.days, "day"), c.sourceText(), humanize.Minute(eligible)),
+			humanize.Minute(published), humanize.Count(c.days, "day"), c.sourceText(), humanize.MinuteAfter(eligible)),
 	}, m.Path, p, finding.Key{})
 	f.Evidence = []finding.Evidence{{Source: "insights", Summary: "published at " + published.Format(time.RFC3339)}}
-	f.Remediation = &finding.Remediation{Summary: keep(p, eligible), WaitUntil: &eligible}
+	f.Remediation = &finding.Remediation{Summary: keep(p), WaitUntil: &eligible}
 	if d := p.Declared; d != nil {
 		f.Locus = &finding.Locus{Path: d.Path, StartLine: d.Line}
 	}
 	return f
 }
 
-// keep is the fix: keep the version of before, or wait. A package that a
-// field of a project file declares, as pnpm in "packageManager", is kept in
-// that field. The packages that pnpm installs for itself share the field,
-// so the fix of the release is one text.
-func keep(p *model.Package, eligible time.Time) string {
-	wait := eligible.Format(time.DateOnly)
+// keep is the fix that does not wait: keep the version of before. The
+// other fix is to wait until Remediation.WaitUntil, and each format shows
+// that time. A package that a field of a project file declares, as pnpm in
+// "packageManager", is kept in that field.
+//
+// The text does not name the package, so the packages of one release, as
+// esbuild and its platform packages, share one fix and show as one cause.
+// Two unrelated upgrades of one lockfile from the same version also share
+// it. The report has no parent of a package that would tell them apart.
+func keep(p *model.Package) string {
 	switch d := p.Declared; {
 	case d != nil && p.PreviousVersion != "":
-		return fmt.Sprintf("Keep %q at %s@%s in %s, or wait until %s.", d.Field, d.Package, p.PreviousVersion, d.Path, wait)
+		return fmt.Sprintf("Keep %q at %s@%s in %s.", d.Field, d.Package, p.PreviousVersion, d.Path)
 	case d != nil:
-		return fmt.Sprintf("Keep %q in %s at the version that you used before, or wait until %s.", d.Field, d.Path, wait)
+		return fmt.Sprintf("Set %q in %s to a version older than the cooldown.", d.Field, d.Path)
 	case p.PreviousVersion != "":
-		return fmt.Sprintf("Keep version %s, or wait until %s.", p.PreviousVersion, wait)
+		return fmt.Sprintf("Keep version %s.", p.PreviousVersion)
 	}
-	return fmt.Sprintf("Keep the version that you used before, or wait until %s.", wait)
+	return "Pick a version older than the cooldown."
 }
 
 // sourceText says where the window comes from.

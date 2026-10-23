@@ -54,12 +54,12 @@ func UpgradeReport() *MemState {
 		f := finding.ForPackage(finding.Meta{
 			ControlID: "dependency-cooldown", Family: finding.FamilyCooldown, Severity: finding.SeverityHigh,
 			Title: "Published 1 day ago",
-			Description: "The registry published this version on " + at.Format(time.DateTime) +
-				" UTC. The cooldown is 2 days (flag --cooldown-days). The version can merge after " + eligible.Format(time.DateTime) + " UTC.",
+			Description: "The registry published this version on " + at.Format("2006-01-02 15:04") +
+				" UTC. The cooldown is 2 days (flag --cooldown-days). The version can merge after " + eligible.Add(time.Minute-time.Nanosecond).Format("2006-01-02 15:04") + " UTC.",
 		}, m.Path, p, finding.Key{})
 		f.Change = p.Change
 		f.Evidence = []finding.Evidence{{Source: "insights", Summary: "published at " + at.Format(time.RFC3339)}}
-		f.Remediation = &finding.Remediation{Summary: `Keep "packageManager" at pnpm@` + p.PreviousVersion + " in package.json, or wait until 2026-10-23.", WaitUntil: &eligible}
+		f.Remediation = &finding.Remediation{Summary: `Keep "packageManager" at pnpm@` + p.PreviousVersion + " in package.json.", WaitUntil: &eligible}
 		f.Locus = &finding.Locus{Path: pnpmDecl.Path, StartLine: pnpmDecl.Line}
 		f.Gate = gate
 		findings = append(findings, &f)

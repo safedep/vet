@@ -85,7 +85,7 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 		if delta {
 			cells = append(cells, strings.ToLower(string(f.Change)))
 		}
-		cells = append(cells, cell(render.Truncate(render.Title(f), maxTitle)))
+		cells = append(cells, render.Bounded(render.Title(f), maxTitle))
 		if reach {
 			cells = append(cells, cell(g.Reach().Label()))
 		}

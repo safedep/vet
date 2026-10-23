@@ -103,10 +103,11 @@ func Where(f *finding.Finding) string {
 // the file of its subject. The line is 0 when vet does not know it. The
 // path is raw, so a caller escapes it for its format.
 func Place(f *finding.Finding) (string, int) {
+	line := 0
 	if l := f.Locus; l != nil && l.Path != "" {
-		return l.Path, l.StartLine
+		line = l.StartLine
 	}
-	return f.Path(), 0
+	return f.Path(), line
 }
 
 // Text escapes free text from a finding, such as a title.
@@ -118,10 +119,12 @@ func Code(s string) string {
 }
 
 // markdownText escapes free text for markdown. The text cannot start a
-// link, an image, an HTML tag or entity, a heading or a table cell.
+// link, an image, an HTML tag or entity, a heading or a table cell. A
+// zero-width space stops GitHub from making a link of a bare URL, so text
+// from the scanned code cannot link to a site of its choice.
 var markdownText = strings.NewReplacer(
 	`\`, `\\`, "`", "\\`", "*", `\*`, "_", `\_`, "[", `\[`, "]", `\]`, "<", `\<`, ">", `\>`, "&", `\&`,
-	"#", `\#`, "|", `\|`, "~", `\~`, "!", `\!`, "\n", " ",
+	"#", `\#`, "|", `\|`, "~", `\~`, "!", `\!`, "\n", " ", "://", ":\u200b//", "www.", "www\u200b.",
 )
 
 // Markdown escapes free text for markdown. The text cannot mention a

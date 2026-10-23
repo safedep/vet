@@ -73,8 +73,3 @@ func TestGroupSeverityAndWait(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, late, until, "the group waits for its last finding")
 }
-
-func TestControlTitle(t *testing.T) {
-	assert.Equal(t, "Version inside the cooldown window", ControlTitle("dependency-cooldown"))
-	assert.Equal(t, "acme-custom", ControlTitle("acme-custom"))
-}

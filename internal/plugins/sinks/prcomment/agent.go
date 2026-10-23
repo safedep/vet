@@ -5,7 +5,6 @@ import (
 	"io/fs"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/safedep/dry/log"
 	"gopkg.in/yaml.v3"
@@ -21,8 +20,10 @@ const (
 	// reportDir is the directory that the download command writes the
 	// report to.
 	reportDir = "vet-report"
-	// maxAgentIDs bounds each list of finding ids in the agent block.
-	maxAgentIDs = 100
+	// maxAgentIDs bounds each list of finding ids in the agent block, and
+	// maxAgentCauses its causes.
+	maxAgentIDs    = 100
+	maxAgentCauses = 50
 	// maxAnnotations bounds the annotations of a run.
 	maxAnnotations = 10
 )
@@ -37,6 +38,8 @@ type agentBlock struct {
 	Report  string       `yaml:"report,omitempty"`
 	Finding string       `yaml:"finding,omitempty"`
 	Causes  []agentCause `yaml:"causes,omitempty"`
+	// More counts the causes past maxAgentCauses. The report has them.
+	More int `yaml:"more,omitempty"`
 	// Other holds the ids of the findings that the comment shows in its
 	// closed list.
 	Other []string `yaml:"other,omitempty,flow"`
@@ -63,9 +66,11 @@ func (c *input) agent(b *strings.Builder, sec sections) {
 		block.Report = cmd
 		block.Finding = fmt.Sprintf("vet report finding show <id> --scan %s/report.json -o json", reportDir)
 	}
-	for _, g := range slices.Concat(sec.shown, sec.attacks) {
+	all := slices.Concat(sec.shown, sec.attacks)
+	for _, g := range all[:min(len(all), maxAgentCauses)] {
 		block.Causes = append(block.Causes, cause(g))
 	}
+	block.More = len(all) - len(block.Causes)
 	block.Other = capIDs(ids(sec.rest))
 	var data strings.Builder
 	enc := yaml.NewEncoder(&data)
@@ -91,9 +96,7 @@ func cause(g render.Group) agentCause {
 	if r := f.Remediation; r != nil {
 		out.Fix, out.FixedVersion, out.Command = render.Text(r.Summary), render.Text(r.FixedVersion), render.Text(r.Command)
 	}
-	if until, ok := g.WaitUntil(); ok {
-		out.WaitUntil = until.UTC().Format(time.RFC3339)
-	}
+	out.WaitUntil = g.WaitUntilText()
 	return out
 }
 
@@ -103,10 +106,10 @@ func capIDs(ids []string) []string { return ids[:min(len(ids), maxAgentIDs)] }
 // maxAnnotations, each at the line of its lead: an error for a cause that
 // fails the gate, and a warning for an attack that the gate does not fail.
 func (c *input) annotations() []ci.Annotation {
-	sec := c.sections()
 	if c.links.NoFiles {
 		return nil
 	}
+	sec := c.sections()
 	type marked struct {
 		g     render.Group
 		level ci.AnnotationLevel
