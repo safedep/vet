@@ -57,31 +57,57 @@ func SubjectID(f *finding.Finding) string {
 
 // Title is the title of the finding with no repeat of what Subject names:
 // "GHSA-1234: Prototype pollution" for "GHSA-1234 in npm/x@1.0.0: Prototype
-// pollution", and "is not pinned to a commit SHA" for "actions/checkout@v4
-// is not pinned to a commit SHA".
+// pollution", "has no provenance" for "npm/x@1.0.0 has no provenance", and
+// "is not pinned to a commit SHA" for "actions/checkout@v4 is not pinned to a
+// commit SHA", and "Malicious package" for "Malicious package npm/x@1.0.0". A
+// title that is only the subject stays as it is.
 func Title(f *finding.Finding) string {
 	t := f.Title
 	switch s := f.Subject; {
 	case s.Package != nil:
 		t = strings.Replace(t, " in "+packageSubject(s.Package), "", 1)
+		t = trimLead(t, packageSubject(s.Package)+": ", packageSubject(s.Package)+" ", s.Package.RawName+" ")
+		if rest, ok := strings.CutSuffix(t, " "+packageSubject(s.Package)); ok && rest != "" {
+			t = rest
+		}
 	case s.File != nil && s.File.Element != "":
-		t = strings.TrimPrefix(t, s.File.Element+" ")
+		t = trimLead(t, s.File.Element+" ")
 	}
 	return escape.Line(t)
 }
 
+// trimLead removes the first prefix that t starts with, unless no text is
+// left after it.
+func trimLead(t string, prefixes ...string) string {
+	for _, p := range prefixes {
+		if rest, ok := strings.CutPrefix(t, p); ok && rest != "" {
+			return rest
+		}
+	}
+	return t
+}
+
 // Where is path:line of the finding, or the manifest path.
 func Where(f *finding.Finding) string {
+	path, line := Place(f)
+	switch {
+	case path == "":
+		return Subject(f)
+	case line > 0:
+		return escape.Line(fmt.Sprintf("%s:%d", path, line))
+	}
+	return escape.Line(path)
+}
+
+// Place is the file and the line to edit for a finding: its locus, else
+// the file of its subject. The line is 0 when vet does not know it. The
+// path is raw, so a caller escapes it for its format.
+func Place(f *finding.Finding) (string, int) {
+	line := 0
 	if l := f.Locus; l != nil && l.Path != "" {
-		if l.StartLine > 0 {
-			return escape.Line(fmt.Sprintf("%s:%d", l.Path, l.StartLine))
-		}
-		return escape.Line(l.Path)
+		line = l.StartLine
 	}
-	if p := f.Subject.Package; p != nil {
-		return escape.Line(p.ManifestPath)
-	}
-	return Subject(f)
+	return f.Path(), line
 }
 
 // Text escapes free text from a finding, such as a title.
@@ -93,15 +119,36 @@ func Code(s string) string {
 }
 
 // markdownText escapes free text for markdown. The text cannot start a
-// link, an image, an HTML tag or entity, a heading, a table cell or a
-// mention: a zero-width space follows each "@".
+// link, an image, an HTML tag or entity, a heading or a table cell. A
+// zero-width space stops GitHub from making a link of a bare URL, so text
+// from the scanned code cannot link to a site of its choice.
 var markdownText = strings.NewReplacer(
 	`\`, `\\`, "`", "\\`", "*", `\*`, "_", `\_`, "[", `\[`, "]", `\]`, "<", `\<`, ">", `\>`, "&", `\&`,
-	"#", `\#`, "|", `\|`, "~", `\~`, "!", `\!`, "@", "@\u200b", "\n", " ",
+	"#", `\#`, "|", `\|`, "~", `\~`, "!", `\!`, "\n", " ", "://", ":\u200b//", "www.", "www\u200b.",
 )
 
-// Markdown escapes free text for markdown.
-func Markdown(s string) string { return markdownText.Replace(s) }
+// Markdown escapes free text for markdown. The text cannot mention a
+// person: a zero-width space follows each "@" where GitHub starts a
+// mention, at the start or after a mark that is not a letter, a digit or
+// "_". An "@" in a version, as in pnpm@12.8.2, starts none and stays.
+func Markdown(s string) string {
+	var b strings.Builder
+	prev := ' '
+	for _, r := range markdownText.Replace(s) {
+		b.WriteRune(r)
+		if r == '@' && !wordMark(prev) {
+			b.WriteRune('\u200b')
+		}
+		prev = r
+	}
+	return b.String()
+}
+
+// wordMark is an ASCII letter, digit or "_". A wider set, such as the
+// letters of other scripts, could let a mention through.
+func wordMark(r rune) bool {
+	return r == '_' || r >= '0' && r <= '9' || r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z'
+}
 
 // Truncate cuts s to at most n runes, with an ellipsis at the cut.
 func Truncate(s string, n int) string {

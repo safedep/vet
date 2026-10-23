@@ -53,3 +53,14 @@ func Bytes(n int64) string {
 	}
 	return fmt.Sprintf("%.1f %cB", float64(n)/float64(div), "kMGTPE"[exp])
 }
+
+// Minute shows t in UTC to the minute, as "2026-10-23 11:16 UTC".
+func Minute(t time.Time) string { return t.UTC().Truncate(time.Minute).Format(minuteLayout) }
+
+// MinuteAfter shows t in UTC to the minute, rounded up, for "after <time>"
+// or "wait until <time>". A time rounded down would be too early.
+func MinuteAfter(t time.Time) string {
+	return t.UTC().Add(time.Minute - time.Nanosecond).Truncate(time.Minute).Format(minuteLayout)
+}
+
+const minuteLayout = "2006-01-02 15:04 UTC"

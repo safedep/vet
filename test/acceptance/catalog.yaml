@@ -206,6 +206,12 @@
   tier: P1
   guarantee: "plugins.dependency-cooldown.options.days changes the window."
   labels: [controls]
+- id: controls/cooldown/package-manager
+  title: "cooldown: the fix of pnpm names packageManager"
+  category: controls
+  tier: P1
+  guarantee: "pnpm and the packages that pnpm-lock.yaml installs for pnpm itself point their cooldown finding and its fix to the packageManager field of package.json, not to the lockfile."
+  labels: [controls, pr-comment]
 - id: controls/cooldown/skip-and-source
   title: "cooldown: skip, source and glob suppression"
   category: controls
@@ -881,11 +887,17 @@
   tier: P1
   guarantee: "Outside a pull request run, --report pr-comment posts nothing and warns. --report pr-comment=FILE writes the comment body. Neither changes the exit code."
   labels: [pr-comment]
+- id: ci/pr-comment/release-group
+  title: "A release with platform packages is one blocking item"
+  category: ci
+  tier: P1
+  guarantee: "The comment shows the findings of one control, gate rule and fix as one item, led by the main package. A next step names the fix and the end of the wait, and the snippet accepts the item with a name glob until the cooldown ends."
+  labels: [pr-comment]
 - id: ci/action/scan
   title: "The scan script of the GitHub Action works with this vet"
   category: ci
   tier: P0
-  guarantee: "action/scan.sh runs this vet in a pull request. It posts the comment, writes the step summary and the SARIF file, sets the gate, findings, report and comment-url outputs, and fails the step on a failed gate."
+  guarantee: "action/scan.sh runs this vet in a pull request. It posts the comment with the command that downloads the report artifact, writes an error annotation for each blocking cause, writes the step summary and the SARIF file, sets the gate, findings, report and comment-url outputs, and fails the step on a failed gate."
   labels: [action, pr-comment, pr-mode]
 - id: ci/setup/init
   title: "vet ci init adds the vet workflow"

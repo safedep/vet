@@ -125,21 +125,55 @@ func (c *Control) finding(m *model.Manifest, p *model.Package, published time.Ti
 	eligible := published.AddDate(0, 0, c.days)
 	f := finding.ForPackage(finding.Meta{
 		ControlID: Name, Family: finding.FamilyCooldown, Severity: finding.SeverityHigh,
-		Title: fmt.Sprintf("%s was published %s", p.ID, ago(days)),
-		Description: fmt.Sprintf("The registry published this version on %s. The version is eligible on %s. The cooldown window is %s, from %s. The setting %s sets the window, also in a flag or a variable",
-			published.Format(time.DateOnly), eligible.Format(time.DateOnly), humanize.Count(c.days, "day"), c.sourceText(), DaysKey),
+		Title: "Published " + ago(days),
+		Description: fmt.Sprintf("The registry published this version on %s. The cooldown is %s (%s). The version can merge after %s.",
+			humanize.Minute(published), humanize.Count(c.days, "day"), c.sourceText(), humanize.MinuteAfter(eligible)),
 	}, m.Path, p, finding.Key{})
 	f.Evidence = []finding.Evidence{{Source: "insights", Summary: "published at " + published.Format(time.RFC3339)}}
-	summary := fmt.Sprintf("Wait until %s, or keep the version that you used before.", eligible.Format(time.DateOnly))
-	if p.PreviousVersion != "" {
-		summary = fmt.Sprintf("Wait until %s, or keep version %s.", eligible.Format(time.DateOnly), p.PreviousVersion)
+	f.Remediation = &finding.Remediation{Summary: keep(m, p), WaitUntil: &eligible}
+	if d := p.Declared; d != nil {
+		f.Locus = &finding.Locus{Path: d.Path, StartLine: d.Line}
 	}
-	f.Remediation = &finding.Remediation{Summary: summary}
 	return f
 }
 
+// keep is the fix that does not wait: keep the version of before. The
+// other fix is to wait until Remediation.WaitUntil, and each format shows
+// that time. A package that a field of a project file declares, as pnpm in
+// "packageManager", is kept in that field. The field sets the declared
+// package, so the fix names the previous version of that package, not of a
+// package that it installs.
+//
+// The text does not name the package, so the packages of one release, as
+// esbuild and its platform packages, share one fix and show as one cause.
+// Two unrelated upgrades of one lockfile from the same version also share
+// it. The report has no parent of a package that would tell them apart.
+func keep(m *model.Manifest, p *model.Package) string {
+	switch d := p.Declared; {
+	case d != nil:
+		if previous := declaredPrevious(m, d); previous != "" {
+			return fmt.Sprintf("Keep %q at %s@%s in %s.", d.Field, d.Package, previous, d.Path)
+		}
+		return fmt.Sprintf("Set %q in %s to a version older than the cooldown.", d.Field, d.Path)
+	case p.PreviousVersion != "":
+		return fmt.Sprintf("Keep version %s.", p.PreviousVersion)
+	}
+	return "Pick a version older than the cooldown."
+}
+
+// declaredPrevious is the previous version of the package that d sets, or
+// "" when the manifest does not hold it or the change does not upgrade it.
+func declaredPrevious(m *model.Manifest, d *model.Declaration) string {
+	for _, q := range m.Packages {
+		if q.Declared != nil && q.ID.NameIs(d.Package) {
+			return q.PreviousVersion
+		}
+	}
+	return ""
+}
+
 // sourceText says where the window comes from.
-func (c *Control) sourceText() string { return cmp.Or(c.source, "the vet default") }
+func (c *Control) sourceText() string { return cmp.Or(c.source, "vet default") }
 
 func ago(days int) string {
 	switch {

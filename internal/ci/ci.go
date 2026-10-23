@@ -25,7 +25,9 @@ type Context struct {
 	Repository string
 	ServerURL  string
 	APIURL     string
-	// RunURL is the page of the run, with its logs and its summary.
+	// RunID is the id of the workflow run. RunURL is the page of the run,
+	// with its logs and its summary.
+	RunID  string
 	RunURL string
 	// Workspace is the directory of the checkout.
 	Workspace string
@@ -68,6 +70,24 @@ type Change struct {
 	Private bool
 }
 
+// AnnotationLevel is how the platform marks an annotation.
+type AnnotationLevel string
+
+const (
+	AnnotationError   AnnotationLevel = "error"
+	AnnotationWarning AnnotationLevel = "warning"
+)
+
+// Annotation is a message at a line of a file, as the platform shows it in
+// the diff of the change.
+type Annotation struct {
+	Level AnnotationLevel
+	Path  string
+	Line  int
+	Title string
+	Text  string
+}
+
 // ErrNoWriteAccess means that the token of the run cannot write a comment,
 // for example the read-only token of a fork run.
 var ErrNoWriteAccess = errors.New("the CI token cannot write a comment")
@@ -108,8 +128,9 @@ func detectGitHub(getenv func(string) string) (Context, error) {
 		Workspace:  getenv("GITHUB_WORKSPACE"),
 		Output:     getenv("GITHUB_OUTPUT"),
 	}
-	if run := getenv("GITHUB_RUN_ID"); run != "" && c.ServerURL != "" && c.Repository != "" {
-		c.RunURL = c.ServerURL + "/" + c.Repository + "/actions/runs/" + run
+	c.RunID = getenv("GITHUB_RUN_ID")
+	if c.RunID != "" && c.ServerURL != "" && c.Repository != "" {
+		c.RunURL = c.ServerURL + "/" + c.Repository + "/actions/runs/" + c.RunID
 	}
 	path := getenv("GITHUB_EVENT_PATH")
 	if path == "" || !strings.HasPrefix(getenv("GITHUB_EVENT_NAME"), "pull_request") {

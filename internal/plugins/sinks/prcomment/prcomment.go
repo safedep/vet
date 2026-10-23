@@ -14,6 +14,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/safedep/dry/log"
+
 	"github.com/safedep/vet/v2/internal/ci"
 	"github.com/safedep/vet/v2/internal/ci/githubci"
 	"github.com/safedep/vet/v2/internal/github"
@@ -49,18 +51,26 @@ type Options struct {
 	// Key keeps apart the comments of two vet steps on one pull request,
 	// for example a step for each service of a monorepo.
 	Key string `json:"key" jsonschema:"pattern=^[a-z0-9-]*$"`
+	// Artifact is the name of the workflow artifact that holds the JSON
+	// report of the run. The comment prints the command that downloads it.
+	// The GitHub Action sets it when it uploads the report.
+	Artifact string `json:"artifact" jsonschema:"pattern=^[A-Za-z0-9._-]*$"`
 }
 
 // Sink writes and publishes the pull request comment.
 type Sink struct {
-	create string
-	key    string
-	getenv func(string) string
+	create   string
+	key      string
+	artifact string
+	getenv   func(string) string
 	// commenter returns the adapter of the platform of a run.
 	commenter func(ctx context.Context, c ci.Context) (ci.Commenter, error)
 	// proxy returns the adapter of the comment proxy, or nil when the
 	// option turns it off. read finds the comment with the run token.
 	proxy func(ctx context.Context, c ci.Context, read ci.Commenter) (ci.Commenter, error)
+	// annotations gets the workflow commands of the annotations. The runner
+	// reads them from the output of the step.
+	annotations io.Writer
 }
 
 // New builds the sink from its options.
@@ -82,7 +92,10 @@ func New(cfg plugin.Config) (plugin.Sink, error) {
 	if !validKey.MatchString(o.Key) {
 		return nil, fmt.Errorf("pr-comment: key must hold only a-z, 0-9 and -, got %q", o.Key)
 	}
-	s := &Sink{create: o.Create, key: o.Key, getenv: os.Getenv, commenter: platformCommenter}
+	if !validArtifact.MatchString(o.Artifact) {
+		return nil, fmt.Errorf("pr-comment: artifact must hold only A-Z, a-z, 0-9, ., _ and -, got %q", o.Artifact)
+	}
+	s := &Sink{create: o.Create, key: o.Key, artifact: o.Artifact, getenv: os.Getenv, commenter: platformCommenter, annotations: os.Stderr}
 	if o.Proxy == nil || *o.Proxy {
 		// The proxy finds the comment to edit by the tag in its body, so
 		// the marker is the tag.
@@ -91,7 +104,10 @@ func New(cfg plugin.Config) (plugin.Sink, error) {
 	return s, nil
 }
 
-var validKey = regexp.MustCompile(`^[a-z0-9-]*$`)
+var (
+	validKey      = regexp.MustCompile(`^[a-z0-9-]*$`)
+	validArtifact = regexp.MustCompile(`^[A-Za-z0-9._-]*$`)
+)
 
 // checkProxyURL refuses a proxy address that would send the token of the
 // run with no TLS. A loopback address, such as a test proxy, can use http.
@@ -163,6 +179,11 @@ func (s *Sink) Publish(ctx context.Context, r plugin.Report) (string, error) {
 		return "", err
 	}
 	c.links = linksOf(run, r.Header().Scan.Target)
+	if run.Platform == ci.PlatformGitHub {
+		if err := githubci.Annotate(s.annotations, c.annotations()); err != nil {
+			log.Warnf("pr-comment: write the annotations: %v", err)
+		}
+	}
 	cm, err := s.commenter(ctx, run)
 	if err != nil {
 		return "", err
@@ -235,7 +256,7 @@ func (s *Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 // linksOf returns the links of a run. The file links need the path of the
 // scan target in the checkout.
 func linksOf(run ci.Context, target string) links {
-	l := links{Server: run.ServerURL, Repository: run.Repository, Run: run.RunURL}
+	l := links{Server: run.ServerURL, Repository: run.Repository, Run: run.RunURL, RunID: run.RunID}
 	if run.Change != nil {
 		l.Head = run.Change.HeadSHA
 	}
@@ -276,7 +297,7 @@ func (s *Sink) input(ctx context.Context, r plugin.Report) (*input, error) {
 	}
 	return &input{
 		header: r.Header(), trailer: r.Trailer(), view: view,
-		dialect: githubDialect, marker: markerOf(s.key),
+		dialect: githubDialect, marker: markerOf(s.key), artifact: s.artifact,
 	}, nil
 }
 

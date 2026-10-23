@@ -126,6 +126,20 @@ func (s *MemState) Findings(_ context.Context, q plugin.FindingQuery) iter.Seq2[
 	}
 }
 
+// sampleControls are the titles of the controls of the sample reports, as
+// the engine writes them to the header.
+var sampleControls = []report.ControlName{
+	{ID: "agent-instruction-change", Title: "Agent instruction file"},
+	{ID: "dependency-cooldown", Title: "Version inside the cooldown window"},
+	{ID: "malware", Title: "Malicious package"},
+	{ID: "new-unpopular-package", Title: "New and unpopular package"},
+	{ID: "provenance-lost", Title: "Provenance lost on an upgrade"},
+	{ID: "scorecard-low", Title: "Low OpenSSF Scorecard"},
+	{ID: "unpinned-action", Title: "Action not pinned to a commit SHA"},
+	{ID: "version-anomaly", Title: "Version anomaly on an upgrade"},
+	{ID: "vulnerability", Title: "Known vulnerability"},
+}
+
 // Header returns the header. A missing header gets a fixed test header.
 func (s *MemState) Header() *report.Header {
 	if s.HeaderValue == nil {
@@ -136,6 +150,7 @@ func (s *MemState) Header() *report.Header {
 				ID: "test0000scan", Kind: report.ScanKindScan, Mode: report.ScanModeFull,
 				Target: ".", TargetKey: "/test", StartedAt: time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC),
 			},
+			Controls: sampleControls,
 		}
 	}
 	return s.HeaderValue

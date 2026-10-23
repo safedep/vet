@@ -1,0 +1,50 @@
+# pnpm locks itself, and the packages that it installs for itself, in the
+# first document of pnpm-lock.yaml. Their cooldown findings point to the
+# "packageManager" field of package.json, the place to edit.
+exec vet scan . --mode plain -o json
+stdout '"control_id":"dependency-cooldown"[^\n]*"locus":\{"path":"package.json","start_line":4\}'
+stdout 'Keep \\"packageManager\\" in package.json at|Set \\"packageManager\\" in package.json to a version older than the cooldown'
+exec vet scan . --report pr-comment=comment.md --mode plain -o plain --fresh
+grep '^\*\*Next step:\*\* `npm/pnpm@10.11.0` and 1 more in `package.json:4`' comment.md
+
+-- package.json --
+{
+  "name": "app",
+  "version": "1.0.0",
+  "packageManager": "pnpm@10.11.0+sha512.0000"
+}
+-- pnpm-lock.yaml --
+---
+lockfileVersion: '9.0'
+
+importers:
+
+  .:
+    configDependencies: {}
+    packageManagerDependencies:
+      pnpm:
+        specifier: 10.11.0
+        version: 10.11.0
+
+packages:
+
+  '@pnpm/exe.linux-x64@10.11.0':
+    resolution: {integrity: sha512-AAAA}
+
+  pnpm@10.11.0:
+    resolution: {integrity: sha512-CCCC}
+
+snapshots:
+
+  '@pnpm/exe.linux-x64@10.11.0':
+    optional: true
+
+  pnpm@10.11.0:
+    optionalDependencies:
+      '@pnpm/exe.linux-x64': 10.11.0
+---
+lockfileVersion: '9.0'
+
+importers:
+
+  .: {}

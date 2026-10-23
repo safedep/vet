@@ -1,0 +1,8 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "dependencies": {
+    "acorn": "^8.11.3"
+  },
+  "packageManager": "pnpm@10.11.0+sha512.0000"
+}

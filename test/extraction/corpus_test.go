@@ -48,8 +48,8 @@ type caseView struct {
 	Errors    []string       `json:"errors,omitempty"`
 }
 
-// packageLine is one package with its flags: "+" direct, "d" dev, and the
-// line when the extractor knows it.
+// packageLine is one package with its flags: "+" direct, "d" dev, the
+// line when the extractor knows it, and the field that declares it.
 func packageLine(p *model.Package) string {
 	flags := ""
 	if p.Direct {
@@ -64,6 +64,9 @@ func packageLine(p *model.Package) string {
 	}
 	if p.Line > 0 {
 		s += fmt.Sprintf(" :%d", p.Line)
+	}
+	if d := p.Declared; d != nil {
+		s += fmt.Sprintf(" <%s:%d %s of %s>", d.Path, d.Line, d.Field, d.Package)
 	}
 	return s
 }

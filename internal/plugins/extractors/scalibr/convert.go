@@ -40,6 +40,10 @@ type lockEntry interface {
 	Local() bool
 }
 
+// declared is the metadata of a vet extractor that knows the field of a
+// project file that sets the version of an entry.
+type declared interface{ Declared() *model.Declaration }
+
 // ToManifest converts the packages of one extractor run into a manifest.
 // It returns the manifest, or nil when the run found no package that vet
 // knows, and one error for each package that it skipped. A workflow is a
@@ -80,6 +84,11 @@ func ToManifest(in Converted) (*model.Manifest, []error) {
 		if prev, dup := seen[p.ID.Key()]; dup {
 			prev.Direct = prev.Direct || p.Direct
 			prev.Dev = prev.Dev && p.Dev
+			// A package that a project document also installs keeps the
+			// lockfile as its place to edit.
+			if p.Declared == nil {
+				prev.Declared = nil
+			}
 			continue
 		}
 		seen[p.ID.Key()] = p
@@ -172,6 +181,9 @@ func toPackage(sp *extractor.Package, kind model.ManifestKind) (*model.Package, 
 	}
 	if d, ok := sp.Metadata.(direct); ok {
 		p.Direct = d.IsDirect()
+	}
+	if d, ok := sp.Metadata.(declared); ok {
+		p.Declared = d.Declared()
 	}
 	return p, nil
 }

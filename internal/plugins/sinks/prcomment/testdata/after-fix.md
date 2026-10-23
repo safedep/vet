@@ -5,9 +5,22 @@
 
 **Gate passed** · Checked 2 added or upgraded packages at `2222222`.
 
-<details><summary>1 more finding (medium and lower)</summary>
+<details><summary>1 more finding: 1 medium</summary>
 
-- `medium` `tj-actions/changed-files@v44`: is not pinned to a commit SHA · `.github/workflows/ci.yml:8` · `f-e815bb3b5e0846f1`
+**Action not pinned to a commit SHA** · `medium`
+
+- `tj-actions/changed-files@v44`: is not pinned to a commit SHA
+
+</details>
+
+<details><summary>For AI agents</summary>
+
+````yaml
+vet-agent: v1
+gate: pass
+head: "2222222222222222222222222222222222222222"
+other: [f-e815bb3b5e0846f1]
+````
 
 </details>
 

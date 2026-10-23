@@ -1,0 +1,64 @@
+---
+lockfileVersion: '9.0'
+
+importers:
+
+  .:
+    configDependencies: {}
+    packageManagerDependencies:
+      pnpm:
+        specifier: 10.11.0
+        version: 10.11.0
+
+packages:
+
+  '@pnpm/exe.linux-x64@10.11.0':
+    resolution: {integrity: sha512-AAAA}
+    cpu: [x64]
+    os: [linux]
+
+  '@pnpm/exe.win32-x64@10.11.0':
+    resolution: {integrity: sha512-BBBB}
+    cpu: [x64]
+    os: [win32]
+
+  pnpm@10.11.0:
+    resolution: {integrity: sha512-CCCC}
+
+snapshots:
+
+  '@pnpm/exe.linux-x64@10.11.0':
+    optional: true
+
+  '@pnpm/exe.win32-x64@10.11.0':
+    optional: true
+
+  pnpm@10.11.0:
+    optionalDependencies:
+      '@pnpm/exe.linux-x64': 10.11.0
+      '@pnpm/exe.win32-x64': 10.11.0
+---
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      acorn:
+        specifier: ^8.11.3
+        version: 8.11.3
+
+packages:
+
+  acorn@8.11.3:
+    resolution: {integrity: sha512-DDDD}
+    engines: {node: '>=0.4.0'}
+    hasBin: true
+
+snapshots:
+
+  acorn@8.11.3: {}

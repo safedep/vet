@@ -52,3 +52,22 @@ func TestBytes(t *testing.T) {
 		})
 	}
 }
+
+func TestMinute(t *testing.T) {
+	cest := time.FixedZone("CEST", 2*3600)
+	cases := []struct {
+		name         string
+		t            time.Time
+		down, upward string
+	}{
+		{"seconds", time.Date(2026, 10, 23, 11, 15, 31, 0, time.UTC), "2026-10-23 11:15 UTC", "2026-10-23 11:16 UTC"},
+		{"a whole minute", time.Date(2026, 10, 23, 11, 15, 0, 0, time.UTC), "2026-10-23 11:15 UTC", "2026-10-23 11:15 UTC"},
+		{"another zone", time.Date(2026, 10, 23, 11, 15, 1, 0, cest), "2026-10-23 09:15 UTC", "2026-10-23 09:16 UTC"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.down, Minute(tc.t))
+			assert.Equal(t, tc.upward, MinuteAfter(tc.t))
+		})
+	}
+}

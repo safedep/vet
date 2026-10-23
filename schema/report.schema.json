@@ -118,6 +118,43 @@
         "occurrences"
       ]
     },
+    "ControlName": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "id",
+        "title"
+      ]
+    },
+    "Declaration": {
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        },
+        "field": {
+          "type": "string"
+        },
+        "package": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "path",
+        "field",
+        "package"
+      ]
+    },
     "Diagnostic": {
       "properties": {
         "level": {
@@ -477,6 +514,12 @@
         },
         "scan": {
           "$ref": "#/$defs/ScanInfo"
+        },
+        "controls": {
+          "items": {
+            "$ref": "#/$defs/ControlName"
+          },
+          "type": "array"
         }
       },
       "type": "object",
@@ -819,6 +862,9 @@
         },
         "integrity": {
           "type": "string"
+        },
+        "declared": {
+          "$ref": "#/$defs/Declaration"
         },
         "local": {
           "type": "boolean"
@@ -1234,6 +1280,10 @@
         },
         "command": {
           "type": "string"
+        },
+        "wait_until": {
+          "type": "string",
+          "format": "date-time"
         }
       },
       "type": "object",

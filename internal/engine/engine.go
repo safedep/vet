@@ -290,6 +290,7 @@ func open(ctx context.Context, o Options, first plugin.Artifact) (*Result, error
 			ID: entry.ID, Kind: o.Kind, Mode: o.Mode, Target: first.Label, TargetKey: first.Key,
 			StartedAt: entry.StartedAt, BaseRef: o.BaseRef,
 		},
+		Controls: controlNames(o.Controls),
 	}
 	if err := scan.SetHeader(ctx, h); err != nil {
 		return nil, errors.Join(err, scan.Close())

@@ -479,6 +479,33 @@ marker at the start finds it, and a key keeps apart the comments of two vet step
 `githubci` with the token of the run, or `ghcp` through the comment proxy.
 _Avoid_: PR bot, sticky comment, review
 
+**Declaration**:
+The field of a project file that sets the version of a package that a lockfile records but does not
+declare. The pnpm extractor gives pnpm, and each package that pnpm installs for itself, the
+`"packageManager"` field of package.json. A fix edits that field. `model.Package.Declared`, a
+`model.Declaration`.
+_Avoid_: fix site, origin
+
+**Finding group**:
+The findings of one cause: one control, one gate record, one fix and one file to edit. The pull request comment shows
+each group once, as a card or a line, and counts groups as "causes". The **lead** names the group: a
+direct dependency, else the shortest name, else the first PURL. An attack finding, and a finding with no
+fix, is a group of its own. `render.Group`, from `render.Groups`, in
+`internal/plugins/internal/render`. The **wait end** (`Remediation.WaitUntil`) of a group is the
+latest end of a wait of its findings, as the end of a cooldown.
+_Avoid_: bucket, cluster, issue
+
+**Agent block**:
+The closed "For AI agents" YAML block of the pull request comment. It holds the gate, each shown
+finding group with its fix as data, the finding ids and the command that downloads the report
+artifact. `vet-agent: v1` is its version. `internal/plugins/sinks/prcomment/agent.go`.
+_Avoid_: machine block, bot data
+
+**Report artifact**:
+The workflow artifact that holds the JSON report of a run of the GitHub Action, `vet-report` by
+default. The `report-artifact` input names it.
+_Avoid_: report upload
+
 **State block**:
 The hidden block at the end of the pull request comment. It holds the head commit and the finding ids
 of the last run, so the next run can say what a push resolved. It never changes the gate. A block
@@ -638,11 +665,12 @@ Some words name more than one thing in the code. Qualify them.
 | --- | --- | --- |
 | base | the base ref of pull request mode; the older scan of `vet report diff` | base ref; base scan |
 | cache | the enrichment cache; the base extraction cache; the `cache` config section | enrichment cache; base cache |
+| cause | a finding group, as the pull request comment counts it; the reach cause of a vulnerability finding | cause in the comment and its docs; finding group in code; reach cause |
 | check | a `vet doctor` check; `plugin.Checker`; an OpenSSF Scorecard check | doctor check; Scorecard check. Never for a control |
 | cooldown | the dependency cooldown of the `dependency-cooldown` control; the release cooldown of the action | dependency cooldown; release cooldown |
 | endpoint | the machine; a SafeDep service URL | endpoint; service URL |
 | key | package key; finding key; target key | the full term |
-| kind | scan, artifact, manifest, record, subject, inventory, capability and plugin kinds | the full term |
+| kind | scan, artifact, manifest, record, subject, inventory, capability and plugin kinds; the label of a finding in a markdown report (`render.Kind`) | the full term |
 | mode | scan mode (`full`, `delta`); messaging mode (`--mode`) | scan mode or pull request mode; messaging mode |
 | report | the report stream; `plugin.Report`; a report format; the `cloud` report sink | the full term |
 | root | the roots of a dependency graph; `Artifact.Root`; an application root | graph root; target root; application root |

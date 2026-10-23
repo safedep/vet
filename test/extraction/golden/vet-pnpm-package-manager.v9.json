@@ -1,0 +1,19 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/pnpmlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/@pnpm/exe.linux-x64@10.11.0 :15 <package.json:7 packageManager of pnpm>",
+        "npm/@pnpm/exe.win32-x64@10.11.0 :20 <package.json:7 packageManager of pnpm>",
+        "npm/pnpm@10.11.0 [+] :25 <package.json:7 packageManager of pnpm>",
+        "npm/acorn@8.11.3 [+] :57"
+      ],
+      "edges": [
+        "npm/pnpm@10.11.0 -> npm/@pnpm/exe.linux-x64@10.11.0",
+        "npm/pnpm@10.11.0 -> npm/@pnpm/exe.win32-x64@10.11.0"
+      ]
+    }
+  ]
+}

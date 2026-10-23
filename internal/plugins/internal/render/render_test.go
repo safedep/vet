@@ -57,6 +57,12 @@ func TestTitleDropsTheSubject(t *testing.T) {
 		{name: "vulnerability", f: pkg("GHSA-hmr4-m2h5-33qx in pypi/django@2.2.0: SQL injection in Django"), want: "GHSA-hmr4-m2h5-33qx: SQL injection in Django"},
 		{name: "no package in the title", f: pkg("Malicious package"), want: "Malicious package"},
 		{name: "workflow element", f: file("actions/checkout@v4 is not pinned to a commit SHA", "actions/checkout@v4"), want: "is not pinned to a commit SHA"},
+		{name: "subject at the start", f: pkg("pypi/django@2.2.0 has no provenance, and 2.1.0 had one"), want: "has no provenance, and 2.1.0 had one"},
+		{name: "subject and a colon at the start", f: pkg("pypi/django@2.2.0: the upgrade jumps from 1.0.0 to 2.2.0"), want: "the upgrade jumps from 1.0.0 to 2.2.0"},
+		{name: "name at the start", f: pkg("django is new: its first version is 9 days old"), want: "is new: its first version is 9 days old"},
+		{name: "name inside a word", f: pkg("djangorest is new"), want: "djangorest is new"},
+		{name: "only the subject", f: pkg("pypi/django@2.2.0"), want: "pypi/django@2.2.0"},
+		{name: "subject at the end", f: pkg("Malicious package pypi/django@2.2.0"), want: "Malicious package"},
 		{name: "element not at the start", f: file("Job build asks for write-all permissions", "permissions: write-all"), want: "Job build asks for write-all permissions"},
 	}
 	for _, tc := range cases {
@@ -67,6 +73,15 @@ func TestTitleDropsTheSubject(t *testing.T) {
 }
 
 func TestMarkdown(t *testing.T) {
-	assert.Equal(t, `\[x\](http://a) \<img\> @`+"\u200b"+`org \*b\* \# h \&\#64;`, Markdown("[x](http://a) <img> @org *b* # h &#64;"))
+	assert.Equal(t, `\[x\](http:`+"\u200b"+`//a) \<img\> @`+"\u200b"+`org \*b\* \# h \&\#64;`, Markdown("[x](http://a) <img> @org *b* # h &#64;"))
+	assert.Equal(t, "@\u200borg, (@\u200bx) pnpm@12.8.2 a\\_@b", Markdown("@org, (@x) pnpm@12.8.2 a_@b"), "an @ after a word mark starts no mention")
+	assert.Equal(t, "@\u200b@\u200bx", Markdown("@@x"))
+	assert.Equal(t, "from https:\u200b//evil.example/x.tgz or www\u200b.evil.example", Markdown("from https://evil.example/x.tgz or www.evil.example"), "a bare URL makes no link")
 	assert.Equal(t, "`a'b c`", Code("a`b\nc"))
+}
+
+func TestSafeURL(t *testing.T) {
+	assert.Equal(t, "https://wiki.example.com/a%28b%29", SafeURL("https://wiki.example.com/a(b)"))
+	assert.Empty(t, SafeURL("javascript:alert(1)"))
+	assert.Empty(t, SafeURL("https://"))
 }

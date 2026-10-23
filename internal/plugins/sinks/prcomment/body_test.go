@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -93,6 +94,7 @@ func TestBodyGolden(t *testing.T) {
 			s.TrailerValue.Gate.PolicyChanged = true
 			return newInput(t, s)
 		},
+		"upgrade": func(t *testing.T) *input { return newInput(t, plugintest.UpgradeReport()) },
 		"plain-dialect": func(t *testing.T) *input {
 			c := newInput(t, pullRequest(report.GateFail))
 			c.dialect = dialect{}
@@ -198,10 +200,32 @@ func TestBodyCutsToSize(t *testing.T) {
 	s.TrailerValue.Gate.FindingIDs = append(s.TrailerValue.Gate.FindingIDs, failed...)
 
 	body := newInput(t, s).body()
-	assert.LessOrEqual(t, utf8.RuneCountInString(body), maxChars)
+	assert.LessOrEqual(t, utf8.RuneCountInString(body), maxComment)
+	human := machineBlocks.ReplaceAllString(body, "")
+	assert.LessOrEqual(t, utf8.RuneCountInString(human), maxBody, "the state block and the agent block count only against the GitHub limit")
 	assert.Contains(t, body, "more in the full report")
-	assert.NotContains(t, body, stateOpen, "the state goes before the cards")
+	assert.Contains(t, body, stateOpen, "the next run keeps its baseline")
 	assert.True(t, strings.HasPrefix(body, markerOf("")), "the marker stays")
+}
+
+var machineBlocks = regexp.MustCompile(`(?ms)^<details><summary>For AI agents</summary>.*?^</details>\n\n|^<!-- vet:state .*?-->\n`)
+
+// A scan with hundreds of findings keeps its lines and its state block, as
+// the review of a real scan of 289 findings showed.
+func TestLargeScanKeepsItsLines(t *testing.T) {
+	s := pullRequest(report.GatePass)
+	pad := s.ManifestList[0].Packages[1]
+	for i := range 300 {
+		f := finding.ForPackage(finding.Meta{
+			ControlID: "scorecard-low", Family: finding.FamilyHygiene, Severity: finding.SeverityInfo,
+			Title: fmt.Sprintf("score %d", i),
+		}, "package-lock.json", pad, finding.Key{Discriminator: fmt.Sprintf("s-%d", i)})
+		s.FindingList = append(s.FindingList, &f)
+	}
+	body := newInput(t, s).body()
+	assert.Contains(t, body, stateOpen)
+	assert.Contains(t, body, "**Low OpenSSF Scorecard**")
+	assert.Contains(t, body, "For AI agents")
 }
 
 func TestUntrustedTextIsBounded(t *testing.T) {
@@ -335,43 +359,100 @@ func TestNoteOfAFirstPolicy(t *testing.T) {
 	assert.Contains(t, newInput(t, s).body(), "This change adds a policy. The base branch has no policy, so the gate applies none.")
 }
 
-func TestOneCardForEachPackage(t *testing.T) {
+func TestCardsOfAPackageWithAnAttack(t *testing.T) {
 	s := pullRequest(report.GateFail)
 	evil := s.FindingList[0]
 	evil.Gate = &finding.GateRecord{Action: finding.GateActionFail, FailOn: string(report.FailOnAttacks)}
 	cooldown := *evil
-	cooldown.ID, cooldown.ControlID, cooldown.Family, cooldown.Severity = "f-1111111111111111", "dependency-cooldown", finding.FamilyCooldown, finding.SeverityHigh
-	cooldown.Title, cooldown.Description, cooldown.Evidence, cooldown.Remediation = "Version inside the cooldown window", "", nil, nil
+	cooldown.ID, cooldown.ControlID, cooldown.Family, cooldown.Severity, cooldown.Attack = "f-1111111111111111", "dependency-cooldown", finding.FamilyCooldown, finding.SeverityHigh, nil
+	cooldown.Title, cooldown.Description, cooldown.Evidence = "Version inside the cooldown window", "", nil
+	cooldown.Remediation = &finding.Remediation{Summary: "Remove evil-colors."}
 	cooldown.Gate = &finding.GateRecord{Action: finding.GateActionFail, Rules: []string{"critical-or-high"}, Help: "Wait, or suppress the finding.", Link: "javascript:alert(1)"}
 	s.FindingList = append(s.FindingList, &cooldown)
 	tr := *s.Trailer()
 	tr.Gate.FindingIDs = append(tr.Gate.FindingIDs, cooldown.ID)
 	s.TrailerValue = &tr
 
-	body := newInput(t, s).body()
-	assert.Equal(t, 1, strings.Count(body, "`npm/evil-colors@1.4.1` · added in"), "the package heading shows once")
-	assert.Contains(t, body, "**Malicious package** · `critical` · `malware`")
-	assert.Contains(t, body, "**Version inside the cooldown window** · `high` · `dependency-cooldown`")
+	c := newInput(t, s)
+	c.dialect = dialect{}
+	body := c.body()
+	assert.Contains(t, body, "### ❌ vet: 2 causes block this pull request", "the attack does not fold into a group with the same fix")
+	assert.Contains(t, body, "`npm/evil-colors@1.4.1`: **Malicious package** · `critical`")
+	assert.Contains(t, body, "`npm/evil-colors@1.4.1`: **Version inside the cooldown window** · `cooldown`")
+	assert.Less(t, strings.Index(body, "**Malicious package**"), strings.Index(body, "**Version inside the cooldown window**"), "the attack comes first")
+	assert.Contains(t, body, "**Next step:** `npm/evil-colors@1.4.1` in [`package-lock.json:42`]")
 	assert.Contains(t, body, "**Blocked by:** --fail-on attacks")
 	assert.Contains(t, body, "**Blocked by:** policy rule critical-or-high")
 	assert.Contains(t, body, "**Policy help:** Wait, or suppress the finding.\n")
 	assert.NotContains(t, body, "javascript:", "the comment drops a link that is not http or https")
 }
 
-func TestSafeURL(t *testing.T) {
-	assert.Equal(t, "https://wiki.example.com/a%28b%29", safeURL("https://wiki.example.com/a(b)"))
-	assert.Empty(t, safeURL("javascript:alert(1)"))
-	assert.Empty(t, safeURL("https://"))
+func TestPolicyURL(t *testing.T) {
+	cases := []struct{ policy, want string }{
+		{"1c8a58d:.github/vet/policy.yml", "https://github.com/acme/app/blob/1c8a58d/.github/vet/policy.yml"},
+		{"origin/main:.github/vet/policy.yml", "https://github.com/acme/app/blob/main/.github/vet/policy.yml"},
+		{"origin/main:vet/a.yml, origin/main:vet/b.yml", ""},
+		{"/home/runner/policy.yml", ""},
+		{"origin/main:../policy.yml", ""},
+		{"", ""},
+	}
+	for _, tc := range cases {
+		s := pullRequest(report.GateFail)
+		s.TrailerValue.Gate.Policy = tc.policy
+		assert.Equal(t, tc.want, newInput(t, s).policyURL(), tc.policy)
+	}
 }
 
-func TestGroups(t *testing.T) {
-	pkg := func(id, name, manifest string) *finding.Finding {
-		f := finding.ForPackage(finding.Meta{ControlID: "c", Title: id}, manifest, &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, name, "1.0.0")}, finding.Key{})
-		f.ID = id
-		return &f
+func TestPolicyHelpThatRepeatsTheFix(t *testing.T) {
+	s := pullRequest(report.GateFail)
+	f := s.FindingList[0]
+	f.Gate = &finding.GateRecord{Action: finding.GateActionFail, Rules: []string{"r"}, Help: f.Remediation.Summary}
+	assert.NotContains(t, newInput(t, s).body(), "**Policy help:**")
+	f.Gate.Help = "Ask the security team."
+	assert.Contains(t, newInput(t, s).body(), "**Policy help:** Ask the security team.")
+}
+
+// The upgrade report is a real pull request that got a 21,000 character
+// comment with 15 cards for one cause.
+func TestUpgradeComment(t *testing.T) {
+	body := newInput(t, plugintest.UpgradeReport()).body()
+	assert.LessOrEqual(t, utf8.RuneCountInString(body), 6500)
+	assert.LessOrEqual(t, utf8.RuneCountInString(visible(body)), maxVisible)
+	assert.NotContains(t, body, "\u200b", "a package name copies as it is")
+
+	lines := strings.Split(body, "\n")
+	assert.Equal(t, "### ❌ vet: 1 cause blocks this pull request", lines[1])
+	assert.True(t, strings.HasPrefix(lines[3], "**Next step:** `npm/pnpm@12.15.0` and 14 more in [`package.json:119`]"), lines[3])
+	assert.Contains(t, lines[3], `Keep "packageManager" at pnpm@12.8.2 in package.json`)
+	assert.Contains(t, lines[3], "Or wait until 2026-10-23 11:17 UTC, then run the job again.", "the group waits for its last package")
+	assert.Equal(t, 1, strings.Count(body, "[About this control]"), "one card")
+	assert.NotContains(t, lines[5], ".github/vet/policy.yml", "the status line has no policy path")
+}
+
+// The closed list says how many findings it cuts, also when the cut falls
+// inside the last control.
+func TestDetailsCountsTheCut(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		sizes []int
+		want  string
+	}{
+		{"cut in the only control", []int{15}, "- 5 more in the full report"},
+		{"cut in the last control", []int{7, 7}, "- 4 more in the full report"},
+		{"cut at a control", []int{10, 10}, "- 10 more in the full report"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var rest []*finding.Finding
+			for c, size := range tc.sizes {
+				for i := range size {
+					p := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, fmt.Sprintf("p%d-%d", c, i), "1.0.0")}
+					f := finding.ForPackage(finding.Meta{ControlID: fmt.Sprintf("control-%d", c), Family: finding.FamilyHygiene, Severity: finding.SeverityLow, Title: "Low"}, "package-lock.json", p, finding.Key{})
+					rest = append(rest, &f)
+				}
+			}
+			var b strings.Builder
+			newInput(t, pkgReport()).details(&b, sections{rest: rest}, 10)
+			assert.Contains(t, b.String(), tc.want)
+		})
 	}
-	a1, b, a2, other := pkg("1", "a", "package-lock.json"), pkg("2", "b", "package-lock.json"), pkg("3", "a", "package-lock.json"), pkg("4", "a", "web/package-lock.json")
-	file := &finding.Finding{ID: "5", Subject: finding.Subject{Kind: finding.SubjectFile, File: &finding.FileSubject{Path: "ci.yml"}}}
-	got := groups([]*finding.Finding{a1, b, file, a2, other})
-	assert.Equal(t, [][]*finding.Finding{{a1, a2}, {b}, {file}, {other}}, got, "one package in two manifests makes two groups")
 }

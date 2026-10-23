@@ -41,6 +41,9 @@ inputs:
   github-token:
     description: Token for the releases, the comment and the GitHub checks of vet
     default: ${{ github.token }}
+  report-artifact:
+    description: The name of the workflow artifact that holds the JSON report. The comment prints the command that downloads it. Set a name for each vet step of one run. Empty uploads no artifact.
+    default: vet-report
   cache:
     description: Keep the vet cache directory between runs with actions/cache, so a scan reads unchanged source files and package data from the cache
     default: "true"
@@ -58,6 +61,9 @@ outputs:
   comment-url:
     description: The URL of the pull request comment, or empty
     value: ${{ steps.scan.outputs.comment-url }}
+  report-artifact:
+    description: The URL of the artifact with the JSON report, or empty
+    value: ${{ steps.upload.outputs.artifact-url }}
   cache-key:
     description: The key of the vet cache entry that the run restored, or empty
     value: ${{ steps.cache.outputs.cache-matched-key }}
@@ -99,9 +105,22 @@ runs:
         ACTION_COMMENT_PROXY: ${{ inputs.comment-proxy }}
         ACTION_SARIF: ${{ inputs.sarif }}
         ACTION_ARGS: ${{ inputs.args }}
+        ACTION_REPORT_ARTIFACT: ${{ inputs.report-artifact }}
         GH_TOKEN: ${{ inputs.github-token }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: bash "$GITHUB_ACTION_PATH/action/scan.sh"
+
+    # A failed upload, such as a second artifact with the same name in the
+    # run, does not fail the job.
+    - name: Upload the report
+      id: upload
+      if: ${{ !cancelled() && inputs.report-artifact != '' && steps.scan.outputs.report != '' }}
+      continue-on-error: true
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: ${{ inputs.report-artifact }}
+        path: ${{ steps.scan.outputs.report }}
+        if-no-files-found: ignore
 
     - name: Save the vet cache
       if: ${{ !cancelled() && inputs.cache == 'true' }}

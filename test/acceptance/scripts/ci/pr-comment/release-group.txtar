@@ -1,0 +1,25 @@
+# A release with platform packages has one cause. The comment shows it as
+# one blocking item with a next step, and a snippet that accepts the
+# release with a name glob until the cooldown ends.
+env GITHUB_ACTIONS=
+execexit 1 vet scan . --fail-on high --report pr-comment=comment.md --mode plain -o plain
+grep '^### ❌ vet: 1 cause blocks this scan$' comment.md
+grep '^\*\*Next step:\*\* `npm/fresh-tool@2.0.0` and 3 more in `package-lock.json:6`: ' comment.md
+grep '^\*\*Next step:\*\* .*2099-01-03 00:00 UTC' comment.md
+grep '^<details><summary>3 more with this cause</summary>$' comment.md
+grep '^  - purl: pkg:npm/%40fresh-tool/cli-\*@2.0.0$' comment.md
+grep '^    expires: 2099-01-03T00:00:00Z$' comment.md
+grep '^vet-agent: v1$' comment.md
+
+-- package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"fresh-tool": "2.0.0"}},
+    "node_modules/fresh-tool": {"version": "2.0.0", "resolved": "https://registry.npmjs.org/fresh-tool/-/fresh-tool-2.0.0.tgz"},
+    "node_modules/@fresh-tool/cli-darwin-arm64": {"version": "2.0.0", "resolved": "https://registry.npmjs.org/@fresh-tool/cli-darwin-arm64/-/cli-darwin-arm64-2.0.0.tgz"},
+    "node_modules/@fresh-tool/cli-linux-x64": {"version": "2.0.0", "resolved": "https://registry.npmjs.org/@fresh-tool/cli-linux-x64/-/cli-linux-x64-2.0.0.tgz"},
+    "node_modules/@fresh-tool/cli-win32-x64": {"version": "2.0.0", "resolved": "https://registry.npmjs.org/@fresh-tool/cli-win32-x64/-/cli-win32-x64-2.0.0.tgz"}
+  }
+}
