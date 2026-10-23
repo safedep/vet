@@ -35,12 +35,12 @@ func TestEvaluate(t *testing.T) {
 		pkg     *model.Package
 		want    string
 	}{
-		{name: "published today", pkg: pkg("a", at(2*time.Hour)), want: "npm/a@1.0.0 was published less than 1 day ago"},
-		{name: "published 1 day ago", pkg: pkg("a", at(1*day+23*time.Hour)), want: "npm/a@1.0.0 was published 1 day ago"},
+		{name: "published today", pkg: pkg("a", at(2*time.Hour)), want: "Published less than 1 day ago"},
+		{name: "published 1 day ago", pkg: pkg("a", at(1*day+23*time.Hour)), want: "Published 1 day ago"},
 		{name: "published 2 days ago", pkg: pkg("a", at(2*day))},
 		{name: "published long ago", pkg: pkg("a", at(400*day))},
 		{name: "no publish date", pkg: pkg("a", nil)},
-		{name: "a wider window", options: plugin.MapConfig{"days": 30}, pkg: pkg("a", at(20*day)), want: "npm/a@1.0.0 was published 20 days ago"},
+		{name: "a wider window", options: plugin.MapConfig{"days": 30}, pkg: pkg("a", at(20*day)), want: "Published 20 days ago"},
 		{name: "a narrower window", options: plugin.MapConfig{"days": 1}, pkg: pkg("a", at(30*time.Hour))},
 	}
 	for _, tc := range cases {
@@ -57,7 +57,7 @@ func TestEvaluate(t *testing.T) {
 			require.Len(t, fs, 1)
 			assert.Equal(t, Name, fs[0].ControlID)
 			assert.Equal(t, tc.want, fs[0].Title)
-			assert.Contains(t, fs[0].Description, "eligible on")
+			assert.Contains(t, fs[0].Description, "The version can merge after")
 		})
 	}
 }
@@ -88,9 +88,9 @@ func TestDescriptionNamesTheWindowAndItsSource(t *testing.T) {
 		cfg  plugin.Config
 		want string
 	}{
-		{"default", plugin.MapConfig(nil), "The version is eligible on 2026-10-04. The cooldown window is 2 days, from the vet default."},
-		{"flag", origins{plugin.MapConfig{"days": 5}, map[string]string{"days": "flag --cooldown-days"}}, "The version is eligible on 2026-10-07. The cooldown window is 5 days, from flag --cooldown-days."},
-		{"config with no source", plugin.MapConfig{"days": 1}, "The cooldown window is 1 day, from your config."},
+		{"default", plugin.MapConfig(nil), "The cooldown is 2 days (vet default). The version can merge after 2026-10-04 11:00 UTC."},
+		{"flag", origins{plugin.MapConfig{"days": 5}, map[string]string{"days": "flag --cooldown-days"}}, "The cooldown is 5 days (flag --cooldown-days). The version can merge after 2026-10-07 11:00 UTC."},
+		{"config with no source", plugin.MapConfig{"days": 1}, "The cooldown is 1 day (your config)."},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -100,9 +100,13 @@ func TestDescriptionNamesTheWindowAndItsSource(t *testing.T) {
 			fs := plugintest.TestControl(t, c, &model.Manifest{ID: "m1", Path: "package-lock.json", Packages: []*model.Package{pkg("a", at(time.Hour))}}, nil)
 			require.Len(t, fs, 1)
 			assert.Contains(t, fs[0].Description, tc.want)
-			assert.Contains(t, fs[0].Description, "The setting plugins.dependency-cooldown.options.days sets the window, also in a flag or a variable")
 		})
 	}
+}
+
+func TestMinuteRoundsUp(t *testing.T) {
+	assert.Equal(t, "2026-10-23 11:16 UTC", minute(time.Date(2026, 10, 23, 11, 15, 31, 0, time.UTC)))
+	assert.Equal(t, "2026-10-23 11:15 UTC", minute(time.Date(2026, 10, 23, 11, 15, 0, 0, time.UTC)))
 }
 
 func TestSkip(t *testing.T) {
@@ -120,7 +124,7 @@ func TestSkip(t *testing.T) {
 	sdk, other := goPkg("buf.build/gen/go/safedep/api/grpc/go"), goPkg("buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go")
 	fs := plugintest.TestControl(t, c, &model.Manifest{ID: "m1", Path: "go.mod", Packages: []*model.Package{sdk, other, pkg("left-pad", at(time.Hour))}}, nil)
 	require.Len(t, fs, 1)
-	assert.Contains(t, fs[0].Title, "protovalidate")
+	assert.Contains(t, fs[0].Subject.Package.PURL, "protovalidate")
 }
 
 func TestNewRejectsBadSkip(t *testing.T) {

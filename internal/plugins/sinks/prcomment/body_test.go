@@ -353,7 +353,7 @@ func TestOneCardForEachPackage(t *testing.T) {
 	body := newInput(t, s).body()
 	assert.Equal(t, 1, strings.Count(body, "`npm/evil-colors@1.4.1` · added in"), "the package heading shows once")
 	assert.Contains(t, body, "**Malicious package** · `critical` · `malware`")
-	assert.Contains(t, body, "**Version inside the cooldown window** · `high` · `dependency-cooldown`")
+	assert.Contains(t, body, "**Version inside the cooldown window** · `cooldown` · `dependency-cooldown`")
 	assert.Contains(t, body, "**Blocked by:** --fail-on attacks")
 	assert.Contains(t, body, "**Blocked by:** policy rule critical-or-high")
 	assert.Contains(t, body, "**Policy help:** Wait, or suppress the finding.\n")
@@ -387,6 +387,32 @@ func visible(body string) string { return hidden.ReplaceAllString(body, "") }
 // comment for one cause. The limits record the size today.
 func TestUpgradeCommentSize(t *testing.T) {
 	body := newInput(t, plugintest.UpgradeReport()).body()
-	assert.LessOrEqual(t, utf8.RuneCountInString(body), 20028)
-	assert.LessOrEqual(t, utf8.RuneCountInString(visible(body)), 17351)
+	assert.LessOrEqual(t, utf8.RuneCountInString(body), 17838)
+	assert.LessOrEqual(t, utf8.RuneCountInString(visible(body)), 15549)
+	assert.NotContains(t, body, "\u200b", "a package name copies as it is")
+}
+
+func TestPolicyURL(t *testing.T) {
+	cases := []struct{ policy, want string }{
+		{"1c8a58d:.github/vet/policy.yml", "https://github.com/acme/app/blob/1c8a58d/.github/vet/policy.yml"},
+		{"origin/main:.github/vet/policy.yml", "https://github.com/acme/app/blob/main/.github/vet/policy.yml"},
+		{"origin/main:vet/a.yml, origin/main:vet/b.yml", ""},
+		{"/home/runner/policy.yml", ""},
+		{"origin/main:../policy.yml", ""},
+		{"", ""},
+	}
+	for _, tc := range cases {
+		s := pullRequest(report.GateFail)
+		s.TrailerValue.Gate.Policy = tc.policy
+		assert.Equal(t, tc.want, newInput(t, s).policyURL(), tc.policy)
+	}
+}
+
+func TestPolicyHelpThatRepeatsTheFix(t *testing.T) {
+	s := pullRequest(report.GateFail)
+	f := s.FindingList[0]
+	f.Gate = &finding.GateRecord{Action: finding.GateActionFail, Rules: []string{"r"}, Help: f.Remediation.Summary}
+	assert.NotContains(t, newInput(t, s).body(), "**Policy help:**")
+	f.Gate.Help = "Ask the security team."
+	assert.Contains(t, newInput(t, s).body(), "**Policy help:** Ask the security team.")
 }

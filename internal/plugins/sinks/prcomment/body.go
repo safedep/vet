@@ -294,9 +294,6 @@ func (c *input) baseline() ([]string, bool) {
 func (c *input) status(b *strings.Builder, blocking, review int) {
 	g := c.trailer.Gate
 	parts := []string{"**" + gateText(g.Outcome) + "**"}
-	if g.Policy != "" && !g.PolicyChanged {
-		parts = append(parts, "Policy: "+code(g.Policy))
-	}
 	if blocking > 0 {
 		parts = append(parts, fmt.Sprintf("%d blocking", blocking))
 	}
@@ -395,7 +392,7 @@ func groups(fs []*finding.Finding) [][]*finding.Finding {
 // heading of its package and starts with the title. It shows its place
 // when the place differs from the place of the heading.
 func (c *input) card(b *strings.Builder, f *finding.Finding, subject bool, heading string) {
-	head := fmt.Sprintf("**%s** · %s", md(render.Title(f), maxField), code(string(f.Severity)))
+	head := fmt.Sprintf("**%s** · %s", md(render.Title(f), maxField), code(kind(f)))
 	where := c.placeOf(f)
 	switch {
 	case subject:
@@ -423,7 +420,7 @@ func (c *input) card(b *strings.Builder, f *finding.Finding, subject bool, headi
 	if len(f.Evidence) > 0 {
 		fmt.Fprintf(b, "**Evidence:** %s\n\n", md(render.Text(f.Evidence[0].Summary), maxText))
 	}
-	fmt.Fprintf(b, "[About this check](%s) · [Wrong result?](%s) · %s\n\n", c.docURL(f.ControlID), c.formURL(f), code(f.ID))
+	fmt.Fprintf(b, "[About this control](%s) · [Wrong result?](%s) · %s\n\n", c.docURL(f.ControlID), c.formURL(f), code(f.ID))
 }
 
 // placeOf is the place of a finding with its change in pull request mode.
@@ -444,7 +441,7 @@ func (c *input) gate(b *strings.Builder, f *finding.Finding) {
 	}
 	fmt.Fprintf(b, "**%s:** %s\n\n", g.Label(), md(render.Text(g.Cause()), maxField))
 	var help []string
-	if g.Help != "" {
+	if g.Help != "" && (f.Remediation == nil || g.Help != f.Remediation.Summary) {
 		help = append(help, md(render.Text(g.Help), maxText))
 	}
 	if u := safeURL(g.Link); u != "" {
@@ -476,7 +473,7 @@ func (c *input) lines(b *strings.Builder, fs []*finding.Finding) {
 			fmt.Fprintf(b, "- %d more in the full report\n", len(fs)-maxLines)
 			break
 		}
-		line := fmt.Sprintf("- %s %s: %s · %s", code(string(f.Severity)), code(render.Subject(f)), md(render.Title(f), maxField), code(render.Where(f)))
+		line := fmt.Sprintf("- %s %s: %s · %s", code(kind(f)), code(render.Subject(f)), md(render.Title(f), maxField), code(render.Where(f)))
 		if g := f.Gate; g != nil {
 			line += " · " + strings.ToLower(g.Label()) + " " + md(render.Text(g.Cause()), maxField)
 		}
@@ -517,6 +514,9 @@ func (c *input) footer(b *strings.Builder) {
 	if c.links.Run != "" {
 		parts = append(parts, fmt.Sprintf("[Full report](%s)", c.links.Run))
 	}
+	if u := c.policyURL(); u != "" {
+		parts = append(parts, fmt.Sprintf("[Policy](%s)", u))
+	}
 	parts = append(parts,
 		fmt.Sprintf("[Wrong result?](%s)", c.formURL(nil)),
 		fmt.Sprintf("[Add vet to your repo](%s/blob/%s/docs/github-action.md)", repoURL, c.ref()))
@@ -533,6 +533,16 @@ func (c *input) stateBlock() (string, bool) {
 	return encodeState(s)
 }
 
+// policyURL links the policy file at the base ref that the gate read, or
+// returns "" for a policy that is not one file at a base ref.
+func (c *input) policyURL() string {
+	ref, path, ok := strings.Cut(c.trailer.Gate.Policy, ":")
+	if !ok || ref == "" || strings.Contains(path, ", ") || !fs.ValidPath(path) || c.links.Server == "" || c.links.Repository == "" {
+		return ""
+	}
+	return fmt.Sprintf("%s/%s/blob/%s/%s", c.links.Server, c.links.Repository, url.PathEscape(strings.TrimPrefix(ref, "origin/")), pathEscape(path))
+}
+
 // where is the place of the finding, a link to the file at the head
 // commit when the platform is known.
 func (c *input) where(f *finding.Finding) string {
@@ -544,15 +554,20 @@ func (c *input) where(f *finding.Finding) string {
 	if l == nil || l.Path == "" || c.links.NoFiles || c.links.Server == "" || c.links.Repository == "" || c.links.Head == "" || !fs.ValidPath(l.Path) {
 		return code(w)
 	}
-	segs := strings.Split(c.links.Prefix+l.Path, "/")
-	for i, s := range segs {
-		segs[i] = url.PathEscape(s)
-	}
-	u := fmt.Sprintf("%s/%s/blob/%s/%s", c.links.Server, c.links.Repository, url.PathEscape(c.links.Head), strings.Join(segs, "/"))
+	u := fmt.Sprintf("%s/%s/blob/%s/%s", c.links.Server, c.links.Repository, url.PathEscape(c.links.Head), pathEscape(c.links.Prefix+l.Path))
 	if l.StartLine > 0 {
 		u += fmt.Sprintf("#L%d", l.StartLine)
 	}
 	return fmt.Sprintf("[%s](%s)", code(w), u)
+}
+
+// pathEscape escapes each segment of a slash path.
+func pathEscape(p string) string {
+	segs := strings.Split(p, "/")
+	for i, s := range segs {
+		segs[i] = url.PathEscape(s)
+	}
+	return strings.Join(segs, "/")
 }
 
 // ref is the git ref of the vet docs: the tag of a release build, else
@@ -615,6 +630,16 @@ func (c *input) small(b *strings.Builder, line string) {
 		return
 	}
 	b.WriteString(line + "\n\n")
+}
+
+// kind is the label of a finding in the comment: its severity, or
+// "cooldown" for a version that waits for its cooldown. The report keeps
+// the severity of a cooldown finding, but "high" reads as a high risk.
+func kind(f *finding.Finding) string {
+	if f.Family == finding.FamilyCooldown {
+		return "cooldown"
+	}
+	return string(f.Severity)
 }
 
 // md escapes free text for markdown and bounds it to n runes.

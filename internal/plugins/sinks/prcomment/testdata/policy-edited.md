@@ -30,7 +30,7 @@ npm uninstall evil-colors
 
 **Evidence:** Verified malicious
 
-[About this check](https://github.com/safedep/vet/blob/v2.0.0-alpha.20261005063951/docs/controls.md#malware) · [Wrong result?](https://github.com/safedep/vet/issues/new?control=malware&finding=f-f7017b227d6ad796&subject=pkg%3Anpm%2Fevil-colors%401.4.1&template=false-positive.yml&version=2.0.0-alpha.20261005063951) · `f-f7017b227d6ad796`
+[About this control](https://github.com/safedep/vet/blob/v2.0.0-alpha.20261005063951/docs/controls.md#malware) · [Wrong result?](https://github.com/safedep/vet/issues/new?control=malware&finding=f-f7017b227d6ad796&subject=pkg%3Anpm%2Fevil-colors%401.4.1&template=false-positive.yml&version=2.0.0-alpha.20261005063951) · `f-f7017b227d6ad796`
 
 <details><summary>1 more finding (medium and lower)</summary>
 
@@ -50,6 +50,6 @@ suppressions:
 
 </details>
 
-<sub>[vet](https://github.com/safedep/vet) 2.0.0-alpha.20261005063951 · open source, by SafeDep · [Full report](https://github.com/acme/app/actions/runs/99) · [Wrong result?](https://github.com/safedep/vet/issues/new?template=false-positive.yml&version=2.0.0-alpha.20261005063951) · [Add vet to your repo](https://github.com/safedep/vet/blob/v2.0.0-alpha.20261005063951/docs/github-action.md)</sub>
+<sub>[vet](https://github.com/safedep/vet) 2.0.0-alpha.20261005063951 · open source, by SafeDep · [Full report](https://github.com/acme/app/actions/runs/99) · [Policy](https://github.com/acme/app/blob/main/.github/vet/policy.yml) · [Wrong result?](https://github.com/safedep/vet/issues/new?template=false-positive.yml&version=2.0.0-alpha.20261005063951) · [Add vet to your repo](https://github.com/safedep/vet/blob/v2.0.0-alpha.20261005063951/docs/github-action.md)</sub>
 
 <!-- vet:state eyJ2IjoxLCJoZWFkIjoiMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsImlkcyI6WyJmLWU4MTViYjNiNWUwODQ2ZjEiLCJmLWY3MDE3YjIyN2Q2YWQ3OTYiXSwiZmlyc3QiOnRydWV9 -->

@@ -57,6 +57,11 @@ func TestTitleDropsTheSubject(t *testing.T) {
 		{name: "vulnerability", f: pkg("GHSA-hmr4-m2h5-33qx in pypi/django@2.2.0: SQL injection in Django"), want: "GHSA-hmr4-m2h5-33qx: SQL injection in Django"},
 		{name: "no package in the title", f: pkg("Malicious package"), want: "Malicious package"},
 		{name: "workflow element", f: file("actions/checkout@v4 is not pinned to a commit SHA", "actions/checkout@v4"), want: "is not pinned to a commit SHA"},
+		{name: "subject at the start", f: pkg("pypi/django@2.2.0 has no provenance, and 2.1.0 had one"), want: "has no provenance, and 2.1.0 had one"},
+		{name: "subject and a colon at the start", f: pkg("pypi/django@2.2.0: the upgrade jumps from 1.0.0 to 2.2.0"), want: "the upgrade jumps from 1.0.0 to 2.2.0"},
+		{name: "name at the start", f: pkg("django is new: its first version is 9 days old"), want: "is new: its first version is 9 days old"},
+		{name: "name inside a word", f: pkg("djangorest is new"), want: "djangorest is new"},
+		{name: "only the subject", f: pkg("pypi/django@2.2.0"), want: "pypi/django@2.2.0"},
 		{name: "element not at the start", f: file("Job build asks for write-all permissions", "permissions: write-all"), want: "Job build asks for write-all permissions"},
 	}
 	for _, tc := range cases {

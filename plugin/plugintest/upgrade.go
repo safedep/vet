@@ -44,10 +44,9 @@ func UpgradeReport() *MemState {
 	cooldown := func(p *model.Package, at time.Time) {
 		f := finding.ForPackage(finding.Meta{
 			ControlID: "dependency-cooldown", Family: finding.FamilyCooldown, Severity: finding.SeverityHigh,
-			Title: p.ID.String() + " was published 1 day ago",
-			Description: "The registry published this version on 2026-10-21. The version is eligible on 2026-10-23. " +
-				"The cooldown window is 2 days, from flag --cooldown-days. " +
-				"The setting plugins.dependency-cooldown.options.days sets the window, also in a flag or a variable",
+			Title: "Published 1 day ago",
+			Description: fmt.Sprintf("The registry published this version on %s. The cooldown is 2 days (flag --cooldown-days). The version can merge after %s.",
+				minute(at), minute(at.AddDate(0, 0, 2))),
 		}, m.Path, p, finding.Key{})
 		f.Change = p.Change
 		f.Evidence = []finding.Evidence{{Source: "insights", Summary: "published at " + at.Format(time.RFC3339)}}
@@ -107,4 +106,9 @@ func UpgradeReport() *MemState {
 		Rules: []string{"package-cooldown"}, FindingIDs: blocked,
 	}
 	return s
+}
+
+// minute shows t to the minute, rounded up, as the cooldown control does.
+func minute(t time.Time) string {
+	return t.Add(time.Minute-time.Nanosecond).Truncate(time.Minute).Format("2006-01-02 15:04") + " UTC"
 }

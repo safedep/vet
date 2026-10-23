@@ -23,7 +23,7 @@ The package runs a postinstall script that reads \~/.npmrc.
 
 **Evidence:** Verified malicious
 
-[About this check](https://github.com/safedep/vet/blob/v2/docs/controls.md#malware) · [Wrong result?](https://github.com/safedep/vet/issues/new?control=malware&finding=f-f7017b227d6ad796&subject=pkg%3Anpm%2Fevil-colors%401.4.1&template=false-positive.yml&version=test) · `f-f7017b227d6ad796`
+[About this control](https://github.com/safedep/vet/blob/v2/docs/controls.md#malware) · [Wrong result?](https://github.com/safedep/vet/issues/new?control=malware&finding=f-f7017b227d6ad796&subject=pkg%3Anpm%2Fevil-colors%401.4.1&template=false-positive.yml&version=test) · `f-f7017b227d6ad796`
 
 <details><summary>1 more finding (medium and lower)</summary>
 

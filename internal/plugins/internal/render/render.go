@@ -57,17 +57,30 @@ func SubjectID(f *finding.Finding) string {
 
 // Title is the title of the finding with no repeat of what Subject names:
 // "GHSA-1234: Prototype pollution" for "GHSA-1234 in npm/x@1.0.0: Prototype
-// pollution", and "is not pinned to a commit SHA" for "actions/checkout@v4
-// is not pinned to a commit SHA".
+// pollution", "has no provenance" for "npm/x@1.0.0 has no provenance", and
+// "is not pinned to a commit SHA" for "actions/checkout@v4 is not pinned to a
+// commit SHA". A title that is only the subject stays as it is.
 func Title(f *finding.Finding) string {
 	t := f.Title
 	switch s := f.Subject; {
 	case s.Package != nil:
 		t = strings.Replace(t, " in "+packageSubject(s.Package), "", 1)
+		t = trimLead(t, packageSubject(s.Package)+": ", packageSubject(s.Package)+" ", s.Package.RawName+" ")
 	case s.File != nil && s.File.Element != "":
-		t = strings.TrimPrefix(t, s.File.Element+" ")
+		t = trimLead(t, s.File.Element+" ")
 	}
 	return escape.Line(t)
+}
+
+// trimLead removes the first prefix that t starts with, unless no text is
+// left after it.
+func trimLead(t string, prefixes ...string) string {
+	for _, p := range prefixes {
+		if rest, ok := strings.CutPrefix(t, p); ok && rest != "" {
+			return rest
+		}
+	}
+	return t
 }
 
 // Where is path:line of the finding, or the manifest path.

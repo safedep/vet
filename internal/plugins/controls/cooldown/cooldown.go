@@ -125,9 +125,9 @@ func (c *Control) finding(m *model.Manifest, p *model.Package, published time.Ti
 	eligible := published.AddDate(0, 0, c.days)
 	f := finding.ForPackage(finding.Meta{
 		ControlID: Name, Family: finding.FamilyCooldown, Severity: finding.SeverityHigh,
-		Title: fmt.Sprintf("%s was published %s", p.ID, ago(days)),
-		Description: fmt.Sprintf("The registry published this version on %s. The version is eligible on %s. The cooldown window is %s, from %s. The setting %s sets the window, also in a flag or a variable",
-			published.Format(time.DateOnly), eligible.Format(time.DateOnly), humanize.Count(c.days, "day"), c.sourceText(), DaysKey),
+		Title: "Published " + ago(days),
+		Description: fmt.Sprintf("The registry published this version on %s. The cooldown is %s (%s). The version can merge after %s.",
+			minute(published), humanize.Count(c.days, "day"), c.sourceText(), minute(eligible)),
 	}, m.Path, p, finding.Key{})
 	f.Evidence = []finding.Evidence{{Source: "insights", Summary: "published at " + published.Format(time.RFC3339)}}
 	summary := fmt.Sprintf("Wait until %s, or keep the version that you used before.", eligible.Format(time.DateOnly))
@@ -139,7 +139,12 @@ func (c *Control) finding(m *model.Manifest, p *model.Package, published time.Ti
 }
 
 // sourceText says where the window comes from.
-func (c *Control) sourceText() string { return cmp.Or(c.source, "the vet default") }
+func (c *Control) sourceText() string { return cmp.Or(c.source, "vet default") }
+
+// minute shows t to the minute, rounded up, so that "after" holds.
+func minute(t time.Time) string {
+	return t.Add(time.Minute-time.Nanosecond).Truncate(time.Minute).Format("2006-01-02 15:04") + " UTC"
+}
 
 func ago(days int) string {
 	switch {
