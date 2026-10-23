@@ -54,7 +54,7 @@ suppressions:
 
 <details><summary>For AI agents</summary>
 
-```yaml
+````yaml
 vet-agent: v1
 gate: none
 head: "2222222222222222222222222222222222222222"
@@ -68,7 +68,7 @@ causes:
     command: npm uninstall evil-colors
     findings: [f-f7017b227d6ad796]
 other: [f-e815bb3b5e0846f1]
-```
+````
 
 </details>
 

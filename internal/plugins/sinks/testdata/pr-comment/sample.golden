@@ -50,7 +50,7 @@ suppressions:
 
 <details><summary>For AI agents</summary>
 
-```yaml
+````yaml
 vet-agent: v1
 gate: none
 causes:
@@ -62,7 +62,7 @@ causes:
     fixed_version: 1.3.9
     findings: [f-f7017b227d6ad796]
 other: [f-e815bb3b5e0846f1]
-```
+````
 
 </details>
 

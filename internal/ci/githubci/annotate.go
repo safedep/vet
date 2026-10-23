@@ -8,7 +8,7 @@ import (
 	"github.com/safedep/vet/v2/internal/ci"
 )
 
-// Annotate writes each annotation as an error workflow command. The runner
+// Annotate writes each annotation as an error or a warning workflow command. The runner
 // reads the commands from the output of the step, and shows each one at
 // its line in the diff of the pull request.
 func Annotate(w io.Writer, as []ci.Annotation) error {
@@ -20,7 +20,11 @@ func Annotate(w io.Writer, as []ci.Annotation) error {
 		if a.Title != "" {
 			props += ",title=" + property(a.Title)
 		}
-		if _, err := fmt.Fprintf(w, "::error %s::%s\n", props, data(a.Text)); err != nil {
+		level := ci.AnnotationError
+		if a.Level == ci.AnnotationWarning {
+			level = a.Level
+		}
+		if _, err := fmt.Fprintf(w, "::%s %s::%s\n", level, props, data(a.Text)); err != nil {
 			return err
 		}
 	}

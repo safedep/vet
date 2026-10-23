@@ -63,7 +63,7 @@ suppressions:
 
 <details><summary>For AI agents</summary>
 
-```yaml
+````yaml
 vet-agent: v1
 gate: none
 causes:
@@ -80,7 +80,7 @@ causes:
     place: package-lock.json
     findings: [f-68be2d562f0682bb]
 other: [f-e815bb3b5e0846f1, f-ff61bff9fc367aea]
-```
+````
 
 </details>
 

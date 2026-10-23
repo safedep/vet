@@ -89,16 +89,24 @@ func trimLead(t string, prefixes ...string) string {
 
 // Where is path:line of the finding, or the manifest path.
 func Where(f *finding.Finding) string {
+	path, line := Place(f)
+	switch {
+	case path == "":
+		return Subject(f)
+	case line > 0:
+		return escape.Line(fmt.Sprintf("%s:%d", path, line))
+	}
+	return escape.Line(path)
+}
+
+// Place is the file and the line to edit for a finding: its locus, else
+// the file of its subject. The line is 0 when vet does not know it. The
+// path is raw, so a caller escapes it for its format.
+func Place(f *finding.Finding) (string, int) {
 	if l := f.Locus; l != nil && l.Path != "" {
-		if l.StartLine > 0 {
-			return escape.Line(fmt.Sprintf("%s:%d", l.Path, l.StartLine))
-		}
-		return escape.Line(l.Path)
+		return l.Path, l.StartLine
 	}
-	if p := f.Subject.Package; p != nil {
-		return escape.Line(p.ManifestPath)
-	}
-	return Subject(f)
+	return f.Path(), 0
 }
 
 // Text escapes free text from a finding, such as a title.

@@ -605,13 +605,13 @@ func (c *input) where(f *finding.Finding) string {
 	if w == "" {
 		return ""
 	}
-	l := f.Locus
-	if l == nil || l.Path == "" || c.links.NoFiles || c.links.Server == "" || c.links.Repository == "" || c.links.Head == "" || !fs.ValidPath(l.Path) {
+	path, line := render.Place(f)
+	if path == "" || c.links.NoFiles || c.links.Server == "" || c.links.Repository == "" || c.links.Head == "" || !fs.ValidPath(path) {
 		return code(w)
 	}
-	u := fmt.Sprintf("%s/%s/blob/%s/%s", c.links.Server, c.links.Repository, url.PathEscape(c.links.Head), pathEscape(c.links.Prefix+l.Path))
-	if l.StartLine > 0 {
-		u += fmt.Sprintf("#L%d", l.StartLine)
+	u := fmt.Sprintf("%s/%s/blob/%s/%s", c.links.Server, c.links.Repository, url.PathEscape(c.links.Head), pathEscape(c.links.Prefix+path))
+	if line > 0 {
+		u += fmt.Sprintf("#L%d", line)
 	}
 	return fmt.Sprintf("[%s](%s)", code(w), u)
 }

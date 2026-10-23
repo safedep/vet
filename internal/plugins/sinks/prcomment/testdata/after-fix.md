@@ -15,12 +15,12 @@
 
 <details><summary>For AI agents</summary>
 
-```yaml
+````yaml
 vet-agent: v1
 gate: pass
 head: "2222222222222222222222222222222222222222"
 other: [f-e815bb3b5e0846f1]
-```
+````
 
 </details>
 

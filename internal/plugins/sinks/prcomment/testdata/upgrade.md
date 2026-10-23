@@ -89,7 +89,7 @@ suppressions:
 
 <details><summary>For AI agents</summary>
 
-```yaml
+````yaml
 vet-agent: v1
 gate: fail
 head: "2222222222222222222222222222222222222222"
@@ -99,11 +99,11 @@ causes:
     rules: [package-cooldown]
     subject: pkg:npm/pnpm@12.15.0
     place: pnpm-lock.yaml:92
-    fix: Keep version 12.8.2, or wait until 2026-10-23. The wait ends at 2026-10-23 11:17 UTC.
+    fix: Keep version 12.8.2, or wait until 2026-10-23.
     wait_until: "2026-10-23T11:16:31Z"
     findings: [f-492e6ab63797f149, f-b0579d0afabfedb4, f-46785b90e9ebad16, f-a69b600775bf23f9, f-c2e9551e506c31e0, f-f19b1ce17d468eb4, f-9d02a3f59502f5a9, f-6a8763a80c9ecd27, f-32ac2a286ed795cb, f-6a841e98056181b4, f-836594314dfde5fd, f-0904cb2689c6085e, f-92fe51002f0610e6, f-8aa7abcb83588720, f-23bd63dd8af8ed23]
 other: [f-4c153369825a13c7, f-5040d4c508043032, f-6af0f2aca8e112d7, f-822a48b188a3640a, f-8c4ab1869e91f60f, f-a49e47daf6246e48, f-4b90087f9be39568, f-2680d5d001a6098f, f-10063743abfd4c01]
-```
+````
 
 </details>
 

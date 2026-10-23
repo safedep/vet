@@ -5,10 +5,10 @@
 
 <details><summary>For AI agents</summary>
 
-```yaml
+````yaml
 vet-agent: v1
 gate: none
-```
+````
 
 </details>
 

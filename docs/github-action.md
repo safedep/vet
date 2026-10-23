@@ -57,7 +57,7 @@ Then, in the settings of the repository:
 | `config` | empty | The path of a vet config file in the repository, such as `.github/vet/config.yml` in the default setup. In a pull request, vet reads the file at the base commit |
 | `args` | empty | More arguments for `vet scan`. The action splits them on white space |
 | `github-token` | `${{ github.token }}` | The token for the releases, the comment and the GitHub checks of vet |
-| `report-artifact` | `vet-report` | The name of the workflow artifact with the JSON report. The comment prints the command that downloads it. Give each vet step of one run its own name. Empty uploads no artifact |
+| `report-artifact` | `vet-report` | The name of the workflow artifact with the JSON report. The comment prints the command that downloads it. Give each vet step of one run its own name, such as `vet-report-${{ matrix.os }}` for a matrix job. A second artifact with the same name fails to upload, and the comment then points to the first one. Empty uploads no artifact |
 | `cache` | `true` | Keep the vet cache directory between runs with `actions/cache`. A scan then reads the unchanged source files and package data from the cache |
 
 The action has two cooldowns for two different things:
@@ -156,8 +156,9 @@ posts it. The comment shows:
   and an end date for a cooldown
 - a "Wrong result?" link to the [issue form](https://github.com/safedep/vet/issues/new?template=false-positive.yml)
 
-For each blocking cause, vet writes an error annotation at the line to edit, at most 10, so the cause
-also shows in the "Files changed" tab.
+For each blocking cause, vet writes an error annotation at the line to edit, so the cause also shows
+in the "Files changed" tab. An attack that the gate does not fail gets a warning annotation. A run
+writes at most 10 annotations.
 
 ### For AI agents
 
@@ -170,7 +171,7 @@ The comment ends with a closed "For AI agents" block. It is YAML with these keys
 | `head` | The head commit that vet checked |
 | `report` | The `gh run download` command that writes the JSON report to `vet-report/report.json` |
 | `finding` | The command that shows one finding of that report as JSON |
-| `causes` | The causes that the comment shows. Each one has `gate`, `control`, `rules`, `fail_on`, `subject` (a PURL or a path), `place` (`file:line`), `fix`, `fixed_version`, `command`, `wait_until` (RFC 3339) and `findings` (the finding ids) |
+| `causes` | The causes that the comment shows. Each one has `gate` (`fail`, `warn` or `none`), `control`, `rules`, `fail_on`, `subject` (a PURL or a path), `place` (`file:line`), `fix` (the fix summary of the lead), `fixed_version`, `command`, `wait_until` (RFC 3339, the end of the wait of the cause) and `findings` (the finding ids) |
 | `other` | The ids of the findings in the closed list |
 
 A key with no value is not in the block. Each list holds at most 100 ids. The report has each finding.

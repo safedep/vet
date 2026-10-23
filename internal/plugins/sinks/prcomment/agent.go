@@ -10,7 +10,6 @@ import (
 	"github.com/safedep/dry/log"
 	"gopkg.in/yaml.v3"
 
-	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/ci"
 	"github.com/safedep/vet/v2/internal/plugins/internal/render"
 )
@@ -48,7 +47,7 @@ type agentCause struct {
 	Control      string   `yaml:"control"`
 	Rules        []string `yaml:"rules,omitempty,flow"`
 	FailOn       string   `yaml:"fail_on,omitempty"`
-	Subject      string   `yaml:"subject"`
+	Subject      string   `yaml:"subject,omitempty"`
 	Place        string   `yaml:"place,omitempty"`
 	Fix          string   `yaml:"fix,omitempty"`
 	FixedVersion string   `yaml:"fixed_version,omitempty"`
@@ -75,19 +74,22 @@ func (c *input) agent(b *strings.Builder, sec sections) {
 		log.Warnf("pr-comment: write the agent block: %v", err)
 		return
 	}
+	// No value holds a line break and the encoder does not wrap, so no text
+	// from the scanned code starts a line. The longer fence also keeps a
+	// value from closing the block.
 	c.open(b, "For AI agents")
-	fmt.Fprintf(b, "```yaml\n%s```\n\n", fenceSafe(data.String()))
+	fmt.Fprintf(b, "````yaml\n%s````\n\n", data.String())
 	c.close(b)
 }
 
 func cause(g render.Group) agentCause {
 	f := g.Lead()
-	out := agentCause{Gate: "none", Control: f.ControlID, Subject: render.SubjectID(f), Place: render.Where(f), Fix: g.Fix(), Findings: capIDs(ids(g.Findings))}
+	out := agentCause{Gate: "none", Control: f.ControlID, Subject: render.SubjectID(f), Place: render.Where(f), Findings: capIDs(ids(g.Findings))}
 	if gr := f.Gate; gr != nil {
 		out.Gate, out.Rules, out.FailOn = string(gr.Action), gr.Rules, gr.FailOn
 	}
 	if r := f.Remediation; r != nil {
-		out.FixedVersion, out.Command = render.Text(r.FixedVersion), render.Text(r.Command)
+		out.Fix, out.FixedVersion, out.Command = render.Text(r.Summary), render.Text(r.FixedVersion), render.Text(r.Command)
 	}
 	if until, ok := g.WaitUntil(); ok {
 		out.WaitUntil = until.UTC().Format(time.RFC3339)
@@ -97,40 +99,45 @@ func cause(g render.Group) agentCause {
 
 func capIDs(ids []string) []string { return ids[:min(len(ids), maxAgentIDs)] }
 
-// fenceSafe keeps text from the scanned code from closing the code block.
-func fenceSafe(s string) string { return strings.ReplaceAll(s, "`", "'") }
-
-// annotations are the error annotations of the blocking causes, at most
-// maxAnnotations, each at the line of the lead of the cause.
+// annotations mark the causes that the comment shows, at most
+// maxAnnotations, each at the line of its lead: an error for a cause that
+// fails the gate, and a warning for an attack that the gate does not fail.
 func (c *input) annotations() []ci.Annotation {
 	sec := c.sections()
-	if !sec.blocking || c.links.NoFiles {
+	if c.links.NoFiles {
 		return nil
 	}
+	type marked struct {
+		g     render.Group
+		level ci.AnnotationLevel
+	}
+	var gs []marked
+	if sec.blocking {
+		for _, g := range sec.shown {
+			gs = append(gs, marked{g, ci.AnnotationError})
+		}
+	}
+	for _, g := range sec.attacks {
+		gs = append(gs, marked{g, ci.AnnotationWarning})
+	}
 	var out []ci.Annotation
-	for _, g := range sec.shown {
+	for _, m := range gs {
 		if len(out) == maxAnnotations {
 			break
 		}
-		f := g.Lead()
-		path, line := placeOfFinding(f)
+		f := m.g.Lead()
+		path, line := render.Place(f)
 		if path == "" || !fs.ValidPath(c.links.Prefix+path) {
 			continue
 		}
-		title := "vet: " + render.Title(f)
-		text := render.Subject(f) + g.More()
-		if fix := g.Fix(); fix != "" {
+		text := render.Subject(f) + m.g.More()
+		if fix := m.g.Fix(); fix != "" {
 			text += ": " + fix
 		}
-		out = append(out, ci.Annotation{Path: c.links.Prefix + path, Line: line, Title: render.Truncate(title, maxField), Text: render.Truncate(text, maxText)})
+		out = append(out, ci.Annotation{
+			Level: m.level, Path: c.links.Prefix + path, Line: line,
+			Title: render.Truncate("vet: "+render.Title(f), maxField), Text: render.Truncate(text, maxText),
+		})
 	}
 	return out
-}
-
-// placeOfFinding is the file and the line to edit for a finding.
-func placeOfFinding(f *finding.Finding) (string, int) {
-	if l := f.Locus; l != nil && l.Path != "" {
-		return l.Path, l.StartLine
-	}
-	return f.Path(), 0
 }

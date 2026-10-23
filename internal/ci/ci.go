@@ -70,9 +70,18 @@ type Change struct {
 	Private bool
 }
 
+// AnnotationLevel is how the platform marks an annotation.
+type AnnotationLevel string
+
+const (
+	AnnotationError   AnnotationLevel = "error"
+	AnnotationWarning AnnotationLevel = "warning"
+)
+
 // Annotation is a message at a line of a file, as the platform shows it in
 // the diff of the change.
 type Annotation struct {
+	Level AnnotationLevel
 	Path  string
 	Line  int
 	Title string

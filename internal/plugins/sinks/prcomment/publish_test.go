@@ -2,6 +2,7 @@ package prcomment
 
 import (
 	"context"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -46,6 +47,7 @@ func newPublisher(t *testing.T, create string, env func(string) string, cm *fake
 	sink := s.(*Sink)
 	sink.getenv = env
 	sink.commenter = func(context.Context, ci.Context) (ci.Commenter, error) { return cm, nil }
+	sink.annotations = io.Discard
 	return sink
 }
 

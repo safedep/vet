@@ -5,11 +5,11 @@
 
 <details><summary>For AI agents</summary>
 
-```yaml
+````yaml
 vet-agent: v1
 gate: pass
 head: "2222222222222222222222222222222222222222"
-```
+````
 
 </details>
 
