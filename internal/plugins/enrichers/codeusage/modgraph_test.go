@@ -186,6 +186,8 @@ func TestGraphOfAGoMod(t *testing.T) {
 		// goworkVia spells GOWORK through a link to the module directory, or
 		// as a relative path.
 		goworkVia string
+		// outerWork is a go.work in the parent of the scan root.
+		outerWork string
 	}{
 		{
 			name:  "an unreached module has no source",
@@ -215,6 +217,13 @@ func TestGraphOfAGoMod(t *testing.T) {
 			gowork: "ws/go.work",
 			note:   "because the workspace",
 			none:   true,
+		},
+		{
+			name:      "a workspace above the scan root",
+			files:     map[string]string{"go.mod": gomod, "main.go": "package main\n"},
+			outerWork: "go 1.22\n\nuse ./mod\n",
+			note:      "/go.work holds it",
+			none:      true,
 		},
 		{
 			name:      "GOWORK names the workspace through a link",
@@ -247,8 +256,12 @@ func TestGraphOfAGoMod(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			dir, cache := t.TempDir(), t.TempDir()
+			outer, cache := t.TempDir(), t.TempDir()
+			dir := filepath.Join(outer, "mod")
 			writeTree(t, dir, tc.files)
+			if tc.outerWork != "" {
+				writeTree(t, outer, map[string]string{"go.work": tc.outerWork})
+			}
 			writeTree(t, cache, map[string]string{
 				"example.com/a@v1.0.0/a.go": "package a\n\nimport _ \"example.com/b\"\n",
 				"example.com/b@v1.0.0/b.go": "package b\n",

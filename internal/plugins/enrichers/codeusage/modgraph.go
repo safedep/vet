@@ -187,8 +187,8 @@ func reachedOpen(g *modgraph.Graph) []string {
 
 // workspaceOf returns the go.work file whose use directives name the module
 // directory, or "". The go command reads the go.work that GOWORK names, or
-// else the first go.work of the module directory and its parents, here
-// inside the scan root. It builds each module that the workspace uses with
+// else the first go.work of the module directory and its parents, inside
+// or above the scan root. It builds each module that the workspace uses with
 // the build list of the workspace, which modgraph does not read. A go.work
 // that vet cannot read or parse counts as one that uses the module. So does
 // a relative GOWORK, which the go command refuses.
@@ -209,16 +209,15 @@ func workspaceOf(root, dir string) string {
 	for d := dir; ; d = filepath.Dir(d) {
 		name := filepath.Join(d, "go.work")
 		if data, err := os.ReadFile(name); err == nil {
-			rel, err := filepath.Rel(root, name)
-			if err != nil {
-				rel = "go.work"
+			if !usesModule(data, d, dir) {
+				return ""
 			}
-			if usesModule(data, d, dir) {
+			if rel, err := filepath.Rel(root, name); err == nil && !strings.HasPrefix(rel, "..") {
 				return filepath.ToSlash(rel)
 			}
-			return ""
+			return name
 		}
-		if rel, err := filepath.Rel(root, d); err != nil || rel == "." || strings.HasPrefix(rel, "..") {
+		if filepath.Dir(d) == d {
 			return ""
 		}
 	}
