@@ -24,7 +24,7 @@ require (
 	github.com/posthog/posthog-go v1.10.0
 	github.com/rogpeppe/go-internal v1.16.0
 	github.com/rust-secure-code/go-rustaudit v0.0.0-20250226111315-e20ec32e963c
-	github.com/safedep/code v0.0.0-20261023193417-3f674e04b1e0
+	github.com/safedep/code v0.0.0-20261024073908-634749be60cb
 	github.com/safedep/dry v0.0.0-20261015111342-1a19dccb938a
 	github.com/safedep/vuln-symbols v0.0.0-20261020060134-9f7738baafb4
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
