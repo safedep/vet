@@ -183,6 +183,9 @@ func TestGraphOfAGoMod(t *testing.T) {
 		note   string
 		none   bool
 		gowork string
+		// goworkVia spells GOWORK through a link to the module directory, or
+		// as a relative path.
+		goworkVia string
 	}{
 		{
 			name:  "an unreached module has no source",
@@ -214,6 +217,22 @@ func TestGraphOfAGoMod(t *testing.T) {
 			none:   true,
 		},
 		{
+			name:      "GOWORK names the workspace through a link",
+			files:     map[string]string{"go.mod": gomod, "main.go": "package main\n", "go.work": "go 1.22\n\nuse .\n"},
+			gowork:    "go.work",
+			goworkVia: "link",
+			note:      "because the workspace",
+			none:      true,
+		},
+		{
+			name:      "a relative GOWORK",
+			files:     map[string]string{"go.mod": gomod, "main.go": "package main\n", "ws/go.work": "go 1.22\n\nuse ..\n"},
+			gowork:    "ws/go.work",
+			goworkVia: "relative",
+			note:      "because the workspace ws/go.work",
+			none:      true,
+		},
+		{
 			name:   "GOWORK turns the workspace off",
 			files:  map[string]string{"go.mod": gomod, "main.go": "package main\n\nimport _ \"example.com/a\"\n", "go.work": "go 1.22\n\nuse .\n"},
 			gowork: "off",
@@ -236,7 +255,14 @@ func TestGraphOfAGoMod(t *testing.T) {
 			})
 			t.Setenv("GOMODCACHE", cache)
 			gowork := tc.gowork
-			if gowork != "" && gowork != "off" {
+			switch {
+			case tc.goworkVia == "link":
+				link := filepath.Join(t.TempDir(), "link")
+				require.NoError(t, os.Symlink(dir, link))
+				gowork = filepath.Join(link, gowork)
+			case tc.goworkVia == "relative":
+				t.Chdir(dir)
+			case gowork != "" && gowork != "off":
 				gowork = filepath.Join(dir, gowork)
 			}
 			t.Setenv("GOWORK", gowork)

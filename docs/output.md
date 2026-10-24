@@ -44,7 +44,8 @@ open: vet does not know what it imports. A package that only an open module can 
 no dependency source`, and the scan warns with `module_graph`. A path in the graph starts at a
 module that the code of that `go.mod` imports. Each Go program links the standard library, so its
 findings are `imported`. vet builds no graph for a module of a `go.work` workspace, or for a
-`go.mod` with a `go` directive below 1.17. vet reads `GOWORK` as the go command does. The findings of
+`go.mod` with a `go` directive below 1.17. vet reads the `GOWORK` environment variable. It does
+not read a `GOWORK` that `go env -w` sets. The findings of
 a `go.mod` with no graph keep `unknown · no graph`.
 
 Each package in a report has a `purl`. It follows the purl-spec type definition of its ecosystem,

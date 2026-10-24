@@ -190,13 +190,17 @@ func reachedOpen(g *modgraph.Graph) []string {
 // else the first go.work of the module directory and its parents, here
 // inside the scan root. It builds each module that the workspace uses with
 // the build list of the workspace, which modgraph does not read. A go.work
-// that vet cannot read or parse counts as one that uses the module.
+// that vet cannot read or parse counts as one that uses the module. So does
+// a relative GOWORK, which the go command refuses.
 func workspaceOf(root, dir string) string {
 	switch work := os.Getenv("GOWORK"); work {
 	case "off":
 		return ""
 	case "", "auto":
 	default:
+		if !filepath.IsAbs(work) {
+			return work
+		}
 		if data, err := os.ReadFile(work); err == nil && !usesModule(data, filepath.Dir(work), dir) {
 			return ""
 		}
@@ -230,11 +234,23 @@ func usesModule(data []byte, workDir, dir string) bool {
 		if !filepath.IsAbs(p) {
 			p = filepath.Join(workDir, p)
 		}
-		if filepath.Clean(p) == filepath.Clean(dir) {
+		if samePath(p, dir) {
 			return true
 		}
 	}
 	return false
+}
+
+// samePath compares two paths after it resolves their links. The scan root
+// is canonical, but GOWORK and a use directive can name a link to it.
+func samePath(a, b string) bool {
+	resolve := func(p string) string {
+		if r, err := filepath.EvalSymlinks(p); err == nil {
+			return r
+		}
+		return filepath.Clean(p)
+	}
+	return resolve(a) == resolve(b)
 }
 
 // openModules are the open modules that the build of a go.mod reaches.
