@@ -22,7 +22,8 @@ func TestReachOf(t *testing.T) {
 	dep := model.MustPackageVersion(model.EcosystemGo, "example.com/dep", "v1.0.0")
 	lone := model.MustPackageVersion(model.EcosystemGo, "example.com/lone", "v1.0.0")
 	far := model.MustPackageVersion(model.EcosystemGo, "example.com/far", "v1.0.0")
-	newGraph := func(open bool, imports []model.PackageVersion) *model.Graph {
+	cycle := model.MustPackageVersion(model.EcosystemGo, "example.com/cycle", "v1.0.0")
+	newGraph := func(open bool, imports []model.PackageVersion, edges [][2]model.PackageVersion) *model.Graph {
 		g := model.NewGraph()
 		roots := []model.PackageVersion{app, tool, lone}
 		if imports != nil {
@@ -34,6 +35,9 @@ func TestReachOf(t *testing.T) {
 		}
 		g.AddEdge(app, dep)
 		g.AddEdge(tool, dep)
+		for _, e := range edges {
+			g.AddEdge(e[0], e[1])
+		}
 		if open {
 			g.MarkOpen(lone)
 		}
@@ -66,7 +70,9 @@ func TestReachOf(t *testing.T) {
 		loneUsage *model.Usage
 		// imports makes the graph a graph of imports with these roots.
 		imports []model.PackageVersion
-		want    *finding.Reach
+		// edges adds edges to the graph.
+		edges [][2]model.PackageVersion
+		want  *finding.Reach
 	}{
 		{
 			name: "no usage gives no reach", level: report.ReachImport,
@@ -254,6 +260,24 @@ func TestReachOf(t *testing.T) {
 			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachTransitive, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
 		},
 		{
+			name: "no call path to a package that its own dependency imports stays imported", level: report.ReachFunction, imports: []model.PackageVersion{dep},
+			edges: [][2]model.PackageVersion{{dep, cycle}, {cycle, dep}},
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachTransitive, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
+			name: "no call path to a package that its own open dependency can reach stays imported", level: report.ReachFunction, imports: []model.PackageVersion{dep},
+			edges: [][2]model.PackageVersion{{dep, lone}}, openLone: true, loneUsage: &model.Usage{},
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachNoDependencySource, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
+			name: "no call path to a package whose dependencies do not lead back is not called", level: report.ReachFunction, imports: []model.PackageVersion{dep},
+			edges: [][2]model.PackageVersion{{dep, cycle}},
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachNotCalled, Confidence: finding.ConfidenceMedium, FixSites: []string{"dep.Render"}},
+		},
+		{
 			name: "the standard library is imported", level: report.ReachImport, id: stdlib,
 			usage: &model.Usage{}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
 			want: &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceMedium},
@@ -295,7 +319,7 @@ func TestReachOf(t *testing.T) {
 			if c.sbom {
 				kind = model.ManifestKindSBOM
 			}
-			m := &model.Manifest{Kind: kind, Graph: newGraph(c.openLone, c.imports), Packages: []*model.Package{
+			m := &model.Manifest{Kind: kind, Graph: newGraph(c.openLone, c.imports, c.edges), Packages: []*model.Package{
 				{ID: app, Enrichment: model.Enrichment{Usage: c.appUsage}},
 				{ID: tool, Enrichment: model.Enrichment{Usage: c.toolUsage}},
 				{ID: lone, Enrichment: model.Enrichment{Usage: c.loneUsage}},

@@ -277,9 +277,11 @@ func mayImport(q, p *model.Package) bool {
 // as a Cargo path dependency. A lockfile records no edge from a local
 // package, and its code can be outside the target. A path that only an
 // open package gives says that vet lacks the code of that package. In a
-// graph of imports, the roots are the packages that the code imports.
+// graph of imports, the roots are the packages that the code imports. The
+// dependencies of p start a path too: vet reads no code of a package that
+// the code does not import, so a cycle back to p hides its calls of p.
 func reachedByOther(p *model.Package, m *model.Manifest) finding.ReachCause {
-	var from []model.PackageVersion
+	from := m.Graph.Children(p.ID)
 	if m.Graph.Imports() {
 		prod, test := importedIDs(m)
 		for _, id := range append(prod, test...) {
