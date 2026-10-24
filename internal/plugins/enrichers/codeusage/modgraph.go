@@ -29,7 +29,7 @@ const CodeModuleGraph = "module_graph"
 // Graph builds the module graph of a go.mod from the Go files on the disk:
 // the code of the main module, and of each module of the build list in the
 // vendor directory, in a local replacement inside the scan root or in the
-// module cache. It runs no go command and downloads nothing. A module with
+// module cache. It runs no build and downloads nothing. A module with
 // no source is open, because vet does not know what it imports. A graph
 // that vet cannot trust is nil, so the manifest keeps no graph, and the
 // diagnostics say why.
