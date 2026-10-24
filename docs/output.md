@@ -43,8 +43,9 @@ downloads nothing, so run `go mod download` before a scan. A module with no sour
 open: vet does not know what it imports. A package that only an open module can reach is `unknown ·
 no dependency source`, and the scan warns with `module_graph`. A path in the graph starts at a
 module that the code of that `go.mod` imports. A path from a module that only the test files of that
-`go.mod` import is from tests only. Each Go program links the standard library, so its findings are
-`imported`.
+`go.mod` import is from tests only. A `tool` directive of `go.mod` counts as an import, because
+`go tool` builds and runs the code of the tool. Each Go program links the standard library, so its
+findings are `imported`.
 
 For a module of a `go.work` workspace, vet uses the build list of the workspace, as the go command
 does. Another module of the workspace is local code: an import of it passes on the imports of its
