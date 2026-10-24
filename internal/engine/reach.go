@@ -364,12 +364,16 @@ func importedIDs(m *model.Manifest) (prod, test []model.PackageVersion) {
 // importedByTestsOnly reports whether only test files import a package that
 // the code imports. A graph of imports knows it for the code of its
 // manifest. A test root that a non-test root reaches is in the build too.
-// The code usage knows it for the code of the whole target.
+// A package below a root takes the label of the path to it. The code usage
+// knows it for the code of the whole target.
 func importedByTestsOnly(p *model.Package, m *model.Manifest) bool {
 	if m.Graph != nil && m.Graph.Imports() {
 		if root, test := m.Graph.Root(p.ID); root {
 			prod, _ := importedIDs(m)
 			return test && len(m.Graph.PathFrom(prod, p.ID)) == 0
+		}
+		if path, test := pathFromImported(p, m); len(path) > 0 {
+			return test
 		}
 	}
 	return p.Usage.TestOnly

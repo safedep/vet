@@ -303,6 +303,11 @@ func TestReachOf(t *testing.T) {
 			want: &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceHigh},
 		},
 		{
+			name: "an import that only a test root of a graph of imports reaches is from tests only", level: report.ReachImport, imports: []model.PackageVersion{lone}, testRoots: []model.PackageVersion{app},
+			usage: &model.Usage{Imported: true}, appUsage: &model.Usage{Imported: true}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceHigh, TestOnly: true},
+		},
+		{
 			name: "no call path to an open package stays imported", level: report.ReachFunction, id: lone, imports: []model.PackageVersion{lone},
 			openLone: true, loneUsage: &model.Usage{},
 			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
