@@ -85,6 +85,37 @@ func TestManifestKeepsTheOpenNodesOfItsGraph(t *testing.T) {
 	assert.Nil(t, got.Graph, "a new write drops the old open nodes")
 }
 
+func TestManifestKeepsTheTestRootsOfItsGraph(t *testing.T) {
+	ctx := context.Background()
+	s := openStore(t)
+	scan, _ := newScan(t, s, "/repo")
+	a := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, "example.com/a", "1.0.0")}
+	test := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, "example.com/test", "1.0.0")}
+	g := model.NewGraph()
+	g.SetImports()
+	g.AddRoot(a.ID)
+	g.AddTestRoot(test.ID)
+	m := &model.Manifest{
+		ID: "go", Path: "go.mod", Ecosystem: model.EcosystemGo, Kind: model.ManifestKindLockfile,
+		Packages: []*model.Package{a, test}, Graph: g,
+	}
+	require.NoError(t, scan.AddManifest(ctx, "", m))
+
+	got, err := scan.Manifest(ctx, "go")
+	require.NoError(t, err)
+	require.NotNil(t, got.Graph)
+	assert.Equal(t, []model.PackageVersion{a.ID, test.ID}, got.Graph.Roots())
+	assert.Equal(t, []model.PackageVersion{test.ID}, got.Graph.TestRoots())
+
+	g = model.NewGraph()
+	g.AddRoot(test.ID)
+	m.Graph = g
+	require.NoError(t, scan.AddManifest(ctx, "", m))
+	got, err = scan.Manifest(ctx, "go")
+	require.NoError(t, err)
+	assert.Empty(t, got.Graph.TestRoots(), "a new write drops the old test roots")
+}
+
 func TestPackagesQuery(t *testing.T) {
 	ctx := context.Background()
 	scan, m := seed(t)

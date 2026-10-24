@@ -121,7 +121,7 @@ func (s *Scan) graph(ctx context.Context, manifestID string, pkgs []*model.Packa
 	for _, set := range []struct {
 		table string
 		add   func(model.PackageVersion)
-	}{{"vet_scan_roots", g.AddRoot}, {"vet_scan_open_nodes", g.MarkOpen}} {
+	}{{"vet_scan_roots", g.AddRoot}, {"vet_scan_test_roots", g.AddTestRoot}, {"vet_scan_open_nodes", g.MarkOpen}} {
 		rows, err := s.db.QueryContext(ctx, `SELECT pkey FROM `+set.table+` WHERE manifest_id = ? ORDER BY pkey`, manifestID)
 		if err != nil {
 			return nil, fmt.Errorf("read %s: %w", set.table, err)

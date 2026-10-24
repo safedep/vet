@@ -184,7 +184,7 @@ func importReach(p *model.Package, m *model.Manifest) *finding.Reach {
 	u := p.Usage
 	switch {
 	case u.Imported:
-		return &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceHigh, TestOnly: u.TestOnly, Imports: u.Imports}
+		return &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceHigh, TestOnly: importedByTestsOnly(p, m), Imports: u.Imports}
 	case p.ID.GoStdlib():
 		// Each Go program links the standard library, and no import path
 		// names the stdlib package.
@@ -277,9 +277,16 @@ func mayImport(q, p *model.Package) bool {
 // as a Cargo path dependency. A lockfile records no edge from a local
 // package, and its code can be outside the target. A path that only an
 // open package gives says that vet lacks the code of that package. In a
-// graph of imports, the roots are the packages that the code imports.
+// graph of imports, the roots are the packages that the code imports. The
+// dependencies of p start a path too. vet reads no code of a package that
+// the code does not import, so a cycle back to p hides its calls of p. An
+// open p can import a package that has no edge, and that package can call
+// p.
 func reachedByOther(p *model.Package, m *model.Manifest) finding.ReachCause {
-	var from []model.PackageVersion
+	if m.Graph.IsOpen(p.ID) {
+		return finding.ReachNoDependencySource
+	}
+	from := m.Graph.Children(p.ID)
 	if m.Graph.Imports() {
 		prod, test := importedIDs(m)
 		for _, id := range append(prod, test...) {
@@ -333,29 +340,43 @@ func pathFromImported(p *model.Package, m *model.Manifest) ([]model.PackageVersi
 // importedIDs returns the packages that the code of the manifest imports,
 // the ones that non-test files import first. In a graph of imports they
 // are the roots: the module graph of a go.mod holds the imports of the code
-// of that module only, and the code usage covers the whole target.
+// of that module only, and the code usage covers the whole target. The
+// graph marks the roots that only test files import.
 func importedIDs(m *model.Manifest) (prod, test []model.PackageVersion) {
-	testOnly := func(q *model.Package) bool { return q != nil && q.Usage != nil && q.Usage.Imported && q.Usage.TestOnly }
 	if m.Graph != nil && m.Graph.Imports() {
-		for _, r := range m.Graph.Roots() {
-			if testOnly(m.Package(r)) {
-				test = append(test, r)
-			} else {
-				prod = append(prod, r)
-			}
-		}
-		return prod, test
+		return slices.DeleteFunc(m.Graph.Roots(), func(r model.PackageVersion) bool {
+			_, t := m.Graph.Root(r)
+			return t
+		}), m.Graph.TestRoots()
 	}
 	for _, q := range m.Packages {
 		switch {
 		case q.Usage == nil || !q.Usage.Imported:
-		case testOnly(q):
+		case q.Usage.TestOnly:
 			test = append(test, q.ID)
 		default:
 			prod = append(prod, q.ID)
 		}
 	}
 	return prod, test
+}
+
+// importedByTestsOnly reports whether only test files import a package that
+// the code imports. A graph of imports knows it for the code of its
+// manifest. A test root that a non-test root reaches is in the build too.
+// A package below a root takes the label of the path to it. The code usage
+// knows it for the code of the whole target.
+func importedByTestsOnly(p *model.Package, m *model.Manifest) bool {
+	if m.Graph != nil && m.Graph.Imports() {
+		if root, test := m.Graph.Root(p.ID); root {
+			prod, _ := importedIDs(m)
+			return test && len(m.Graph.PathFrom(prod, p.ID)) == 0
+		}
+		if path, test := pathFromImported(p, m); len(path) > 0 {
+			return test
+		}
+	}
+	return p.Usage.TestOnly
 }
 
 func purls(path []model.PackageVersion) []string {

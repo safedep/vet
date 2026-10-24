@@ -57,3 +57,27 @@ func TestMayReach(t *testing.T) {
 	assert.Nil(t, g.PathFrom([]PackageVersion{c}, lone), "PathFrom follows the known edges only")
 	assert.Equal(t, []PackageVersion{o}, g.Open())
 }
+
+func TestTestRoot(t *testing.T) {
+	g := NewGraph()
+	a := MustPackageVersion(EcosystemGo, "example.com/a", "v1.0.0")
+	b := MustPackageVersion(EcosystemGo, "example.com/b", "v1.0.0")
+	c := MustPackageVersion(EcosystemGo, "example.com/c", "v1.0.0")
+	g.AddRoot(a)
+	g.AddTestRoot(b)
+	g.AddEdge(a, c)
+
+	assert.Equal(t, []PackageVersion{a, b}, g.Roots())
+	assert.Equal(t, []PackageVersion{b}, g.TestRoots())
+	g.MarkOpen(c)
+	assert.True(t, g.IsOpen(c))
+	assert.False(t, g.IsOpen(a))
+	for _, tc := range []struct {
+		id         PackageVersion
+		root, test bool
+	}{{a, true, false}, {b, true, true}, {c, false, false}} {
+		root, test := g.Root(tc.id)
+		assert.Equal(t, tc.root, root, tc.id.Name())
+		assert.Equal(t, tc.test, test, tc.id.Name())
+	}
+}
