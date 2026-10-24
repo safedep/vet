@@ -44,12 +44,15 @@ func TestModuleGraph(t *testing.T) {
 	cases := []struct {
 		name    string
 		imports []string
-		modules []modgraph.Source
-		pkgs    []*model.Package
-		roots   []string
-		edges   []edge
-		open    []string
-		why     string
+		// testImports are the imports of a test file of the main module.
+		testImports []string
+		modules     []modgraph.Source
+		pkgs        []*model.Package
+		roots       []string
+		testRoots   []string
+		edges       []edge
+		open        []string
+		why         string
 		// notRequired names modules of the build list that go.mod does not
 		// require, as a workspace adds them.
 		notRequired []string
@@ -144,6 +147,40 @@ func TestModuleGraph(t *testing.T) {
 			edges:       []edge{{"example.com/a", "example.com/x"}},
 		},
 		{
+			name:        "a module that only a test file imports is a test root",
+			imports:     []string{"example.com/a"},
+			testImports: []string{"example.com/a", "example.com/t"},
+			modules: []modgraph.Source{
+				goSource("example.com/a", fstest.MapFS{"a.go": goFile("a")}),
+				goSource("example.com/t", fstest.MapFS{"t.go": goFile("t")}),
+			},
+			pkgs:      []*model.Package{goPackage("example.com/a"), goPackage("example.com/t")},
+			roots:     []string{"example.com/a", "example.com/t"},
+			testRoots: []string{"example.com/t"},
+		},
+		{
+			name:        "a local module that only a test file imports passes on a test root",
+			testImports: []string{"example.com/local"},
+			modules: []modgraph.Source{
+				localSource("example.com/local", fstest.MapFS{"l.go": goFile("l", "example.com/x")}),
+				goSource("example.com/x", fstest.MapFS{"x.go": goFile("x")}),
+			},
+			pkgs:      []*model.Package{goPackage("example.com/x")},
+			roots:     []string{"example.com/x"},
+			testRoots: []string{"example.com/x"},
+		},
+		{
+			name:        "a test import of a root that a local module also imports",
+			imports:     []string{"example.com/local"},
+			testImports: []string{"example.com/x"},
+			modules: []modgraph.Source{
+				localSource("example.com/local", fstest.MapFS{"l.go": goFile("l", "example.com/x")}),
+				goSource("example.com/x", fstest.MapFS{"x.go": goFile("x")}),
+			},
+			pkgs:  []*model.Package{goPackage("example.com/x")},
+			roots: []string{"example.com/x"},
+		},
+		{
 			name:    "the main module imports a path of no module",
 			imports: []string{"example.com/missing"},
 			why:     "the main module can import any module",
@@ -154,6 +191,9 @@ func TestModuleGraph(t *testing.T) {
 			main := fstest.MapFS{
 				"go.mod":  {Data: []byte("module example.com/app\n\ngo 1.22\n")},
 				"main.go": goFile("main", tc.imports...),
+			}
+			if tc.testImports != nil {
+				main["main_test.go"] = goFile("main", tc.testImports...)
 			}
 			g, err := modgraph.Build(context.Background(), modgraph.Input{MainFS: main, Modules: tc.modules})
 			require.NoError(t, err)
@@ -170,9 +210,12 @@ func TestModuleGraph(t *testing.T) {
 			require.Empty(t, why)
 			require.NotNil(t, got)
 			assert.True(t, got.Imports())
-			var roots, open []string
+			var roots, testRoots, open []string
 			for _, r := range got.Roots() {
 				roots = append(roots, r.RawName())
+			}
+			for _, r := range got.TestRoots() {
+				testRoots = append(testRoots, r.RawName())
 			}
 			for _, o := range got.Open() {
 				open = append(open, o.RawName())
@@ -180,6 +223,7 @@ func TestModuleGraph(t *testing.T) {
 			var edges []edge
 			got.Edges(func(p, c model.PackageVersion) { edges = append(edges, edge{p.RawName(), c.RawName()}) })
 			assert.Equal(t, tc.roots, roots)
+			assert.Equal(t, tc.testRoots, testRoots)
 			assert.Equal(t, tc.edges, edges)
 			assert.Equal(t, tc.open, open)
 		})

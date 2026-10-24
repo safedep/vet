@@ -2,7 +2,9 @@
 # module that only another module imports is imported through it. A module
 # that no import reaches is unused. A module with no source on the disk is
 # open: vet does not know what it imports, so a module that only it can
-# reach is unknown, and the scan says to run go mod download.
+# reach is unknown, and the scan says to run go mod download. A path from
+# a module that only the test files of a go.mod import is from tests only,
+# though the code of another go.mod imports that module.
 [!cgo] skip 'code analysis needs a vet built with CGO'
 env GOMODCACHE=$WORK/modcache
 
@@ -19,6 +21,11 @@ cd ../nosource
 exec vet scan . -o jsonl --mode agent
 stdout '"name":"github.com/Masterminds/goutils".*"reach":\{"level":"unknown","cause":"no-dependency-source","confidence":"low"\}'
 stdout '"code":"module_graph".*example.com/gone.*Run go mod download'
+
+cd ../testonly
+exec vet scan . -o jsonl --mode agent
+stdout '"name":"github.com/Masterminds/goutils".*"manifest_path":"go.mod".*"reach":\{"level":"imported","confidence":"medium","via":\["pkg:golang/example.com/wrap@1.0.0","pkg:golang/github.com/Masterminds/goutils@1.1.0"\],"test_only":true\}'
+stdout '"name":"github.com/Masterminds/goutils".*"manifest_path":"other/go.mod".*"reach":\{"level":"imported","confidence":"medium","via":\["pkg:golang/example.com/wrap@1.0.0","pkg:golang/github.com/Masterminds/goutils@1.1.0"\]\}'
 
 -- modcache/example.com/wrap@v1.0.0/go.mod --
 module example.com/wrap
@@ -82,3 +89,41 @@ package main
 import "example.com/gone"
 
 func main() { gone.Run() }
+-- testonly/go.mod --
+module example.com/app
+
+go 1.22
+
+require (
+	example.com/wrap v1.0.0
+	github.com/Masterminds/goutils v1.1.0
+)
+-- testonly/main.go --
+package main
+
+func main() {}
+-- testonly/main_test.go --
+package main
+
+import (
+	"testing"
+
+	"example.com/wrap"
+)
+
+func TestID(t *testing.T) { _ = wrap.ID() }
+-- testonly/other/go.mod --
+module example.com/other
+
+go 1.22
+
+require (
+	example.com/wrap v1.0.0
+	github.com/Masterminds/goutils v1.1.0
+)
+-- testonly/other/main.go --
+package main
+
+import "example.com/wrap"
+
+func main() { _ = wrap.ID() }

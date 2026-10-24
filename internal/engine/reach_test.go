@@ -23,8 +23,11 @@ func TestReachOf(t *testing.T) {
 	lone := model.MustPackageVersion(model.EcosystemGo, "example.com/lone", "v1.0.0")
 	far := model.MustPackageVersion(model.EcosystemGo, "example.com/far", "v1.0.0")
 	cycle := model.MustPackageVersion(model.EcosystemGo, "example.com/cycle", "v1.0.0")
-	newGraph := func(open bool, imports []model.PackageVersion, edges [][2]model.PackageVersion) *model.Graph {
+	newGraph := func(open bool, imports, testRoots []model.PackageVersion, edges [][2]model.PackageVersion) *model.Graph {
 		g := model.NewGraph()
+		for _, r := range testRoots {
+			g.AddTestRoot(r)
+		}
 		roots := []model.PackageVersion{app, tool, lone}
 		if imports != nil {
 			g.SetImports()
@@ -70,6 +73,8 @@ func TestReachOf(t *testing.T) {
 		loneUsage *model.Usage
 		// imports makes the graph a graph of imports with these roots.
 		imports []model.PackageVersion
+		// testRoots adds roots that only test files import.
+		testRoots []model.PackageVersion
 		// edges adds edges to the graph.
 		edges [][2]model.PackageVersion
 		want  *finding.Reach
@@ -278,6 +283,21 @@ func TestReachOf(t *testing.T) {
 			want: &finding.Reach{Level: finding.ReachNotCalled, Confidence: finding.ConfidenceMedium, FixSites: []string{"dep.Render"}},
 		},
 		{
+			name: "an import of a test root of a graph of imports is from tests only", level: report.ReachImport, imports: []model.PackageVersion{app}, testRoots: []model.PackageVersion{dep},
+			usage: &model.Usage{Imported: true}, appUsage: &model.Usage{Imported: true}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceHigh, TestOnly: true},
+		},
+		{
+			name: "an import of a root of a graph of imports that other code imports from tests only", level: report.ReachImport, imports: []model.PackageVersion{dep},
+			usage: &model.Usage{Imported: true, TestOnly: true}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceHigh},
+		},
+		{
+			name: "a package that only a test root of a graph of imports reaches is from tests only", level: report.ReachImport, imports: []model.PackageVersion{lone}, testRoots: []model.PackageVersion{app},
+			usage: &model.Usage{}, appUsage: &model.Usage{Imported: true}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceMedium, Via: []string{app.PURL(), dep.PURL()}, TestOnly: true},
+		},
+		{
 			name: "the standard library is imported", level: report.ReachImport, id: stdlib,
 			usage: &model.Usage{}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
 			want: &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceMedium},
@@ -319,7 +339,7 @@ func TestReachOf(t *testing.T) {
 			if c.sbom {
 				kind = model.ManifestKindSBOM
 			}
-			m := &model.Manifest{Kind: kind, Graph: newGraph(c.openLone, c.imports, c.edges), Packages: []*model.Package{
+			m := &model.Manifest{Kind: kind, Graph: newGraph(c.openLone, c.imports, c.testRoots, c.edges), Packages: []*model.Package{
 				{ID: app, Enrichment: model.Enrichment{Usage: c.appUsage}},
 				{ID: tool, Enrichment: model.Enrichment{Usage: c.toolUsage}},
 				{ID: lone, Enrichment: model.Enrichment{Usage: c.loneUsage}},

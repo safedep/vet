@@ -184,7 +184,7 @@ func importReach(p *model.Package, m *model.Manifest) *finding.Reach {
 	u := p.Usage
 	switch {
 	case u.Imported:
-		return &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceHigh, TestOnly: u.TestOnly, Imports: u.Imports}
+		return &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceHigh, TestOnly: importedByTestsOnly(p, m), Imports: u.Imports}
 	case p.ID.GoStdlib():
 		// Each Go program links the standard library, and no import path
 		// names the stdlib package.
@@ -335,29 +335,37 @@ func pathFromImported(p *model.Package, m *model.Manifest) ([]model.PackageVersi
 // importedIDs returns the packages that the code of the manifest imports,
 // the ones that non-test files import first. In a graph of imports they
 // are the roots: the module graph of a go.mod holds the imports of the code
-// of that module only, and the code usage covers the whole target.
+// of that module only, and the code usage covers the whole target. The
+// graph marks the roots that only test files import.
 func importedIDs(m *model.Manifest) (prod, test []model.PackageVersion) {
-	testOnly := func(q *model.Package) bool { return q != nil && q.Usage != nil && q.Usage.Imported && q.Usage.TestOnly }
 	if m.Graph != nil && m.Graph.Imports() {
-		for _, r := range m.Graph.Roots() {
-			if testOnly(m.Package(r)) {
-				test = append(test, r)
-			} else {
-				prod = append(prod, r)
-			}
-		}
-		return prod, test
+		return slices.DeleteFunc(m.Graph.Roots(), func(r model.PackageVersion) bool {
+			_, t := m.Graph.Root(r)
+			return t
+		}), m.Graph.TestRoots()
 	}
 	for _, q := range m.Packages {
 		switch {
 		case q.Usage == nil || !q.Usage.Imported:
-		case testOnly(q):
+		case q.Usage.TestOnly:
 			test = append(test, q.ID)
 		default:
 			prod = append(prod, q.ID)
 		}
 	}
 	return prod, test
+}
+
+// importedByTestsOnly reports whether only test files import a package that
+// the code imports. A graph of imports knows it for the code of its
+// manifest. The code usage knows it for the code of the whole target.
+func importedByTestsOnly(p *model.Package, m *model.Manifest) bool {
+	if m.Graph != nil && m.Graph.Imports() {
+		if root, test := m.Graph.Root(p.ID); root {
+			return test
+		}
+	}
+	return p.Usage.TestOnly
 }
 
 func purls(path []model.PackageVersion) []string {

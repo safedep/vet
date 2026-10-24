@@ -921,7 +921,7 @@
   title: "vet reads the Go module graph from the code on the disk"
   category: reach
   tier: P1
-  guarantee: "A scan of a Go module reads the imports of each module of the build list from the module cache, and runs no go command. A module that only another module imports is imported, with the path through that module. A module that no import reaches is unused. A module with no source on the disk makes each module that only it can reach unknown with the cause no-dependency-source, and the scan reports module_graph with the advice to run go mod download."
+  guarantee: "A scan of a Go module reads the imports of each module of the build list from the module cache, and runs no go command. A module that only another module imports is imported, with the path through that module. A module that no import reaches is unused. A module with no source on the disk makes each module that only it can reach unknown with the cause no-dependency-source, and the scan reports module_graph with the advice to run go mod download. A path from a module that only the test files of a go.mod import is test_only, though the code of another go.mod imports that module."
   labels: [reach, enrichers]
 - id: reach/import/go-workspace-graph
   title: "vet reads the Go module graph of a go.work workspace"
