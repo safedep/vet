@@ -929,6 +929,12 @@
   tier: P1
   guarantee: "A scan of a go.work workspace builds the module graph of each module with the build list of the workspace. An import of another module of the workspace passes on the imports of its code, so a module that only that code imports is imported. A module that no import of the workspace reaches is unused."
   labels: [reach, enrichers]
+- id: reach/import/go-workspace-no-graph
+  title: "vet builds no Go module graph for a workspace whose build list it cannot know"
+  category: reach
+  tier: P1
+  guarantee: "A scan of a go.work workspace builds no module graph when a go.mod that the build list needs is not on the disk, when a module of the workspace is outside the target, or when a go.mod has an exclude directive. Each Go finding then stays unknown with the cause no-graph and is never unused, and the scan reports module_graph."
+  labels: [reach, enrichers]
 - id: reach/function/no-symbol-data
   title: "a scan with no symbol data never says not called"
   category: reach
