@@ -97,8 +97,8 @@ The edges between the packages of one manifest. Its roots are the direct depende
 keys its nodes by package key, so two spellings of one version are one node. An extractor gives the
 graph of a lockfile. A `plugin.Grapher` gives the graph of a manifest that its extractor gives with
 none: the `codeusage` enricher reads the **module graph** of a `go.mod` from the Go files on the disk
-with `safedep/code/modgraph`. Its roots are the modules that the project imports, and an edge is an
-import of one module by another. An **open node** is a package whose dependencies vet does not know,
+with `safedep/code/modgraph`. It is a graph of imports (`Graph.Imports`): its roots are the modules
+that the code of the `go.mod` imports, and an edge is an import of one module by another. An **open node** is a package whose dependencies vet does not know,
 such as a Go module with no source on the disk. It may depend on any package (`Graph.MarkOpen`,
 `Graph.MayReach`).
 _Avoid_: tree

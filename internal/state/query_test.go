@@ -64,6 +64,7 @@ func TestManifestKeepsTheOpenNodesOfItsGraph(t *testing.T) {
 	open := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, "example.com/open", "1.0.0")}
 	g := model.NewGraph()
 	g.MarkOpen(open.ID)
+	g.SetImports()
 	m := &model.Manifest{
 		ID: "go", Path: "go.mod", Ecosystem: model.EcosystemGo, Kind: model.ManifestKindLockfile,
 		Packages: []*model.Package{a, open}, Graph: g,
@@ -74,6 +75,7 @@ func TestManifestKeepsTheOpenNodesOfItsGraph(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, got.Graph, "a graph with only an open node is a graph")
 	assert.Equal(t, []model.PackageVersion{open.ID}, got.Graph.Open())
+	assert.True(t, got.Graph.Imports(), "the scan file keeps a graph of imports")
 	assert.True(t, got.Graph.MayReach([]model.PackageVersion{open.ID}, a.ID))
 
 	m.Graph = model.NewGraph()

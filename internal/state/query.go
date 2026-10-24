@@ -110,6 +110,14 @@ func (s *Scan) graph(ctx context.Context, manifestID string, pkgs []*model.Packa
 
 	g := model.NewGraph()
 	found := false
+	var imports int
+	if err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM vet_scan_import_graphs WHERE manifest_id = ?`, manifestID).Scan(&imports); err != nil {
+		return nil, fmt.Errorf("read vet_scan_import_graphs: %w", err)
+	}
+	if imports > 0 {
+		g.SetImports()
+		found = true
+	}
 	for _, set := range []struct {
 		table string
 		add   func(model.PackageVersion)

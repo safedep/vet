@@ -182,12 +182,22 @@ func joinRecords(recs []*model.SymbolRecord) (*model.SymbolRecord, *model.Functi
 
 func importReach(p *model.Package, m *model.Manifest) *finding.Reach {
 	u := p.Usage
-	if u.Imported {
+	switch {
+	case u.Imported:
 		return &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceHigh, TestOnly: u.TestOnly, Imports: u.Imports}
+	case p.ID.GoStdlib():
+		// Each Go program links the standard library, and no import path
+		// names the stdlib package.
+		return &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceMedium}
 	}
 	if m.Graph != nil {
-		if via, from := pathFromImported(p, m); len(via) > 1 {
-			return &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceMedium, Via: purls(via), TestOnly: from.Usage.TestOnly}
+		switch via, testOnly := pathFromImported(p, m); {
+		case len(via) == 1:
+			// p is a root of a graph of imports: the code of the manifest
+			// imports it, in a file that the code usage did not read.
+			return &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceMedium, TestOnly: testOnly}
+		case len(via) > 1:
+			return &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceMedium, Via: purls(via), TestOnly: testOnly}
 		}
 	}
 	if cause := incomplete(u); cause != "" {
@@ -266,17 +276,26 @@ func mayImport(q, p *model.Package) bool {
 // call p, or "". That is a dependency path to p, or a local package, such
 // as a Cargo path dependency. A lockfile records no edge from a local
 // package, and its code can be outside the target. A path that only an
-// open package gives says that vet lacks the code of that package.
+// open package gives says that vet lacks the code of that package. In a
+// graph of imports, the roots are the packages that the code imports.
 func reachedByOther(p *model.Package, m *model.Manifest) finding.ReachCause {
 	var from []model.PackageVersion
+	if m.Graph.Imports() {
+		prod, test := importedIDs(m)
+		for _, id := range append(prod, test...) {
+			if !id.Equal(p.ID) {
+				from = append(from, id)
+			}
+		}
+	}
 	for _, q := range m.Packages {
-		if !mayImport(q, p) {
-			continue
-		}
-		if q.Local {
+		switch {
+		case !mayImport(q, p):
+		case q.Local:
 			return finding.ReachTransitive
+		case !m.Graph.Imports():
+			from = append(from, q.ID)
 		}
-		from = append(from, q.ID)
 	}
 	switch {
 	case len(m.Graph.PathFrom(from, p.ID)) > 0:
@@ -299,26 +318,38 @@ func recordsOf(u *model.Usage, advisory string) []*model.SymbolRecord {
 }
 
 // pathFromImported returns the shortest dependency path from a package
-// that the code imports to p, and that imported package. A path through
-// a package that only tests import keeps the test mark, so a non-test
-// source wins a tie.
-func pathFromImported(p *model.Package, m *model.Manifest) ([]model.PackageVersion, *model.Package) {
+// that the code imports to p, and whether only test files import its first
+// package. A non-test source wins a tie.
+func pathFromImported(p *model.Package, m *model.Manifest) ([]model.PackageVersion, bool) {
 	prod, test := importedIDs(m)
-	for _, from := range [][]model.PackageVersion{prod, test} {
+	for i, from := range [][]model.PackageVersion{prod, test} {
 		if path := m.Graph.PathFrom(from, p.ID); len(path) > 0 {
-			return path, m.Package(path[0])
+			return path, i == 1
 		}
 	}
-	return nil, nil
+	return nil, false
 }
 
-// importedIDs returns the packages that the code imports, the ones that
-// non-test files import first.
+// importedIDs returns the packages that the code of the manifest imports,
+// the ones that non-test files import first. In a graph of imports they
+// are the roots: the module graph of a go.mod holds the imports of the code
+// of that module only, and the code usage covers the whole target.
 func importedIDs(m *model.Manifest) (prod, test []model.PackageVersion) {
+	testOnly := func(q *model.Package) bool { return q != nil && q.Usage != nil && q.Usage.Imported && q.Usage.TestOnly }
+	if m.Graph != nil && m.Graph.Imports() {
+		for _, r := range m.Graph.Roots() {
+			if testOnly(m.Package(r)) {
+				test = append(test, r)
+			} else {
+				prod = append(prod, r)
+			}
+		}
+		return prod, test
+	}
 	for _, q := range m.Packages {
 		switch {
 		case q.Usage == nil || !q.Usage.Imported:
-		case q.Usage.TestOnly:
+		case testOnly(q):
 			test = append(test, q.ID)
 		default:
 			prod = append(prod, q.ID)

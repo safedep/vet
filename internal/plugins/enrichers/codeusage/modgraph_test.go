@@ -3,6 +3,7 @@ package codeusage
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -27,6 +28,10 @@ func goFile(pkg string, imports ...string) *fstest.MapFile {
 
 func goSource(path string, fsys fstest.MapFS) modgraph.Source {
 	return modgraph.Source{Module: modgraph.Module{Path: path, Version: "v1.0.0"}, FS: fsys}
+}
+
+func localSource(path string, fsys fs.FS) modgraph.Source {
+	return modgraph.Source{Module: modgraph.Module{Path: path}, Origin: modgraph.Module{Path: "../local"}, FS: fsys}
 }
 
 func goPackage(path string) *model.Package {
@@ -62,7 +67,7 @@ func TestModuleGraph(t *testing.T) {
 			name:    "a local replacement passes its edges on",
 			imports: []string{"example.com/local"},
 			modules: []modgraph.Source{
-				{Module: modgraph.Module{Path: "example.com/local"}, FS: fstest.MapFS{"l.go": goFile("l", "example.com/x")}},
+				localSource("example.com/local", fstest.MapFS{"l.go": goFile("l", "example.com/x")}),
 				goSource("example.com/x", fstest.MapFS{"x.go": goFile("x")}),
 			},
 			pkgs:  []*model.Package{goPackage("example.com/x")},
@@ -98,7 +103,7 @@ func TestModuleGraph(t *testing.T) {
 			imports: []string{"example.com/a"},
 			modules: []modgraph.Source{
 				goSource("example.com/a", fstest.MapFS{"a.go": goFile("a", "example.com/local")}),
-				{Module: modgraph.Module{Path: "example.com/local"}},
+				localSource("example.com/local", nil),
 			},
 			pkgs:  []*model.Package{goPackage("example.com/a")},
 			roots: []string{"example.com/a"},
@@ -107,8 +112,19 @@ func TestModuleGraph(t *testing.T) {
 		{
 			name:    "the main module imports an open local module",
 			imports: []string{"example.com/local"},
-			modules: []modgraph.Source{{Module: modgraph.Module{Path: "example.com/local"}}},
+			modules: []modgraph.Source{localSource("example.com/local", nil)},
 			why:     "the main module imports example.com/local, which vet cannot read",
+		},
+		{
+			name:    "a reached module that is no package",
+			imports: []string{"example.com/a"},
+			modules: []modgraph.Source{
+				goSource("example.com/a", fstest.MapFS{"a.go": goFile("a", "example.com/lost")}),
+				goSource("example.com/lost", fstest.MapFS{"l.go": goFile("l", "example.com/x")}),
+				goSource("example.com/x", fstest.MapFS{"x.go": goFile("x")}),
+			},
+			pkgs: []*model.Package{goPackage("example.com/a"), goPackage("example.com/x")},
+			why:  "the module example.com/lost@v1.0.0 is no package of the manifest",
 		},
 		{
 			name:    "the main module imports a path of no module",
@@ -124,7 +140,7 @@ func TestModuleGraph(t *testing.T) {
 			}
 			g, err := modgraph.Build(context.Background(), modgraph.Input{MainFS: main, Modules: tc.modules})
 			require.NoError(t, err)
-			got, why := moduleGraph(g, tc.pkgs)
+			got, why := moduleGraph(g, tc.pkgs, localReplacements(tc.modules))
 			if tc.why != "" {
 				assert.Nil(t, got)
 				assert.Contains(t, why, tc.why)
@@ -132,6 +148,7 @@ func TestModuleGraph(t *testing.T) {
 			}
 			require.Empty(t, why)
 			require.NotNil(t, got)
+			assert.True(t, got.Imports())
 			var roots, open []string
 			for _, r := range got.Roots() {
 				roots = append(roots, r.RawName())
@@ -160,14 +177,15 @@ func writeTree(t *testing.T, root string, files map[string]string) {
 func TestGraphOfAGoMod(t *testing.T) {
 	const gomod = "module example.com/app\n\ngo 1.22\n\nrequire (\n\texample.com/a v1.0.0\n\texample.com/b v1.0.0\n\texample.com/gone v1.0.0\n)\n"
 	cases := []struct {
-		name  string
-		files map[string]string
-		open  []string
-		note  string
-		none  bool
+		name   string
+		files  map[string]string
+		open   []string
+		note   string
+		none   bool
+		gowork string
 	}{
 		{
-			name:  "every module has source",
+			name:  "an unreached module has no source",
 			files: map[string]string{"go.mod": gomod, "main.go": "package main\n\nimport _ \"example.com/a\"\n"},
 			open:  []string{"example.com/gone"},
 		},
@@ -189,6 +207,19 @@ func TestGraphOfAGoMod(t *testing.T) {
 			open:  []string{"example.com/gone"},
 		},
 		{
+			name:   "GOWORK names a workspace that uses the module",
+			files:  map[string]string{"go.mod": gomod, "main.go": "package main\n", "ws/go.work": "go 1.22\n\nuse ..\n"},
+			gowork: "ws/go.work",
+			note:   "because the workspace",
+			none:   true,
+		},
+		{
+			name:   "GOWORK turns the workspace off",
+			files:  map[string]string{"go.mod": gomod, "main.go": "package main\n\nimport _ \"example.com/a\"\n", "go.work": "go 1.22\n\nuse .\n"},
+			gowork: "off",
+			open:   []string{"example.com/gone"},
+		},
+		{
 			name:  "a go directive before module graph pruning",
 			files: map[string]string{"go.mod": "module example.com/app\n\ngo 1.16\n\nrequire example.com/a v1.0.0\n", "main.go": "package main\n"},
 			note:  "its go directive is below 1.17",
@@ -204,6 +235,11 @@ func TestGraphOfAGoMod(t *testing.T) {
 				"example.com/b@v1.0.0/b.go": "package b\n",
 			})
 			t.Setenv("GOMODCACHE", cache)
+			gowork := tc.gowork
+			if gowork != "" && gowork != "off" {
+				gowork = filepath.Join(dir, gowork)
+			}
+			t.Setenv("GOWORK", gowork)
 			e := NewWith(dir, Options{}, nil)
 			m := &model.Manifest{
 				Path: "go.mod", Ecosystem: model.EcosystemGo,

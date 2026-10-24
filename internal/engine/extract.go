@@ -347,8 +347,11 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 func (r *run) graph(ctx context.Context, ms []*model.Manifest) error {
 	for _, m := range ms {
 		for _, e := range r.o.Enrichers {
+			if m.Graph != nil {
+				break
+			}
 			gr, ok := e.Plugin.(plugin.Grapher)
-			if !ok || m.Graph != nil {
+			if !ok {
 				continue
 			}
 			g, err := gr.Graph(ctx, m)

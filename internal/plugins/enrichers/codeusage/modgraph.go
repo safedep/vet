@@ -63,7 +63,7 @@ func (e *Enricher) Graph(ctx context.Context, m *model.Manifest) (*model.Graph, 
 	}
 	log.Debugf("codeusage: module graph of %s: %d modules, %d files, %d packages in %s",
 		m.Path, len(g.Nodes), g.Stats.Files, g.Stats.Packages, time.Since(start).Round(time.Millisecond))
-	out, why := moduleGraph(g, m.Packages)
+	out, why := moduleGraph(g, m.Packages, localReplacements(sources))
 	if why != "" {
 		e.noteGraph(fmt.Sprintf("vet builds no module graph for %s, because %s", m.Path, why))
 		return nil, nil
@@ -76,15 +76,14 @@ func (e *Enricher) Graph(ctx context.Context, m *model.Manifest) (*model.Graph, 
 	return out, nil
 }
 
-// moduleGraph converts the module graph into the graph of the manifest. A
-// module of the build list is the package with its path, or the package
-// that replaces it. A module that is no package of the manifest, as a
-// local replacement, passes its edges on: an edge into it becomes an edge
-// to each package that it imports. It returns the graph and "", or nil and
-// why vet cannot trust the graph: the main module can then import any
-// module. A module that Build did not walk is open, because its edges are
-// not known.
-func moduleGraph(g *modgraph.Graph, pkgs []*model.Package) (*model.Graph, string) {
+// moduleGraph converts the module graph into a graph of imports of the
+// manifest. A module of the build list is the package with its path, or the
+// package that replaces it. A local replacement is no package of the
+// manifest, so it passes its edges on: an edge into it becomes an edge to
+// each package that it imports. It returns the graph and "", or nil and why
+// vet cannot trust the graph. A module that Build did not walk is open,
+// because its edges are not known.
+func moduleGraph(g *modgraph.Graph, pkgs []*model.Package, local map[string]bool) (*model.Graph, string) {
 	byPath := map[string]model.PackageVersion{}
 	for _, p := range pkgs {
 		if p.ID.Ecosystem() == model.EcosystemGo && !p.ID.GoStdlib() {
@@ -94,6 +93,12 @@ func moduleGraph(g *modgraph.Graph, pkgs []*model.Package) (*model.Graph, string
 	open := map[string]bool{}
 	for _, n := range g.Nodes {
 		open[n.Module.Path] = n.Open() || !n.Walked
+		_, mapped := byPath[n.Module.Path]
+		// A reached module with no package would hide its imports from the
+		// reach rules, so they could read a module that it imports as unused.
+		if n.Reached && !mapped && !local[n.Module.Path] && n.Module.Path != g.Main.Path && n.Module.Path != modgraph.StdPath {
+			return nil, fmt.Sprintf("the module %s is no package of the manifest", n.Module)
+		}
 	}
 	if open[g.Main.Path] {
 		n, _ := g.Node(g.Main.Path)
@@ -107,6 +112,7 @@ func moduleGraph(g *modgraph.Graph, pkgs []*model.Package) (*model.Graph, string
 	}
 
 	out := model.NewGraph()
+	out.SetImports()
 	for _, from := range append([]string{g.Main.Path}, slices.Sorted(maps.Keys(byPath))...) {
 		targets, hiddenOpen := passOn(from, next, byPath, open)
 		if from == g.Main.Path {
@@ -155,6 +161,18 @@ func passOn(from string, next map[string][]string, byPath map[string]model.Packa
 	return out, hiddenOpen
 }
 
+// localReplacements returns the modules of the build list that a replace
+// directive replaces with a directory.
+func localReplacements(sources []modgraph.Source) map[string]bool {
+	out := map[string]bool{}
+	for _, s := range sources {
+		if s.Origin.Path != "" && s.Origin.Version == "" {
+			out[s.Module.Path] = true
+		}
+	}
+	return out
+}
+
 // reachedOpen returns the open modules that the build reaches, sorted. An
 // open module that nothing reaches changes no reach result.
 func reachedOpen(g *modgraph.Graph) []string {
@@ -168,12 +186,22 @@ func reachedOpen(g *modgraph.Graph) []string {
 }
 
 // workspaceOf returns the go.work file whose use directives name the module
-// directory, or "". The go command reads the first go.work of the module
-// directory and its parents, here inside the scan root, and builds each
-// module that it uses with the build list of the workspace, which modgraph
-// does not read. A go.work that does not parse counts as one that uses the
-// module.
+// directory, or "". The go command reads the go.work that GOWORK names, or
+// else the first go.work of the module directory and its parents, here
+// inside the scan root. It builds each module that the workspace uses with
+// the build list of the workspace, which modgraph does not read. A go.work
+// that vet cannot read or parse counts as one that uses the module.
 func workspaceOf(root, dir string) string {
+	switch work := os.Getenv("GOWORK"); work {
+	case "off":
+		return ""
+	case "", "auto":
+	default:
+		if data, err := os.ReadFile(work); err == nil && !usesModule(data, filepath.Dir(work), dir) {
+			return ""
+		}
+		return work
+	}
 	for d := dir; ; d = filepath.Dir(d) {
 		name := filepath.Join(d, "go.work")
 		if data, err := os.ReadFile(name); err == nil {

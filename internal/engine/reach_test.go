@@ -22,11 +22,16 @@ func TestReachOf(t *testing.T) {
 	dep := model.MustPackageVersion(model.EcosystemGo, "example.com/dep", "v1.0.0")
 	lone := model.MustPackageVersion(model.EcosystemGo, "example.com/lone", "v1.0.0")
 	far := model.MustPackageVersion(model.EcosystemGo, "example.com/far", "v1.0.0")
-	newGraph := func(open bool) *model.Graph {
+	newGraph := func(open bool, imports []model.PackageVersion) *model.Graph {
 		g := model.NewGraph()
-		g.AddRoot(app)
-		g.AddRoot(tool)
-		g.AddRoot(lone)
+		roots := []model.PackageVersion{app, tool, lone}
+		if imports != nil {
+			g.SetImports()
+			roots = imports
+		}
+		for _, r := range roots {
+			g.AddRoot(r)
+		}
 		g.AddEdge(app, dep)
 		g.AddEdge(tool, dep)
 		if open {
@@ -59,7 +64,9 @@ func TestReachOf(t *testing.T) {
 		// know, with the usage loneUsage.
 		openLone  bool
 		loneUsage *model.Usage
-		want      *finding.Reach
+		// imports makes the graph a graph of imports with these roots.
+		imports []model.PackageVersion
+		want    *finding.Reach
 	}{
 		{
 			name: "no usage gives no reach", level: report.ReachImport,
@@ -232,6 +239,26 @@ func TestReachOf(t *testing.T) {
 			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachNoDependencySource, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
 		},
 		{
+			name: "a root of a graph of imports is imported", level: report.ReachImport, id: far, imports: []model.PackageVersion{far},
+			usage: &model.Usage{}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceMedium},
+		},
+		{
+			name: "an import of other code does not reach into a graph of imports", level: report.ReachImport, imports: []model.PackageVersion{lone},
+			usage: &model.Usage{}, appUsage: &model.Usage{Imported: true}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachUnused, Confidence: finding.ConfidenceMedium},
+		},
+		{
+			name: "no call path to a package that a root of a graph of imports depends on stays imported", level: report.ReachFunction, imports: []model.PackageVersion{app, dep},
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachTransitive, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
+			name: "the standard library is imported", level: report.ReachImport, id: stdlib,
+			usage: &model.Usage{}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceMedium},
+		},
+		{
 			name: "a stopped analysis is unknown", level: report.ReachImport,
 			usage: &model.Usage{Incomplete: true, DynamicImport: true},
 			want:  &finding.Reach{Level: finding.ReachUnknown, Cause: finding.ReachBudget, Confidence: finding.ConfidenceLow},
@@ -268,7 +295,7 @@ func TestReachOf(t *testing.T) {
 			if c.sbom {
 				kind = model.ManifestKindSBOM
 			}
-			m := &model.Manifest{Kind: kind, Graph: newGraph(c.openLone), Packages: []*model.Package{
+			m := &model.Manifest{Kind: kind, Graph: newGraph(c.openLone, c.imports), Packages: []*model.Package{
 				{ID: app, Enrichment: model.Enrichment{Usage: c.appUsage}},
 				{ID: tool, Enrichment: model.Enrichment{Usage: c.toolUsage}},
 				{ID: lone, Enrichment: model.Enrichment{Usage: c.loneUsage}},

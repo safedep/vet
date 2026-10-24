@@ -136,6 +136,10 @@ var scanMigrations = []string{
 		pkey        TEXT NOT NULL,
 		PRIMARY KEY (manifest_id, pkey)
 	)`,
+	// The graphs of imports, as the module graph of a go.mod.
+	`CREATE TABLE vet_scan_import_graphs (
+		manifest_id TEXT PRIMARY KEY
+	)`,
 }
 
 const (
@@ -413,7 +417,7 @@ func addManifestTx(ctx context.Context, tx *sql.Tx, artifactKey string, m *model
 	if _, err := tx.ExecContext(ctx, `DELETE FROM vet_scan_edges WHERE manifest_id = ?`, m.ID); err != nil {
 		return err
 	}
-	for _, table := range []string{"vet_scan_roots", "vet_scan_open_nodes"} {
+	for _, table := range []string{"vet_scan_roots", "vet_scan_open_nodes", "vet_scan_import_graphs"} {
 		if _, err := tx.ExecContext(ctx, `DELETE FROM `+table+` WHERE manifest_id = ?`, m.ID); err != nil {
 			return err
 		}
@@ -422,6 +426,11 @@ func addManifestTx(ctx context.Context, tx *sql.Tx, artifactKey string, m *model
 		for _, r := range m.Graph.Roots() {
 			if _, err := tx.ExecContext(ctx, `INSERT OR IGNORE INTO vet_scan_roots (manifest_id, pkey) VALUES (?, ?)`,
 				m.ID, string(r.Key())); err != nil {
+				return err
+			}
+		}
+		if m.Graph.Imports() {
+			if _, err := tx.ExecContext(ctx, `INSERT OR IGNORE INTO vet_scan_import_graphs (manifest_id) VALUES (?)`, m.ID); err != nil {
 				return err
 			}
 		}
@@ -510,7 +519,7 @@ func (s *Scan) CommitArtifact(ctx context.Context, a ArtifactRecord, ms []*model
 // their packages, graphs and findings.
 func deleteManifestsTx(ctx context.Context, tx *sql.Tx, where string, args ...any) error {
 	sub := `SELECT id FROM vet_scan_manifests WHERE ` + where
-	for _, table := range []string{"vet_scan_manifest_packages", "vet_scan_edges", "vet_scan_roots", "vet_scan_open_nodes", "vet_scan_findings"} {
+	for _, table := range []string{"vet_scan_manifest_packages", "vet_scan_edges", "vet_scan_roots", "vet_scan_open_nodes", "vet_scan_import_graphs", "vet_scan_findings"} {
 		if _, err := tx.ExecContext(ctx, `DELETE FROM `+table+` WHERE manifest_id IN (`+sub+`)`, args...); err != nil {
 			return err
 		}

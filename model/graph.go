@@ -9,12 +9,15 @@ import (
 // dependencies. It keys each node by PackageKey, so two spellings of one
 // package version are one node. An open node is a package whose
 // dependencies vet does not know, such as a Go module with no source on
-// the disk. It may depend on any package.
+// the disk. It may depend on any package. In a graph of imports, as the
+// module graph of a go.mod, the roots are the packages that the code of
+// the manifest imports and an edge is an import.
 type Graph struct {
-	nodes map[PackageKey]PackageVersion
-	roots map[PackageKey]struct{}
-	edges map[PackageKey]map[PackageKey]struct{}
-	open  map[PackageKey]struct{}
+	nodes   map[PackageKey]PackageVersion
+	roots   map[PackageKey]struct{}
+	edges   map[PackageKey]map[PackageKey]struct{}
+	open    map[PackageKey]struct{}
+	imports bool
 }
 
 // NewGraph returns an empty graph.
@@ -36,6 +39,12 @@ func (g *Graph) MarkOpen(id PackageVersion) {
 func (g *Graph) Open() []PackageVersion {
 	return g.sorted(g.open)
 }
+
+// SetImports marks a graph of imports.
+func (g *Graph) SetImports() { g.imports = true }
+
+// Imports reports a graph of imports.
+func (g *Graph) Imports() bool { return g.imports }
 
 // AddRoot marks a package as a direct dependency.
 func (g *Graph) AddRoot(id PackageVersion) {
