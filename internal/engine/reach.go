@@ -278,9 +278,14 @@ func mayImport(q, p *model.Package) bool {
 // package, and its code can be outside the target. A path that only an
 // open package gives says that vet lacks the code of that package. In a
 // graph of imports, the roots are the packages that the code imports. The
-// dependencies of p start a path too: vet reads no code of a package that
-// the code does not import, so a cycle back to p hides its calls of p.
+// dependencies of p start a path too. vet reads no code of a package that
+// the code does not import, so a cycle back to p hides its calls of p. An
+// open p can import a package that has no edge, and that package can call
+// p.
 func reachedByOther(p *model.Package, m *model.Manifest) finding.ReachCause {
+	if m.Graph.IsOpen(p.ID) {
+		return finding.ReachNoDependencySource
+	}
 	from := m.Graph.Children(p.ID)
 	if m.Graph.Imports() {
 		prod, test := importedIDs(m)
@@ -358,11 +363,13 @@ func importedIDs(m *model.Manifest) (prod, test []model.PackageVersion) {
 
 // importedByTestsOnly reports whether only test files import a package that
 // the code imports. A graph of imports knows it for the code of its
-// manifest. The code usage knows it for the code of the whole target.
+// manifest. A test root that a non-test root reaches is in the build too.
+// The code usage knows it for the code of the whole target.
 func importedByTestsOnly(p *model.Package, m *model.Manifest) bool {
 	if m.Graph != nil && m.Graph.Imports() {
 		if root, test := m.Graph.Root(p.ID); root {
-			return test
+			prod, _ := importedIDs(m)
+			return test && len(m.Graph.PathFrom(prod, p.ID)) == 0
 		}
 	}
 	return p.Usage.TestOnly

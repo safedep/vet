@@ -69,6 +69,9 @@ func TestTestRoot(t *testing.T) {
 
 	assert.Equal(t, []PackageVersion{a, b}, g.Roots())
 	assert.Equal(t, []PackageVersion{b}, g.TestRoots())
+	g.MarkOpen(c)
+	assert.True(t, g.IsOpen(c))
+	assert.False(t, g.IsOpen(a))
 	for _, tc := range []struct {
 		id         PackageVersion
 		root, test bool

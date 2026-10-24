@@ -38,6 +38,12 @@ func (g *Graph) MarkOpen(id PackageVersion) {
 	g.open[g.node(id)] = struct{}{}
 }
 
+// IsOpen reports whether vet does not know the dependencies of a package.
+func (g *Graph) IsOpen(id PackageVersion) bool {
+	_, ok := g.open[id.Key()]
+	return ok
+}
+
 // Open returns the open packages, sorted.
 func (g *Graph) Open() []PackageVersion {
 	return g.sorted(g.open)

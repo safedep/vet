@@ -122,7 +122,8 @@ func moduleGraph(g *modgraph.Graph, pkgs []*model.Package, local, required map[s
 		}
 	}
 	// A root that no edge from the non-test files of the main module leads
-	// to is a test root.
+	// to is a test root. The walk of all edges already rejects a hidden open
+	// module, so this walk ignores it.
 	prodNext := maps.Clone(next)
 	prodNext[g.Main.Path] = mainProd
 	prod, _ := passOn(g.Main.Path, prodNext, byPath, open)
