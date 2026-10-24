@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -49,6 +50,9 @@ func TestModuleGraph(t *testing.T) {
 		edges   []edge
 		open    []string
 		why     string
+		// notRequired names modules of the build list that go.mod does not
+		// require, as a workspace adds them.
+		notRequired []string
 	}{
 		{
 			name:    "the imports of the reached packages",
@@ -127,6 +131,19 @@ func TestModuleGraph(t *testing.T) {
 			why:  "the module example.com/lost@v1.0.0 is no package of the manifest",
 		},
 		{
+			name:    "a module that go.mod does not require passes its imports on",
+			imports: []string{"example.com/a"},
+			modules: []modgraph.Source{
+				goSource("example.com/a", fstest.MapFS{"a.go": goFile("a", "example.com/extra")}),
+				goSource("example.com/extra", fstest.MapFS{"e.go": goFile("e", "example.com/x")}),
+				goSource("example.com/x", fstest.MapFS{"x.go": goFile("x")}),
+			},
+			pkgs:        []*model.Package{goPackage("example.com/a"), goPackage("example.com/x")},
+			notRequired: []string{"example.com/extra"},
+			roots:       []string{"example.com/a"},
+			edges:       []edge{{"example.com/a", "example.com/x"}},
+		},
+		{
 			name:    "the main module imports a path of no module",
 			imports: []string{"example.com/missing"},
 			why:     "the main module can import any module",
@@ -140,7 +157,11 @@ func TestModuleGraph(t *testing.T) {
 			}
 			g, err := modgraph.Build(context.Background(), modgraph.Input{MainFS: main, Modules: tc.modules})
 			require.NoError(t, err)
-			got, why := moduleGraph(g, tc.pkgs, localReplacements(tc.modules))
+			required := map[string]bool{}
+			for _, m := range tc.modules {
+				required[m.Module.Path] = !slices.Contains(tc.notRequired, m.Module.Path)
+			}
+			got, why := moduleGraph(g, tc.pkgs, localReplacements(tc.modules), required)
 			if tc.why != "" {
 				assert.Nil(t, got)
 				assert.Contains(t, why, tc.why)
@@ -176,6 +197,9 @@ func writeTree(t *testing.T, root string, files map[string]string) {
 
 func TestGraphOfAGoMod(t *testing.T) {
 	const gomod = "module example.com/app\n\ngo 1.22\n\nrequire (\n\texample.com/a v1.0.0\n\texample.com/b v1.0.0\n\texample.com/gone v1.0.0\n)\n"
+	// A workspace needs the go.mod of each module that it requires.
+	const wsMod = "module example.com/app\n\ngo 1.22\n\nrequire (\n\texample.com/a v1.0.0\n\texample.com/b v1.0.0\n)\n"
+	const wsMain = "package main\n\nimport _ \"example.com/a\"\n"
 	cases := []struct {
 		name   string
 		files  map[string]string
@@ -188,6 +212,7 @@ func TestGraphOfAGoMod(t *testing.T) {
 		goworkVia string
 		// outerWork is a go.work in the parent of the scan root.
 		outerWork string
+		roots     []string
 	}{
 		{
 			name:  "an unreached module has no source",
@@ -202,8 +227,23 @@ func TestGraphOfAGoMod(t *testing.T) {
 		},
 		{
 			name:  "a workspace",
-			files: map[string]string{"go.mod": gomod, "main.go": "package main\n", "go.work": "go 1.22\n\nuse .\n"},
-			note:  "because the workspace go.work holds it",
+			files: map[string]string{"go.mod": wsMod, "main.go": wsMain, "go.work": "go 1.22\n\nuse .\n"},
+			roots: []string{"example.com/a"},
+		},
+		{
+			name: "another module of the workspace passes its imports on",
+			files: map[string]string{
+				"go.mod": wsMod, "main.go": "package main\n\nimport (\n\t_ \"example.com/a\"\n\t_ \"example.com/lib\"\n)\n",
+				"go.work":    "go 1.22\n\nuse .\nuse ./lib\n",
+				"lib/go.mod": "module example.com/lib\n\ngo 1.22\n\nrequire example.com/b v1.0.0\n",
+				"lib/lib.go": "package lib\n\nimport _ \"example.com/b\"\n",
+			},
+			roots: []string{"example.com/a", "example.com/b"},
+		},
+		{
+			name:  "a workspace whose build list is not on the disk",
+			files: map[string]string{"go.mod": gomod, "main.go": wsMain, "go.work": "go 1.22\n\nuse .\n"},
+			note:  "no go.mod of example.com/gone@v1.0.0 is on the disk",
 			none:  true,
 		},
 		{
@@ -213,32 +253,29 @@ func TestGraphOfAGoMod(t *testing.T) {
 		},
 		{
 			name:   "GOWORK names a workspace that uses the module",
-			files:  map[string]string{"go.mod": gomod, "main.go": "package main\n", "ws/go.work": "go 1.22\n\nuse ..\n"},
+			files:  map[string]string{"go.mod": wsMod, "main.go": wsMain, "ws/go.work": "go 1.22\n\nuse ..\n"},
 			gowork: "ws/go.work",
-			note:   "because the workspace",
-			none:   true,
+			roots:  []string{"example.com/a"},
 		},
 		{
 			name:      "a workspace above the scan root",
-			files:     map[string]string{"go.mod": gomod, "main.go": "package main\n"},
+			files:     map[string]string{"go.mod": wsMod, "main.go": wsMain},
 			outerWork: "go 1.22\n\nuse ./mod\n",
-			note:      "/go.work holds it",
-			none:      true,
+			roots:     []string{"example.com/a"},
 		},
 		{
 			name:      "GOWORK names the workspace through a link",
-			files:     map[string]string{"go.mod": gomod, "main.go": "package main\n", "go.work": "go 1.22\n\nuse .\n"},
+			files:     map[string]string{"go.mod": wsMod, "main.go": wsMain, "go.work": "go 1.22\n\nuse .\n"},
 			gowork:    "go.work",
 			goworkVia: "link",
-			note:      "because the workspace",
-			none:      true,
+			roots:     []string{"example.com/a"},
 		},
 		{
 			name:      "a relative GOWORK",
-			files:     map[string]string{"go.mod": gomod, "main.go": "package main\n", "ws/go.work": "go 1.22\n\nuse ..\n"},
+			files:     map[string]string{"go.mod": wsMod, "main.go": wsMain, "ws/go.work": "go 1.22\n\nuse ..\n"},
 			gowork:    "ws/go.work",
 			goworkVia: "relative",
-			note:      "because the workspace ws/go.work",
+			note:      "GOWORK=ws/go.work is not an absolute path",
 			none:      true,
 		},
 		{
@@ -263,8 +300,10 @@ func TestGraphOfAGoMod(t *testing.T) {
 				writeTree(t, outer, map[string]string{"go.work": tc.outerWork})
 			}
 			writeTree(t, cache, map[string]string{
-				"example.com/a@v1.0.0/a.go": "package a\n\nimport _ \"example.com/b\"\n",
-				"example.com/b@v1.0.0/b.go": "package b\n",
+				"example.com/a@v1.0.0/a.go":                  "package a\n\nimport _ \"example.com/b\"\n",
+				"example.com/b@v1.0.0/b.go":                  "package b\n",
+				"cache/download/example.com/a/@v/v1.0.0.mod": "module example.com/a\n\ngo 1.22\n\nrequire example.com/b v1.0.0\n",
+				"cache/download/example.com/b/@v/v1.0.0.mod": "module example.com/b\n\ngo 1.22\n",
 			})
 			t.Setenv("GOMODCACHE", cache)
 			gowork := tc.gowork
@@ -303,6 +342,13 @@ func TestGraphOfAGoMod(t *testing.T) {
 				open = append(open, o.RawName())
 			}
 			assert.Equal(t, tc.open, open)
+			if tc.roots != nil {
+				var roots []string
+				for _, r := range g.Roots() {
+					roots = append(roots, r.RawName())
+				}
+				assert.Equal(t, tc.roots, roots)
+			}
 			assert.Equal(t, []model.PackageVersion{m.Packages[0].ID, m.Packages[1].ID}, g.PathFrom([]model.PackageVersion{m.Packages[0].ID}, m.Packages[1].ID))
 		})
 	}

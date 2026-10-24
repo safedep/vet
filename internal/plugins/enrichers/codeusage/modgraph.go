@@ -10,7 +10,6 @@ import (
 	"path"
 	"path/filepath"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/safedep/code/modgraph"
@@ -38,12 +37,18 @@ func (e *Enricher) Graph(ctx context.Context, m *model.Manifest) (*model.Graph, 
 		return nil, nil
 	}
 	dir := filepath.Join(e.dir, filepath.FromSlash(path.Dir(m.Path)))
-	if work := workspaceOf(e.dir, dir); work != "" {
-		e.noteGraph(fmt.Sprintf("vet builds no module graph for %s, because the workspace %s holds it", m.Path, work))
+	work, err := workspaceOf(e.dir, dir)
+	if err != nil {
+		e.noteGraph(fmt.Sprintf("vet builds no module graph for %s, because %v", m.Path, err))
+		return nil, nil
+	}
+	required, err := requiredModules(dir)
+	if err != nil {
+		e.noteGraph(fmt.Sprintf("vet builds no module graph for %s: %v", m.Path, err))
 		return nil, nil
 	}
 	start := time.Now()
-	sources, err := modgraph.Discover(modgraph.DiscoverOptions{Dir: dir, ModuleCache: goModCache(), LocalRoot: e.dir})
+	sources, err := modgraph.Discover(modgraph.DiscoverOptions{Dir: dir, Work: work, ModuleCache: goModCache(), LocalRoot: e.dir})
 	if err != nil {
 		e.noteGraph(fmt.Sprintf("vet builds no module graph for %s: %v", m.Path, err))
 		return nil, nil
@@ -63,7 +68,7 @@ func (e *Enricher) Graph(ctx context.Context, m *model.Manifest) (*model.Graph, 
 	}
 	log.Debugf("codeusage: module graph of %s: %d modules, %d files, %d packages in %s",
 		m.Path, len(g.Nodes), g.Stats.Files, g.Stats.Packages, time.Since(start).Round(time.Millisecond))
-	out, why := moduleGraph(g, m.Packages, localReplacements(sources))
+	out, why := moduleGraph(g, m.Packages, localReplacements(sources), required)
 	if why != "" {
 		e.noteGraph(fmt.Sprintf("vet builds no module graph for %s, because %s", m.Path, why))
 		return nil, nil
@@ -78,12 +83,13 @@ func (e *Enricher) Graph(ctx context.Context, m *model.Manifest) (*model.Graph, 
 
 // moduleGraph converts the module graph into a graph of imports of the
 // manifest. A module of the build list is the package with its path, or the
-// package that replaces it. A local replacement is no package of the
-// manifest, so it passes its edges on: an edge into it becomes an edge to
-// each package that it imports. It returns the graph and "", or nil and why
-// vet cannot trust the graph. A module that Build did not walk is open,
-// because its edges are not known.
-func moduleGraph(g *modgraph.Graph, pkgs []*model.Package, local map[string]bool) (*model.Graph, string) {
+// package that replaces it. A module that go.mod does not require, as a
+// local replacement, another module of a workspace or a module that only
+// the workspace adds, is no package of the manifest. So it passes its edges
+// on: an edge into it becomes an edge to each package that it imports. It
+// returns the graph and "", or nil and why vet cannot trust the graph. A
+// module that Build did not walk is open, because its edges are not known.
+func moduleGraph(g *modgraph.Graph, pkgs []*model.Package, local, required map[string]bool) (*model.Graph, string) {
 	byPath := map[string]model.PackageVersion{}
 	for _, p := range pkgs {
 		if p.ID.Ecosystem() == model.EcosystemGo && !p.ID.GoStdlib() {
@@ -94,9 +100,10 @@ func moduleGraph(g *modgraph.Graph, pkgs []*model.Package, local map[string]bool
 	for _, n := range g.Nodes {
 		open[n.Module.Path] = n.Open() || !n.Walked
 		_, mapped := byPath[n.Module.Path]
-		// A reached module with no package would hide its imports from the
-		// reach rules, so they could read a module that it imports as unused.
-		if n.Reached && !mapped && !local[n.Module.Path] && n.Module.Path != g.Main.Path && n.Module.Path != modgraph.StdPath {
+		// A reached module that go.mod requires and that maps to no package
+		// shows a gap in the mapping, so its finding would read the graph of
+		// another package.
+		if n.Reached && !mapped && required[n.Module.Path] && !local[n.Module.Path] {
 			return nil, fmt.Sprintf("the module %s is no package of the manifest", n.Module)
 		}
 	}
@@ -189,38 +196,53 @@ func reachedOpen(g *modgraph.Graph) []string {
 // directory, or "". The go command reads the go.work that GOWORK names, or
 // else the first go.work of the module directory and its parents, inside
 // or above the scan root. It builds each module that the workspace uses with
-// the build list of the workspace, which modgraph does not read. A go.work
-// that vet cannot read or parse counts as one that uses the module. So does
-// a relative GOWORK, which the go command refuses.
-func workspaceOf(root, dir string) string {
+// the build list of the workspace. A go.work that vet cannot read or parse
+// counts as one that uses the module, so Discover fails on it and the
+// manifest keeps no graph. The go command refuses a relative GOWORK, so no
+// build exists.
+func workspaceOf(root, dir string) (string, error) {
 	switch work := os.Getenv("GOWORK"); work {
 	case "off":
-		return ""
+		return "", nil
 	case "", "auto":
 	default:
 		if !filepath.IsAbs(work) {
-			return work
+			return "", fmt.Errorf("GOWORK=%s is not an absolute path, so the go command builds nothing", work)
 		}
 		if data, err := os.ReadFile(work); err == nil && !usesModule(data, filepath.Dir(work), dir) {
-			return ""
+			return "", nil
 		}
-		return work
+		return work, nil
 	}
 	for d := dir; ; d = filepath.Dir(d) {
 		name := filepath.Join(d, "go.work")
 		if data, err := os.ReadFile(name); err == nil {
 			if !usesModule(data, d, dir) {
-				return ""
+				return "", nil
 			}
-			if rel, err := filepath.Rel(root, name); err == nil && !strings.HasPrefix(rel, "..") {
-				return filepath.ToSlash(rel)
-			}
-			return name
+			return name, nil
 		}
 		if filepath.Dir(d) == d {
-			return ""
+			return "", nil
 		}
 	}
+}
+
+// requiredModules returns the modules that the go.mod in dir requires.
+func requiredModules(dir string) (map[string]bool, error) {
+	data, err := os.ReadFile(filepath.Join(dir, "go.mod"))
+	if err != nil {
+		return nil, err
+	}
+	f, err := modfile.ParseLax("go.mod", data, nil)
+	if err != nil {
+		return nil, err
+	}
+	out := map[string]bool{}
+	for _, r := range f.Require {
+		out[r.Mod.Path] = true
+	}
+	return out, nil
 }
 
 func usesModule(data []byte, workDir, dir string) bool {

@@ -98,7 +98,9 @@ keys its nodes by package key, so two spellings of one version are one node. An 
 graph of a lockfile. A `plugin.Grapher` gives the graph of a manifest that its extractor gives with
 none: the `codeusage` enricher reads the **module graph** of a `go.mod` from the Go files on the disk
 with `safedep/code/modgraph`. It is a graph of imports (`Graph.Imports`): its roots are the modules
-that the code of the `go.mod` imports, and an edge is an import of one module by another. An **open node** is a package whose dependencies vet does not know,
+that the code of the `go.mod` imports, and an edge is an import of one module by another. In a
+`go.work` **workspace**, the build list is that of the workspace, and another module of the workspace
+passes on the imports of its code. An **open node** is a package whose dependencies vet does not know,
 such as a Go module with no source on the disk. It may depend on any package (`Graph.MarkOpen`,
 `Graph.MayReach`).
 _Avoid_: tree
