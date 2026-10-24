@@ -328,6 +328,9 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 			}
 		}
 	}
+	if err := r.graph(ctx, ms); err != nil {
+		return err
+	}
 	if len(ms) == 0 && len(errs) == 0 && prev == nil {
 		// A file that gives no manifest needs no record: a record costs a
 		// transaction, and a continued scan reads the file again at little
@@ -337,6 +340,28 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 	return scan.CommitArtifact(ctx, state.ArtifactRecord{
 		Key: key, Kind: string(a.Kind), Path: rel, Size: info.Size(), MTime: info.ModTime(),
 	}, ms)
+}
+
+// graph asks the graphers for the graph of each manifest that its
+// extractor gives with none. The first graph wins.
+func (r *run) graph(ctx context.Context, ms []*model.Manifest) error {
+	for _, m := range ms {
+		for _, e := range r.o.Enrichers {
+			if m.Graph != nil {
+				break
+			}
+			gr, ok := e.Plugin.(plugin.Grapher)
+			if !ok {
+				continue
+			}
+			g, err := gr.Graph(ctx, m)
+			if err != nil {
+				return fmt.Errorf("graph of %s: %w", m.Path, err)
+			}
+			m.Graph = g
+		}
+	}
+	return nil
 }
 
 // fileChange is the change of a file against the base, or none outside

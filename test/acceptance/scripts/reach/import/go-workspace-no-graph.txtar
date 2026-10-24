@@ -1,0 +1,81 @@
+# vet builds no module graph for a go.work workspace whose build list it
+# cannot know: a go.mod that the build list needs is not on the disk, a
+# module of the workspace is outside the target, or a go.mod has an
+# exclude directive. A wrong version could hide an import, so each
+# finding keeps unknown with the cause no-graph, never unused, and the
+# scan reports module_graph.
+[!cgo] skip 'code analysis needs a vet built with CGO'
+env GOMODCACHE=$WORK/modcache
+
+cd missing
+exec vet scan . -o jsonl --mode agent
+stdout '"name":"github.com/Masterminds/goutils".*"manifest_path":"app/go.mod".*"reach":\{"level":"unknown","cause":"no-graph","confidence":"low"\}'
+stdout '"code":"module_graph".*no go.mod of github.com/Masterminds/goutils@v1.1.0 is on the disk'
+
+cd ../outside/app
+exec vet scan . -o jsonl --mode agent
+stdout '"name":"github.com/Masterminds/goutils".*"reach":\{"level":"unknown","cause":"no-graph","confidence":"low"\}'
+stdout '"code":"module_graph".*no go.mod inside the local root'
+
+cd ../../exclude
+exec vet scan . -o jsonl --mode agent
+stdout '"name":"github.com/Masterminds/goutils".*"manifest_path":"app/go.mod".*"reach":\{"level":"unknown","cause":"no-graph","confidence":"low"\}'
+stdout '"code":"module_graph".*exclude directive'
+
+-- missing/go.work --
+go 1.22
+
+use ./app
+-- missing/app/go.mod --
+module example.com/app
+
+go 1.22
+
+require github.com/Masterminds/goutils v1.1.0
+-- missing/app/main.go --
+package main
+
+func main() {}
+-- outside/go.work --
+go 1.22
+
+use (
+	./app
+	./lib
+)
+-- outside/app/go.mod --
+module example.com/app
+
+go 1.22
+
+require github.com/Masterminds/goutils v1.1.0
+-- outside/app/main.go --
+package main
+
+import "example.com/lib"
+
+func main() { lib.Run() }
+-- outside/lib/go.mod --
+module example.com/lib
+
+go 1.22
+-- outside/lib/lib.go --
+package lib
+
+func Run() {}
+-- exclude/go.work --
+go 1.22
+
+use ./app
+-- exclude/app/go.mod --
+module example.com/app
+
+go 1.22
+
+require github.com/Masterminds/goutils v1.1.0
+
+exclude github.com/Masterminds/goutils v1.0.0
+-- exclude/app/main.go --
+package main
+
+func main() {}

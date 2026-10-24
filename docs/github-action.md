@@ -36,6 +36,23 @@ the pin of the vet that runs it. Do not use a tag or a branch such as `@v2` as t
 `vet ci init` also adds a Dependabot entry with a one day cooldown, so Dependabot moves the pins. When
 you use no Dependabot and no Renovate, run `vet ci update` and commit the diff.
 
+### Go projects
+
+vet reads the imports of each Go module that a `go.mod` requires, to tell which modules the code
+reaches. It reads them from the `vendor` directory or the module cache, and downloads no module. A
+module with no source on the disk makes the reach of each module that it can import `unknown · no
+dependency source`. Download the modules in a step before vet:
+
+```yaml
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - run: go mod download
+      - uses: safedep/vet@<commit SHA> # <release tag>
+```
+
+A project with a `vendor` directory needs no download.
+
 Then, in the settings of the repository:
 
 - Make the `vet` job a required check in the branch ruleset.

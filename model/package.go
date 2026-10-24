@@ -43,6 +43,10 @@ type Package struct {
 	// package, so vet does not look it up.
 	Local bool `json:"local,omitempty"`
 
+	// Replaces is the module path that the code imports, for a Go module
+	// that a replace directive of go.mod puts in its place.
+	Replaces string `json:"replaces,omitempty"`
+
 	Enrichment
 
 	// PreviousInsight is the Insights data of PreviousVersion, in pull

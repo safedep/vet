@@ -89,7 +89,8 @@ const (
 	// searched from every exported function.
 	ReachNoEntryPoint ReachCause = "no-entry-point"
 	// ReachNoDependencySource is a package with no source on the disk, in
-	// the vendor directory or in the module or crate cache.
+	// the vendor directory or in the module or crate cache, or a package
+	// that only a dependency with no source on the disk can reach.
 	ReachNoDependencySource ReachCause = "no-dependency-source"
 	// ReachNoSymbolInGraph is a record with a fix site that the call graph
 	// of the code of the package does not hold.
@@ -211,7 +212,7 @@ var causeHelp = map[ReachCause]string{
 	ReachNoSourceFiles:      "vet parses no source file of the language of the package in this project.",
 	ReachNoSymbolData:       "vuln-symbols has no record of the vulnerable functions of the advisory.",
 	ReachNoEntryPoint:       "vet found no entry point. Name one with --entrypoint path:function.",
-	ReachNoDependencySource: "The code of the package is not in the vendor directory or the package cache, so vet cannot search the calls into it.",
+	ReachNoDependencySource: "The code of the package, or of a dependency that can import it, is not in the vendor directory or the package cache, so vet cannot search the calls into it.",
 	ReachNoSymbolInGraph:    "The call graph has no definition of a vulnerable function of the record.",
 	ReachBroadRecord:        "The record does not name every vulnerable function.",
 	ReachUnreviewedRecord:   "No maintainer verified the record.",

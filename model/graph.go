@@ -7,11 +7,17 @@ import (
 
 // Graph is the dependency graph of one manifest. Roots are the direct
 // dependencies. It keys each node by PackageKey, so two spellings of one
-// package version are one node.
+// package version are one node. An open node is a package whose
+// dependencies vet does not know, such as a Go module with no source on
+// the disk. It may depend on any package. In a graph of imports, as the
+// module graph of a go.mod, the roots are the packages that the code of
+// the manifest imports and an edge is an import.
 type Graph struct {
-	nodes map[PackageKey]PackageVersion
-	roots map[PackageKey]struct{}
-	edges map[PackageKey]map[PackageKey]struct{}
+	nodes   map[PackageKey]PackageVersion
+	roots   map[PackageKey]struct{}
+	edges   map[PackageKey]map[PackageKey]struct{}
+	open    map[PackageKey]struct{}
+	imports bool
 }
 
 // NewGraph returns an empty graph.
@@ -20,8 +26,25 @@ func NewGraph() *Graph {
 		nodes: map[PackageKey]PackageVersion{},
 		roots: map[PackageKey]struct{}{},
 		edges: map[PackageKey]map[PackageKey]struct{}{},
+		open:  map[PackageKey]struct{}{},
 	}
 }
+
+// MarkOpen records that vet does not know the dependencies of a package.
+func (g *Graph) MarkOpen(id PackageVersion) {
+	g.open[g.node(id)] = struct{}{}
+}
+
+// Open returns the open packages, sorted.
+func (g *Graph) Open() []PackageVersion {
+	return g.sorted(g.open)
+}
+
+// SetImports marks a graph of imports.
+func (g *Graph) SetImports() { g.imports = true }
+
+// Imports reports a graph of imports.
+func (g *Graph) Imports() bool { return g.imports }
 
 // AddRoot marks a package as a direct dependency.
 func (g *Graph) AddRoot(id PackageVersion) {
@@ -157,6 +180,35 @@ func (g *Graph) PathFrom(from []PackageVersion, id PackageVersion) []PackageVers
 		}
 	}
 	return nil
+}
+
+// MayReach reports whether a package of from can depend on the package: a
+// path of known edges reaches it, or a path meets an open package, which
+// may depend on any package. PathFrom gives only the paths of known edges.
+func (g *Graph) MayReach(from []PackageVersion, id PackageVersion) bool {
+	target := id.Key()
+	seen := map[PackageKey]bool{}
+	var queue []PackageKey
+	for _, f := range from {
+		if k := f.Key(); !seen[k] {
+			seen[k] = true
+			queue = append(queue, k)
+		}
+	}
+	for len(queue) > 0 {
+		k := queue[0]
+		queue = queue[1:]
+		if _, open := g.open[k]; open || k == target {
+			return true
+		}
+		for c := range g.edges[k] {
+			if !seen[c] {
+				seen[c] = true
+				queue = append(queue, c)
+			}
+		}
+	}
+	return false
 }
 
 func (g *Graph) sortedKeys(set map[PackageKey]struct{}) []PackageKey {

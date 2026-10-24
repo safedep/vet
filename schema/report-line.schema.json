@@ -896,6 +896,9 @@
         "local": {
           "type": "boolean"
         },
+        "replaces": {
+          "type": "string"
+        },
         "insight": {
           "$ref": "#/$defs/Insight"
         },

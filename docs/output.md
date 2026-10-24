@@ -36,6 +36,27 @@ view also names the symbol bundle and counts each reach and each cause. The call
 covers the whole target. In a target with two `go.mod` files that require one module, a call from
 one project makes the finding of the module `called` in both.
 
+For a Go module, the dependency graph comes from the code. vet reads the import blocks of the Go
+files of the project and of each module of the build list. It finds a module in `vendor`, in the
+directory of a local `replace` inside the target, or in the module cache. It runs no build and
+downloads nothing, so run `go mod download` before a scan. A module with no source on the disk is
+open: vet does not know what it imports. A package that only an open module can reach is `unknown ·
+no dependency source`, and the scan warns with `module_graph`. A path in the graph starts at a
+module that the code of that `go.mod` imports. Each Go program links the standard library, so its
+findings are `imported`.
+
+For a module of a `go.work` workspace, vet uses the build list of the workspace, as the go command
+does. Another module of the workspace is local code: an import of it passes on the imports of its
+code. vet finds the `go.work` as the go command does, from the `GOWORK` environment variable or the
+parents of the module directory. It does not read a `GOWORK` that `go env -w` sets. Run
+`go mod download` in the workspace: vet builds no graph when the build list needs a `go.mod` that is
+not on the disk. A finding gives the version that its `go.mod` requires, and the workspace can
+build a higher version. The reach then describes the code of the version that the workspace builds.
+
+vet builds no graph for a `go.mod` with a `go` directive below 1.17, for a workspace module outside
+the target, or for a workspace with an `exclude` directive. The findings of a `go.mod` with no graph
+keep `unknown · no graph`.
+
 Each package in a report has a `purl`. It follows the purl-spec type definition of its ecosystem,
 and it keeps the version as the manifest writes it. `name` and `version` hold the canonical form
 that vet compares.

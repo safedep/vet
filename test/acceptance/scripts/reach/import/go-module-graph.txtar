@@ -1,0 +1,84 @@
+# vet reads the module graph of a go.mod from the Go files on the disk. A
+# module that only another module imports is imported through it. A module
+# that no import reaches is unused. A module with no source on the disk is
+# open: vet does not know what it imports, so a module that only it can
+# reach is unknown, and the scan says to run go mod download.
+[!cgo] skip 'code analysis needs a vet built with CGO'
+env GOMODCACHE=$WORK/modcache
+
+cd via
+exec vet scan . -o jsonl --mode agent
+stdout '"name":"github.com/Masterminds/goutils".*"reach":\{"level":"imported","confidence":"medium","via":\["pkg:golang/example.com/wrap@1.0.0","pkg:golang/github.com/Masterminds/goutils@1.1.0"\]\}'
+! stdout '"code":"module_graph"'
+
+cd ../unused
+exec vet scan . -o jsonl --mode agent
+stdout '"name":"github.com/Masterminds/goutils".*"reach":\{"level":"unused","confidence":"medium"\}'
+
+cd ../nosource
+exec vet scan . -o jsonl --mode agent
+stdout '"name":"github.com/Masterminds/goutils".*"reach":\{"level":"unknown","cause":"no-dependency-source","confidence":"low"\}'
+stdout '"code":"module_graph".*example.com/gone.*Run go mod download'
+
+-- modcache/example.com/wrap@v1.0.0/go.mod --
+module example.com/wrap
+
+go 1.22
+
+require github.com/Masterminds/goutils v1.1.0
+-- modcache/example.com/wrap@v1.0.0/wrap.go --
+package wrap
+
+import "github.com/Masterminds/goutils"
+
+func ID() string {
+	s, _ := goutils.RandomAlphaNumeric(8)
+	return s
+}
+-- modcache/github.com/!masterminds/goutils@v1.1.0/goutils.go --
+package goutils
+
+func RandomAlphaNumeric(n int) (string, error) { return "", nil }
+-- via/go.mod --
+module example.com/app
+
+go 1.22
+
+require (
+	example.com/wrap v1.0.0
+	github.com/Masterminds/goutils v1.1.0
+)
+-- via/main.go --
+package main
+
+import "example.com/wrap"
+
+func main() { _ = wrap.ID() }
+-- unused/go.mod --
+module example.com/app
+
+go 1.22
+
+require (
+	example.com/wrap v1.0.0
+	github.com/Masterminds/goutils v1.1.0
+)
+-- unused/main.go --
+package main
+
+func main() {}
+-- nosource/go.mod --
+module example.com/app
+
+go 1.22
+
+require (
+	example.com/gone v1.0.0
+	github.com/Masterminds/goutils v1.1.0
+)
+-- nosource/main.go --
+package main
+
+import "example.com/gone"
+
+func main() { gone.Run() }

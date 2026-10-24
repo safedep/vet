@@ -3,6 +3,8 @@ package engine
 import (
 	"context"
 	"errors"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,12 +21,24 @@ func TestReachOf(t *testing.T) {
 	tool := model.MustPackageVersion(model.EcosystemGo, "example.com/test-tool", "v1.0.0")
 	dep := model.MustPackageVersion(model.EcosystemGo, "example.com/dep", "v1.0.0")
 	lone := model.MustPackageVersion(model.EcosystemGo, "example.com/lone", "v1.0.0")
-	graph := model.NewGraph()
-	graph.AddRoot(app)
-	graph.AddRoot(tool)
-	graph.AddRoot(lone)
-	graph.AddEdge(app, dep)
-	graph.AddEdge(tool, dep)
+	far := model.MustPackageVersion(model.EcosystemGo, "example.com/far", "v1.0.0")
+	newGraph := func(open bool, imports []model.PackageVersion) *model.Graph {
+		g := model.NewGraph()
+		roots := []model.PackageVersion{app, tool, lone}
+		if imports != nil {
+			g.SetImports()
+			roots = imports
+		}
+		for _, r := range roots {
+			g.AddRoot(r)
+		}
+		g.AddEdge(app, dep)
+		g.AddEdge(tool, dep)
+		if open {
+			g.MarkOpen(lone)
+		}
+		return g
+	}
 
 	stdlib := model.MustPackageVersion(model.EcosystemGo, "stdlib", "1.27.1")
 	crate := model.MustPackageVersion(model.EcosystemCargo, "time", "0.3.30")
@@ -46,7 +60,13 @@ func TestReachOf(t *testing.T) {
 		local bool
 		// sbom reads the graph from an SBOM, which can list only some edges.
 		sbom bool
-		want *finding.Reach
+		// openLone marks lone as a package whose dependencies vet does not
+		// know, with the usage loneUsage.
+		openLone  bool
+		loneUsage *model.Usage
+		// imports makes the graph a graph of imports with these roots.
+		imports []model.PackageVersion
+		want    *finding.Reach
 	}{
 		{
 			name: "no usage gives no reach", level: report.ReachImport,
@@ -203,6 +223,42 @@ func TestReachOf(t *testing.T) {
 			want: &finding.Reach{Level: finding.ReachUnused, Confidence: finding.ConfidenceMedium},
 		},
 		{
+			name: "no import and a path only through an open package is unknown", level: report.ReachImport, id: far,
+			usage: &model.Usage{}, appUsage: &model.Usage{}, toolUsage: &model.Usage{}, openLone: true, loneUsage: &model.Usage{Imported: true},
+			want: &finding.Reach{Level: finding.ReachUnknown, Cause: finding.ReachNoDependencySource, Confidence: finding.ConfidenceLow},
+		},
+		{
+			name: "an open package that the code does not import changes nothing", level: report.ReachImport, id: far,
+			usage: &model.Usage{}, appUsage: &model.Usage{}, toolUsage: &model.Usage{}, openLone: true, loneUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachUnused, Confidence: finding.ConfidenceMedium},
+		},
+		{
+			name: "no call path to a package that an open import can reach stays imported", level: report.ReachFunction, id: far,
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			openLone: true, loneUsage: &model.Usage{Imported: true},
+			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachNoDependencySource, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
+			name: "a root of a graph of imports is imported", level: report.ReachImport, id: far, imports: []model.PackageVersion{far},
+			usage: &model.Usage{}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceMedium},
+		},
+		{
+			name: "an import of other code does not reach into a graph of imports", level: report.ReachImport, imports: []model.PackageVersion{lone},
+			usage: &model.Usage{}, appUsage: &model.Usage{Imported: true}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachUnused, Confidence: finding.ConfidenceMedium},
+		},
+		{
+			name: "no call path to a package that a root of a graph of imports depends on stays imported", level: report.ReachFunction, imports: []model.PackageVersion{app, dep},
+			usage: &model.Usage{Imported: true, Symbols: record(&model.FunctionReach{Status: model.FunctionNotFound})}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Cause: finding.ReachTransitive, Confidence: finding.ConfidenceHigh, FixSites: []string{"dep.Render"}},
+		},
+		{
+			name: "the standard library is imported", level: report.ReachImport, id: stdlib,
+			usage: &model.Usage{}, appUsage: &model.Usage{}, toolUsage: &model.Usage{},
+			want: &finding.Reach{Level: finding.ReachImported, Confidence: finding.ConfidenceMedium},
+		},
+		{
 			name: "a stopped analysis is unknown", level: report.ReachImport,
 			usage: &model.Usage{Incomplete: true, DynamicImport: true},
 			want:  &finding.Reach{Level: finding.ReachUnknown, Cause: finding.ReachBudget, Confidence: finding.ConfidenceLow},
@@ -239,10 +295,10 @@ func TestReachOf(t *testing.T) {
 			if c.sbom {
 				kind = model.ManifestKindSBOM
 			}
-			m := &model.Manifest{Kind: kind, Graph: graph, Packages: []*model.Package{
+			m := &model.Manifest{Kind: kind, Graph: newGraph(c.openLone, c.imports), Packages: []*model.Package{
 				{ID: app, Enrichment: model.Enrichment{Usage: c.appUsage}},
 				{ID: tool, Enrichment: model.Enrichment{Usage: c.toolUsage}},
-				{ID: lone},
+				{ID: lone, Enrichment: model.Enrichment{Usage: c.loneUsage}},
 				target,
 			}}
 			if c.noGraph {
@@ -388,4 +444,47 @@ func TestHeaderNamesTheSymbolBundleAndTheRoots(t *testing.T) {
 	reach := res.Scan.Header().Scan.Reach
 	assert.Equal(t, &report.SymbolBundle{ID: "f2e47dc1", Records: 1220}, reach.Symbols)
 	assert.Equal(t, 1, reach.Roots.Total)
+}
+
+// grapherEnricher gives each manifest that it gets a graph whose first
+// package is open, and records the paths of those manifests.
+type grapherEnricher struct {
+	sourceEnricher
+	paths []string
+}
+
+func (g *grapherEnricher) Graph(_ context.Context, m *model.Manifest) (*model.Graph, error) {
+	g.paths = append(g.paths, m.Path)
+	gr := model.NewGraph()
+	gr.MarkOpen(m.Packages[0].ID)
+	return gr, nil
+}
+
+var _ plugin.Grapher = (*grapherEnricher)(nil)
+
+func TestTheEngineAsksTheGrapherForAManifestWithNoGraph(t *testing.T) {
+	f := newFixture(t)
+	gr := &grapherEnricher{}
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "package-lock.json"), []byte(`{
+  "name": "app", "version": "1.0.0", "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "version": "1.0.0", "dependencies": {"left-pad": "^1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0", "dependencies": {"evil": "1.0.0"}},
+    "node_modules/evil": {"version": "1.0.0"}
+  }
+}`), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "requirements.txt"), []byte("requests==2.31.0\n"), 0o600))
+	o := f.options(t, dir, nil)
+	o.Enrichers = []Enricher{{Name: "code", Version: "1", Plugin: gr, Local: true}}
+	res := runScan(t, o)
+
+	assert.Equal(t, []string{"requirements.txt"}, gr.paths, "a lockfile keeps the graph of its extractor")
+	for m, err := range res.Scan.Manifests(context.Background()) {
+		require.NoError(t, err)
+		require.NotNil(t, m.Graph, m.Path)
+		if m.Path == "requirements.txt" {
+			assert.Equal(t, []model.PackageVersion{m.Packages[0].ID}, m.Graph.Open(), "the scan file keeps the graph of the grapher")
+		}
+	}
 }

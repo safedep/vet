@@ -34,3 +34,19 @@ func TestStdlib(t *testing.T) {
 		})
 	}
 }
+
+func TestReplaceRecordsTheModuleThatTheCodeImports(t *testing.T) {
+	e, err := New()
+	require.NoError(t, err)
+	ms, errs := scalibr.ExtractFile(context.Background(), scalibr.File{Root: "testdata/replace", Path: "go.mod"}, []filesystem.Extractor{e})
+	require.Empty(t, errs)
+	require.Len(t, ms, 1)
+	got := map[string]string{}
+	for _, p := range ms[0].Packages {
+		got[p.ID.String()] = p.Replaces
+	}
+	assert.Equal(t, map[string]string{
+		"go/example.com/fork@1.1.0":  "example.com/upstream",
+		"go/example.com/plain@1.2.0": "",
+	}, got, "a local replacement is no package")
+}

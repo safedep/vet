@@ -43,7 +43,7 @@ import (
 const Name = "codeusage"
 
 // Version changes when the mapping or the signatures change.
-const Version = "11"
+const Version = "12"
 
 // maxFiles bounds the files that a package usage lists.
 const maxFiles = 20
@@ -349,6 +349,12 @@ type Enricher struct {
 	own      []string
 	provider provider
 	err      error
+
+	// graphNotes are the go.mod files with no module graph, and graphOpen
+	// the open modules of the module graphs.
+	graphMu    sync.Mutex
+	graphNotes []report.Diagnostic
+	graphOpen  []openModules
 }
 
 var (
@@ -401,6 +407,7 @@ func (e *Enricher) Diagnostics() []report.Diagnostic {
 		out = append(out, report.Diagnostic{Level: report.DiagnosticWarning, Code: CodeFileMissing, Component: Name, Message: msg})
 	}
 	out = append(out, e.missingDiagnostics()...)
+	out = append(out, e.graphDiagnostics()...)
 	if e.reachStopped {
 		out = append(out, report.Diagnostic{
 			Level: report.DiagnosticWarning, Code: CodeReachStopped, Component: Name,
@@ -449,10 +456,14 @@ func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 	if err := e.load(ctx); err != nil {
 		return e.err
 	}
-	e.provider.goModules = nil
+	e.provider.goModules, e.provider.goImports = nil, map[model.PackageKey]string{}
 	for _, p := range pkgs {
-		if p.ID.Ecosystem() == model.EcosystemGo {
-			e.provider.goModules = append(e.provider.goModules, p.ID.Name())
+		if p.ID.Ecosystem() != model.EcosystemGo {
+			continue
+		}
+		e.provider.goModules = append(e.provider.goModules, cmp.Or(p.Replaces, p.ID.Name()))
+		if p.Replaces != "" {
+			e.provider.goImports[p.ID.Key()] = p.Replaces
 		}
 	}
 	for _, p := range pkgs {

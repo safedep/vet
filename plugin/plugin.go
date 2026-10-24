@@ -132,6 +132,17 @@ type SourceEnricher interface {
 	UseSource(dir string)
 }
 
+// Grapher is a source enricher that builds the dependency graph of a
+// manifest from the code on the disk, for a manifest that its extractor
+// gives with no graph, such as a go.mod. The engine calls Graph during the
+// extraction, after UseSource and before it stores the manifest. A nil
+// graph keeps the manifest with no graph. An error stops the scan, so
+// Graph returns one only when ctx is done or the cache fails, and reports
+// a gap in its Diagnostics.
+type Grapher interface {
+	Graph(ctx context.Context, m *model.Manifest) (*model.Graph, error)
+}
+
 // ReachReporter is an enricher that searches the call graph. ReachReport
 // adds the symbol data that it read, the entry points and the dependency
 // code of its search to the reach of the scan header. It leaves a field
