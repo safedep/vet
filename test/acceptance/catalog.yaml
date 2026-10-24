@@ -923,6 +923,12 @@
   tier: P1
   guarantee: "A scan of a Go module reads the imports of each module of the build list from the module cache, and runs no go command. A module that only another module imports is imported, with the path through that module. A module that no import reaches is unused. A module with no source on the disk makes each module that only it can reach unknown with the cause no-dependency-source, and the scan reports module_graph with the advice to run go mod download."
   labels: [reach, enrichers]
+- id: reach/import/go-workspace-graph
+  title: "vet reads the Go module graph of a go.work workspace"
+  category: reach
+  tier: P1
+  guarantee: "A scan of a go.work workspace builds the module graph of each module with the build list of the workspace. An import of another module of the workspace passes on the imports of its code, so a module that only that code imports is imported. A module that no import of the workspace reaches is unused."
+  labels: [reach, enrichers]
 - id: reach/function/no-symbol-data
   title: "a scan with no symbol data never says not called"
   category: reach

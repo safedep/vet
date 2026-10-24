@@ -1,0 +1,107 @@
+# vet builds the module graph of each module of a go.work workspace with
+# the build list of the workspace. Another module of the workspace is local
+# code: an import of it passes on the imports of its code. A module that
+# no import of the workspace reaches is unused.
+[!cgo] skip 'code analysis needs a vet built with CGO'
+env GOMODCACHE=$WORK/modcache
+
+cd ws
+exec vet scan . -o jsonl --mode agent
+stdout '"name":"github.com/Masterminds/goutils".*"manifest_path":"app/go.mod".*"reach":\{"level":"imported","confidence":"medium"\}'
+stdout '"name":"github.com/Masterminds/goutils".*"manifest_path":"lib/go.mod".*"reach":\{"level":"imported","confidence":"medium","via":\["pkg:golang/example.com/wrap@1.0.0","pkg:golang/github.com/Masterminds/goutils@1.1.0"\]\}'
+! stdout '"code":"module_graph"'
+
+cd ../unusedws
+exec vet scan . -o jsonl --mode agent
+stdout '"name":"github.com/Masterminds/goutils".*"manifest_path":"app/go.mod".*"reach":\{"level":"unused","confidence":"medium"\}'
+
+-- modcache/cache/download/example.com/wrap/@v/v1.0.0.mod --
+module example.com/wrap
+
+go 1.22
+
+require github.com/Masterminds/goutils v1.1.0
+-- modcache/example.com/wrap@v1.0.0/go.mod --
+module example.com/wrap
+
+go 1.22
+
+require github.com/Masterminds/goutils v1.1.0
+-- modcache/example.com/wrap@v1.0.0/wrap.go --
+package wrap
+
+import "github.com/Masterminds/goutils"
+
+func ID() string {
+	s, _ := goutils.RandomAlphaNumeric(8)
+	return s
+}
+-- modcache/cache/download/github.com/!masterminds/goutils/@v/v1.1.0.mod --
+module github.com/Masterminds/goutils
+-- modcache/github.com/!masterminds/goutils@v1.1.0/goutils.go --
+package goutils
+
+func RandomAlphaNumeric(n int) (string, error) { return "", nil }
+-- ws/go.work --
+go 1.22
+
+use (
+	./app
+	./lib
+)
+-- ws/app/go.mod --
+module example.com/app
+
+go 1.22
+
+require github.com/Masterminds/goutils v1.1.0
+-- ws/app/main.go --
+package main
+
+import "example.com/lib"
+
+func main() { _ = lib.ID() }
+-- ws/lib/go.mod --
+module example.com/lib
+
+go 1.22
+
+require (
+	example.com/wrap v1.0.0
+	github.com/Masterminds/goutils v1.1.0
+)
+-- ws/lib/lib.go --
+package lib
+
+import "example.com/wrap"
+
+func ID() string { return wrap.ID() }
+-- unusedws/go.work --
+go 1.22
+
+use (
+	./app
+	./lib
+)
+-- unusedws/app/go.mod --
+module example.com/app
+
+go 1.22
+
+require github.com/Masterminds/goutils v1.1.0
+-- unusedws/app/main.go --
+package main
+
+import "example.com/lib"
+
+func main() { _ = lib.ID() }
+-- unusedws/lib/go.mod --
+module example.com/lib
+
+go 1.22
+
+require github.com/Masterminds/goutils v1.1.0
+-- unusedws/lib/lib.go --
+package lib
+
+func ID() string { return "" }
