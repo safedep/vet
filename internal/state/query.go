@@ -110,25 +110,34 @@ func (s *Scan) graph(ctx context.Context, manifestID string, pkgs []*model.Packa
 
 	g := model.NewGraph()
 	found := false
-	roots, err := s.db.QueryContext(ctx, `SELECT pkey FROM vet_scan_roots WHERE manifest_id = ? ORDER BY pkey`, manifestID)
-	if err != nil {
-		return nil, fmt.Errorf("read roots: %w", err)
-	}
-	for roots.Next() {
-		var k string
-		if err := roots.Scan(&k); err != nil {
-			closeRows(roots)
-			return nil, err
-		}
-		id, err := node(k)
+	for _, set := range []struct {
+		table string
+		add   func(model.PackageVersion)
+	}{{"vet_scan_roots", g.AddRoot}, {"vet_scan_open_nodes", g.MarkOpen}} {
+		rows, err := s.db.QueryContext(ctx, `SELECT pkey FROM `+set.table+` WHERE manifest_id = ? ORDER BY pkey`, manifestID)
 		if err != nil {
-			closeRows(roots)
+			return nil, fmt.Errorf("read %s: %w", set.table, err)
+		}
+		for rows.Next() {
+			var k string
+			if err := rows.Scan(&k); err != nil {
+				closeRows(rows)
+				return nil, err
+			}
+			id, err := node(k)
+			if err != nil {
+				closeRows(rows)
+				return nil, err
+			}
+			set.add(id)
+			found = true
+		}
+		err = rows.Err()
+		closeRows(rows)
+		if err != nil {
 			return nil, err
 		}
-		g.AddRoot(id)
-		found = true
 	}
-	closeRows(roots)
 
 	edges, err := s.db.QueryContext(ctx, `SELECT parent, child FROM vet_scan_edges WHERE manifest_id = ? ORDER BY parent, child`, manifestID)
 	if err != nil {

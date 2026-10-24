@@ -14,7 +14,8 @@ import (
 func TestProvides(t *testing.T) {
 	pv := provider{
 		autoload:  map[string]string{`GuzzleHttp\`: "guzzlehttp/guzzle", `GuzzleHttp\Psr7\`: "guzzlehttp/psr7"},
-		goModules: []string{"github.com/foo/bar", "github.com/foo/bar/v2", "example.com/lib"},
+		goModules: []string{"github.com/foo/bar", "github.com/foo/bar/v2", "example.com/lib", "example.com/upstream"},
+		goImports: map[model.PackageKey]string{model.MustPackageVersion(model.EcosystemGo, "example.com/fork", "1").Key(): "example.com/upstream"},
 	}
 	id := func(eco model.Ecosystem, namespace, name string) model.PackageVersion {
 		sep := "/"
@@ -56,6 +57,8 @@ func TestProvides(t *testing.T) {
 		{"go module", id(model.EcosystemGo, "", "github.com/sashabaranov/go-openai"), module{"go", "github.com/sashabaranov/go-openai", "github.com/sashabaranov/go-openai/jsonschema"}, true},
 		{"go module with a longer module in the scan", id(model.EcosystemGo, "", "github.com/foo/bar"), module{"go", "", "github.com/foo/bar/v2/x"}, false},
 		{"go longer module", id(model.EcosystemGo, "", "github.com/foo/bar/v2"), module{"go", "", "github.com/foo/bar/v2/x"}, true},
+		{"go replacement gets the imports of the module that it replaces", id(model.EcosystemGo, "", "example.com/fork"), module{"go", "", "example.com/upstream/x"}, true},
+		{"go replacement does not get its own path", id(model.EcosystemGo, "", "example.com/fork"), module{"go", "", "example.com/fork/x"}, false},
 		{"go package directory v2 of a module", id(model.EcosystemGo, "", "example.com/lib"), module{"go", "", "example.com/lib/v2"}, true},
 		{"composer autoload", id(model.EcosystemPackagist, "guzzlehttp", "psr7"), module{"php", "", `GuzzleHttp\Psr7\Response`}, true},
 		{"composer longest prefix", id(model.EcosystemPackagist, "guzzlehttp", "guzzle"), module{"php", "", `GuzzleHttp\Psr7\Response`}, false},

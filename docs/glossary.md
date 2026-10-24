@@ -94,8 +94,18 @@ installed. The others are declared.
 
 **Dependency graph**:
 The edges between the packages of one manifest. Its roots are the direct dependencies. `model.Graph`
-keys its nodes by package key, so two spellings of one version are one node.
+keys its nodes by package key, so two spellings of one version are one node. An extractor gives the
+graph of a lockfile. A `plugin.Grapher` gives the graph of a manifest that its extractor gives with
+none: the `codeusage` enricher reads the **module graph** of a `go.mod` from the Go files on the disk
+with `safedep/code/modgraph`. Its roots are the modules that the project imports, and an edge is an
+import of one module by another. An **open node** is a package whose dependencies vet does not know,
+such as a Go module with no source on the disk. It may depend on any package (`Graph.MarkOpen`,
+`Graph.MayReach`).
 _Avoid_: tree
+
+**Replaced module**:
+A Go module that a `replace` directive of `go.mod` puts in place of another. The manifest lists the
+replacement, and `model.Package.Replaces` holds the module path that the code imports.
 
 ## Scans
 

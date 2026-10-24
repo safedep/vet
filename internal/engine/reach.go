@@ -196,6 +196,11 @@ func importReach(p *model.Package, m *model.Manifest) *finding.Reach {
 	if m.Graph == nil {
 		return &finding.Reach{Level: finding.ReachUnknown, Cause: finding.ReachNoGraph, Confidence: finding.ConfidenceLow}
 	}
+	if prod, test := importedIDs(m); m.Graph.MayReach(append(prod, test...), p.ID) {
+		// Only an open package, whose dependencies vet does not know, can
+		// lead to p.
+		return &finding.Reach{Level: finding.ReachUnknown, Cause: finding.ReachNoDependencySource, Confidence: finding.ConfidenceLow}
+	}
 	return &finding.Reach{Level: finding.ReachUnused, Confidence: finding.ConfidenceMedium}
 }
 
@@ -236,10 +241,8 @@ func unproven(p *model.Package, m *model.Manifest) finding.ReachCause {
 		// list only the direct dependencies of the root, and the code of a
 		// dependency with no unit gives the search no edge to follow.
 		return finding.ReachNoGraph
-	case reachedByOther(p, m):
-		return finding.ReachTransitive
 	}
-	return ""
+	return reachedByOther(p, m)
 }
 
 // notCalledEcosystems are the ecosystems whose reach corpus in test/reach
@@ -259,22 +262,29 @@ func mayImport(q, p *model.Package) bool {
 	return !q.ID.Equal(p.ID) && (q.Usage == nil || q.Usage.Imported)
 }
 
-// reachedByOther reports another package that the code can import and
-// that can call p. That is a dependency path to p, or a local package,
-// such as a Cargo path dependency. A lockfile records no edge from a local
-// package, and its code can be outside the target.
-func reachedByOther(p *model.Package, m *model.Manifest) bool {
+// reachedByOther names how another package that the code can import can
+// call p, or "". That is a dependency path to p, or a local package, such
+// as a Cargo path dependency. A lockfile records no edge from a local
+// package, and its code can be outside the target. A path that only an
+// open package gives says that vet lacks the code of that package.
+func reachedByOther(p *model.Package, m *model.Manifest) finding.ReachCause {
 	var from []model.PackageVersion
 	for _, q := range m.Packages {
 		if !mayImport(q, p) {
 			continue
 		}
 		if q.Local {
-			return true
+			return finding.ReachTransitive
 		}
 		from = append(from, q.ID)
 	}
-	return len(m.Graph.PathFrom(from, p.ID)) > 0
+	switch {
+	case len(m.Graph.PathFrom(from, p.ID)) > 0:
+		return finding.ReachTransitive
+	case m.Graph.MayReach(from, p.ID):
+		return finding.ReachNoDependencySource
+	}
+	return ""
 }
 
 // recordsOf returns the symbol records of an advisory of a package.
@@ -293,25 +303,28 @@ func recordsOf(u *model.Usage, advisory string) []*model.SymbolRecord {
 // a package that only tests import keeps the test mark, so a non-test
 // source wins a tie.
 func pathFromImported(p *model.Package, m *model.Manifest) ([]model.PackageVersion, *model.Package) {
-	byKey := map[model.PackageKey]*model.Package{}
-	var prod, test []model.PackageVersion
-	for _, q := range m.Packages {
-		if q.Usage == nil || !q.Usage.Imported {
-			continue
-		}
-		byKey[q.ID.Key()] = q
-		if q.Usage.TestOnly {
-			test = append(test, q.ID)
-		} else {
-			prod = append(prod, q.ID)
-		}
-	}
+	prod, test := importedIDs(m)
 	for _, from := range [][]model.PackageVersion{prod, test} {
 		if path := m.Graph.PathFrom(from, p.ID); len(path) > 0 {
-			return path, byKey[path[0].Key()]
+			return path, m.Package(path[0])
 		}
 	}
 	return nil, nil
+}
+
+// importedIDs returns the packages that the code imports, the ones that
+// non-test files import first.
+func importedIDs(m *model.Manifest) (prod, test []model.PackageVersion) {
+	for _, q := range m.Packages {
+		switch {
+		case q.Usage == nil || !q.Usage.Imported:
+		case q.Usage.TestOnly:
+			test = append(test, q.ID)
+		default:
+			prod = append(prod, q.ID)
+		}
+	}
+	return prod, test
 }
 
 func purls(path []model.PackageVersion) []string {

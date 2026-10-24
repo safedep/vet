@@ -36,6 +36,15 @@ view also names the symbol bundle and counts each reach and each cause. The call
 covers the whole target. In a target with two `go.mod` files that require one module, a call from
 one project makes the finding of the module `called` in both.
 
+For a Go module, the dependency graph comes from the code. vet reads the import blocks of the Go
+files of the project and of each module of the build list. It finds a module in `vendor`, in the
+directory of a local `replace` inside the target, or in the module cache. It runs no build and
+downloads nothing, so run `go mod download` before a scan. A module with no source on the disk is
+open: vet does not know what it imports. A package that only an open module can reach is `unknown ·
+no dependency source`, and the scan warns with `module_graph`. vet builds no graph for a module of
+a `go.work` workspace, or for a `go.mod` with a `go` directive below 1.17. Its findings keep
+`unknown · no graph`.
+
 Each package in a report has a `purl`. It follows the purl-spec type definition of its ecosystem,
 and it keeps the version as the manifest writes it. `name` and `version` hold the canonical form
 that vet compares.

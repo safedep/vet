@@ -56,6 +56,33 @@ func TestManifestRoundTrip(t *testing.T) {
 	assert.Equal(t, []string{"m1", "m2"}, ids)
 }
 
+func TestManifestKeepsTheOpenNodesOfItsGraph(t *testing.T) {
+	ctx := context.Background()
+	s := openStore(t)
+	scan, _ := newScan(t, s, "/repo")
+	a := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, "example.com/a", "1.0.0")}
+	open := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, "example.com/open", "1.0.0")}
+	g := model.NewGraph()
+	g.MarkOpen(open.ID)
+	m := &model.Manifest{
+		ID: "go", Path: "go.mod", Ecosystem: model.EcosystemGo, Kind: model.ManifestKindLockfile,
+		Packages: []*model.Package{a, open}, Graph: g,
+	}
+	require.NoError(t, scan.AddManifest(ctx, "", m))
+
+	got, err := scan.Manifest(ctx, "go")
+	require.NoError(t, err)
+	require.NotNil(t, got.Graph, "a graph with only an open node is a graph")
+	assert.Equal(t, []model.PackageVersion{open.ID}, got.Graph.Open())
+	assert.True(t, got.Graph.MayReach([]model.PackageVersion{open.ID}, a.ID))
+
+	m.Graph = model.NewGraph()
+	require.NoError(t, scan.AddManifest(ctx, "", m))
+	got, err = scan.Manifest(ctx, "go")
+	require.NoError(t, err)
+	assert.Nil(t, got.Graph, "a new write drops the old open nodes")
+}
+
 func TestPackagesQuery(t *testing.T) {
 	ctx := context.Background()
 	scan, m := seed(t)

@@ -1,6 +1,7 @@
 package codeusage
 
 import (
+	"cmp"
 	"encoding/json"
 	"slices"
 	"strings"
@@ -44,6 +45,9 @@ type provider struct {
 	// is in github.com/foo/bar/v2 when the scan has that module, and in
 	// github.com/foo/bar when it does not.
 	goModules []string
+	// goImports holds the path that the code imports for each Go package
+	// that a replace directive puts in place of another module.
+	goImports map[model.PackageKey]string
 }
 
 func (pv provider) provides(id model.PackageVersion, m module) bool {
@@ -61,6 +65,7 @@ func (pv provider) provides(id model.PackageVersion, m module) bool {
 		// google-cloud-storage installs google.cloud.storage.
 		return id.NameIs(hint) || id.NameIs(rootModule(mod)) || slices.ContainsFunc(dottedPrefixes(mod, "-"), id.NameIs)
 	case model.EcosystemGo:
+		name = cmp.Or(pv.goImports[id.Key()], name)
 		return goModuleOf(mod, name) && !slices.ContainsFunc(pv.goModules, func(other string) bool {
 			return len(other) > len(name) && goModuleOf(mod, other)
 		})
