@@ -12,6 +12,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/safedep/code/fileindex/store/localdbstore"
 	"github.com/safedep/code/modgraph"
 	"github.com/safedep/dry/log"
 	"golang.org/x/mod/modfile"
@@ -33,10 +34,11 @@ const CodeModuleGraph = "module_graph"
 // that vet cannot trust is nil, so the manifest keeps no graph, and the
 // diagnostics say why.
 func (e *Enricher) Graph(ctx context.Context, m *model.Manifest) (*model.Graph, error) {
-	if e.dir == "" || m.Ecosystem != model.EcosystemGo || path.Base(m.Path) != "go.mod" {
+	modDir, ok := moduleDirOf(m.Path)
+	if e.dir == "" || m.Ecosystem != model.EcosystemGo || !ok {
 		return nil, nil
 	}
-	dir := filepath.Join(e.dir, filepath.FromSlash(path.Dir(m.Path)))
+	dir := filepath.Join(e.dir, filepath.FromSlash(modDir))
 	work, err := workspaceOf(e.dir, dir)
 	if err != nil {
 		e.noteGraph(fmt.Sprintf("vet builds no module graph for %s, because %v", m.Path, err))
@@ -53,9 +55,12 @@ func (e *Enricher) Graph(ctx context.Context, m *model.Manifest) (*model.Graph, 
 		e.noteGraph(fmt.Sprintf("vet builds no module graph for %s: %v", m.Path, err))
 		return nil, nil
 	}
-	// Build gets no store: one SQLite call for each package of cache.db costs
-	// more than a read of the files.
-	g, err := modgraph.Build(ctx, modgraph.Input{MainFS: os.DirFS(dir), Modules: sources})
+	in := modgraph.Input{MainFS: newListedFS(os.DirFS(dir)), Modules: e.listed(sources)}
+	if st := e.moduleCache(ctx); st != nil {
+		in.Store = st
+		defer st.Flush(ctx)
+	}
+	g, err := modgraph.Build(ctx, in)
 	switch {
 	case ctx.Err() != nil:
 		return nil, ctx.Err()
@@ -79,6 +84,64 @@ func (e *Enricher) Graph(ctx context.Context, m *model.Manifest) (*model.Graph, 
 		e.graphMu.Unlock()
 	}
 	return out, nil
+}
+
+// moduleDirOf returns the directory of the module of a Go manifest: the
+// directory of a go.mod, or the directory above vendor/modules.txt. The
+// vendor list holds the modules of that go.mod, so both get its graph.
+func moduleDirOf(manifest string) (string, bool) {
+	switch dir := path.Dir(manifest); {
+	case path.Base(manifest) == "go.mod":
+		return dir, true
+	case path.Base(manifest) == "modules.txt" && path.Base(dir) == "vendor":
+		return path.Dir(dir), true
+	}
+	return "", false
+}
+
+// listed gives each source a file system that keeps its directory
+// listings. A source that never changes, as a directory of the module
+// cache, shares one for the whole scan, so the go.mod files of a target
+// that use one module version list its directories once.
+func (e *Enricher) listed(sources []modgraph.Source) []modgraph.Source {
+	out := slices.Clone(sources)
+	e.graphMu.Lock()
+	defer e.graphMu.Unlock()
+	for i, s := range out {
+		if s.FS == nil {
+			continue
+		}
+		if !s.Immutable {
+			out[i].FS = newListedFS(s.FS)
+			continue
+		}
+		key := cmp.Or(s.Origin, s.Module).String()
+		if e.listings == nil {
+			e.listings = map[string]*listedFS{}
+		}
+		if e.listings[key] == nil {
+			e.listings[key] = newListedFS(s.FS)
+		}
+		out[i].FS = e.listings[key]
+	}
+	return out
+}
+
+// moduleCache returns the module graph cache in cache.db, or nil when the
+// scan has no cache.db or vet cannot open it.
+func (e *Enricher) moduleCache(ctx context.Context) *moduleStore {
+	e.graphCacheOnce.Do(func() {
+		if e.o.Cache == nil {
+			return
+		}
+		st, err := localdbstore.New(ctx, e.o.Cache)
+		if err != nil {
+			log.Warnf("module graph cache: %v. vet reads each module", err)
+			return
+		}
+		e.graphCache = newModuleStore(st)
+	})
+	return e.graphCache
 }
 
 // moduleGraph converts the module graph into a graph of imports of the

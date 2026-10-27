@@ -355,6 +355,12 @@ type Enricher struct {
 	graphMu    sync.Mutex
 	graphNotes []report.Diagnostic
 	graphOpen  []openModules
+	// listings are the file systems of the module sources that never
+	// change, by module version.
+	listings map[string]*listedFS
+	// graphCache keeps the module graph cache in cache.db, or is nil.
+	graphCacheOnce sync.Once
+	graphCache     *moduleStore
 }
 
 var (
