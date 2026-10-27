@@ -28,7 +28,9 @@ import (
 // installed packages walks node_modules.
 var skipDirs = map[string]bool{".git": true, "node_modules": true}
 
-var unknownPURLType = regexp.MustCompile(`unknown PURL type "([^"]+)"`)
+// unknownPURLType matches the error of model.ParsePURL for a PURL type
+// outside the ecosystems of vet, and takes the type.
+var unknownPURLType = regexp.MustCompile(regexp.QuoteMeta(model.ErrUnknownEcosystem.Error()) + `: PURL type "([^"]+)"`)
 
 // extract walks each artifact and commits the manifests of each file. A
 // file that has not changed since a stopped run keeps its manifests.
