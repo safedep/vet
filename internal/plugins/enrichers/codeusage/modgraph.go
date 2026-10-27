@@ -80,7 +80,11 @@ func (e *Enricher) Graph(ctx context.Context, m *model.Manifest) (*model.Graph, 
 	}
 	if open := reachedOpen(g); len(open) > 0 {
 		e.graphMu.Lock()
-		e.graphOpen = append(e.graphOpen, openModules{manifest: m.Path, modules: open})
+		// go.mod and vendor/modules.txt of one module get the same graph,
+		// so the open modules count once for each module directory.
+		if !slices.ContainsFunc(e.graphOpen, func(o openModules) bool { return o.dir == modDir }) {
+			e.graphOpen = append(e.graphOpen, openModules{manifest: m.Path, dir: modDir, modules: open})
+		}
 		e.graphMu.Unlock()
 	}
 	return out, nil
@@ -363,6 +367,7 @@ func samePath(a, b string) bool {
 // openModules are the open modules that the build of a go.mod reaches.
 type openModules struct {
 	manifest string
+	dir      string
 	modules  []string
 }
 

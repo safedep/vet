@@ -452,6 +452,27 @@ func TestGraphDiagnosticCountsTheOpenModulesOfEachGoMod(t *testing.T) {
 	assert.Contains(t, d[0].Message, "vet cannot read the imports of 2 Go modules of 2 go.mod files, such as example.com/gone of one/go.mod")
 }
 
+func TestGraphDiagnosticCountsTheOpenModulesOfAVendorListOnce(t *testing.T) {
+	dir := t.TempDir()
+	writeTree(t, dir, map[string]string{
+		"go.mod":                       "module example.com/app\n\ngo 1.22\n\nrequire example.com/gone v1.0.0\n",
+		"main.go":                      "package main\n\nimport _ \"example.com/gone\"\n",
+		"vendor/modules.txt":           "# example.com/gone v1.0.0\n## explicit\nexample.com/gone\n",
+		"vendor/example.com/gone/g.go": "package gone\n\nimport _ \"example.com/nowhere\"\n",
+	})
+	t.Setenv("GOMODCACHE", t.TempDir())
+	e := NewWith(dir, Options{}, nil)
+	for _, path := range []string{"go.mod", "vendor/modules.txt"} {
+		g, err := e.Graph(context.Background(), &model.Manifest{Path: path, Ecosystem: model.EcosystemGo, Packages: []*model.Package{goPackage("example.com/gone")}})
+		require.NoError(t, err)
+		require.NotNil(t, g)
+	}
+	d := e.Diagnostics()
+	require.Len(t, d, 1)
+	assert.Equal(t, 1, d[0].Count)
+	assert.Contains(t, d[0].Message, "vet cannot read the imports of 1 Go module of go.mod, such as example.com/gone of go.mod")
+}
+
 func TestGraphReadsTheModuleCacheOfAnEarlierScan(t *testing.T) {
 	dir, cache := t.TempDir(), t.TempDir()
 	writeTree(t, dir, map[string]string{
