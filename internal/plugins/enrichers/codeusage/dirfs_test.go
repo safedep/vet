@@ -2,6 +2,7 @@ package codeusage
 
 import (
 	"io/fs"
+	"syscall"
 	"testing"
 	"testing/fstest"
 
@@ -13,10 +14,14 @@ import (
 type countingFS struct {
 	fstest.MapFS
 	lists int
+	fail  error
 }
 
 func (c *countingFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	c.lists++
+	if c.fail != nil {
+		return nil, c.fail
+	}
 	return c.MapFS.ReadDir(name)
 }
 
@@ -42,4 +47,15 @@ func TestListedFSListsEachDirectoryOnce(t *testing.T) {
 	info, err := fs.Stat(l, "x")
 	require.NoError(t, err)
 	assert.True(t, info.IsDir())
+}
+
+func TestListedFSDoesNotKeepAnErrorThatCanGoAway(t *testing.T) {
+	under := &countingFS{MapFS: fstest.MapFS{"x/a.go": {Data: []byte("package x")}}, fail: syscall.EMFILE}
+	l := newListedFS(under)
+	_, err := fs.ReadDir(l, "x")
+	require.ErrorIs(t, err, syscall.EMFILE)
+	under.fail = nil
+	entries, err := fs.ReadDir(l, "x")
+	require.NoError(t, err)
+	assert.Len(t, entries, 1)
 }

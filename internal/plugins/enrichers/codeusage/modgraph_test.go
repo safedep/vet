@@ -136,6 +136,13 @@ func TestModuleGraph(t *testing.T) {
 			why:  "the module example.com/lost@v1.0.0 is no package of the manifest",
 		},
 		{
+			name:    "a package that is no module of the build list",
+			imports: []string{"example.com/a"},
+			modules: []modgraph.Source{goSource("example.com/a", fstest.MapFS{"a.go": goFile("a")})},
+			pkgs:    []*model.Package{goPackage("example.com/a"), goPackage("example.com/stale")},
+			why:     "the package go/example.com/stale@1.0.0 is no module of the build list",
+		},
+		{
 			name:    "a module that go.mod does not require passes its imports on",
 			imports: []string{"example.com/a"},
 			modules: []modgraph.Source{
@@ -378,10 +385,11 @@ func TestGraphOfAGoMod(t *testing.T) {
 			}
 			t.Setenv("GOWORK", gowork)
 			e := NewWith(dir, Options{}, nil)
-			m := &model.Manifest{
-				Path: cmp.Or(tc.manifest, "go.mod"), Ecosystem: model.EcosystemGo,
-				Packages: []*model.Package{goPackage("example.com/a"), goPackage("example.com/b"), goPackage("example.com/gone")},
+			pkgs := []*model.Package{goPackage("example.com/a"), goPackage("example.com/b")}
+			if strings.Contains(tc.files["go.mod"], "example.com/gone") {
+				pkgs = append(pkgs, goPackage("example.com/gone"))
 			}
+			m := &model.Manifest{Path: cmp.Or(tc.manifest, "go.mod"), Ecosystem: model.EcosystemGo, Packages: pkgs}
 			g, err := e.Graph(context.Background(), m)
 			require.NoError(t, err)
 			if tc.note == "" {

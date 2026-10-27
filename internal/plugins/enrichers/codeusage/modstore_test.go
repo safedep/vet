@@ -95,7 +95,11 @@ func TestModuleStoreTreatsAFailedOrBadEntryAsAMiss(t *testing.T) {
 	found, err = s.GetArtifacts(ctx, []store.ArtifactKey{packageKey(unit, ".")})
 	require.NoError(t, err, "a cache that fails costs time, not the graph")
 	assert.Empty(t, found)
+	found, err = s.GetArtifacts(ctx, []store.ArtifactKey{packageKey("go:example.com/b@v1.0.0", ".")})
+	require.NoError(t, err)
+	assert.Empty(t, found)
+	assert.Equal(t, 1, failing.gets, "the module store stops at the first error")
 	require.NoError(t, s.PutArtifacts(ctx, []store.Artifact{{Key: packageKey(unit, "."), Data: []byte(`{"imports":[]}`)}}))
 	s.Flush(ctx)
-	assert.Equal(t, 1, failing.puts)
+	assert.Equal(t, 0, failing.puts)
 }

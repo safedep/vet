@@ -46,7 +46,8 @@ module that the code of that `go.mod` imports. A path from a module that only th
 `go.mod` import, and that no other import reaches, is from tests only. A `tool` directive of
 `go.mod` counts as an import, because `go tool` builds and runs the code of the tool. Each Go
 program links the standard library, so its findings are `imported`. The `vendor/modules.txt` of a
-module gets the graph of its `go.mod`. cache.db keeps the imports of each module version of the
+module gets the graph of its `go.mod`. A module of `vendor/modules.txt` that is not in the build
+list gives no graph and a `module_graph` warning. Run `go mod vendor` to refresh the list. cache.db keeps the imports of each module version of the
 module cache, so a later scan, or another `go.mod` of the same scan, does not read them again.
 
 For a module of a `go.work` workspace, vet uses the build list of the workspace, as the go command

@@ -3,6 +3,7 @@ package codeusage
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"maps"
 	"sync"
 
@@ -16,14 +17,17 @@ import (
 // SQLite call for each package costs more than a read of its files. A
 // module version holds many packages, so a scan reads its artifact once and
 // writes it once. A key with no package unit goes to the store as it is.
+// The entries stay in memory for the scan.
 //
-// A store that fails costs time, not the graph: a read that fails is a
-// miss, and a write that fails is lost.
+// A store that fails costs time, not the graph. After the first error the
+// module store logs one warning and does not use the store again, so each
+// read is a miss and each write is lost.
 type moduleStore struct {
 	store.Store
 
 	mu      sync.Mutex
 	modules map[store.ArtifactKey]*moduleEntry
+	broken  bool
 }
 
 // moduleEntry is the cache of one module version: the artifact of each
@@ -108,12 +112,14 @@ func (s *moduleStore) load(ctx context.Context, mk store.ArtifactKey) *moduleEnt
 		return e
 	}
 	e := &moduleEntry{}
-	found, err := s.Store.GetArtifacts(ctx, []store.ArtifactKey{mk})
-	if err != nil {
-		log.Warnf("module graph cache: read %s: %v", mk.Path, err)
-	} else if data, ok := found[mk]; ok {
-		if err := json.Unmarshal(data, e); err != nil {
-			log.Debugf("module graph cache: %s: %v. vet reads the module again", mk.Path, err)
+	if !s.broken {
+		found, err := s.Store.GetArtifacts(ctx, []store.ArtifactKey{mk})
+		if err != nil {
+			s.fail("read "+mk.Path, err)
+		} else if data, ok := found[mk]; ok {
+			if err := json.Unmarshal(data, e); err != nil {
+				log.Debugf("module graph cache: %s: %v. vet reads the module again", mk.Path, err)
+			}
 		}
 	}
 	if e.Packages == nil {
@@ -128,6 +134,9 @@ func (s *moduleStore) load(ctx context.Context, mk store.ArtifactKey) *moduleEnt
 func (s *moduleStore) Flush(ctx context.Context) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.broken {
+		return
+	}
 	var batch []store.Artifact
 	for mk, e := range s.modules {
 		if !e.dirty {
@@ -144,10 +153,17 @@ func (s *moduleStore) Flush(ctx context.Context) {
 		return
 	}
 	if err := s.Store.PutArtifacts(ctx, batch); err != nil {
-		log.Warnf("module graph cache: write %d modules: %v", len(batch), err)
+		s.fail(fmt.Sprintf("write %d modules", len(batch)), err)
 		return
 	}
 	for _, a := range batch {
 		s.modules[a.Key].dirty = false
 	}
+}
+
+// fail logs the first error of the store and stops its use for the scan.
+// The caller holds mu.
+func (s *moduleStore) fail(what string, err error) {
+	log.Warnf("module graph cache: %s: %v. vet does not use the cache in this scan", what, err)
+	s.broken = true
 }

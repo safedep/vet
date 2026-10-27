@@ -1,6 +1,7 @@
 package codeusage
 
 import (
+	"errors"
 	"io/fs"
 	"slices"
 	"sync"
@@ -32,7 +33,10 @@ func (l *listedFS) Stat(name string) (fs.FileInfo, error) { return fs.Stat(l.fsy
 
 func (l *listedFS) ReadFile(name string) ([]byte, error) { return fs.ReadFile(l.fsys, name) }
 
-// ReadDir returns a copy of the listing, so a caller can sort it.
+// ReadDir returns a copy of the listing, so a caller can sort it. It keeps
+// no other error than fs.ErrNotExist. A shared listing lives for the scan,
+// and a kept error such as too many open files would make the module open
+// for each later go.mod.
 func (l *listedFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	l.mu.Lock()
 	got, ok := l.lists[name]
@@ -40,9 +44,11 @@ func (l *listedFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	if !ok {
 		entries, err := fs.ReadDir(l.fsys, name)
 		got = listing{entries: entries, err: err}
-		l.mu.Lock()
-		l.lists[name] = got
-		l.mu.Unlock()
+		if err == nil || errors.Is(err, fs.ErrNotExist) {
+			l.mu.Lock()
+			l.lists[name] = got
+			l.mu.Unlock()
+		}
 	}
 	return slices.Clone(got.entries), got.err
 }

@@ -103,6 +103,7 @@ func moduleDirOf(manifest string) (string, bool) {
 // listings. A source that never changes, as a directory of the module
 // cache, shares one for the whole scan, so the go.mod files of a target
 // that use one module version list its directories once.
+// The listings stay in memory for the scan.
 func (e *Enricher) listed(sources []modgraph.Source) []modgraph.Source {
 	out := slices.Clone(sources)
 	e.graphMu.Lock()
@@ -168,6 +169,14 @@ func moduleGraph(g *modgraph.Graph, pkgs []*model.Package, local, required map[s
 		// another package.
 		if n.Reached && !mapped && required[n.Module.Path] && !local[n.Module.Path] {
 			return nil, fmt.Sprintf("the module %s is no package of the manifest", n.Module)
+		}
+	}
+	// A package with no module in the build list has no edges, so it would
+	// read unused. A vendor list that go mod vendor did not refresh holds
+	// such a package.
+	for _, path := range slices.Sorted(maps.Keys(byPath)) {
+		if _, ok := g.Node(path); !ok {
+			return nil, fmt.Sprintf("the package %s is no module of the build list", byPath[path])
 		}
 	}
 	if open[g.Main.Path] {

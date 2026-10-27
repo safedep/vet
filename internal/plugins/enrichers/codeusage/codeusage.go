@@ -43,7 +43,7 @@ import (
 const Name = "codeusage"
 
 // Version changes when the mapping or the signatures change.
-const Version = "13"
+const Version = "14"
 
 // maxFiles bounds the files that a package usage lists.
 const maxFiles = 20
