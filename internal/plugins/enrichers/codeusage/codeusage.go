@@ -472,6 +472,7 @@ func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 			e.provider.goImports[p.ID.Key()] = p.Replaces
 		}
 	}
+	byModule := e.callModules()
 	for _, p := range pkgs {
 		if _, ok := ecosystemLanguages[p.ID.Ecosystem()]; !ok {
 			p.Usage = nil
@@ -489,7 +490,7 @@ func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 		p.Usage.DynamicImport = slices.ContainsFunc(langs, func(l string) bool { return e.dynamic[l] })
 		p.Usage.UnreadFiles = slices.ContainsFunc(langs, func(l string) bool { return e.unread[l] })
 		p.Usage.NoSourceFiles = !p.Usage.Imported && !slices.ContainsFunc(langs, func(l string) bool { return e.languages[l] })
-		p.Usage.Calls = e.callsInto(p.ID)
+		p.Usage.Calls = e.callsInto(p.ID, byModule)
 		p.Usage.Dynamic = e.dynamicIn(sites)
 	}
 	e.lookupSymbols(pkgs)
@@ -781,18 +782,32 @@ func (e *Enricher) missingDiagnostics() []report.Diagnostic {
 	return out
 }
 
+// callModules returns the index in e.calls of each call, by its module. A
+// test of each call for each package took 27 s on gitea and 88 s on vault,
+// so a package tests each module once.
+func (e *Enricher) callModules() map[module][]int {
+	out := map[module][]int{}
+	for i, c := range e.calls {
+		m := module{Language: c.Language, Hint: e.hints[module{Language: c.Language, Name: c.Module}], Name: c.Module}
+		out[m] = append(out[m], i)
+	}
+	return out
+}
+
 // callsInto returns the calls whose module the package provides, at most
 // maxSites, in file and line order.
-func (e *Enricher) callsInto(id model.PackageVersion) []model.CallSite {
-	var out []model.CallSite
-	for _, c := range e.calls {
-		m := module{Language: c.Language, Hint: e.hints[module{Language: c.Language, Name: c.Module}], Name: c.Module}
+func (e *Enricher) callsInto(id model.PackageVersion, byModule map[module][]int) []model.CallSite {
+	var calls []int
+	for m, idx := range byModule {
 		if e.provider.provides(id, m) {
-			out = append(out, model.CallSite{File: c.FilePath, Line: c.Line, Callee: c.Callee})
-			if len(out) == maxSites {
-				break
-			}
+			calls = append(calls, idx...)
 		}
+	}
+	slices.Sort(calls)
+	var out []model.CallSite
+	for _, i := range calls[:min(len(calls), maxSites)] {
+		c := e.calls[i]
+		out = append(out, model.CallSite{File: c.FilePath, Line: c.Line, Callee: c.Callee})
 	}
 	return out
 }
