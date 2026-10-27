@@ -112,11 +112,21 @@ func moduleGraph(g *modgraph.Graph, pkgs []*model.Package, local, required map[s
 		return nil, "the main module can import any module: " + n.Reason
 	}
 	next := map[string][]string{}
+	var mainProd []string
 	for _, e := range g.Edges {
 		if e.Kind == modgraph.StateImports && e.To.Path != modgraph.StdPath {
 			next[e.From.Path] = append(next[e.From.Path], e.To.Path)
+			if e.From.Path == g.Main.Path && !e.TestOnly {
+				mainProd = append(mainProd, e.To.Path)
+			}
 		}
 	}
+	// A root that no edge from the non-test files of the main module leads
+	// to is a test root. The walk of all edges already rejects a hidden open
+	// module, so this walk ignores it.
+	prodNext := maps.Clone(next)
+	prodNext[g.Main.Path] = mainProd
+	prod, _ := passOn(g.Main.Path, prodNext, byPath, open)
 
 	out := model.NewGraph()
 	out.SetImports()
@@ -127,7 +137,11 @@ func moduleGraph(g *modgraph.Graph, pkgs []*model.Package, local, required map[s
 				return nil, fmt.Sprintf("the main module imports %s, which vet cannot read", hiddenOpen)
 			}
 			for _, t := range targets {
-				out.AddRoot(t)
+				if slices.ContainsFunc(prod, t.Equal) {
+					out.AddRoot(t)
+				} else {
+					out.AddTestRoot(t)
+				}
 			}
 			continue
 		}

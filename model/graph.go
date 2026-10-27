@@ -11,28 +11,37 @@ import (
 // dependencies vet does not know, such as a Go module with no source on
 // the disk. It may depend on any package. In a graph of imports, as the
 // module graph of a go.mod, the roots are the packages that the code of
-// the manifest imports and an edge is an import.
+// the manifest imports and an edge is an import. A test root is a root that
+// only the test files of the code import.
 type Graph struct {
-	nodes   map[PackageKey]PackageVersion
-	roots   map[PackageKey]struct{}
-	edges   map[PackageKey]map[PackageKey]struct{}
-	open    map[PackageKey]struct{}
-	imports bool
+	nodes     map[PackageKey]PackageVersion
+	roots     map[PackageKey]struct{}
+	testRoots map[PackageKey]struct{}
+	edges     map[PackageKey]map[PackageKey]struct{}
+	open      map[PackageKey]struct{}
+	imports   bool
 }
 
 // NewGraph returns an empty graph.
 func NewGraph() *Graph {
 	return &Graph{
-		nodes: map[PackageKey]PackageVersion{},
-		roots: map[PackageKey]struct{}{},
-		edges: map[PackageKey]map[PackageKey]struct{}{},
-		open:  map[PackageKey]struct{}{},
+		nodes:     map[PackageKey]PackageVersion{},
+		roots:     map[PackageKey]struct{}{},
+		testRoots: map[PackageKey]struct{}{},
+		edges:     map[PackageKey]map[PackageKey]struct{}{},
+		open:      map[PackageKey]struct{}{},
 	}
 }
 
 // MarkOpen records that vet does not know the dependencies of a package.
 func (g *Graph) MarkOpen(id PackageVersion) {
 	g.open[g.node(id)] = struct{}{}
+}
+
+// IsOpen reports whether vet does not know the dependencies of a package.
+func (g *Graph) IsOpen(id PackageVersion) bool {
+	_, ok := g.open[id.Key()]
+	return ok
 }
 
 // Open returns the open packages, sorted.
@@ -49,6 +58,26 @@ func (g *Graph) Imports() bool { return g.imports }
 // AddRoot marks a package as a direct dependency.
 func (g *Graph) AddRoot(id PackageVersion) {
 	g.roots[g.node(id)] = struct{}{}
+}
+
+// AddTestRoot marks a package as a root that only test files import.
+func (g *Graph) AddTestRoot(id PackageVersion) {
+	k := g.node(id)
+	g.roots[k] = struct{}{}
+	g.testRoots[k] = struct{}{}
+}
+
+// Root reports whether a package is a root, and whether it is a test root.
+func (g *Graph) Root(id PackageVersion) (root, test bool) {
+	k := id.Key()
+	_, root = g.roots[k]
+	_, test = g.testRoots[k]
+	return root, test
+}
+
+// TestRoots returns the test roots, sorted.
+func (g *Graph) TestRoots() []PackageVersion {
+	return g.sorted(g.testRoots)
 }
 
 // AddEdge records that parent depends on child.
