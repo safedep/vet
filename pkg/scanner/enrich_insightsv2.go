@@ -319,6 +319,8 @@ func (e *insightsBasedPackageEnricherV2) convertInsightsV2ToV1(pvi *packagev1.Pa
 				sevType = insightapi.PackageVulnerabilitySeveritiesTypeCVSSV2
 			case vulnerabilityv1.Severity_TYPE_CVSS_V3:
 				sevType = insightapi.PackageVulnerabilitySeveritiesTypeCVSSV3
+			case vulnerabilityv1.Severity_TYPE_CVSS_V4:
+				sevType = models.VulnerabilitySeverityTypeCVSSV4
 			default:
 				sevType = insightapi.PackageVulnerabilitySeveritiesTypeUNSPECIFIED
 			}

@@ -264,13 +264,14 @@ func (f *filterEvaluator) buildFilterInput(pkg *models.Package) (*filterinput.Fi
 
 		fi.Vulns.All = append(fi.Vulns.All, &fiv)
 
+		// A vulnerability can be rated with more than one CVSS version. The
+		// most current one wins: v4, then v3, then v2.
 		risk := insightapi.PackageVulnerabilitySeveritiesRiskUNKNOWN
+		riskRank := 0
 		for _, s := range utils.SafelyGetValue(vuln.Severities) {
-			sType := utils.SafelyGetValue(s.Type)
-			if (sType == insightapi.PackageVulnerabilitySeveritiesTypeCVSSV3) ||
-				(sType == insightapi.PackageVulnerabilitySeveritiesTypeCVSSV2) {
+			if rank := models.VulnerabilitySeverityTypeRank(utils.SafelyGetValue(s.Type)); rank > riskRank {
 				risk = utils.SafelyGetValue(s.Risk)
-				break
+				riskRank = rank
 			}
 		}
 
