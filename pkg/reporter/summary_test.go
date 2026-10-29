@@ -3,7 +3,11 @@ package reporter
 import (
 	"testing"
 
+	"github.com/safedep/dry/utils"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/safedep/vet/gen/insightapi"
+	"github.com/safedep/vet/pkg/models"
 )
 
 func TestManifestRelativePath(t *testing.T) {
@@ -70,4 +74,55 @@ func TestRenderInternalErrorMessages(t *testing.T) {
 
 		assert.Equal(t, expectedErrorMessage, actualErrorMessage)
 	})
+}
+
+func TestSummaryReporterCountsEachVulnerabilityOnceByItsMostCurrentCVSS(t *testing.T) {
+	const (
+		v2 = insightapi.PackageVulnerabilitySeveritiesTypeCVSSV2
+		v3 = insightapi.PackageVulnerabilitySeveritiesTypeCVSSV3
+		v4 = models.VulnerabilitySeverityTypeCVSSV4
+	)
+
+	type severity = struct {
+		Risk  *insightapi.PackageVulnerabilitySeveritiesRisk `json:"risk,omitempty"`
+		Score *string                                        `json:"score,omitempty"`
+		Type  *insightapi.PackageVulnerabilitySeveritiesType `json:"type,omitempty"`
+	}
+
+	sev := func(t insightapi.PackageVulnerabilitySeveritiesType,
+		r insightapi.PackageVulnerabilitySeveritiesRisk,
+	) severity {
+		return severity{Type: utils.PtrTo(t), Risk: utils.PtrTo(r)}
+	}
+
+	critical := insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL
+	high := insightapi.PackageVulnerabilitySeveritiesRiskHIGH
+	medium := insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM
+
+	vulns := []insightapi.PackageVulnerability{
+		// rated only by CVSS v4
+		{Id: utils.PtrTo("GHSA-v4-only"), Severities: &[]severity{sev(v4, critical)}},
+		// v4 is higher than v3: counted once, as high
+		{Id: utils.PtrTo("GHSA-v4-v3"), Severities: &[]severity{sev(v3, medium), sev(v4, high)}},
+		// v2 and v3 together used to be counted twice
+		{Id: utils.PtrTo("GHSA-v3-v2"), Severities: &[]severity{sev(v2, high), sev(v3, medium)}},
+		// no rating that we can bucket on
+		{Id: utils.PtrTo("GHSA-unspecified"), Severities: &[]severity{
+			sev(insightapi.PackageVulnerabilitySeveritiesTypeUNSPECIFIED, critical),
+		}},
+	}
+
+	r := &summaryReporter{
+		remediationScores: make(map[string]*summaryReporterRemediationData),
+		vulnerabilityInfo: make(map[string]*summaryReporterVulnerabilityData),
+	}
+	r.processForVulns(&models.Package{
+		PackageDetails: models.NewPackageDetail(models.EcosystemNpm, "tinypool", "1.1.1"),
+		Insights:       &insightapi.PackageVersionInsight{Vulnerabilities: &vulns},
+	})
+
+	assert.Equal(t, 1, r.summary.vulns.critical)
+	assert.Equal(t, 1, r.summary.vulns.high)
+	assert.Equal(t, 1, r.summary.vulns.medium)
+	assert.Equal(t, 0, r.summary.vulns.low)
 }

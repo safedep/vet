@@ -333,31 +333,36 @@ func (r *summaryReporter) processForVulns(pkg *models.Package) {
 	vulns := utils.SafelyGetValue(insight.Vulnerabilities)
 
 	for _, vuln := range vulns {
+		// A vulnerability can be rated with more than one CVSS version. It is
+		// counted once, by the most current one: v4, then v3, then v2.
+		var risk insightapi.PackageVulnerabilitySeveritiesRisk
+		riskRank := 0
 		for _, s := range utils.SafelyGetValue(vuln.Severities) {
-			sevType := utils.SafelyGetValue(s.Type)
-			risk := utils.SafelyGetValue(s.Risk)
-
-			if (sevType != insightapi.PackageVulnerabilitySeveritiesTypeCVSSV2) &&
-				(sevType != insightapi.PackageVulnerabilitySeveritiesTypeCVSSV3) {
-				continue
+			if rank := models.VulnerabilitySeverityTypeRank(utils.SafelyGetValue(s.Type)); rank > riskRank {
+				risk = utils.SafelyGetValue(s.Risk)
+				riskRank = rank
 			}
+		}
 
-			r.addPkgForVulnerabilityRisk(pkg, risk, utils.SafelyGetValue(vuln.Id))
+		if riskRank == 0 {
+			continue
+		}
 
-			switch risk {
-			case insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL:
-				r.summary.vulns.critical += 1
-				r.addPkgForRemediationAdvice(pkg, summaryWeightCriticalVuln, tagVuln)
-			case insightapi.PackageVulnerabilitySeveritiesRiskHIGH:
-				r.summary.vulns.high += 1
-				r.addPkgForRemediationAdvice(pkg, summaryWeightHighVuln, tagVuln)
-			case insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM:
-				r.summary.vulns.medium += 1
-				r.addPkgForRemediationAdvice(pkg, summaryWeightMediumVuln, tagVuln)
-			case insightapi.PackageVulnerabilitySeveritiesRiskLOW:
-				r.summary.vulns.low += 1
-				r.addPkgForRemediationAdvice(pkg, summaryWeightLowVuln, tagVuln)
-			}
+		r.addPkgForVulnerabilityRisk(pkg, risk, utils.SafelyGetValue(vuln.Id))
+
+		switch risk {
+		case insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL:
+			r.summary.vulns.critical += 1
+			r.addPkgForRemediationAdvice(pkg, summaryWeightCriticalVuln, tagVuln)
+		case insightapi.PackageVulnerabilitySeveritiesRiskHIGH:
+			r.summary.vulns.high += 1
+			r.addPkgForRemediationAdvice(pkg, summaryWeightHighVuln, tagVuln)
+		case insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM:
+			r.summary.vulns.medium += 1
+			r.addPkgForRemediationAdvice(pkg, summaryWeightMediumVuln, tagVuln)
+		case insightapi.PackageVulnerabilitySeveritiesRiskLOW:
+			r.summary.vulns.low += 1
+			r.addPkgForRemediationAdvice(pkg, summaryWeightLowVuln, tagVuln)
 		}
 	}
 }
