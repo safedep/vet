@@ -21,6 +21,12 @@ var editors = map[string]distributionInfo{
 	"cursor":      {FilePath: ".cursor/extensions", Ecosystem: models.EcosystemOpenVSXExtensions, DisplayName: "Cursor"},
 	"windsurf":    {FilePath: ".windsurf/extensions", Ecosystem: models.EcosystemOpenVSXExtensions, DisplayName: "Windsurf"},
 	"antigravity": {FilePath: ".antigravity/extensions", Ecosystem: models.EcosystemOpenVSXExtensions, DisplayName: "Antigravity"},
+
+	// The remote server writes here, not to the desktop directory, when the
+	// editor runs on WSL, over Remote SSH, or in a dev container. Without these
+	// entries vet finds no extension on such a machine.
+	"code-server":   {FilePath: ".vscode-server/extensions", Ecosystem: models.EcosystemVSCodeExtensions, DisplayName: "VS Code"},
+	"cursor-server": {FilePath: ".cursor-server/extensions", Ecosystem: models.EcosystemOpenVSXExtensions, DisplayName: "Cursor"},
 }
 
 type vsCodeExtensionIdentifier struct {

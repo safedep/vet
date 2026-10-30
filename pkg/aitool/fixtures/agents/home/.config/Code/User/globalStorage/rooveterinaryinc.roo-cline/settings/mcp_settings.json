@@ -1,0 +1,1 @@
+{ "mcpServers": { "roo-stdio": { "command": "npx", "args": ["-y", "@example/mcp-server"], "alwaysAllow": [] } } }

@@ -58,6 +58,7 @@ func (d *windsurfDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerF
 			ConfigPath: windsurfDir,
 			Agent:      &AgentConfig{},
 		}
+		agent.InstallPath = firstExistingPath([]string{unixPath("Applications", "Windsurf.app")})
 		agent.ID = generateID(agent.App, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
 		agent.SourceID = generateSourceID(agent.App, agent.ConfigPath)
 

@@ -1,0 +1,57 @@
+# The "Wrong result?" link of the vet pull request comment opens this form.
+# The link fills the fields by their ids. Keep the ids. GitHub reads issue
+# forms from the default branch, so a copy of this file is on main too.
+name: Wrong result
+description: Tell us that a vet finding is wrong
+title: "Wrong result: "
+labels: [false-positive, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **This issue is public.** Do not put private code, secrets or the name of a private repository in it.
+  - type: input
+    id: control
+    attributes:
+      label: Control
+      description: The control id, such as malware
+    validations:
+      required: true
+  - type: input
+    id: finding
+    attributes:
+      label: Finding
+      description: The finding id, such as f-0123456789abcdef
+  - type: input
+    id: subject
+    attributes:
+      label: Package or action
+      description: The package or the action ref of the finding
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: vet version
+      description: The output of vet version
+    validations:
+      required: true
+  - type: input
+    id: repository
+    attributes:
+      label: Repository
+      description: The URL of a public repository that shows the result. This is optional.
+  - type: textarea
+    id: reason
+    attributes:
+      label: Why is the result wrong?
+      description: Give the facts that we can check, such as a link to the source of the package.
+    validations:
+      required: true
+  - type: checkboxes
+    id: public
+    attributes:
+      label: Public issue
+      options:
+        - label: I understand that this issue is public.
+          required: true

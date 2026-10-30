@@ -1,0 +1,15 @@
+name: Local Assistant
+version: 1.0.0
+schema: v1
+mcpServers:
+  - name: continue-sqlite
+    command: uvx
+    args: ["mcp-server-sqlite", "--db-path", "/tmp/test.db"]
+    env:
+      DB_TOKEN: secret
+  - name: continue-remote
+    type: streamable-http
+    url: https://example.com/mcp
+    requestOptions:
+      headers:
+        Authorization: Bearer secret

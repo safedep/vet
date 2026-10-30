@@ -33,6 +33,7 @@ const (
 	metaKeyExtensionID      = "extension.id"
 	metaKeyExtensionVersion = "extension.version"
 	metaKeyExtensionIDE     = "extension.ide"
+	metaKeyAgentInstalled   = "agent.installed"
 
 	// Editor-plugin keys mirror the nvimplugin scanner's metadata schema.
 	metaKeyPluginHost    = "plugin.host"
@@ -255,6 +256,8 @@ func itemDetail(item *inventory.Item) string {
 		return aiExtensionDetail(item)
 	case inventory.KindProjectConfig:
 		return projectConfigDetail(item)
+	case inventory.KindCodingAgent:
+		return codingAgentDetail(item)
 	default:
 		return item.ConfigPath
 	}
@@ -283,6 +286,16 @@ func editorPluginDetail(item *inventory.Item) string {
 	}
 
 	return detail
+}
+
+// codingAgentDetail renders the config path, flagging agents whose only
+// install evidence is that config, since it may be left over from an
+// uninstalled agent.
+func codingAgentDetail(item *inventory.Item) string {
+	if item.Metadata[metaKeyAgentInstalled] == "false" {
+		return item.ConfigPath + " (config only)"
+	}
+	return item.ConfigPath
 }
 
 func mcpServerDetail(item *inventory.Item) string {

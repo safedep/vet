@@ -6,6 +6,7 @@ import (
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/safedep/vet/pkg/models"
 )
@@ -53,14 +54,28 @@ func TestVSCodeExtReaderForAllEditors(t *testing.T) {
 			expectedVersion: "0.7.9",
 			expectedEco:     packagev1.Ecosystem_ECOSYSTEM_OPENVSX,
 		},
+		{
+			name:            "VS Code Server (WSL, Remote SSH)",
+			path:            ".vscode-server/extensions/",
+			expectedPkg:     "esbenp.prettier-vscode",
+			expectedVersion: "12.4.0",
+			expectedEco:     packagev1.Ecosystem_ECOSYSTEM_VSCODE,
+		},
+		{
+			name:            "Cursor Server (WSL, Remote SSH)",
+			path:            ".cursor-server/extensions/",
+			expectedPkg:     "golang.go",
+			expectedVersion: "0.50.0",
+			expectedEco:     packagev1.Ecosystem_ECOSYSTEM_OPENVSX,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			path := filepath.Join("./fixtures/vsix", tt.path)
 			reader, err := NewVSIXExtReader([]string{path})
-			assert.NoError(t, err)
-			assert.NotNil(t, reader)
+			require.NoError(t, err)
+			require.NotNil(t, reader)
 
 			err = reader.EnumManifests(func(manifest *models.PackageManifest, reader PackageReader) error {
 				assert.NotNil(t, manifest)
@@ -168,6 +183,16 @@ func TestVSCodeExtReaderEcosystemDetection(t *testing.T) {
 			expectedEco: models.EcosystemOpenVSXExtensions,
 		},
 		{
+			name:        "VS Code Server path",
+			path:        filepath.Join(home, ".vscode-server", "extensions"),
+			expectedEco: models.EcosystemVSCodeExtensions,
+		},
+		{
+			name:        "Cursor Server path",
+			path:        filepath.Join(home, ".cursor-server", "extensions"),
+			expectedEco: models.EcosystemOpenVSXExtensions,
+		},
+		{
 			name:        "unknown path returns empty",
 			path:        filepath.Join(home, ".unknown-editor", "extensions"),
 			expectedEco: "",
@@ -177,6 +202,25 @@ func TestVSCodeExtReaderEcosystemDetection(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.expectedEco, detectEcosystem(tt.path))
+		})
+	}
+}
+
+func TestEditorDisplayName(t *testing.T) {
+	tests := []struct {
+		dir  string
+		want string
+	}{
+		{".vscode", "VS Code"},
+		{".vscode-server", "VS Code"},
+		{".cursor", "Cursor"},
+		{".cursor-server", "Cursor"},
+		{".unknown-editor", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.dir, func(t *testing.T) {
+			assert.Equal(t, tt.want, EditorDisplayName(tt.dir))
 		})
 	}
 }

@@ -97,6 +97,88 @@ func TestCLIVerifiers_VerifyOutput(t *testing.T) {
 		_, ok = v.VerifyOutput("q version 1.0.0 - queue manager", "")
 		assert.False(t, ok)
 	})
+
+	t.Run("CodexCLI", func(t *testing.T) {
+		v := &codexCLIVerifier{}
+
+		version, ok := v.VerifyOutput("codex-cli 0.160.1\n", "")
+		assert.True(t, ok)
+		assert.Equal(t, "0.160.1", version)
+
+		// Warnings may precede the version line
+		version, ok = v.VerifyOutput("codex-cli 0.160.1\n", "WARNING: proceeding, even though we could not create PATH aliases\n")
+		assert.True(t, ok)
+		assert.Equal(t, "0.160.1", version)
+
+		_, ok = v.VerifyOutput("codex 1.0.0 - unrelated tool", "")
+		assert.False(t, ok)
+	})
+
+	t.Run("GeminiCLI", func(t *testing.T) {
+		v := &geminiCLIVerifier{}
+
+		version, ok := v.VerifyOutput("0.62.0\n", "")
+		assert.True(t, ok)
+		assert.Equal(t, "0.62.0", version)
+
+		_, ok = v.VerifyOutput("gemini: command help", "")
+		assert.False(t, ok)
+	})
+
+	t.Run("CopilotCLI", func(t *testing.T) {
+		v := &copilotCLIVerifier{}
+
+		version, ok := v.VerifyOutput("GitHub Copilot CLI 1.0.92.\nRun 'copilot update' to check for updates.\n", "")
+		assert.True(t, ok)
+		assert.Equal(t, "1.0.92", version)
+
+		_, ok = v.VerifyOutput("1.0.92\n", "")
+		assert.False(t, ok)
+	})
+
+	t.Run("OpenCodeCLI", func(t *testing.T) {
+		v := &openCodeCLIVerifier{}
+
+		version, ok := v.VerifyOutput("1.18.34\n", "")
+		assert.True(t, ok)
+		assert.Equal(t, "1.18.34", version)
+
+		_, ok = v.VerifyOutput("not a version", "")
+		assert.False(t, ok)
+	})
+
+	t.Run("QwenCodeCLI", func(t *testing.T) {
+		v := &qwenCodeCLIVerifier{}
+
+		version, ok := v.VerifyOutput("0.25.0\n", "")
+		assert.True(t, ok)
+		assert.Equal(t, "0.25.0", version)
+
+		_, ok = v.VerifyOutput("not a version", "")
+		assert.False(t, ok)
+	})
+
+	t.Run("AmpCLI", func(t *testing.T) {
+		v := &ampCLIVerifier{}
+
+		version, ok := v.VerifyOutput("0.0.1791288059-gdc93b0 (released 2026-10-06T12:00:59.000Z, 1h ago)\n", "")
+		assert.True(t, ok)
+		assert.Equal(t, "0.0.1791288059", version)
+
+		_, ok = v.VerifyOutput("amp 1.2.3\n", "")
+		assert.False(t, ok)
+	})
+
+	t.Run("AugmentCLI", func(t *testing.T) {
+		v := &augmentCLIVerifier{}
+
+		version, ok := v.VerifyOutput("0.36.0 (commit 7c61e5bb)\n", "")
+		assert.True(t, ok)
+		assert.Equal(t, "0.36.0", version)
+
+		_, ok = v.VerifyOutput("0.36.0\n", "")
+		assert.False(t, ok)
+	})
 }
 
 func TestCLIToolDiscoverer_Interface(t *testing.T) {

@@ -1,0 +1,23 @@
+GOOSE_PROVIDER: anthropic
+extensions:
+  developer:
+    name: developer
+    type: builtin
+    enabled: true
+  goose-stdio:
+    name: goose-stdio
+    type: stdio
+    cmd: npx
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+    envs:
+      GOOSE_TOKEN: secret
+    env_keys: [GITHUB_TOKEN]
+    enabled: true
+    timeout: 300
+  goose-http:
+    name: goose-http
+    type: streamable_http
+    uri: https://example.com/mcp
+    headers:
+      Authorization: Bearer secret
+    enabled: false

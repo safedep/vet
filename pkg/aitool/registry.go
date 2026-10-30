@@ -54,7 +54,25 @@ func (r *Registry) Register(name string, factory AIToolDiscovererFactory) {
 
 // Discover runs all registered discoverers and calls handler for each tool found.
 // Factory or discoverer errors are logged and skipped; handler errors propagate immediately.
+// Coding agents are held back until every discoverer has run, because their
+// install evidence (agent.installed, agent.evidence) depends on CLI and
+// extension items that later discoverers emit.
 func (r *Registry) Discover(ctx context.Context, config DiscoveryConfig, handler AIToolHandlerFn) error {
+	evidence := newInstallEvidence()
+	var agents []*AITool
+
+	collect := func(tool *AITool) error {
+		if tool == nil {
+			return handler(tool)
+		}
+		if tool.Type == AIToolTypeCodingAgent {
+			agents = append(agents, tool)
+			return nil
+		}
+		evidence.observe(tool)
+		return handler(tool)
+	}
+
 	for _, entry := range r.entries {
 		reader, err := entry.factory(config)
 		if err != nil {
@@ -62,8 +80,15 @@ func (r *Registry) Discover(ctx context.Context, config DiscoveryConfig, handler
 			continue
 		}
 
-		err = reader.EnumTools(ctx, handler)
+		err = reader.EnumTools(ctx, collect)
 		if err != nil {
+			return err
+		}
+	}
+
+	for _, agent := range agents {
+		evidence.enrich(agent)
+		if err := handler(agent); err != nil {
 			return err
 		}
 	}
@@ -82,6 +107,21 @@ func DefaultRegistry() *Registry {
 	r.Register("windsurf_config", NewWindsurfDiscoverer)
 	r.Register("antigravity_config", NewAntigravityDiscoverer)
 	r.Register("vscode_config", NewVSCodeDiscoverer)
+	r.Register("codex_config", NewCodexDiscoverer)
+	r.Register("gemini_cli_config", NewGeminiDiscoverer)
+	r.Register("copilot_cli_config", NewCopilotDiscoverer)
+	r.Register("opencode_config", NewOpenCodeDiscoverer)
+	r.Register("qwen_code_config", NewQwenCodeDiscoverer)
+	r.Register("amp_config", NewAmpDiscoverer)
+	r.Register("augment_config", NewAugmentDiscoverer)
+	r.Register("kiro_config", NewKiroDiscoverer)
+	r.Register("amazon_q_config", NewAmazonQConfigDiscoverer)
+	r.Register("junie_config", NewJunieDiscoverer)
+	r.Register("goose_config", NewGooseDiscoverer)
+	r.Register("continue_config", NewContinueDiscoverer)
+	r.Register("zed_config", NewZedDiscoverer)
+	r.Register("cline_config", NewClineDiscoverer)
+	r.Register("roo_code_config", NewRooCodeDiscoverer)
 
 	// CLI tool discoverers
 	r.Register("claude_code_cli", NewClaudeCLIDiscoverer)
@@ -92,6 +132,13 @@ func DefaultRegistry() *Registry {
 	r.Register("aider", NewAiderDiscoverer)
 	r.Register("gh_copilot", NewGhCopilotDiscoverer)
 	r.Register("amazon_q", NewAmazonQDiscoverer)
+	r.Register("codex_cli", NewCodexCLIDiscoverer)
+	r.Register("gemini_cli", NewGeminiCLIDiscoverer)
+	r.Register("copilot_cli", NewCopilotCLIDiscoverer)
+	r.Register("opencode_cli", NewOpenCodeCLIDiscoverer)
+	r.Register("qwen_code_cli", NewQwenCodeCLIDiscoverer)
+	r.Register("amp_cli", NewAmpCLIDiscoverer)
+	r.Register("augment_cli", NewAugmentCLIDiscoverer)
 
 	// IDE extension discoverer
 	r.Register("ide_extensions", NewAIExtensionDiscoverer)

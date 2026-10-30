@@ -18,6 +18,11 @@ func TestKnownAIExtensions_HasExpectedEntries(t *testing.T) {
 		"rooveterinaryinc.roo-cline",
 		"codeium.codeium",
 		"supermaven.supermaven",
+		"kilocode.kilo-code",
+		"anthropic.claude-code",
+		"openai.chatgpt",
+		"google.geminicodeassist",
+		"augment.vscode-augment",
 	}
 
 	for _, id := range expectedIDs {

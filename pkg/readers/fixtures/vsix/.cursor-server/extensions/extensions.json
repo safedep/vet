@@ -1,0 +1,14 @@
+[
+  {
+    "identifier": {
+      "id": "golang.go",
+      "uuid": "d6f6cfea-4b6f-41f4-b571-6ad2ab7918da"
+    },
+    "version": "0.50.0",
+    "location": {
+      "path": "/home/user/.cursor-server/extensions/golang.go-0.50.0",
+      "scheme": "file"
+    },
+    "relativeLocation": "golang.go-0.50.0"
+  }
+]

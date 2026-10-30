@@ -1,0 +1,8 @@
+{
+  // Amp settings allow comments
+  "amp.mcpServers": {
+    "amp-stdio": { "command": "npx", "args": ["-y", "@playwright/mcp@latest"] },
+    "amp-remote": { "url": "https://example.com/mcp", "headers": { "Authorization": "Bearer secret" } }
+  },
+  "amp.permissions": []
+}

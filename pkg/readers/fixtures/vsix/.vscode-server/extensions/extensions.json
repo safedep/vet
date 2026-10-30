@@ -1,0 +1,14 @@
+[
+  {
+    "identifier": {
+      "id": "esbenp.prettier-vscode",
+      "uuid": "96fa4707-6983-4489-b7c5-d5ffdfdcce90"
+    },
+    "version": "12.4.0",
+    "location": {
+      "path": "/home/user/.vscode-server/extensions/esbenp.prettier-vscode-12.4.0",
+      "scheme": "file"
+    },
+    "relativeLocation": "esbenp.prettier-vscode-12.4.0"
+  }
+]

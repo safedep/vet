@@ -254,3 +254,25 @@ func TestAppDisplayFallsBackToCanonicalApp(t *testing.T) {
 	item := &inventory.Item{App: "vscode"}
 	assert.Equal(t, "vscode", appDisplay(item))
 }
+
+func TestItemDetailCodingAgent(t *testing.T) {
+	cases := []struct {
+		name     string
+		metadata map[string]string
+		want     string
+	}{
+		{name: "ConfigOnly", metadata: map[string]string{metaKeyAgentInstalled: "false"}, want: "/home/u/.codex (config only)"},
+		{name: "Installed", metadata: map[string]string{metaKeyAgentInstalled: "true"}, want: "/home/u/.codex"},
+		{name: "NoEvidenceKey", want: "/home/u/.codex"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			item := &inventory.Item{
+				Kind:       inventory.KindCodingAgent,
+				ConfigPath: "/home/u/.codex",
+				Metadata:   tc.metadata,
+			}
+			assert.Equal(t, tc.want, itemDetail(item))
+		})
+	}
+}
