@@ -131,7 +131,16 @@ type Analysis struct {
 // language, the name and the version, as cargo:time@0.3.30.
 type Unit struct {
 	Key string
+	// Dir is the directory of the code of the unit.
 	Dir string
+	// Root is the directory that the paths of the unit are relative to,
+	// when it is not Dir: a site-packages directory holds the package
+	// directories of a Python distribution, and Python imports them by
+	// their path under it.
+	Root string
+	// Dirs are the other directories of the code of the unit under Root,
+	// as the packages of a namespace package.
+	Dirs []string
 }
 
 // ReachQuery asks whether the code calls the target keys. Sources are the
@@ -297,8 +306,8 @@ type Options struct {
 	// reach are missing, and the scan goes on without them. Zero means no
 	// bound.
 	Budget time.Duration
-	// Symbols finds the vulnerable functions of the vulnerabilities of Go
-	// and Rust packages. A nil Symbols finds none, and the enricher then
+	// Symbols finds the vulnerable functions of the vulnerabilities of Go,
+	// Rust and Python packages. A nil Symbols finds none, and the enricher then
 	// searches no call path.
 	Symbols symbols.Source
 	// Entrypoints are the entry points that the user names, as
@@ -361,6 +370,9 @@ type Enricher struct {
 	// graphCache keeps the module graph cache in cache.db, or is nil.
 	graphCacheOnce sync.Once
 	graphCache     *moduleStore
+	// py is the Python environment of the target, read once.
+	pyOnce sync.Once
+	py     *pythonEnvironment
 }
 
 var (
@@ -498,10 +510,10 @@ func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 }
 
 // symbolLanguages are the languages that the symbol data covers.
-var symbolLanguages = []string{"go", "rust"}
+var symbolLanguages = []string{"go", "rust", "python"}
 
 // symbolEcosystems are the ecosystems of the symbol data.
-var symbolEcosystems = []model.Ecosystem{model.EcosystemGo, model.EcosystemCargo}
+var symbolEcosystems = []model.Ecosystem{model.EcosystemGo, model.EcosystemCargo, model.EcosystemPyPI}
 
 // lookupSymbols sets the symbol records of each vulnerability of a Go or a
 // Rust package. A package that only another package imports needs them
@@ -574,6 +586,7 @@ func (e *Enricher) functionReach(ctx context.Context, pkgs []*model.Package) err
 func (e *Enricher) reachQuery(pkgs []*model.Package) (ReachQuery, map[model.PackageKey]bool) {
 	q := ReachQuery{Sources: e.o.Entrypoints, SourcesOnly: e.o.EntrypointsOnly}
 	hasUnit := map[model.PackageKey]bool{}
+	python := false
 	for _, p := range pkgs {
 		if p.Usage == nil || len(p.Usage.Symbols) == 0 {
 			continue
@@ -584,10 +597,13 @@ func (e *Enricher) reachQuery(pkgs []*model.Package) (ReachQuery, map[model.Pack
 		if !p.ProvableReach() {
 			continue
 		}
-		if u, ok := unitOf(e.dir, p.ID); ok {
+		if u, ok := e.unitOf(p.ID); ok {
 			q.Units = append(q.Units, u)
 			hasUnit[p.ID.Key()] = true
 			e.sources++
+			if p.ID.Ecosystem() == model.EcosystemPyPI {
+				python = true
+			}
 		} else {
 			if e.noCode == nil {
 				e.noCode = map[model.Ecosystem][]string{}
@@ -595,8 +611,29 @@ func (e *Enricher) reachQuery(pkgs []*model.Package) (ReachQuery, map[model.Pack
 			e.noCode[p.ID.Ecosystem()] = append(e.noCode[p.ID.Ecosystem()], p.ID.RawName())
 		}
 	}
+	// The standard library of the interpreter joins the code of a Python
+	// dependency, so a call of the library on the code of the project, as
+	// Thread.start on run, is a call in the graph.
+	if u, ok := e.pythonEnv().stdlibUnit(); ok && python {
+		q.Units = append(q.Units, u)
+	}
 	q.Targets = slices.Compact(slices.Sorted(slices.Values(q.Targets)))
 	return q, hasUnit
+}
+
+// unitOf finds the code of a package on the disk. A Python package is a
+// distribution of the environment of the project.
+func (e *Enricher) unitOf(id model.PackageVersion) (Unit, bool) {
+	if id.Ecosystem() == model.EcosystemPyPI {
+		return e.pythonEnv().unit(id)
+	}
+	return unitOf(e.dir, id)
+}
+
+// pythonEnv reads the Python environment of the target once.
+func (e *Enricher) pythonEnv() *pythonEnvironment {
+	e.pyOnce.Do(func() { e.py = readPythonEnvironment(e.dir) })
+	return e.py
 }
 
 // search runs the query in the budget. A search that did not finish gives
@@ -752,6 +789,7 @@ func (e *Enricher) noCodeNames(eco model.Ecosystem) []string {
 var dependencyNouns = map[model.Ecosystem][2]string{
 	model.EcosystemGo:    {"Go module", "Go modules"},
 	model.EcosystemCargo: {"Rust crate", "Rust crates"},
+	model.EcosystemPyPI:  {"Python distribution", "Python distributions"},
 }
 
 // missingDiagnostics gives one diagnostic for each ecosystem with packages

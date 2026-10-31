@@ -254,33 +254,36 @@ func (s *symbolSource) Bundle() *report.SymbolBundle {
 	return &report.SymbolBundle{ID: "abc", Records: 1}
 }
 
-func TestSymbolsOfGoAndRustVulnerabilities(t *testing.T) {
+func TestSymbolsOfGoRustAndPythonVulnerabilities(t *testing.T) {
 	src := &symbolSource{}
-	analysis := Analysis{Languages: map[string]bool{"go": true, "python": true}}
+	analysis := Analysis{Languages: map[string]bool{"go": true, "python": true, "javascript": true}}
 	e := NewWith(t.TempDir(), Options{Symbols: src}, func(context.Context, string) (Analysis, error) { return analysis, nil })
 	vuln := &model.Insight{Vulnerabilities: []model.Vulnerability{{ID: "GHSA-aaaa", Aliases: []string{"CVE-2026-0001"}}}}
 	net := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, "golang.org/x/net", "v0.20.0"), Enrichment: model.Enrichment{Insight: vuln}}
 	yaml := &model.Package{ID: model.MustPackageVersion(model.EcosystemPyPI, "pyyaml", "5.0"), Enrichment: model.Enrichment{Insight: vuln}}
-	require.NoError(t, e.Enrich(context.Background(), []*model.Package{net, yaml}))
+	pad := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "left-pad", "1.3.0"), Enrichment: model.Enrichment{Insight: vuln}}
+	require.NoError(t, e.Enrich(context.Background(), []*model.Package{net, yaml, pad}))
 	assert.Equal(t, 1, src.prepared)
 	assert.Equal(t, []model.SymbolRecord{{
 		Advisory: "GHSA-aaaa", Record: "GO-2026-0001", Coverage: "exact",
 		FixSites: []string{"golang.org/x/net/html.Render"}, Keys: []string{"golang.org//x//net//html//Render"},
 	}}, net.Usage.Symbols)
-	assert.Empty(t, yaml.Usage.Symbols, "the symbol data covers Go and Rust only")
+	require.Len(t, yaml.Usage.Symbols, 1)
+	assert.Equal(t, []string{"golang//org/x/net/html//Render"}, yaml.Usage.Symbols[0].Keys, "a Python record gets the key of the dotted name of each fix site")
+	assert.Empty(t, pad.Usage.Symbols, "the symbol data covers Go, Rust and Python only")
 	var info report.ReachInfo
 	e.ReachReport(&info)
 	assert.Equal(t, "abc", info.Symbols.ID)
 	assert.Nil(t, info.Roots, "a record with no key searches no call path")
 }
 
-func TestNoGoOrRustCodeReadsNoSymbolData(t *testing.T) {
+func TestNoGoRustOrPythonCodeReadsNoSymbolData(t *testing.T) {
 	src := &symbolSource{}
 	e := NewWith(t.TempDir(), Options{Symbols: src}, func(context.Context, string) (Analysis, error) {
-		return Analysis{Languages: map[string]bool{"python": true}}, nil
+		return Analysis{Languages: map[string]bool{"javascript": true}}, nil
 	})
 	require.NoError(t, e.Enrich(context.Background(), nil))
-	assert.Zero(t, src.prepared, "a project with no Go or Rust code needs no symbol bundle")
+	assert.Zero(t, src.prepared, "a project with no Go, Rust or Python code needs no symbol bundle")
 	var info report.ReachInfo
 	e.ReachReport(&info)
 	assert.Equal(t, report.ReachInfo{}, info)
@@ -436,6 +439,11 @@ func TestMissingSourceDiagnostics(t *testing.T) {
 				"vet found no code for 2 vulnerable Rust crates (hyper, tokio), so it cannot tell if the code calls the vulnerable functions. Run cargo fetch, then scan again.",
 				"vet found no code for 1 vulnerable Go module (golang.org/x/net), so it cannot tell if the code calls the vulnerable functions. Run go mod download, then scan again.",
 			},
+		},
+		{
+			name:   "a Python distribution says to install the project",
+			noCode: map[model.Ecosystem][]string{model.EcosystemPyPI: {"PyYAML"}},
+			want:   []string{"vet found no code for 1 vulnerable Python distribution (PyYAML), so it cannot tell if the code calls the vulnerable functions. Install the project in a virtual environment, as pip install -r requirements.txt or uv sync, then scan again."},
 		},
 		{
 			name:   "a long list names the first packages",

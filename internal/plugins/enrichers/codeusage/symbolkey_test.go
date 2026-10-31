@@ -20,7 +20,11 @@ func TestSymbolKey(t *testing.T) {
 		{"rust", "time", "time::OffsetDateTime::now_local", "time//OffsetDateTime//now_local"},
 		{"rust", "tokio-util", "tokio-util::codec::Framed::new", "tokio_util//codec//Framed//new"},
 		{"rust", "time", "time", ""},
-		{"python", "pyyaml", "yaml.load", ""},
+		{"python", "pyyaml", "yaml.load", "yaml//load"},
+		{"python", "requests", "requests.sessions.Session.get", "requests//sessions//Session//get"},
+		{"python", "pyyaml", "yaml:load", "yaml//load"},
+		{"python", "pyyaml", "yaml", ""},
+		{"javascript", "left-pad", "leftPad", ""},
 	}
 	for _, c := range cases {
 		assert.Equal(t, c.want, SymbolKey(c.language, c.module, c.name), c.name)

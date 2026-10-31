@@ -199,6 +199,8 @@ func FetchHint(eco model.Ecosystem) string {
 		return "Run go mod download, then scan again."
 	case model.EcosystemCargo:
 		return "Run cargo fetch, then scan again."
+	case model.EcosystemPyPI:
+		return "Install the project in a virtual environment, as pip install -r requirements.txt or uv sync, then scan again."
 	}
 	return "Download the code of the dependencies, then scan again. The scan warning names the command."
 }

@@ -23,7 +23,9 @@ import (
 // the vendor directory of the project first, then in the module or crate
 // cache. A vendor directory counts only when it holds the version of the
 // lockfile, because the call paths of another version prove nothing. vet
-// never downloads a dependency. The standard library of Go has no unit.
+// never downloads a dependency. The standard library of Go has no unit. A
+// Python distribution is in the environment of the project, which
+// pythonEnvironment reads.
 func unitOf(dir string, id model.PackageVersion) (Unit, bool) {
 	name, version := id.RawName(), strings.TrimSpace(id.RawVersion())
 	switch {
