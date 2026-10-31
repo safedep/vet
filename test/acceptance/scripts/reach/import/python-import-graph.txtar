@@ -1,0 +1,80 @@
+# vet reads the import graph of a Python manifest from the Python files on
+# the disk and in the virtual environment of the target. A distribution
+# that only another distribution imports is imported through it. A
+# distribution that no import reaches is unused. A target with no virtual
+# environment gets no graph, and the scan says to install the project.
+[!cgo] skip 'code analysis needs a vet built with CGO'
+
+cd via
+exec vet scan . -o jsonl --mode agent
+stdout '"name":"python.dateutil".*"reach":\{"level":"imported","confidence":"medium","via":\["pkg:pypi/wrap@1.0.0","pkg:pypi/python.dateutil@2.8.0"\]\}'
+! stdout '"code":"module_graph"'
+
+cd ../unused
+exec vet scan . -o jsonl --mode agent
+stdout '"name":"python.dateutil".*"reach":\{"level":"unused","confidence":"medium"\}'
+
+cd ../novenv
+exec vet scan . -o jsonl --mode agent
+stdout '"name":"python.dateutil".*"reach":\{"level":"unknown","cause":"no-graph"'
+stdout '"code":"module_graph".*no virtual environment.*Install the project in a virtual environment'
+
+-- via/requirements.txt --
+wrap==1.0.0
+python.dateutil==2.8.0
+-- via/main.py --
+import wrap
+
+wrap.today()
+-- via/.venv/pyvenv.cfg --
+home = /nonexistent/bin
+version = 3.12.3
+-- via/.venv/lib/python3.12/site-packages/wrap-1.0.0.dist-info/METADATA --
+Name: wrap
+Version: 1.0.0
+-- via/.venv/lib/python3.12/site-packages/wrap-1.0.0.dist-info/RECORD --
+wrap/__init__.py,,
+-- via/.venv/lib/python3.12/site-packages/wrap/__init__.py --
+from dateutil import parser
+
+
+def today():
+    return parser.parse("2026-01-01")
+-- via/.venv/lib/python3.12/site-packages/python_dateutil-2.8.0.dist-info/METADATA --
+Name: python-dateutil
+Version: 2.8.0
+-- via/.venv/lib/python3.12/site-packages/python_dateutil-2.8.0.dist-info/RECORD --
+dateutil/__init__.py,,
+dateutil/parser.py,,
+-- via/.venv/lib/python3.12/site-packages/dateutil/__init__.py --
+-- via/.venv/lib/python3.12/site-packages/dateutil/parser.py --
+def parse(text):
+    return text
+-- unused/requirements.txt --
+wrap==1.0.0
+python.dateutil==2.8.0
+-- unused/main.py --
+import wrap
+
+wrap.today()
+-- unused/.venv/pyvenv.cfg --
+home = /nonexistent/bin
+version = 3.12.3
+-- unused/.venv/lib/python3.12/site-packages/wrap-1.0.0.dist-info/METADATA --
+Name: wrap
+Version: 1.0.0
+-- unused/.venv/lib/python3.12/site-packages/wrap-1.0.0.dist-info/RECORD --
+wrap/__init__.py,,
+-- unused/.venv/lib/python3.12/site-packages/wrap/__init__.py --
+def today():
+    return "2026-01-01"
+-- unused/.venv/lib/python3.12/site-packages/python_dateutil-2.8.0.dist-info/METADATA --
+Name: python-dateutil
+Version: 2.8.0
+-- unused/.venv/lib/python3.12/site-packages/python_dateutil-2.8.0.dist-info/RECORD --
+dateutil/__init__.py,,
+-- unused/.venv/lib/python3.12/site-packages/dateutil/__init__.py --
+-- novenv/requirements.txt --
+python.dateutil==2.8.0
+-- novenv/main.py --
+print("hello")

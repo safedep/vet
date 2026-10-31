@@ -1,0 +1,25 @@
+# main calls a public function, which calls the vulnerable function inside the dependency
+lang: python
+unit: pypi:dep@1.2.0 venv/lib/python3.12/site-packages/dep
+called: dep.parser.parse_tag
+not-called: dep.parser.unused_tag
+-- requirements.txt --
+dep==1.2.0
+-- main.py --
+from dep import render
+
+if __name__ == "__main__":
+    render("<a>")
+-- venv/lib/python3.12/site-packages/dep/__init__.py --
+from .parser import parse_tag
+
+
+def render(text):
+    return parse_tag(text)
+-- venv/lib/python3.12/site-packages/dep/parser.py --
+def parse_tag(text):
+    return text
+
+
+def unused_tag(text):
+    return text

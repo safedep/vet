@@ -1,0 +1,32 @@
+# main calls a method on a value that a function of the dependency returns, with a return type hint
+lang: python
+unit: pypi:dep@1.2.0 venv/lib/python3.12/site-packages/dep
+called: dep.Tokenizer.next
+not-called: dep.Tokenizer.reset
+-- requirements.txt --
+dep==1.2.0
+-- main.py --
+import dep
+
+
+def main():
+    z = dep.new_tokenizer("<a>")
+    z.next()
+
+
+if __name__ == "__main__":
+    main()
+-- venv/lib/python3.12/site-packages/dep/__init__.py --
+class Tokenizer:
+    def __init__(self, text):
+        self.text = text
+
+    def next(self):
+        return 0
+
+    def reset(self):
+        self.text = ""
+
+
+def new_tokenizer(text) -> Tokenizer:
+    return Tokenizer(text)
