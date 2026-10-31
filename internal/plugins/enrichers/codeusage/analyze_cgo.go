@@ -234,7 +234,7 @@ func dynamicSites(indexes []*fileindex.Index) []model.DynamicSite {
 // indexer runs it on one goroutine, so it needs no lock.
 type filePlugin struct {
 	usagePlugin core.TreePlugin
-	graphPlugin core.TreePlugin
+	graphPlugin graphAnalyzer
 	version     string
 	languages   []core.LanguageCode
 
@@ -249,7 +249,14 @@ type fileResult struct {
 	Matches []Match    `json:"matches,omitempty"`
 }
 
-var _ indexer.CachedPlugin = (*filePlugin)(nil)
+var _ indexer.GraphPlugin = (*filePlugin)(nil)
+
+// graphAnalyzer is the call graph plugin, which also takes the call graph
+// that the indexer built for the index.
+type graphAnalyzer interface {
+	core.TreePlugin
+	AnalyzeGraph(ctx context.Context, cg *callgraph.CallGraph) error
+}
 
 func newFilePlugin() (*filePlugin, error) {
 	sigs, err := loadSignatures()
@@ -314,6 +321,19 @@ func (p *filePlugin) SupportedLanguages() []core.LanguageCode { return p.languag
 // other found, and the indexer stores no artifact, so the next scan tries
 // the file again.
 func (p *filePlugin) Analyze(ctx context.Context, _ core.File, tree core.ParseTree) ([]byte, error) {
+	return p.analyze(ctx, tree, nil)
+}
+
+// AnalyzeGraph is Analyze with the call graph of the index. The indexer
+// runs the plugin on one goroutine, so a second build of the graph there
+// set the pace of the whole index.
+func (p *filePlugin) AnalyzeGraph(ctx context.Context, _ core.File, tree core.ParseTree, cg *callgraph.CallGraph) ([]byte, error) {
+	return p.analyze(ctx, tree, cg)
+}
+
+// analyze runs both plugins on the tree. The call graph plugin builds the
+// graph when cg is nil.
+func (p *filePlugin) analyze(ctx context.Context, tree core.ParseTree, cg *callgraph.CallGraph) ([]byte, error) {
 	p.file = fileResult{}
 	language, err := tree.Language()
 	if err != nil {
@@ -321,11 +341,14 @@ func (p *filePlugin) Analyze(ctx context.Context, _ core.File, tree core.ParseTr
 	}
 	code := language.Meta().Code
 	var errs []error
-	for _, pl := range []core.TreePlugin{p.usagePlugin, p.graphPlugin} {
-		if slices.Contains(pl.SupportedLanguages(), code) {
-			if err := pl.AnalyzeTree(ctx, tree); err != nil {
-				errs = append(errs, fmt.Errorf("%s: %w", pl.Name(), err))
-			}
+	if slices.Contains(p.usagePlugin.SupportedLanguages(), code) {
+		if err := p.usagePlugin.AnalyzeTree(ctx, tree); err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", p.usagePlugin.Name(), err))
+		}
+	}
+	if slices.Contains(p.graphPlugin.SupportedLanguages(), code) {
+		if err := p.analyzeGraph(ctx, tree, cg); err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", p.graphPlugin.Name(), err))
 		}
 	}
 	p.file.Usage = firstUses(p.file.Usage)
@@ -334,6 +357,13 @@ func (p *filePlugin) Analyze(ctx context.Context, _ core.File, tree core.ParseTr
 		return nil, err
 	}
 	return json.Marshal(p.file)
+}
+
+func (p *filePlugin) analyzeGraph(ctx context.Context, tree core.ParseTree, cg *callgraph.CallGraph) error {
+	if cg == nil {
+		return p.graphPlugin.AnalyzeTree(ctx, tree)
+	}
+	return p.graphPlugin.AnalyzeGraph(ctx, cg)
 }
 
 // firstUses keeps the first use of each module. The enricher needs one

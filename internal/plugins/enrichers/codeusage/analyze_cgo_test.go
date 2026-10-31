@@ -13,7 +13,11 @@ import (
 	"testing/fstest"
 	"time"
 
+	"github.com/safedep/code/core"
 	"github.com/safedep/code/fileindex"
+	"github.com/safedep/code/lang"
+	"github.com/safedep/code/parser"
+	"github.com/safedep/code/plugin/callgraph"
 	"github.com/safedep/dry/localdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -434,4 +438,33 @@ func TestTypeOnlyGoImportIsAnImport(t *testing.T) {
 		mods = append(mods, ev.ModuleName)
 	}
 	assert.Contains(t, mods, "example.com/dep/html")
+}
+
+func TestFilePluginReadsTheCallGraphOfTheIndex(t *testing.T) {
+	ctx := context.Background()
+	python, err := lang.NewPythonLanguage()
+	require.NoError(t, err)
+	parse := func(name, src string) core.ParseTree {
+		tree, err := parser.ParseBytes(ctx, python, []byte(src), parser.WithFileName(name))
+		require.NoError(t, err)
+		t.Cleanup(tree.Close)
+		return tree
+	}
+	plain := parse("app.py", "import os\n\nos.getcwd()\n")
+	client := parse("app.py", "from openai import OpenAI\n\nclient = OpenAI()\n")
+	graph, err := callgraph.Build(ctx, client)
+	require.NoError(t, err)
+
+	p, err := newFilePlugin()
+	require.NoError(t, err)
+	fromTree, err := p.Analyze(ctx, nil, client)
+	require.NoError(t, err)
+	fromGraph, err := p.AnalyzeGraph(ctx, nil, client, graph)
+	require.NoError(t, err)
+	assert.JSONEq(t, string(fromTree), string(fromGraph), "both paths store one artifact")
+
+	data, err := p.AnalyzeGraph(ctx, nil, plain, graph)
+	require.NoError(t, err)
+	assert.Contains(t, string(data), "openai.client", "the matches come from the graph of the index, not from a second build")
+	assert.NotContains(t, string(data), `"ModuleName":"openai"`, "the usage comes from the tree")
 }
