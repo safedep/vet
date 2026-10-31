@@ -428,10 +428,20 @@ func (e *Enricher) graphDiagnostics() []report.Diagnostic {
 		out = append(out, report.Diagnostic{
 			Level: report.DiagnosticWarning, Code: CodeModuleGraph, Component: Name, Count: count,
 			Message: fmt.Sprintf("vet cannot read the imports of %d %s of %s, such as %s of %s, so reach can be unknown for the packages that they can import. %s",
-				count, noun, where, first.modules[0], first.manifest, finding.FetchHint(eco)),
+				count, noun, where, first.modules[0], first.manifest, openAdvice[eco]),
 		})
 	}
 	return out
+}
+
+// openAdvice says what a person can do about an open package of an
+// ecosystem. A Go module is open when its source is not on the disk. A
+// Python distribution is open when it has an extension module, imports a
+// computed name, or imports a module that no distribution holds, and no
+// install changes that.
+var openAdvice = map[model.Ecosystem]string{
+	model.EcosystemGo:   finding.FetchHint(model.EcosystemGo),
+	model.EcosystemPyPI: "An extension module, an import of a computed name or an import of a module that no distribution holds hides the imports of a distribution.",
 }
 
 func (e *Enricher) noteGraph(msg string) {

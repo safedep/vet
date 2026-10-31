@@ -370,9 +370,13 @@ type Enricher struct {
 	// graphCache keeps the module graph cache in cache.db, or is nil.
 	graphCacheOnce sync.Once
 	graphCache     *moduleStore
-	// py is the Python environment of the target, read once.
-	pyOnce sync.Once
-	py     *pythonEnvironment
+	// pyEnvs are the Python environments of the target, by directory: the
+	// scan root, and the directory of a manifest with an environment of
+	// its own. pyGraphs are the distribution graphs of those directories,
+	// which only a build with CGO sets.
+	pyMu     sync.Mutex
+	pyEnvs   map[string]*pythonEnvironment
+	pyGraphs map[string]any
 }
 
 var (
@@ -614,8 +618,10 @@ func (e *Enricher) reachQuery(pkgs []*model.Package) (ReachQuery, map[model.Pack
 	// The standard library of the interpreter joins the code of a Python
 	// dependency, so a call of the library on the code of the project, as
 	// Thread.start on run, is a call in the graph.
-	if u, ok := e.pythonEnv().stdlibUnit(); ok && python {
-		q.Units = append(q.Units, u)
+	if python {
+		if u, ok := e.pythonEnv().stdlibUnit(); ok {
+			q.Units = append(q.Units, u)
+		}
 	}
 	q.Targets = slices.Compact(slices.Sorted(slices.Values(q.Targets)))
 	return q, hasUnit
@@ -630,10 +636,22 @@ func (e *Enricher) unitOf(id model.PackageVersion) (Unit, bool) {
 	return unitOf(e.dir, id)
 }
 
-// pythonEnv reads the Python environment of the target once.
-func (e *Enricher) pythonEnv() *pythonEnvironment {
-	e.pyOnce.Do(func() { e.py = readPythonEnvironment(e.dir) })
-	return e.py
+// pythonEnv reads the Python environment of the scan root once.
+func (e *Enricher) pythonEnv() *pythonEnvironment { return e.pythonEnvAt(e.dir) }
+
+// pythonEnvAt reads the Python environment of a directory once.
+func (e *Enricher) pythonEnvAt(dir string) *pythonEnvironment {
+	e.pyMu.Lock()
+	defer e.pyMu.Unlock()
+	if env, ok := e.pyEnvs[dir]; ok {
+		return env
+	}
+	if e.pyEnvs == nil {
+		e.pyEnvs = map[string]*pythonEnvironment{}
+	}
+	env := readPythonEnvironment(dir)
+	e.pyEnvs[dir] = env
+	return env
 }
 
 // search runs the query in the budget. A search that did not finish gives

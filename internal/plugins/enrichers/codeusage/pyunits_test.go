@@ -86,19 +86,23 @@ func TestPythonEnvironmentFindsEachEnvironment(t *testing.T) {
 		assert.Equal(t, active, env.sites[0].dir)
 		assert.Equal(t, filepath.Join(dir, "venv", "lib", "python3.12", "site-packages"), env.sites[1].dir)
 	})
-	t.Run("a __pypackages__ directory", func(t *testing.T) {
-		dir := t.TempDir()
+	t.Run("a Windows layout", func(t *testing.T) {
+		dir, interp := t.TempDir(), t.TempDir()
 		t.Setenv("VIRTUAL_ENV", "")
-		lib := filepath.Join(dir, "__pypackages__", "3.12", "lib")
-		mkfile(t, filepath.Join(lib, "six-1.16.0.dist-info", "METADATA"), "Name: six\nVersion: 1.16.0\n")
-		mkfile(t, filepath.Join(lib, "six-1.16.0.dist-info", "RECORD"), "six.py,,\n")
-		mkfile(t, filepath.Join(lib, "six.py"), "")
+		mkfile(t, filepath.Join(interp, "Lib", "os.py"), "")
+		mkfile(t, filepath.Join(dir, ".venv", "pyvenv.cfg"), "home = "+interp+"\nversion = 3.12.3\n")
+		mkfile(t, filepath.Join(dir, ".venv", "Lib", "site-packages", "six-1.16.0.dist-info", "METADATA"), "Name: six\nVersion: 1.16.0\n")
+		mkfile(t, filepath.Join(dir, ".venv", "Lib", "site-packages", "six-1.16.0.dist-info", "top_level.txt"), "six\n../../escape\n")
+		mkfile(t, filepath.Join(dir, ".venv", "Lib", "site-packages", "six.py"), "")
+		mkfile(t, filepath.Join(dir, "escape.py"), "")
 		env := readPythonEnvironment(dir)
 		require.Len(t, env.sites, 1)
-		assert.Equal(t, lib, env.sites[0].dir)
-		assert.Empty(t, env.stdlib, "no pyvenv.cfg names an interpreter")
-		_, ok := env.stdlibUnit()
-		assert.False(t, ok)
+		assert.Equal(t, filepath.Join(dir, ".venv", "Lib", "site-packages"), env.sites[0].dir)
+		assert.Equal(t, filepath.Join(interp, "Lib"), env.stdlib, "the library is under the home of python.exe")
+		u, ok := env.unit(model.MustPackageVersion(model.EcosystemPyPI, "six", "1.16.0"))
+		require.True(t, ok)
+		assert.Equal(t, filepath.Join(env.sites[0].dir, "six.py"), u.Dir)
+		assert.Empty(t, u.Dirs, "a name of top_level.txt that leaves site-packages is no directory of the unit")
 	})
 	t.Run("a directory with no pyvenv.cfg is no environment", func(t *testing.T) {
 		dir := t.TempDir()
@@ -124,4 +128,29 @@ func TestEnricherUnitOfReadsThePythonEnvironmentOnce(t *testing.T) {
 	assert.Equal(t, filepath.Join(site, "requests"), u.Dir)
 	_, ok = e.unitOf(model.MustPackageVersion(model.EcosystemGo, "example.com/none", "1.0.0"))
 	assert.False(t, ok)
+}
+
+func TestReachQueryAddsTheStandardLibraryForAPythonUnit(t *testing.T) {
+	dir := t.TempDir()
+	pythonVenv(t, dir, t.TempDir(), ".venv")
+	t.Setenv("VIRTUAL_ENV", "")
+	record := []model.SymbolRecord{{Keys: []string{"requests//api//get"}, FixSites: []string{"requests.api.get"}}}
+	imported := &model.Usage{Imported: true, Symbols: record}
+	requests := &model.Package{ID: model.MustPackageVersion(model.EcosystemPyPI, "requests", "2.31.0"), Enrichment: model.Enrichment{Usage: imported}}
+	django := &model.Package{ID: model.MustPackageVersion(model.EcosystemPyPI, "django", "4.2.0"), Enrichment: model.Enrichment{Usage: imported}}
+	e := NewWith(dir, Options{}, nil)
+	q, hasUnit := e.reachQuery([]*model.Package{requests, django})
+	var keys []string
+	for _, u := range q.Units {
+		keys = append(keys, u.Key)
+	}
+	assert.Equal(t, []string{"pypi:requests@2.31.0", "python:std@3.12.3"}, keys, "the standard library joins the code of a Python dependency")
+	assert.True(t, hasUnit[requests.ID.Key()])
+	assert.False(t, hasUnit[django.ID.Key()], "django is not installed")
+	assert.Equal(t, []string{"django"}, e.noCode[model.EcosystemPyPI])
+
+	e = NewWith(t.TempDir(), Options{}, nil)
+	goPkg := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, "example.com/none", "1.0.0"), Enrichment: model.Enrichment{Usage: imported}}
+	q, _ = e.reachQuery([]*model.Package{goPkg})
+	assert.Empty(t, q.Units, "a Go package with no code adds no Python unit")
 }

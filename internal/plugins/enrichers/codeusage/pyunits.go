@@ -3,8 +3,6 @@ package codeusage
 import (
 	"bufio"
 	"bytes"
-	"errors"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,10 +14,14 @@ import (
 )
 
 // pythonEnvironment is the installed code of a Python project: each
-// site-packages directory of its environment, with the distributions that
-// the .dist-info directories describe, and the standard library of the
-// interpreter of the environment. vet never runs pip and downloads nothing.
+// site-packages directory of its virtual environment, with the
+// distributions that the .dist-info directories describe, and the standard
+// library of the interpreter of the environment. vet never runs pip and
+// downloads nothing.
 type pythonEnvironment struct {
+	// dir is the directory that the environment belongs to: the scan root,
+	// or the directory of a manifest.
+	dir   string
 	sites []pythonSite
 	// stdlib is the Lib directory of the interpreter of the first virtual
 	// environment, and version its version, or "" when vet did not find it.
@@ -38,25 +40,16 @@ type pythonSite struct {
 var venvNames = []string{".venv", "venv", "env"}
 
 // readPythonEnvironment finds the environment of the project under dir:
-// the virtual environment that VIRTUAL_ENV names, each one under dir with a
-// pyvenv.cfg, and a __pypackages__ directory of PEP 582.
+// the virtual environment that VIRTUAL_ENV names, and each one under dir
+// with a pyvenv.cfg.
 func readPythonEnvironment(dir string) *pythonEnvironment {
-	env := &pythonEnvironment{}
+	env := &pythonEnvironment{dir: dir}
 	for _, venv := range venvDirs(dir) {
 		for _, site := range venvSitePackages(venv) {
 			env.addSite(site)
 		}
 		if env.stdlib == "" {
 			env.stdlib, env.version = venvStdlib(venv)
-		}
-	}
-	entries, err := os.ReadDir(filepath.Join(dir, "__pypackages__"))
-	if err != nil && !errors.Is(err, fs.ErrNotExist) {
-		log.Debugf("codeusage: %v", err)
-	}
-	for _, e := range entries {
-		if e.IsDir() {
-			env.addSite(filepath.Join(dir, "__pypackages__", e.Name(), "lib"))
 		}
 	}
 	return env
@@ -82,12 +75,13 @@ func venvDirs(dir string) []string {
 }
 
 // venvSitePackages returns the site-packages directories of a virtual
-// environment: lib/python3.X/site-packages on a POSIX system and
-// Lib/site-packages on Windows. A lib64 that is a link to lib counts once.
+// environment: lib/python3.X/site-packages on a POSIX system, or
+// lib/pypy3.X/site-packages for PyPy, and Lib/site-packages on Windows. A
+// lib64 that is a link to lib counts once.
 func venvSitePackages(venv string) []string {
 	var out []string
 	seen := map[string]bool{}
-	for _, pattern := range []string{"lib/python*/site-packages", "lib64/python*/site-packages", "Lib/site-packages"} {
+	for _, pattern := range []string{"lib/python*/site-packages", "lib/pypy*/site-packages", "lib64/python*/site-packages", "Lib/site-packages"} {
 		matches, err := filepath.Glob(filepath.Join(venv, filepath.FromSlash(pattern)))
 		if err != nil {
 			continue
@@ -106,8 +100,10 @@ func venvSitePackages(venv string) []string {
 
 // venvStdlib returns the Lib directory of the interpreter of a virtual
 // environment and its version, from the home and the version lines of
-// pyvenv.cfg. The home is the bin directory of the interpreter, and its
-// standard library is in lib/python3.X next to it, or in Lib on Windows.
+// pyvenv.cfg. On a POSIX system the home is the bin directory of the
+// interpreter, and its standard library is in lib/python3.X next to it. On
+// Windows the home is the directory of python.exe, and the library is in
+// Lib under it.
 func venvStdlib(venv string) (string, string) {
 	data, err := os.ReadFile(filepath.Join(venv, "pyvenv.cfg"))
 	if err != nil {
@@ -134,7 +130,7 @@ func venvStdlib(venv string) (string, string) {
 	}
 	major, _, _ := strings.Cut(version, ".")
 	minor := strings.Join(strings.Split(version, ".")[:2], ".")
-	for _, lib := range []string{filepath.Join(home, "..", "lib", "python"+minor), filepath.Join(home, "..", "lib", "python"+major), filepath.Join(home, "..", "Lib")} {
+	for _, lib := range []string{filepath.Join(home, "..", "lib", "python"+minor), filepath.Join(home, "..", "lib", "python"+major), filepath.Join(home, "Lib")} {
 		if fileExists(filepath.Join(lib, "os.py")) {
 			return filepath.Clean(lib), version
 		}
@@ -203,10 +199,14 @@ func (env *pythonEnvironment) unit(id model.PackageVersion) (Unit, bool) {
 
 // topLevelDirs returns the package directories and the modules of the
 // top-level names of a distribution with no RECORD, as they are on the
-// disk.
+// disk. A name of top_level.txt is one path element, or it could read code
+// from outside the site-packages directory.
 func topLevelDirs(site string, d modules.Distribution) []string {
 	var out []string
 	for _, top := range d.TopLevel {
+		if !pathElement(top) {
+			continue
+		}
 		switch {
 		case fileExists(filepath.Join(site, top, "__init__.py")):
 			out = append(out, top)

@@ -64,27 +64,29 @@ keep `unknown · no graph`.
 
 For a Python manifest, as `requirements.txt`, `pyproject.toml` or a lockfile, the dependency graph
 also comes from the code, when the target has a virtual environment. vet reads the import statements
-of the Python files of the target and of each distribution in the site-packages directory of the
-environment: the one that `VIRTUAL_ENV` names, or `.venv`, `venv` or `env` under the target with a
-`pyvenv.cfg`, or a `__pypackages__` directory. It runs no Python and downloads nothing, so install
-the project before a scan, as `pip install -r requirements.txt` or `uv sync`. A distribution whose
-imports vet cannot read is open: one with an extension module, one that imports a computed name, or
-one that imports a module that no distribution holds outside a `try` statement that catches
-`ImportError`. A package that only an open distribution can reach is `unknown · no dependency
-source`, and the scan warns with `module_graph`. A distribution that the manifest does not list, as a
-dependency of a dependency that `requirements.txt` leaves out, passes its imports on. A package of
-the manifest that is not installed is open. vet builds no graph when the target has no virtual
-environment, when the environment holds another version of a package that the code reaches, or when
-the code of the target imports a module that no distribution holds. The findings then keep
-`unknown · no graph`, and the scan says why.
+of the Python files of the project and of each distribution in the site-packages directory of the
+environment: the one that `VIRTUAL_ENV` names, or `.venv`, `venv` or `env` with a `pyvenv.cfg` under
+the target, or under the directory of the manifest, as a service of a monorepo has. The project is
+that directory. vet runs no Python and downloads nothing, so install the project before a scan, as
+`pip install -r requirements.txt` or `uv sync`. A distribution whose imports vet cannot read is open:
+one with an extension module, one that imports a computed name, or one that imports a module that no
+distribution holds outside a `try` statement that catches `ImportError`. A package that only an open
+distribution can reach is `unknown · no dependency source`, and the scan warns with `module_graph`. A
+distribution that the manifest does not list, as a dependency of a dependency that
+`requirements.txt` leaves out, passes its imports on. A package of the manifest that is not
+installed is open, and so is a second version of a name that a lockfile lists for another
+environment. vet builds no graph when the target has no virtual environment, when the environment
+holds another version of a package that the code reaches, or when the code of the project imports a
+module that no distribution holds. The findings then keep `unknown · no graph`, and the scan says
+why.
 
 At the function level, the code of a Python dependency is the distribution of its name at its
-version in the site-packages directory. The standard library of the interpreter of the environment,
-which the `home` line of `pyvenv.cfg` names, joins the search, so a call of the library on the code
-of the target, as `Thread.start` on `run`, is a call in the graph. The call graph trusts the type
-hints of the code as it trusts TypeScript types. An editable install is the project itself, so it is
-no dependency code. vet never says `not called` for a Python package yet: the reach corpus in
-`test/reach` still has a call that the search misses.
+version in the site-packages directory of the environment of the target. The standard library of the
+interpreter of the environment, which the `home` line of `pyvenv.cfg` names, joins the search, so a
+path through a function of the library is a call in the graph. The call graph trusts the type hints
+of the code as it trusts TypeScript types. An editable install of the project is the project itself,
+so it is no dependency code. vet never says `not called` for a Python package yet: the reach corpus
+in `test/reach` still has a call that the search misses.
 
 Each package in a report has a `purl`. It follows the purl-spec type definition of its ecosystem,
 and it keeps the version as the manifest writes it. `name` and `version` hold the canonical form
