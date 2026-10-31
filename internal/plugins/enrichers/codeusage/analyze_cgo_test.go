@@ -467,4 +467,5 @@ func TestFilePluginReadsTheCallGraphOfTheIndex(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, string(data), "openai.client", "the matches come from the graph of the index, not from a second build")
 	assert.NotContains(t, string(data), `"ModuleName":"openai"`, "the usage comes from the tree")
+	assert.Contains(t, string(data), `"ModuleName":"os"`, "the usage comes from the tree")
 }
