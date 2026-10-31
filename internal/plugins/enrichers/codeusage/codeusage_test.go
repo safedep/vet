@@ -455,3 +455,18 @@ func TestMissingSourceDiagnostics(t *testing.T) {
 		})
 	}
 }
+
+func TestCallsIntoKeepsTheLineOrderAcrossModules(t *testing.T) {
+	e := &Enricher{calls: []ExternalCall{
+		{FilePath: "a.js", Line: 1, Language: "javascript", Callee: "lodash//map", Module: "lodash"},
+		{FilePath: "a.js", Line: 2, Language: "javascript", Callee: "lodash/fp//map", Module: "lodash/fp"},
+		{FilePath: "a.js", Line: 3, Language: "javascript", Callee: "axios//get", Module: "axios"},
+		{FilePath: "b.js", Line: 1, Language: "javascript", Callee: "lodash//pick", Module: "lodash"},
+	}}
+	got := e.callsInto(model.MustPackageVersion(model.EcosystemNpm, "lodash", "4.17.21"), e.callModules())
+	assert.Equal(t, []model.CallSite{
+		{File: "a.js", Line: 1, Callee: "lodash//map"},
+		{File: "a.js", Line: 2, Callee: "lodash/fp//map"},
+		{File: "b.js", Line: 1, Callee: "lodash//pick"},
+	}, got)
+}

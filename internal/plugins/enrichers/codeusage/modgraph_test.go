@@ -1,6 +1,7 @@
 package codeusage
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"io/fs"
@@ -12,6 +13,7 @@ import (
 	"testing/fstest"
 
 	"github.com/safedep/code/modgraph"
+	"github.com/safedep/dry/localdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -132,6 +134,13 @@ func TestModuleGraph(t *testing.T) {
 			},
 			pkgs: []*model.Package{goPackage("example.com/a"), goPackage("example.com/x")},
 			why:  "the module example.com/lost@v1.0.0 is no package of the manifest",
+		},
+		{
+			name:    "a package that is no module of the build list",
+			imports: []string{"example.com/a"},
+			modules: []modgraph.Source{goSource("example.com/a", fstest.MapFS{"a.go": goFile("a")})},
+			pkgs:    []*model.Package{goPackage("example.com/a"), goPackage("example.com/stale")},
+			why:     "the package go/example.com/stale@1.0.0 is no module of the build list",
 		},
 		{
 			name:    "a module that go.mod does not require passes its imports on",
@@ -257,6 +266,8 @@ func TestGraphOfAGoMod(t *testing.T) {
 		// outerWork is a go.work in the parent of the scan root.
 		outerWork string
 		roots     []string
+		// manifest is the path of the manifest, go.mod when empty.
+		manifest string
 	}{
 		{
 			name:  "an unreached module has no source",
@@ -329,6 +340,17 @@ func TestGraphOfAGoMod(t *testing.T) {
 			open:   []string{"example.com/gone"},
 		},
 		{
+			name: "the vendor list of a module gets the graph of its go.mod",
+			files: map[string]string{
+				"go.mod": wsMod, "main.go": wsMain,
+				"vendor/modules.txt":        "# example.com/a v1.0.0\n## explicit\nexample.com/a\n# example.com/b v1.0.0\n## explicit\nexample.com/b\n",
+				"vendor/example.com/a/a.go": "package a\n\nimport _ \"example.com/b\"\n",
+				"vendor/example.com/b/b.go": "package b\n",
+			},
+			manifest: "vendor/modules.txt",
+			roots:    []string{"example.com/a"},
+		},
+		{
 			name:  "a go directive before module graph pruning",
 			files: map[string]string{"go.mod": "module example.com/app\n\ngo 1.16\n\nrequire example.com/a v1.0.0\n", "main.go": "package main\n"},
 			note:  "its go directive is below 1.17",
@@ -363,10 +385,11 @@ func TestGraphOfAGoMod(t *testing.T) {
 			}
 			t.Setenv("GOWORK", gowork)
 			e := NewWith(dir, Options{}, nil)
-			m := &model.Manifest{
-				Path: "go.mod", Ecosystem: model.EcosystemGo,
-				Packages: []*model.Package{goPackage("example.com/a"), goPackage("example.com/b"), goPackage("example.com/gone")},
+			pkgs := []*model.Package{goPackage("example.com/a"), goPackage("example.com/b")}
+			if strings.Contains(tc.files["go.mod"], "example.com/gone") {
+				pkgs = append(pkgs, goPackage("example.com/gone"))
 			}
+			m := &model.Manifest{Path: cmp.Or(tc.manifest, "go.mod"), Ecosystem: model.EcosystemGo, Packages: pkgs}
 			g, err := e.Graph(context.Background(), m)
 			require.NoError(t, err)
 			if tc.note == "" {
@@ -427,4 +450,54 @@ func TestGraphDiagnosticCountsTheOpenModulesOfEachGoMod(t *testing.T) {
 	require.Len(t, d, 1)
 	assert.Equal(t, 2, d[0].Count)
 	assert.Contains(t, d[0].Message, "vet cannot read the imports of 2 Go modules of 2 go.mod files, such as example.com/gone of one/go.mod")
+}
+
+func TestGraphDiagnosticCountsTheOpenModulesOfAVendorListOnce(t *testing.T) {
+	dir := t.TempDir()
+	writeTree(t, dir, map[string]string{
+		"go.mod":                       "module example.com/app\n\ngo 1.22\n\nrequire example.com/gone v1.0.0\n",
+		"main.go":                      "package main\n\nimport _ \"example.com/gone\"\n",
+		"vendor/modules.txt":           "# example.com/gone v1.0.0\n## explicit\nexample.com/gone\n",
+		"vendor/example.com/gone/g.go": "package gone\n\nimport _ \"example.com/nowhere\"\n",
+	})
+	t.Setenv("GOMODCACHE", t.TempDir())
+	e := NewWith(dir, Options{}, nil)
+	for _, path := range []string{"go.mod", "vendor/modules.txt"} {
+		g, err := e.Graph(context.Background(), &model.Manifest{Path: path, Ecosystem: model.EcosystemGo, Packages: []*model.Package{goPackage("example.com/gone")}})
+		require.NoError(t, err)
+		require.NotNil(t, g)
+	}
+	d := e.Diagnostics()
+	require.Len(t, d, 1)
+	assert.Equal(t, 1, d[0].Count)
+	assert.Contains(t, d[0].Message, "vet cannot read the imports of 1 Go module of go.mod, such as example.com/gone of go.mod")
+}
+
+func TestGraphReadsTheModuleCacheOfAnEarlierScan(t *testing.T) {
+	dir, cache := t.TempDir(), t.TempDir()
+	writeTree(t, dir, map[string]string{
+		"go.mod":  "module example.com/app\n\ngo 1.22\n\nrequire (\n\texample.com/a v1.0.0\n\texample.com/b v1.0.0\n)\n",
+		"main.go": "package main\n\nimport _ \"example.com/a\"\n",
+	})
+	writeTree(t, cache, map[string]string{
+		"example.com/a@v1.0.0/a.go": "package a\n\nimport _ \"example.com/b\"\n",
+		"example.com/b@v1.0.0/b.go": "package b\n",
+	})
+	t.Setenv("GOMODCACHE", cache)
+	t.Setenv("GOWORK", "off")
+	db := localdb.NewFileManager(localdb.Config{Dir: t.TempDir(), FileName: "cache.db"})
+	t.Cleanup(func() { assert.NoError(t, db.Close()) })
+	m := &model.Manifest{Path: "go.mod", Ecosystem: model.EcosystemGo, Packages: []*model.Package{goPackage("example.com/a"), goPackage("example.com/b")}}
+
+	first, err := NewWith(dir, Options{Cache: db}, nil).Graph(context.Background(), m)
+	require.NoError(t, err)
+	require.NotNil(t, first)
+	// A module version of the module cache never changes, so the second
+	// scan takes the imports of a from the cache, not from the edited file.
+	writeTree(t, cache, map[string]string{"example.com/a@v1.0.0/a.go": "package a\n"})
+	second, err := NewWith(dir, Options{Cache: db}, nil).Graph(context.Background(), m)
+	require.NoError(t, err)
+	require.NotNil(t, second)
+	assert.Equal(t, first.Roots(), second.Roots())
+	assert.Equal(t, []model.PackageVersion{m.Packages[1].ID}, second.Children(m.Packages[0].ID))
 }
