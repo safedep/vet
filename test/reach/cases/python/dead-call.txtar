@@ -1,0 +1,19 @@
+# a function of the project calls the dependency, and no entry point calls that function
+lang: python
+unit: pypi:dep@1.2.0 venv/lib/python3.12/site-packages/dep
+not-called: dep.render
+-- requirements.txt --
+dep==1.2.0
+-- main.py --
+import dep
+
+
+def unused():
+    dep.render("<a>")
+
+
+if __name__ == "__main__":
+    pass
+-- venv/lib/python3.12/site-packages/dep/__init__.py --
+def render(text):
+    return text

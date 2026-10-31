@@ -258,7 +258,8 @@ func unproven(p *model.Package, m *model.Manifest) finding.ReachCause {
 // notCalledEcosystems are the ecosystems whose reach corpus in test/reach
 // has no call that the search misses. Only for them can no path become
 // not-called. The corpus test fails when a miss shows up in one of them.
-// The Rust search misses a call through a trait object.
+// The Rust search misses a call through a trait object. The Python search
+// misses a call on the result of a function with no return type hint.
 var notCalledEcosystems = map[model.Ecosystem]bool{model.EcosystemGo: true}
 
 // ProvesNotCalled reports whether vet can say not-called for a package of

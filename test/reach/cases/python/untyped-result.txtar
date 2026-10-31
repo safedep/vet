@@ -1,0 +1,21 @@
+# main calls a method on the result of a function of the dependency that declares no return type
+lang: python
+unit: pypi:dep@1.2.0 venv/lib/python3.12/site-packages/dep
+called: dep.Tokenizer.next
+miss: the function declares no return type, so the receiver is unknown and the call has a name edge of low confidence, which is a weak path
+-- requirements.txt --
+dep==1.2.0
+-- main.py --
+import dep
+
+if __name__ == "__main__":
+    z = dep.new_tokenizer("<a>")
+    z.next()
+-- venv/lib/python3.12/site-packages/dep/__init__.py --
+class Tokenizer:
+    def next(self):
+        return 0
+
+
+def new_tokenizer(text):
+    return Tokenizer()

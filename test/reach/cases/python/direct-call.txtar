@@ -1,0 +1,24 @@
+# the main guard calls the vulnerable function of a dependency
+lang: python
+unit: pypi:dep@1.2.0 venv/lib/python3.12/site-packages/dep
+called: dep.render
+not-called: dep.escape
+-- requirements.txt --
+dep==1.2.0
+-- main.py --
+import dep
+
+
+def run():
+    dep.render("<a>")
+
+
+if __name__ == "__main__":
+    run()
+-- venv/lib/python3.12/site-packages/dep/__init__.py --
+def render(text):
+    return text
+
+
+def escape(text):
+    return text

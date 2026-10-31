@@ -935,6 +935,12 @@
   tier: P1
   guarantee: "A scan of a go.work workspace builds no module graph when a go.mod that the build list needs is not on the disk, when a module of the workspace is outside the target, or when a go.mod has an exclude directive. Each Go finding then stays unknown with the cause no-graph and is never unused, and the scan reports module_graph."
   labels: [reach, enrichers]
+- id: reach/import/python-import-graph
+  title: "vet reads the import graph of a Python manifest from the virtual environment"
+  category: reach
+  tier: P1
+  guarantee: "A scan of a Python target with a virtual environment reads the imports of the Python files of the target and of each distribution in its site-packages directory, and runs no Python. A distribution that only another distribution imports is imported, with the path through that distribution. A distribution that no import reaches is unused. A target with no virtual environment gets no graph, each finding stays unknown with the cause no-graph, and the scan reports module_graph with the advice to install the project."
+  labels: [reach, enrichers]
 - id: reach/function/no-symbol-data
   title: "a scan with no symbol data never says not called"
   category: reach

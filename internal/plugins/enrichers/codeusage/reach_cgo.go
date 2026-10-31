@@ -3,6 +3,7 @@
 package codeusage
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -106,11 +107,16 @@ func indexUnits(ctx context.Context, us []Unit, langs []core.Language, st store.
 	cfg := fs.LocalFileSystemConfig{ImportUnits: map[string]string{}}
 	units := make(map[string]iofs.FS, len(us))
 	for _, u := range us {
-		cfg.ImportUnits[u.Dir] = u.Key
-		cfg.ImportDirectories = append(cfg.ImportDirectories, u.Dir)
-		// The skip patterns of a unit leave out the code that it vendors.
-		cfg.ExcludePatterns = append(cfg.ExcludePatterns, fs.SkipPattern(u.Dir))
-		units[u.Key] = os.DirFS(u.Dir)
+		root := cmp.Or(u.Root, u.Dir)
+		for _, d := range append([]string{u.Dir}, u.Dirs...) {
+			cfg.ImportUnits[d] = u.Key
+			// The skip patterns of a unit leave out the code that it vendors.
+			cfg.ExcludePatterns = append(cfg.ExcludePatterns, fs.SkipPattern(d))
+		}
+		if !slices.Contains(cfg.ImportDirectories, root) {
+			cfg.ImportDirectories = append(cfg.ImportDirectories, root)
+		}
+		units[u.Key] = os.DirFS(root)
 	}
 	slices.Sort(cfg.ImportDirectories)
 	fsys, err := fs.NewLocalFileSystem(cfg)

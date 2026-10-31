@@ -1,0 +1,22 @@
+# main calls a function of the standard library, which is no unit of the corpus, and a dependency with the same name
+lang: python
+unit: pypi:dep@1.2.0 venv/lib/python3.12/site-packages/dep
+called: dep.load
+not-called: dep.dump
+-- requirements.txt --
+dep==1.2.0
+-- main.py --
+import json
+
+import dep
+
+if __name__ == "__main__":
+    json.loads("{}")
+    dep.load("x")
+-- venv/lib/python3.12/site-packages/dep/__init__.py --
+def load(text):
+    return text
+
+
+def dump(obj):
+    return obj

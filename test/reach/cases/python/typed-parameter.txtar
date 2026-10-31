@@ -1,0 +1,24 @@
+# a function of the project types its parameter with a class of the dependency and calls a method on it
+lang: python
+unit: pypi:dep@1.2.0 venv/lib/python3.12/site-packages/dep
+called: dep.Client.send
+not-called: dep.Client.close
+-- requirements.txt --
+dep==1.2.0
+-- main.py --
+from dep import Client
+
+
+def post(client: Client, body):
+    client.send(body)
+
+
+if __name__ == "__main__":
+    post(Client(), "x")
+-- venv/lib/python3.12/site-packages/dep/__init__.py --
+class Client:
+    def send(self, body):
+        return body
+
+    def close(self):
+        pass

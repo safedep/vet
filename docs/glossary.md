@@ -274,15 +274,16 @@ in `report.ReachRoots` and by `vet report root list`. safedep/code calls it a ro
 _Avoid_: source (safedep/code uses that word for a named entry point)
 
 **Reach corpus**:
-The synthetic Go and Rust projects in `test/reach` with the truth of each call, and the release bar
+The synthetic Go, Rust and Python projects in `test/reach` with the truth of each call, and the release bar
 of reach: no false `called` and no missed call where vet says `not-called`. A **weak path** is a
 call path with a call that the graph only guesses. The engine keeps its finding `imported`.
 _Avoid_: benchmark (the corpus is a gate)
 
 **Dependency unit**:
-The source code of one Go module or Rust crate on the disk, in `vendor` or in the module or crate
-cache, with its unit key, as `go:golang.org/x/net@v0.20.0`. `codeusage.Unit`. The call graph links
-the units of the imported packages with a symbol record. vet never downloads one.
+The source code of one Go module, Rust crate or Python distribution on the disk, in `vendor`, in the
+module or crate cache, or in the site-packages directory of a virtual environment, with its unit
+key, as `go:golang.org/x/net@v0.20.0` or `pypi:requests@2.31.0`. `codeusage.Unit`. The call graph
+links the units of the imported packages with a symbol record. vet never downloads one.
 _Avoid_: dependency source (for the type)
 
 **Symbol data**:

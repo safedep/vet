@@ -31,13 +31,14 @@ false negative.
 
 ## Case format
 
-A case is a `txtar` file under `cases/go/` or `cases/rust/`. The comment section holds:
+A case is a `txtar` file under `cases/go/`, `cases/rust/` or `cases/python/`. The comment section
+holds:
 
 | Line | Meaning |
 | --- | --- |
 | `# <summary>` | One line that says what the case does. The table shows it. |
-| `lang: go` | The language, `go` or `rust`. |
-| `unit: <key> <dir>` | The unit key and the directory of the code of one dependency, as `go:example.com/dep@v1.2.0 vendor/example.com/dep`. |
+| `lang: go` | The language, `go`, `rust` or `python`. |
+| `unit: <key> <dir>` | The unit key and the directory of the code of one dependency, as `go:example.com/dep@v1.2.0 vendor/example.com/dep`. A Python unit is the package directory of the distribution under its site-packages, as `pypi:dep@1.2.0 venv/lib/python3.12/site-packages/dep`, or the site-packages directory itself when the case needs the `.dist-info` of the distribution, as for an extension module. |
 | `called: <name>` | A vulnerable function that an entry point calls, as the symbol data names it. |
 | `not-called: <name>` | A function that no entry point calls. |
 | `entrypoint: <path:function>` | Optional. An entry point that the user names. |
@@ -50,5 +51,10 @@ A case is a `txtar` file under `cases/go/` or `cases/rust/`. The comment section
 - Give a Go case `vendor/modules.txt` with the module and the version of the unit, as `go mod
   vendor` writes it. A scan reads a vendor tree only with that list. The corpus passes the units
   to the search itself.
+- Give a Python case a `requirements.txt` with the version of the unit. The corpus passes the unit
+  to the search itself, so the `venv` directory of a case is a convention and needs no `pyvenv.cfg`.
+  A scan finds a virtual environment by its `pyvenv.cfg` and the `.dist-info` of each distribution.
+  The entry point of a Python case is the `if __name__ == "__main__":` guard of `main.py`. A target
+  name is the dotted path of the function or the method, as `dep.Tokenizer.next`.
 - Add a `not-called` target next to each `called` target where you can. It keeps the search from
   growing into false paths.

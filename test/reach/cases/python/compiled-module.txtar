@@ -1,0 +1,19 @@
+# main calls a function of an extension module of the dependency, which has no Python source, so the call is direct and the code inside the module is not searched
+lang: python
+unit: pypi:speedy@1.0.0 venv/lib/python3.12/site-packages
+called: speedy.fast.compute
+-- requirements.txt --
+speedy==1.0.0
+-- main.py --
+from speedy import fast
+
+if __name__ == "__main__":
+    fast.compute(1)
+-- venv/lib/python3.12/site-packages/speedy-1.0.0.dist-info/METADATA --
+Name: speedy
+Version: 1.0.0
+-- venv/lib/python3.12/site-packages/speedy-1.0.0.dist-info/RECORD --
+speedy/__init__.py,,
+speedy/fast.cpython-312-x86_64-linux-gnu.so,,
+-- venv/lib/python3.12/site-packages/speedy/__init__.py --
+from . import fast

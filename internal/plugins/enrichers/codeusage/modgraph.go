@@ -22,20 +22,35 @@ import (
 	"github.com/safedep/vet/v2/report"
 )
 
-// CodeModuleGraph is the diagnostic code of a go.mod whose module graph is
-// missing or has modules with no source on the disk.
+// CodeModuleGraph is the diagnostic code of a manifest whose graph of
+// imports is missing or has packages whose imports vet cannot read: a Go
+// module with no source on the disk, or an open Python distribution.
 const CodeModuleGraph = "module_graph"
 
-// Graph builds the module graph of a go.mod from the Go files on the disk:
-// the code of the main module, and of each module of the build list in the
-// vendor directory, in a local replacement inside the scan root or in the
-// module cache. It runs no build and downloads nothing. A module with
-// no source is open, because vet does not know what it imports. A graph
-// that vet cannot trust is nil, so the manifest keeps no graph, and the
-// diagnostics say why.
+// Graph builds the graph of imports of a manifest from the code on the
+// disk: the module graph of a go.mod, or the import graph of a Python
+// manifest with a virtual environment. It runs no build and downloads
+// nothing. A graph that vet cannot trust is nil, so the manifest keeps no
+// graph, and the diagnostics say why.
 func (e *Enricher) Graph(ctx context.Context, m *model.Manifest) (*model.Graph, error) {
+	switch {
+	case e.dir == "":
+		return nil, nil
+	case m.Ecosystem == model.EcosystemGo:
+		return e.goGraph(ctx, m)
+	case m.Ecosystem == model.EcosystemPyPI:
+		return e.pythonGraph(ctx, m)
+	}
+	return nil, nil
+}
+
+// goGraph builds the module graph of a go.mod: the code of the main
+// module, and of each module of the build list in the vendor directory, in
+// a local replacement inside the scan root or in the module cache. A module
+// with no source is open, because vet does not know what it imports.
+func (e *Enricher) goGraph(ctx context.Context, m *model.Manifest) (*model.Graph, error) {
 	modDir, ok := moduleDirOf(m.Path)
-	if e.dir == "" || m.Ecosystem != model.EcosystemGo || !ok {
+	if !ok {
 		return nil, nil
 	}
 	dir := filepath.Join(e.dir, filepath.FromSlash(modDir))
@@ -79,15 +94,21 @@ func (e *Enricher) Graph(ctx context.Context, m *model.Manifest) (*model.Graph, 
 		return nil, nil
 	}
 	if open := reachedOpen(g); len(open) > 0 {
-		e.graphMu.Lock()
-		// go.mod and vendor/modules.txt of one module get the same graph,
-		// so the open modules count once for each module directory.
-		if !slices.ContainsFunc(e.graphOpen, func(o openModules) bool { return o.dir == modDir }) {
-			e.graphOpen = append(e.graphOpen, openModules{manifest: m.Path, dir: modDir, modules: open})
-		}
-		e.graphMu.Unlock()
+		e.recordOpen(openModules{manifest: m.Path, dir: modDir, ecosystem: model.EcosystemGo, modules: open})
 	}
 	return out, nil
+}
+
+// recordOpen keeps the open packages that a graph reaches, for the
+// diagnostics. go.mod and vendor/modules.txt of one module get the same
+// graph, and the Python manifests of one directory get the same graph, so
+// the open packages count once for each directory of an ecosystem.
+func (e *Enricher) recordOpen(o openModules) {
+	e.graphMu.Lock()
+	defer e.graphMu.Unlock()
+	if !slices.ContainsFunc(e.graphOpen, func(have openModules) bool { return have.ecosystem == o.ecosystem && have.dir == o.dir }) {
+		e.graphOpen = append(e.graphOpen, o)
+	}
 }
 
 // moduleDirOf returns the directory of the module of a Go manifest: the
@@ -364,40 +385,64 @@ func samePath(a, b string) bool {
 	return resolve(a) == resolve(b)
 }
 
-// openModules are the open modules that the build of a go.mod reaches.
+// openModules are the open packages that the graph of a manifest reaches:
+// the modules of a go.mod with no source, or the distributions of a Python
+// manifest whose imports vet cannot read.
 type openModules struct {
-	manifest string
-	dir      string
-	modules  []string
+	manifest  string
+	dir       string
+	ecosystem model.Ecosystem
+	modules   []string
 }
 
-// graphDiagnostics reports each go.mod with no module graph, and one
-// diagnostic for the open modules of all the graphs.
+// graphDiagnostics reports each manifest with no graph, and one diagnostic
+// per ecosystem for the open packages of all its graphs.
 func (e *Enricher) graphDiagnostics() []report.Diagnostic {
 	e.graphMu.Lock()
 	defer e.graphMu.Unlock()
 	out := slices.Clone(e.graphNotes)
-	if len(e.graphOpen) == 0 {
-		return out
+	for _, eco := range []model.Ecosystem{model.EcosystemGo, model.EcosystemPyPI} {
+		var graphs []openModules
+		count := 0
+		for _, o := range e.graphOpen {
+			if o.ecosystem == eco {
+				graphs = append(graphs, o)
+				count += len(o.modules)
+			}
+		}
+		if count == 0 {
+			continue
+		}
+		first := graphs[0]
+		nouns := dependencyNouns[eco]
+		noun := nouns[1]
+		if count == 1 {
+			noun = nouns[0]
+		}
+		where := first.manifest
+		if len(graphs) > 1 {
+			where = fmt.Sprintf("%d %s files", len(graphs), path.Base(first.manifest))
+			if eco == model.EcosystemPyPI {
+				where = fmt.Sprintf("%d manifests", len(graphs))
+			}
+		}
+		out = append(out, report.Diagnostic{
+			Level: report.DiagnosticWarning, Code: CodeModuleGraph, Component: Name, Count: count,
+			Message: fmt.Sprintf("vet cannot read the imports of %d %s of %s, such as %s of %s, so reach can be unknown for the packages that they can import. %s",
+				count, noun, where, first.modules[0], first.manifest, openAdvice[eco]),
+		})
 	}
-	count := 0
-	for _, o := range e.graphOpen {
-		count += len(o.modules)
-	}
-	first := e.graphOpen[0]
-	noun := "modules"
-	if count == 1 {
-		noun = "module"
-	}
-	where := first.manifest
-	if len(e.graphOpen) > 1 {
-		where = fmt.Sprintf("%d go.mod files", len(e.graphOpen))
-	}
-	return append(out, report.Diagnostic{
-		Level: report.DiagnosticWarning, Code: CodeModuleGraph, Component: Name, Count: count,
-		Message: fmt.Sprintf("vet cannot read the imports of %d Go %s of %s, such as %s of %s, so reach can be unknown for the modules that they can import. %s",
-			count, noun, where, first.modules[0], first.manifest, finding.FetchHint(model.EcosystemGo)),
-	})
+	return out
+}
+
+// openAdvice says what a person can do about an open package of an
+// ecosystem. A Go module is open when its source is not on the disk. A
+// Python distribution is open when it has an extension module, imports a
+// computed name, or imports a module that no distribution holds, and no
+// install changes that.
+var openAdvice = map[model.Ecosystem]string{
+	model.EcosystemGo:   finding.FetchHint(model.EcosystemGo),
+	model.EcosystemPyPI: "An extension module, an import of a computed name or an import of a module that no distribution holds hides the imports of a distribution.",
 }
 
 func (e *Enricher) noteGraph(msg string) {
