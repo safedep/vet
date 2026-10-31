@@ -23,6 +23,10 @@ type pythonEnvironment struct {
 	// or the directory of a manifest.
 	dir   string
 	sites []pythonSite
+	// local is true when a virtual environment under dir gives a site. The
+	// environment that VIRTUAL_ENV names belongs to the whole target, not
+	// to one directory.
+	local bool
 	// stdlib is the Lib directory of the interpreter of the first virtual
 	// environment, and version its version, or "" when vet did not find it.
 	stdlib  string
@@ -45,31 +49,42 @@ var venvNames = []string{".venv", "venv", "env"}
 func readPythonEnvironment(dir string) *pythonEnvironment {
 	env := &pythonEnvironment{dir: dir}
 	for _, venv := range venvDirs(dir) {
-		for _, site := range venvSitePackages(venv) {
+		before := len(env.sites)
+		for _, site := range venvSitePackages(venv.path) {
 			env.addSite(site)
 		}
+		if venv.local && len(env.sites) > before {
+			env.local = true
+		}
 		if env.stdlib == "" {
-			env.stdlib, env.version = venvStdlib(venv)
+			env.stdlib, env.version = venvStdlib(venv.path)
 		}
 	}
 	return env
 }
 
+// venvDir is a virtual environment: its path, and whether it is under the
+// directory of the project.
+type venvDir struct {
+	path  string
+	local bool
+}
+
 // venvDirs returns the virtual environments of the project: the one that
 // VIRTUAL_ENV names, then each directory of venvNames under dir that holds
 // a pyvenv.cfg.
-func venvDirs(dir string) []string {
-	var out []string
-	add := func(venv string) {
+func venvDirs(dir string) []venvDir {
+	var out []venvDir
+	add := func(venv string, local bool) {
 		if fileExists(filepath.Join(venv, "pyvenv.cfg")) {
-			out = append(out, venv)
+			out = append(out, venvDir{path: venv, local: local})
 		}
 	}
 	if v := os.Getenv("VIRTUAL_ENV"); v != "" && filepath.IsAbs(v) {
-		add(v)
+		add(v, false)
 	}
 	for _, name := range venvNames {
-		add(filepath.Join(dir, name))
+		add(filepath.Join(dir, name), true)
 	}
 	return out
 }

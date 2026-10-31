@@ -30,8 +30,11 @@ import (
 // and the diagnostics say why.
 func (e *Enricher) pythonGraph(ctx context.Context, m *model.Manifest) (*model.Graph, error) {
 	env := e.pythonEnv()
+	// The environment that VIRTUAL_ENV names belongs to the whole target,
+	// so only an environment under the directory of the manifest makes
+	// that directory the project.
 	if sub := filepath.Join(e.dir, filepath.FromSlash(path.Dir(m.Path))); sub != e.dir {
-		if subEnv := e.pythonEnvAt(sub); len(subEnv.sites) > 0 {
+		if subEnv := e.pythonEnvAt(sub); subEnv.local {
 			env = subEnv
 		}
 	}

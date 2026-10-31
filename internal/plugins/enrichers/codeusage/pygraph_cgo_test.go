@@ -279,6 +279,17 @@ func TestGraphOfAPythonManifest(t *testing.T) {
 		assert.Equal(t, []string{"requests"}, names(g.Roots()))
 		assert.Empty(t, e.graphDiagnostics())
 	})
+	t.Run("the active environment does not move the project to the directory of the manifest", func(t *testing.T) {
+		dir, active := t.TempDir(), t.TempDir()
+		pythonVenv(t, active, t.TempDir(), "venv")
+		t.Setenv("VIRTUAL_ENV", filepath.Join(active, "venv"))
+		writeTree(t, dir, map[string]string{"requirements/prod.txt": "requests==2.31.0\n", "src/app.py": "import requests\n"})
+		e := NewWith(dir, Options{}, nil)
+		g, err := e.Graph(context.Background(), &model.Manifest{Path: "requirements/prod.txt", Ecosystem: model.EcosystemPyPI, Packages: []*model.Package{pyPackage("requests", "2.31.0")}})
+		require.NoError(t, err)
+		require.NotNil(t, g)
+		assert.Equal(t, []string{"requests"}, names(g.Roots()), "the import under src counts")
+	})
 	t.Run("the graph of an environment is built once", func(t *testing.T) {
 		dir := t.TempDir()
 		pythonVenv(t, dir, t.TempDir(), ".venv")
