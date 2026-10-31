@@ -51,9 +51,10 @@ holds:
 - Give a Go case `vendor/modules.txt` with the module and the version of the unit, as `go mod
   vendor` writes it. A scan reads a vendor tree only with that list. The corpus passes the units
   to the search itself.
-- Give a Python case a `requirements.txt` with the version of the unit, and put the code of the
-  dependency under a `venv` directory, as a scan finds it. The entry point of a Python case is the
-  `if __name__ == "__main__":` guard of `main.py`. A target name is the dotted path of the
-  function or the method, as `dep.Tokenizer.next`.
+- Give a Python case a `requirements.txt` with the version of the unit. The corpus passes the unit
+  to the search itself, so the `venv` directory of a case is a convention and needs no `pyvenv.cfg`.
+  A scan finds a virtual environment by its `pyvenv.cfg` and the `.dist-info` of each distribution.
+  The entry point of a Python case is the `if __name__ == "__main__":` guard of `main.py`. A target
+  name is the dotted path of the function or the method, as `dep.Tokenizer.next`.
 - Add a `not-called` target next to each `called` target where you can. It keeps the search from
   growing into false paths.

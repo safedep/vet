@@ -116,9 +116,9 @@ func venvSitePackages(venv string) []string {
 // venvStdlib returns the Lib directory of the interpreter of a virtual
 // environment and its version, from the home and the version lines of
 // pyvenv.cfg. On a POSIX system the home is the bin directory of the
-// interpreter, and its standard library is in lib/python3.X next to it. On
-// Windows the home is the directory of python.exe, and the library is in
-// Lib under it.
+// interpreter, and its standard library is in lib/python3.X next to it, or
+// in lib64/python3.X on a distribution that keeps it there. On Windows the
+// home is the directory of python.exe, and the library is in Lib under it.
 func venvStdlib(venv string) (string, string) {
 	data, err := os.ReadFile(filepath.Join(venv, "pyvenv.cfg"))
 	if err != nil {
@@ -145,7 +145,12 @@ func venvStdlib(venv string) (string, string) {
 	}
 	major, _, _ := strings.Cut(version, ".")
 	minor := strings.Join(strings.Split(version, ".")[:2], ".")
-	for _, lib := range []string{filepath.Join(home, "..", "lib", "python"+minor), filepath.Join(home, "..", "lib", "python"+major), filepath.Join(home, "Lib")} {
+	for _, lib := range []string{
+		filepath.Join(home, "..", "lib", "python"+minor),
+		filepath.Join(home, "..", "lib64", "python"+minor),
+		filepath.Join(home, "..", "lib", "python"+major),
+		filepath.Join(home, "Lib"),
+	} {
 		if fileExists(filepath.Join(lib, "os.py")) {
 			return filepath.Clean(lib), version
 		}

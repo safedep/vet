@@ -616,11 +616,14 @@ func (e *Enricher) reachQuery(pkgs []*model.Package) (ReachQuery, map[model.Pack
 		}
 	}
 	// The standard library of the interpreter joins the code of a Python
-	// dependency, so a call of the library on the code of the project, as
-	// Thread.start on run, is a call in the graph.
+	// dependency, so a path through a function of the library is a call in
+	// the graph.
 	if python {
-		if u, ok := e.pythonEnv().stdlibUnit(); ok {
-			q.Units = append(q.Units, u)
+		for _, env := range e.pythonEnvs() {
+			if u, ok := env.stdlibUnit(); ok {
+				q.Units = append(q.Units, u)
+				break
+			}
 		}
 	}
 	q.Targets = slices.Compact(slices.Sorted(slices.Values(q.Targets)))
@@ -628,16 +631,39 @@ func (e *Enricher) reachQuery(pkgs []*model.Package) (ReachQuery, map[model.Pack
 }
 
 // unitOf finds the code of a package on the disk. A Python package is a
-// distribution of the environment of the project.
+// distribution of an environment of the target: the environment of the
+// scan root, or the environment of the directory of a manifest, which the
+// import graph of that manifest read.
 func (e *Enricher) unitOf(id model.PackageVersion) (Unit, bool) {
-	if id.Ecosystem() == model.EcosystemPyPI {
-		return e.pythonEnv().unit(id)
+	if id.Ecosystem() != model.EcosystemPyPI {
+		return unitOf(e.dir, id)
 	}
-	return unitOf(e.dir, id)
+	for _, env := range e.pythonEnvs() {
+		if u, ok := env.unit(id); ok {
+			return u, true
+		}
+	}
+	return Unit{}, false
 }
 
 // pythonEnv reads the Python environment of the scan root once.
 func (e *Enricher) pythonEnv() *pythonEnvironment { return e.pythonEnvAt(e.dir) }
+
+// pythonEnvs returns the environments of the target with a site: the one
+// of the scan root first, then the ones of the manifest directories, in
+// path order.
+func (e *Enricher) pythonEnvs() []*pythonEnvironment {
+	root := e.pythonEnv()
+	e.pyMu.Lock()
+	defer e.pyMu.Unlock()
+	out := []*pythonEnvironment{root}
+	for _, dir := range slices.Sorted(maps.Keys(e.pyEnvs)) {
+		if env := e.pyEnvs[dir]; env != root && env.local {
+			out = append(out, env)
+		}
+	}
+	return out
+}
 
 // pythonEnvAt reads the Python environment of a directory once.
 func (e *Enricher) pythonEnvAt(dir string) *pythonEnvironment {

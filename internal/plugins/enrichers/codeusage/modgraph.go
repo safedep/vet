@@ -101,11 +101,12 @@ func (e *Enricher) goGraph(ctx context.Context, m *model.Manifest) (*model.Graph
 
 // recordOpen keeps the open packages that a graph reaches, for the
 // diagnostics. go.mod and vendor/modules.txt of one module get the same
-// graph, so the open modules count once for each module directory.
+// graph, and the Python manifests of one directory get the same graph, so
+// the open packages count once for each directory of an ecosystem.
 func (e *Enricher) recordOpen(o openModules) {
 	e.graphMu.Lock()
 	defer e.graphMu.Unlock()
-	if !slices.ContainsFunc(e.graphOpen, func(have openModules) bool { return have.dir == o.dir }) {
+	if !slices.ContainsFunc(e.graphOpen, func(have openModules) bool { return have.ecosystem == o.ecosystem && have.dir == o.dir }) {
 		e.graphOpen = append(e.graphOpen, o)
 	}
 }

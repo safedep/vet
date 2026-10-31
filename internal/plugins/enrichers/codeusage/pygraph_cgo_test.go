@@ -317,3 +317,25 @@ func TestGraphOfAPythonManifest(t *testing.T) {
 		assert.Equal(t, "vet cannot read the imports of 1 Python distribution of requirements.txt, such as fast of requirements.txt, so reach can be unknown for the packages that they can import. An extension module, an import of a computed name or an import of a module that no distribution holds hides the imports of a distribution.", diags[0].Message)
 	})
 }
+
+func TestEnricherUnitOfReadsTheEnvironmentOfAManifest(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("VIRTUAL_ENV", "")
+	api := filepath.Join(dir, "services", "api")
+	site := pythonVenv(t, api, t.TempDir(), ".venv")
+	mkfile(t, filepath.Join(api, "requirements.txt"), "requests==2.31.0\n")
+	mkfile(t, filepath.Join(api, "main.py"), "import requests\n")
+	e := NewWith(dir, Options{}, nil)
+	_, ok := e.unitOf(model.MustPackageVersion(model.EcosystemPyPI, "requests", "2.31.0"))
+	assert.False(t, ok, "the scan root has no environment, and no manifest read one yet")
+	g, err := e.Graph(context.Background(), &model.Manifest{Path: "services/api/requirements.txt", Ecosystem: model.EcosystemPyPI, Packages: []*model.Package{pyPackage("requests", "2.31.0")}})
+	require.NoError(t, err)
+	require.NotNil(t, g)
+	u, ok := e.unitOf(model.MustPackageVersion(model.EcosystemPyPI, "requests", "2.31.0"))
+	require.True(t, ok, "the environment that the import graph of the manifest read gives the unit")
+	assert.Equal(t, filepath.Join(site, "requests"), u.Dir)
+	requests := &model.Package{ID: model.MustPackageVersion(model.EcosystemPyPI, "requests", "2.31.0"), Enrichment: model.Enrichment{Usage: &model.Usage{Imported: true, Symbols: []model.SymbolRecord{{Keys: []string{"requests//api//get"}}}}}}
+	q, _ := e.reachQuery([]*model.Package{requests})
+	require.Len(t, q.Units, 2)
+	assert.Equal(t, "python:std@3.12.3", q.Units[1].Key, "the standard library of that environment joins the search")
+}

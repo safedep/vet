@@ -154,3 +154,23 @@ func TestReachQueryAddsTheStandardLibraryForAPythonUnit(t *testing.T) {
 	q, _ = e.reachQuery([]*model.Package{goPkg})
 	assert.Empty(t, q.Units, "a Go package with no code adds no Python unit")
 }
+
+func TestVenvStdlibUnderLib64(t *testing.T) {
+	dir, interp := t.TempDir(), t.TempDir()
+	mkfile(t, filepath.Join(interp, "lib64", "python3.12", "os.py"), "")
+	mkfile(t, filepath.Join(dir, "venv", "pyvenv.cfg"), "home = "+filepath.Join(interp, "bin")+"\nversion = 3.12.3\n")
+	lib, version := venvStdlib(filepath.Join(dir, "venv"))
+	assert.Equal(t, filepath.Join(interp, "lib64", "python3.12"), lib)
+	assert.Equal(t, "3.12.3", version)
+}
+
+func TestRecordOpenKeepsEachEcosystemOfOneDirectory(t *testing.T) {
+	e := &Enricher{}
+	e.recordOpen(openModules{manifest: "go.mod", dir: ".", ecosystem: model.EcosystemGo, modules: []string{"example.com/gone"}})
+	e.recordOpen(openModules{manifest: "requirements.txt", dir: ".", ecosystem: model.EcosystemPyPI, modules: []string{"fast"}})
+	e.recordOpen(openModules{manifest: "pyproject.toml", dir: ".", ecosystem: model.EcosystemPyPI, modules: []string{"fast"}})
+	d := e.graphDiagnostics()
+	require.Len(t, d, 2, "one diagnostic per ecosystem, and the manifests of one directory count once")
+	assert.Contains(t, d[0].Message, "1 Go module of go.mod")
+	assert.Contains(t, d[1].Message, "1 Python distribution of requirements.txt")
+}
