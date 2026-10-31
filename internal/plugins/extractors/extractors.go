@@ -77,7 +77,11 @@ func Default() ([]filesystem.Extractor, error) {
 	if err != nil {
 		return nil, err
 	}
-	vet = append(vet, gha, gm, terraform.New(), packagejson.New(), cargotoml.New(), pyproject.New(), agentconfig.New(), hiddencode.New())
+	gv, err := gomod.NewVendor()
+	if err != nil {
+		return nil, err
+	}
+	vet = append(vet, gha, gm, gv, terraform.New(), packagejson.New(), cargotoml.New(), pyproject.New(), agentconfig.New(), hiddencode.New())
 	return Override(base, vet...), nil
 }
 

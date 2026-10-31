@@ -1,0 +1,12 @@
+# example.com/upstream v1.0.0 => example.com/fork v1.1.0
+## explicit; go 1.22
+example.com/upstream
+# example.com/noversion => example.com/other v0.3.0
+## explicit
+example.com/noversion/pkg
+# example.com/local v1.0.0 => ./local
+## explicit
+example.com/local
+# example.com/plain v1.2.0
+## explicit; go 1.22
+example.com/plain
