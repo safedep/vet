@@ -125,6 +125,27 @@ func TestCacheKeepsOnlyTheResultsThatTheEnricherKeeps(t *testing.T) {
 	}
 }
 
+func TestRefreshDropsTheEntryOfAResultThatTheEnricherDoesNotKeep(t *testing.T) {
+	f := newFixture(t)
+	dir := project(t)
+	keep := func(e model.Enrichment) bool { return e.Insight != nil && e.Insight.LatestVersion == "kept" }
+	opts := func(tag string, refresh bool) Options {
+		o := f.options(t, dir, nil)
+		o.Enrichers = []Enricher{{Name: "insights", Version: "1", TTL: time.Hour, Keep: keep, Plugin: tagEnricher{tag: tag}}}
+		o.Fresh, o.NoCacheRead = true, refresh
+		return o
+	}
+	runScan(t, opts("kept", false))
+	runScan(t, opts("dropped", true))
+	res := runScan(t, opts("fresh", false))
+
+	for p, err := range res.Scan.Packages(context.Background(), plugin.PackageQuery{}) {
+		require.NoError(t, err)
+		require.NotNil(t, p.Insight, p.ID.String())
+		assert.Equal(t, "fresh", p.Insight.LatestVersion, "the refresh dropped the old entry of %s, so the scan asks again", p.ID)
+	}
+}
+
 // progressLog records the progress of the enrich stage.
 type progressLog struct {
 	mu     sync.Mutex

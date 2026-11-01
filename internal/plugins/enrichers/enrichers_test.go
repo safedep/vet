@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 
+	"github.com/safedep/vet/v2/internal/plugins/enrichers/actionrefs"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/insights"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/malysis"
 	"github.com/safedep/vet/v2/model"
@@ -181,4 +182,23 @@ func TestThreatIntelCachesLessThanInsights(t *testing.T) {
 			assert.False(t, specs[malysis.Name].Keep(model.Enrichment{}), "a missing verdict is not cached")
 		})
 	}
+}
+
+func TestActionRefsCachesOnlyAPinWithData(t *testing.T) {
+	s := startStub(t)
+	refs, err := actionrefs.New(plugin.MapConfig(nil), nil, s.URL())
+	require.NoError(t, err)
+	set, err := Build(Options{CommunityURL: s.URL(), APIURL: s.URL(), Workers: 1, TTL: time.Hour, ActionRefs: refs})
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, set.Close()) })
+	for _, sp := range set.Specs {
+		if sp.Name != actionrefs.Name {
+			continue
+		}
+		require.NotNil(t, sp.Keep)
+		assert.False(t, sp.Keep(model.Enrichment{}), "a pin with no data is checked again on the next scan")
+		assert.True(t, sp.Keep(model.Enrichment{Action: &model.ActionCommit{}}))
+		return
+	}
+	t.Fatal("no actionrefs spec")
 }
