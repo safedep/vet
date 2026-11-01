@@ -218,14 +218,23 @@ func (r *run) enrichBatch(ctx context.Context, e Enricher, batch []*model.Packag
 	}
 	if useCache {
 		own := make([]state.EnrichmentResult, 0, len(fresh))
+		var drop []model.PackageVersion
 		for i, res := range fresh {
 			// A result must not carry the data of another enricher, or a
 			// cache hit puts back an old result of that enricher.
 			res.Package = &model.Package{ID: res.Package.ID, Enrichment: res.Package.Since(before[i])}
-			if e.SkipEmpty && res.Package.Empty() {
+			if e.Keep != nil && !e.Keep(res.Package.Enrichment) {
+				// A refresh (--no-cache) replaced the data of an entry that
+				// may exist. A failed call keeps the entry.
+				if status == state.EnrichmentOK {
+					drop = append(drop, res.Package.ID)
+				}
 				continue
 			}
 			own = append(own, res)
+		}
+		if err := r.o.Cache.Drop(ctx, e.Name, e.Version, drop); err != nil {
+			return nil, err
 		}
 		if err := r.o.Cache.Put(ctx, e.Version, e.TTL, own); err != nil {
 			return nil, err

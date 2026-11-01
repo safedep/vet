@@ -93,22 +93,22 @@ func (e countEnricher) Enrich(_ context.Context, pkgs []*model.Package) error {
 	return nil
 }
 
-func TestCacheSkipsEmptyResultsOnlyWhenAsked(t *testing.T) {
+func TestCacheKeepsOnlyTheResultsThatTheEnricherKeeps(t *testing.T) {
 	f := newFixture(t)
 	dir := project(t)
 	for _, tc := range []struct {
 		name      string
-		skipEmpty bool
+		keep      func(model.Enrichment) bool
 		secondRun bool
 	}{
-		{"an empty insight stays cached", false, false},
-		{"an empty verdict asks again", true, true},
+		{"an enricher with no rule keeps each result", nil, false},
+		{"a result that the rule drops asks again", func(e model.Enrichment) bool { return !e.Empty() }, true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			calls := &atomic.Int32{}
 			opts := func() Options {
 				o := f.options(t, dir, nil)
-				o.Enrichers = []Enricher{{Name: tc.name, Version: "1", TTL: time.Hour, SkipEmpty: tc.skipEmpty, Plugin: countEnricher{calls}}}
+				o.Enrichers = []Enricher{{Name: tc.name, Version: "1", TTL: time.Hour, Keep: tc.keep, Plugin: countEnricher{calls}}}
 				o.Fresh = true
 				return o
 			}
@@ -122,6 +122,27 @@ func TestCacheSkipsEmptyResultsOnlyWhenAsked(t *testing.T) {
 				assert.Equal(t, first, calls.Load(), "the second scan reads the cache")
 			}
 		})
+	}
+}
+
+func TestRefreshDropsTheEntryOfAResultThatTheEnricherDoesNotKeep(t *testing.T) {
+	f := newFixture(t)
+	dir := project(t)
+	keep := func(e model.Enrichment) bool { return e.Insight != nil && e.Insight.LatestVersion == "kept" }
+	opts := func(tag string, refresh bool) Options {
+		o := f.options(t, dir, nil)
+		o.Enrichers = []Enricher{{Name: "insights", Version: "1", TTL: time.Hour, Keep: keep, Plugin: tagEnricher{tag: tag}}}
+		o.Fresh, o.NoCacheRead = true, refresh
+		return o
+	}
+	runScan(t, opts("kept", false))
+	runScan(t, opts("dropped", true))
+	res := runScan(t, opts("fresh", false))
+
+	for p, err := range res.Scan.Packages(context.Background(), plugin.PackageQuery{}) {
+		require.NoError(t, err)
+		require.NotNil(t, p.Insight, p.ID.String())
+		assert.Equal(t, "fresh", p.Insight.LatestVersion, "the refresh dropped the old entry of %s, so the scan asks again", p.ID)
 	}
 }
 

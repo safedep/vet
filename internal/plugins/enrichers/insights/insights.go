@@ -25,6 +25,13 @@ const Name = "insights"
 // Version changes when the mapping changes, so the cache drops old results.
 const Version = "3"
 
+// Keep reports whether the cache keeps an answer of Insights. Insights
+// learns of a version some time after the registry publishes it, and the
+// cooldown control needs the publish date. An answer with no date is asked
+// again on the next scan, so a cached answer does not hide the date for
+// the whole TTL.
+func Keep(e model.Enrichment) bool { return e.Insight != nil && e.Insight.PublishedAt != nil }
+
 // Enricher sets model.Package.Insight.
 type Enricher struct {
 	client  insightsv2grpc.InsightServiceClient

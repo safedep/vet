@@ -624,7 +624,7 @@ func enricherSpecs(set *enrichers.Set) []engine.Enricher {
 	for _, s := range set.Specs {
 		out = append(out, engine.Enricher{
 			Name: s.Name, Version: s.Version, TTL: s.TTL, Plugin: s.Plugin,
-			Prior: s.Name == insights.Name, Local: s.Local, SkipEmpty: s.SkipEmpty, Whole: s.Whole,
+			Prior: s.Name == insights.Name, Local: s.Local, Keep: s.Keep, Whole: s.Whole,
 		})
 	}
 	return out

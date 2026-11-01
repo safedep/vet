@@ -227,7 +227,9 @@ _Avoid_: Malysis in user-facing text, malware scanner
 
 **Enrichment cache**:
 The shared SQLite file `cache.db` in the cache directory that keeps enricher results, keyed by package
-key, enricher and enricher version. `state.Cache`. The `cache.*` config keys and `--no-cache` set it.
+key, enricher and enricher version. `state.Cache`. The `cache.*` config keys and `--no-cache` set it. An
+enricher can keep a result out of it, so the next scan asks again: a malware verdict that is not ready,
+or an Insights answer with no publish date. `engine.Enricher.Keep`.
 _Avoid_: cache (alone, when the base cache or the config section could be meant)
 
 **Gap**:

@@ -8,6 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/safedep/vet/v2/model"
 )
 
 func TestToInsightDates(t *testing.T) {
@@ -43,6 +45,23 @@ func TestToInsightDates(t *testing.T) {
 			require.NotNil(t, got)
 			assert.Equal(t, tc.published, got.PublishedAt)
 			assert.Equal(t, tc.first, got.FirstPublishedAt)
+		})
+	}
+}
+
+func TestKeepCachesOnlyAnAnswerWithAPublishDate(t *testing.T) {
+	published := time.Date(2026, 10, 30, 17, 34, 54, 0, time.UTC)
+	for _, tc := range []struct {
+		name string
+		e    model.Enrichment
+		want bool
+	}{
+		{"an answer with a publish date", model.Enrichment{Insight: &model.Insight{PublishedAt: &published}}, true},
+		{"an answer with no publish date", model.Enrichment{Insight: &model.Insight{LatestVersion: "2.0.0"}}, false},
+		{"no answer", model.Enrichment{}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, Keep(tc.e))
 		})
 	}
 }

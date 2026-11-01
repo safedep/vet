@@ -149,6 +149,27 @@ func (c *Cache) Put(ctx context.Context, version string, ttl time.Duration, resu
 	return tx.Commit()
 }
 
+// Drop deletes the entry of each package for one enricher version. A scan
+// that refreshes a package and gets a result that the enricher does not
+// keep drops the old entry, so the next scan does not read data that the
+// refresh replaced.
+func (c *Cache) Drop(ctx context.Context, enricher, version string, ids []model.PackageVersion) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	tx, err := c.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	for _, id := range ids {
+		if _, err := tx.ExecContext(ctx, `DELETE FROM vet_cache_package_enrichments
+			WHERE pkey = ? AND enricher = ? AND enricher_version = ?`, string(id.Key()), enricher, version); err != nil {
+			return errors.Join(fmt.Errorf("drop from the enrichment cache: %w", err), tx.Rollback())
+		}
+	}
+	return tx.Commit()
+}
+
 // Prune deletes the expired entries and returns how many it deleted.
 func (c *Cache) Prune(ctx context.Context) (int64, error) {
 	res, err := c.db.ExecContext(ctx, `DELETE FROM vet_cache_package_enrichments WHERE expires_at <= ?`, c.now().UnixMilli())

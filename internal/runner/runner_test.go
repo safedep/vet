@@ -16,6 +16,8 @@ import (
 	"github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/internal/engine"
 	"github.com/safedep/vet/v2/internal/plugins/controls/cooldown"
+	"github.com/safedep/vet/v2/internal/plugins/enrichers"
+	"github.com/safedep/vet/v2/internal/plugins/enrichers/insights"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/plain"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/internal/technique"
@@ -236,4 +238,18 @@ func TestMarkAttacksOfAnOldReport(t *testing.T) {
 	assert.Equal(t, &want, malware.Attack, "a finding of an attack control in an old report is an attack")
 	assert.Nil(t, vuln.Attack)
 	assert.Equal(t, "kept", marked.Attack.Technique, "a report that has the field keeps it")
+}
+
+func TestEnricherSpecsCarryTheCacheRule(t *testing.T) {
+	keep := func(model.Enrichment) bool { return false }
+	got := enricherSpecs(&enrichers.Set{Specs: []enrichers.Spec{
+		{Name: insights.Name, Version: "1", Keep: keep},
+		{Name: "other", Version: "2"},
+	}})
+	require.Len(t, got, 2)
+	require.NotNil(t, got[0].Keep, "the engine gets the cache rule of the enricher")
+	assert.False(t, got[0].Keep(model.Enrichment{}))
+	assert.True(t, got[0].Prior)
+	assert.Nil(t, got[1].Keep, "an enricher with no rule keeps each result")
+	assert.False(t, got[1].Prior)
 }

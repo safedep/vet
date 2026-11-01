@@ -67,6 +67,35 @@ func TestCache(t *testing.T) {
 	assert.Equal(t, int64(2), n)
 }
 
+func TestCacheDropDeletesOnlyTheNamedEntries(t *testing.T) {
+	ctx := context.Background()
+	c, err := OpenCache(ctx, t.TempDir())
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, c.Close()) })
+
+	a, b := pkg("a"), pkg("b")
+	put := func(enricher string) {
+		require.NoError(t, c.Put(ctx, "1", time.Hour, []EnrichmentResult{
+			{Package: a, Enricher: enricher, Status: EnrichmentOK},
+			{Package: b, Enricher: enricher, Status: EnrichmentOK},
+		}))
+	}
+	put("insights")
+	put("malysis")
+	require.NoError(t, c.Drop(ctx, "insights", "1", []model.PackageVersion{a.ID}))
+
+	hits, misses, err := c.Lookup(ctx, "insights", "1", []*model.Package{pkg("a"), pkg("b")})
+	require.NoError(t, err)
+	require.Len(t, hits, 1)
+	assert.Equal(t, "b", hits[0].Package.ID.RawName())
+	require.Len(t, misses, 1)
+	assert.Equal(t, "a", misses[0].ID.RawName())
+
+	hits, _, err = c.Lookup(ctx, "malysis", "1", []*model.Package{pkg("a")})
+	require.NoError(t, err)
+	assert.Len(t, hits, 1, "the entry of another enricher stays")
+}
+
 func TestCacheKeepsTheDataOfOneEnricher(t *testing.T) {
 	ctx := context.Background()
 	c, err := OpenCache(ctx, t.TempDir())
