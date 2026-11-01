@@ -93,22 +93,22 @@ func (e countEnricher) Enrich(_ context.Context, pkgs []*model.Package) error {
 	return nil
 }
 
-func TestCacheSkipsEmptyResultsOnlyWhenAsked(t *testing.T) {
+func TestCacheKeepsOnlyTheResultsThatTheEnricherKeeps(t *testing.T) {
 	f := newFixture(t)
 	dir := project(t)
 	for _, tc := range []struct {
 		name      string
-		skipEmpty bool
+		keep      func(model.Enrichment) bool
 		secondRun bool
 	}{
-		{"an empty insight stays cached", false, false},
-		{"an empty verdict asks again", true, true},
+		{"an enricher with no rule keeps each result", nil, false},
+		{"a result that the rule drops asks again", func(e model.Enrichment) bool { return !e.Empty() }, true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			calls := &atomic.Int32{}
 			opts := func() Options {
 				o := f.options(t, dir, nil)
-				o.Enrichers = []Enricher{{Name: tc.name, Version: "1", TTL: time.Hour, SkipEmpty: tc.skipEmpty, Plugin: countEnricher{calls}}}
+				o.Enrichers = []Enricher{{Name: tc.name, Version: "1", TTL: time.Hour, Keep: tc.keep, Plugin: countEnricher{calls}}}
 				o.Fresh = true
 				return o
 			}

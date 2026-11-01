@@ -60,10 +60,11 @@ type Enricher struct {
 	// Local is an enricher that reads the target and calls no registry, so
 	// it also gets the packages with no version and the local packages.
 	Local bool
-	// SkipEmpty keeps a package with no data from the enricher out of the
-	// cache, so the next scan asks again. A malware verdict that is not
-	// ready yet must not hide the verdict for the whole TTL.
-	SkipEmpty bool
+	// Keep reports whether the cache keeps the data that the enricher set
+	// for a package. A result that it does not keep is asked again on the
+	// next scan, so data that is not ready yet, as a malware verdict, does
+	// not hide the real data for the whole TTL. Nil keeps each result.
+	Keep func(model.Enrichment) bool
 	// Whole gives the enricher every package of the scan in one call, also
 	// the unchanged ones of a pull request scan. A call graph links the code
 	// of all the packages, and the reach of a changed package depends on the

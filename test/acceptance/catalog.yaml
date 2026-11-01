@@ -537,10 +537,10 @@
   guarantee: "An unverified malicious verdict gives a high suspicious-package finding, a verification record that marks the version safe gives no malware finding, and trust_automated_analysis turns the unverified verdict into a critical malware finding."
   labels: [controls, malware]
 - id: state/cache/verdict-pending
-  title: "a missing malware verdict is asked again"
+  title: "a missing malware verdict or publish date is asked again"
   category: state
   tier: P1
-  guarantee: "A package with no malware verdict is not cached, so the next scan asks Threat Intel again. A verdict and the Insights data stay cached."
+  guarantee: "A package with no malware verdict, or with no publish date from Insights, is not cached, so the next scan asks again. A verdict stays cached."
   labels: [state, cache, malware]
 - id: scan/pr-mode/resolved-host-changed
   title: "pull request mode sees a lockfile entry that moves its download"

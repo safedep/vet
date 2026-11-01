@@ -222,7 +222,7 @@ func (r *run) enrichBatch(ctx context.Context, e Enricher, batch []*model.Packag
 			// A result must not carry the data of another enricher, or a
 			// cache hit puts back an old result of that enricher.
 			res.Package = &model.Package{ID: res.Package.ID, Enrichment: res.Package.Since(before[i])}
-			if e.SkipEmpty && res.Package.Empty() {
+			if e.Keep != nil && !e.Keep(res.Package.Enrichment) {
 				continue
 			}
 			own = append(own, res)

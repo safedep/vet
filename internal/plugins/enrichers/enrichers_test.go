@@ -174,9 +174,11 @@ func TestThreatIntelCachesLessThanInsights(t *testing.T) {
 				specs[sp.Name] = sp
 			}
 			assert.Equal(t, tc.ttl, specs[insights.Name].TTL)
-			assert.False(t, specs[insights.Name].SkipEmpty, "a package with no insight stays cached")
+			require.NotNil(t, specs[insights.Name].Keep)
+			assert.False(t, specs[insights.Name].Keep(model.Enrichment{Insight: &model.Insight{LatestVersion: "2.0.0"}}), "an insight with no publish date is not cached")
 			assert.Equal(t, tc.threatIntel, specs[malysis.Name].TTL)
-			assert.True(t, specs[malysis.Name].SkipEmpty, "a missing verdict is not cached")
+			require.NotNil(t, specs[malysis.Name].Keep)
+			assert.False(t, specs[malysis.Name].Keep(model.Enrichment{}), "a missing verdict is not cached")
 		})
 	}
 }

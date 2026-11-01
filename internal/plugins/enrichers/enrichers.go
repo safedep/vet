@@ -50,8 +50,9 @@ type Spec struct {
 	Plugin  plugin.Enricher
 	// Local is an enricher that calls no service. Probe skips it.
 	Local bool
-	// SkipEmpty keeps a package with no data out of the cache.
-	SkipEmpty bool
+	// Keep reports whether the cache keeps the data of a package. Nil
+	// keeps each result.
+	Keep func(model.Enrichment) bool
 	// Whole gets every package of the scan in one call.
 	Whole bool
 }
@@ -88,9 +89,9 @@ func Build(o Options) (*Set, error) {
 	}
 	set := &Set{
 		Specs: []Spec{
-			{Name: insights.Name, Version: insights.Version, TTL: o.TTL, Plugin: insights.New(insightsv2grpc.NewInsightServiceClient(conn), o.Workers)},
+			{Name: insights.Name, Version: insights.Version, TTL: o.TTL, Keep: insights.Keep, Plugin: insights.New(insightsv2grpc.NewInsightServiceClient(conn), o.Workers)},
 			{
-				Name: malysis.Name, Version: malysis.Version, TTL: min(o.TTL, malysis.MaxTTL), SkipEmpty: true,
+				Name: malysis.Name, Version: malysis.Version, TTL: min(o.TTL, malysis.MaxTTL), Keep: nonEmpty,
 				Plugin: malysis.New(malysisv1grpc.NewMalwareAnalysisServiceClient(conn), o.Workers),
 			},
 		},
@@ -98,7 +99,7 @@ func Build(o Options) (*Set, error) {
 	}
 	if o.ActionRefs != nil {
 		// A pin with no data is not cached, so a later scan checks it again.
-		set.Specs = append(set.Specs, Spec{Name: actionrefs.Name, Version: o.ActionRefs.CacheVersion(), TTL: o.TTL, Plugin: o.ActionRefs, SkipEmpty: true})
+		set.Specs = append(set.Specs, Spec{Name: actionrefs.Name, Version: o.ActionRefs.CacheVersion(), TTL: o.TTL, Plugin: o.ActionRefs, Keep: nonEmpty})
 	}
 	if o.CodeUsage != nil {
 		// The usage depends on the target, so the cache keeps none.
@@ -106,6 +107,9 @@ func Build(o Options) (*Set, error) {
 	}
 	return set, nil
 }
+
+// nonEmpty keeps a package that the enricher set data for.
+func nonEmpty(e model.Enrichment) bool { return !e.Empty() }
 
 // probePackage is a package that every SafeDep service knows.
 var probePackage = model.MustPackageVersion(model.EcosystemNpm, "lodash", "4.17.21")

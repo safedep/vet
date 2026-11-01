@@ -1,13 +1,14 @@
 # A package whose analysis is not complete has no malware verdict. vet does
-# not cache it, so the next scan asks Threat Intel again. A verdict and the
-# Insights data stay cached.
+# not cache it, so the next scan asks Threat Intel again. A verdict stays
+# cached. Insights knows neither package, so it gives no publish date, and
+# vet asks Insights again for both. state/cache/reuse keeps a dated answer.
 cd proj
 exec vet scan . --mode plain -o plain
 stub calls malysis 2
 stub calls insights 2
 exec vet scan . --mode plain -o plain --fresh
 stub calls malysis 3
-stub calls insights 2
+stub calls insights 4
 
 -- proj/package-lock.json --
 {
