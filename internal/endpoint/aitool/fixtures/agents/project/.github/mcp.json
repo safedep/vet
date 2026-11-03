@@ -1,0 +1,1 @@
+{"mcpServers": {"copilot-project": {"type": "local", "command": "npx", "args": ["-y", "@example/mcp-server"]}}}

@@ -51,8 +51,8 @@ func (d *windsurfDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerF
 
 	// Emit coding_agent if the windsurf config directory exists
 	if info, err := os.Stat(windsurfDir); err == nil && info.IsDir() {
-		agent := newItem(inventory.KindCodingAgent, inventory.ScopeSystem, windsurfApp, windsurfAppDisplay, "Windsurf", windsurfDir)
-		agent.Agent = &inventory.AgentDetail{}
+		agent := newCodingAgent(windsurfApp, windsurfAppDisplay, windsurfDir)
+		markAppBundle(agent, []string{unixPath("Applications", "Windsurf.app")})
 
 		if err := handler(agent); err != nil {
 			return err

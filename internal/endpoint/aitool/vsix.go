@@ -23,6 +23,12 @@ var editors = map[string]editorInfo{
 	"cursor":      {Path: ".cursor/extensions", Ecosystem: model.EcosystemOpenVSX, DisplayName: "Cursor"},
 	"windsurf":    {Path: ".windsurf/extensions", Ecosystem: model.EcosystemOpenVSX, DisplayName: "Windsurf"},
 	"antigravity": {Path: ".antigravity/extensions", Ecosystem: model.EcosystemOpenVSX, DisplayName: "Antigravity"},
+
+	// On WSL, over Remote SSH and in a dev container, the remote server of
+	// the editor installs the extensions here, not in the desktop folder.
+	// Without these entries vet finds no extension on such a machine.
+	"code-server":   {Path: ".vscode-server/extensions", Ecosystem: model.EcosystemVSCode, DisplayName: "VS Code"},
+	"cursor-server": {Path: ".cursor-server/extensions", Ecosystem: model.EcosystemOpenVSX, DisplayName: "Cursor"},
 }
 
 type editorInfo struct {

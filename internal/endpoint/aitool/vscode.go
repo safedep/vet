@@ -41,19 +41,12 @@ func (d *vscodeDiscoverer) App() string  { return vscodeApp }
 
 func (d *vscodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn) error {
 	if d.config.ScopeEnabled(inventory.ScopeSystem) {
-		// VS Code user-data directory is platform-specific; try all known
-		// locations and use the first mcp.json that parses successfully.
-		// Linux:   ~/.config/Code/User/
-		// macOS:   ~/Library/Application Support/Code/User/
-		// Windows: %APPDATA%\Code\User\
-		// os.Getenv returns "" on platforms where the variable is absent so
-		// filepath.Join("", ...) produces a relative path that os.Stat misses.
-		userDataDirs := []string{
-			filepath.Join(d.homeDir, ".config", "Code", "User"),
-			filepath.Join(d.homeDir, "Library", "Application Support", "Code", "User"),
-			filepath.Join(os.Getenv("APPDATA"), "Code", "User"),
-		}
-		for _, dir := range userDataDirs {
+		// The VS Code user data folder depends on the OS. The first mcp.json
+		// that parses wins.
+		for _, dir := range vscodeUserDataDirs(d.config, d.homeDir) {
+			if dir == "" {
+				continue
+			}
 			path := filepath.Join(dir, "mcp.json")
 			cfg, err := parseMCPAppConfig(path)
 			if err != nil {
@@ -67,8 +60,8 @@ func (d *vscodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 
 		vscodeDir := filepath.Join(d.homeDir, ".vscode")
 		if info, err := os.Stat(vscodeDir); err == nil && info.IsDir() {
-			agent := newItem(inventory.KindCodingAgent, inventory.ScopeSystem, vscodeApp, vscodeAppDisplay, "VS Code", vscodeDir)
-			agent.Agent = &inventory.AgentDetail{}
+			agent := newCodingAgent(vscodeApp, vscodeAppDisplay, vscodeDir)
+			markAppBundle(agent, vscodeInstallMarkers())
 
 			if err := handler(agent); err != nil {
 				return err
@@ -89,4 +82,16 @@ func (d *vscodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 	}
 
 	return nil
+}
+
+// vscodeInstallMarkers returns the documented VS Code install locations: the
+// macOS app bundle, the Windows user and system setup folders, and the Linux
+// deb and rpm install folder.
+func vscodeInstallMarkers() []string {
+	return []string{
+		unixPath("Applications", "Visual Studio Code.app"),
+		envPath("LOCALAPPDATA", "Programs", "Microsoft VS Code"),
+		envPath("ProgramFiles", "Microsoft VS Code"),
+		unixPath("usr", "share", "code"),
+	}
 }

@@ -67,6 +67,19 @@ func countKnown(counts map[report.InventoryKind]int) int {
 	return n
 }
 
+// agentInstalled is the detail of a coding agent that the endpoint scanner
+// sets to "false" when only a config file shows the agent.
+const agentInstalled = "agent.installed"
+
+// toolPath marks an agent that only a config file shows. The config can
+// stay after a user removes the agent.
+func toolPath(t *report.InventoryItem) string {
+	if t.Details[agentInstalled] == "false" {
+		return t.Path + " (config only)"
+	}
+	return t.Path
+}
+
 // toolTable renders the tools that an endpoint audit finds: one row for
 // each tool, by kind and then by name.
 func (s Sink) toolTable(tools []*report.InventoryItem) []string {
@@ -81,7 +94,7 @@ func (s Sink) toolTable(tools []*report.InventoryItem) []string {
 	tbl := table.New().Headers("KIND", "NAME", "VERSION", "CLIENT", "PATH").
 		Columns(table.Column{}, table.Column{}, table.Column{Drop: 1}, table.Column{Drop: 2}, table.Column{Fit: table.CutLeft})
 	for _, t := range shown {
-		tbl.Row(toolName(t.Kind), render.Text(t.Name), render.Text(t.Version), render.Text(t.Client), render.Text(t.Path))
+		tbl.Row(toolName(t.Kind), render.Text(t.Name), render.Text(t.Version), render.Text(t.Client), render.Text(toolPath(t)))
 	}
 	parts := []string{style.Heading("Tools: " + toolCounts(tools)), tbl.Render()}
 	if more := len(tools) - len(shown); more > 0 {

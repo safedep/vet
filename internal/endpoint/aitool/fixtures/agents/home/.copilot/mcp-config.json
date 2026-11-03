@@ -1,0 +1,6 @@
+{
+  "mcpServers": {
+    "copilot-local": { "type": "local", "command": "npx", "args": ["-y", "@example/mcp-server"], "tools": ["*"] },
+    "copilot-http": { "type": "http", "url": "https://example.com/mcp", "headers": { "Authorization": "Bearer secret" } }
+  }
+}

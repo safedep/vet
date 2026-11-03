@@ -100,6 +100,38 @@ func TestAuditOneUser(t *testing.T) {
 	}
 }
 
+func TestAuditCodingAgents(t *testing.T) {
+	t.Setenv("CODEX_HOME", "")
+	home := t.TempDir()
+	write(t, filepath.Join(home, ".codex", "config.toml"), "[mcp_servers.docs]\ncommand = \"npx\"\nargs = [\"-y\", \"docs-mcp\"]\n")
+	a := artifactOf(t, New(Options{}, fakeSystem(home)))
+
+	// A codex binary on PATH adds a CLI record of the same client, so the
+	// test finds each record by its path.
+	byPath := map[string]report.InventoryItem{}
+	for _, it := range a.Inventory {
+		if it.Client == "codex" {
+			byPath[it.Path] = it
+		}
+	}
+	agent, ok := byPath[filepath.Join(home, ".codex")]
+	require.True(t, ok)
+	assert.Equal(t, report.InventoryAITool, agent.Kind, "a coding agent is an ai-tool record")
+	assert.Equal(t, "Codex", agent.Name)
+	assert.Contains(t, agent.Details, "agent.installed")
+	assert.Contains(t, agent.Details["agent.evidence"], "config")
+
+	server, ok := byPath[filepath.Join(home, ".codex", "config.toml")]
+	require.True(t, ok)
+	assert.Equal(t, report.InventoryMCPServer, server.Kind)
+	assert.Equal(t, "docs", server.Name)
+	assert.Equal(t, "npx", server.Details["mcp.command"])
+
+	rel, err := filepath.Rel(a.Path, filepath.Join(home, ".codex", "config.toml"))
+	require.NoError(t, err)
+	assert.Contains(t, a.Include, filepath.ToSlash(rel), "the controls get the config file of the agent")
+}
+
 func TestAuditAllUsers(t *testing.T) {
 	alice, bob := machineHome(t, "alice-skill"), machineHome(t, "bob-skill")
 	sys := fakeSystem(alice, bob)
