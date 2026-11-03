@@ -169,12 +169,27 @@ func unixPath(elem ...string) string {
 
 // envDirOr returns the folder in the environment variable key, or fallback
 // when the variable is not set. Codex and Copilot CLI move their config
-// folder with such a variable.
-func envDirOr(key, fallback string) string {
+// folder with such a variable. The variable belongs to the user of the
+// process. With --all-users, vet reads the home of each other user at
+// fallback, so it does not read the folder of one user for each user.
+func envDirOr(config DiscoveryConfig, key, fallback string) string {
+	if !ownHome(config) {
+		return fallback
+	}
 	if dir := os.Getenv(key); dir != "" {
 		return dir
 	}
 	return fallback
+}
+
+// ownHome reports whether the discovery reads the home of the user of the
+// process.
+func ownHome(c DiscoveryConfig) bool {
+	if c.HomeDir == "" {
+		return true
+	}
+	h, err := os.UserHomeDir()
+	return err == nil && filepath.Clean(h) == filepath.Clean(c.HomeDir)
 }
 
 // vscodeUserDataDirs returns the VS Code user data folders of each OS:

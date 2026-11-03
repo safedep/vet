@@ -41,7 +41,7 @@ func NewCodexDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 		return nil, err
 	}
 
-	codexDir := envDirOr("CODEX_HOME", filepath.Join(homeDir, ".codex"))
+	codexDir := envDirOr(config, "CODEX_HOME", filepath.Join(homeDir, ".codex"))
 
 	return newMCPAppDiscoverer(config, mcpAppSpec{
 		app:             codexApp,

@@ -304,13 +304,48 @@ func TestCodexDiscoverer_HonorsCodexHome(t *testing.T) {
 		filepath.Join(codexHome, "config.toml"),
 	))
 	t.Setenv("CODEX_HOME", codexHome)
+	own := t.TempDir()
+	t.Setenv("HOME", own)
+	t.Setenv("USERPROFILE", own)
 
-	tools := collectTools(t, NewCodexDiscoverer, DiscoveryConfig{HomeDir: t.TempDir()})
+	tools := collectTools(t, NewCodexDiscoverer, DiscoveryConfig{HomeDir: own})
 	require.NotEmpty(t, tools)
 	for _, tool := range tools {
 		if tool.Kind == inventory.KindMCPServer {
 			assert.Equal(t, filepath.Join(codexHome, "config.toml"), tool.ConfigPath)
 		}
+	}
+}
+
+// TestConfigHomeVariablesApplyToTheOwnHomeOnly guards --all-users: the
+// CODEX_HOME and COPILOT_HOME of the user who runs vet must not replace the
+// folder of another user.
+func TestConfigHomeVariablesApplyToTheOwnHomeOnly(t *testing.T) {
+	isolateAgentEnv(t)
+	own := t.TempDir()
+	t.Setenv("HOME", own)
+	t.Setenv("USERPROFILE", own)
+	t.Setenv("CODEX_HOME", t.TempDir())
+	t.Setenv("COPILOT_HOME", t.TempDir())
+	other := agentsFixtureHome(t)
+
+	for _, tc := range []struct {
+		name    string
+		factory AIToolDiscovererFactory
+		file    string
+	}{
+		{"codex", NewCodexDiscoverer, filepath.Join(".codex", "config.toml")},
+		{"copilot", NewCopilotDiscoverer, filepath.Join(".copilot", "mcp-config.json")},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var paths []string
+			for _, tool := range collectTools(t, tc.factory, DiscoveryConfig{HomeDir: other}) {
+				if tool.Kind == inventory.KindMCPServer {
+					paths = append(paths, tool.ConfigPath)
+				}
+			}
+			assert.Contains(t, paths, filepath.Join(other, tc.file), "vet reads the folder of the other user")
+		})
 	}
 }
 

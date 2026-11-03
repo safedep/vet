@@ -15,7 +15,7 @@ func NewCopilotDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 		return nil, err
 	}
 
-	copilotDir := envDirOr("COPILOT_HOME", filepath.Join(homeDir, ".copilot"))
+	copilotDir := envDirOr(config, "COPILOT_HOME", filepath.Join(homeDir, ".copilot"))
 
 	return newMCPAppDiscoverer(config, mcpAppSpec{
 		app:        copilotApp,
