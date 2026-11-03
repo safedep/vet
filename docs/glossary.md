@@ -613,13 +613,14 @@ endpoint source maps it to the report record, and keeps its finer kind as the `r
 its keys (`inventory.ItemIdentity`, `inventory.SourceID`), the user of its home directory and the
 data of its type. An IDE extension that a marketplace serves is also a package of an `endpoint`
 manifest, so the controls check it.
+_Avoid_: asset, tool (as a type name), AI tool (as a type; the report kind is `ai-tool`)
 
 **Inventory sync**:
 The `cloud-inventory` plugin sends the inventory items of an audit to SafeDep Cloud as
 `VetInventoryEvent` messages, with the `dry/cloud/endpointsync` client. It runs when the run has
-credentials. The client keeps the events in `inventory-sync.db` in the state directory until SafeDep
-Cloud confirms them. `internal/plugins/cloud/inventory`.
-_Avoid_: asset, tool (as a type name), AI tool (as a type; the report kind is `ai-tool`)
+credentials. The client keeps the events in an `inventory-sync-<key>.db` log in the state directory
+until SafeDep Cloud confirms them. Each API URL and tenant has its own log, so a switch of the tenant
+does not send the events of one tenant to another. `internal/plugins/cloud/inventory`.
 
 **Install evidence**:
 What shows that a coding agent is on an endpoint, other than its config. A config file can stay

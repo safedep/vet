@@ -15,8 +15,8 @@ exec vet endpoint audit --mode plain -o json --state-dir $WORK/state
 ! stdout inventory_sync_unavailable
 ! stderr 'vet auth login'
 stub calls endpointsync 1
-exists $WORK/state/inventory-sync.db
 ! exists $WORK/state/inventory-sync.wal
+
 stub events
 stdout 'tenant=acme.safedep.io'
 stdout '"kind":"INVENTORY_ITEM_KIND_MCP_SERVER".*"name":"db"'
@@ -46,6 +46,18 @@ stub calls endpointsync 3
 exec vet --config $WORK/named.yml endpoint audit --mode plain -o json --state-dir $WORK/state
 stub events
 stdout 'endpoint=ci-runner-1 '
+
+# The events that wait for one tenant never go to another tenant. Each
+# tenant has its own log.
+stub fail endpointsync Unavailable
+exec vet endpoint audit --mode plain -o json --state-dir $WORK/state
+stdout '"code":"inventory_sync_unavailable"'
+stub fail endpointsync OK
+env SAFEDEP_TENANT_ID=other.safedep.io
+exec vet endpoint audit --mode plain -o json --state-dir $WORK/state
+! stdout inventory_sync_unavailable
+stub events
+stdout -count=1 'tenant=other\.safedep\.io .*VET_INVENTORY_EVENT_TYPE_SCAN_SUMMARY'
 
 -- off.yml --
 plugins:

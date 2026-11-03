@@ -6,6 +6,8 @@ package inventory
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
@@ -29,8 +31,13 @@ import (
 // Name is the plugin name, plugins.cloud-inventory.
 const Name = "cloud-inventory"
 
-// LogFile is the event log of the sync in the state directory.
-const LogFile = "inventory-sync.db"
+// LogFile returns the name of the event log in the state directory for
+// one SafeDep Cloud API and tenant. A switch of the tenant, as with
+// --profile, must not send the waiting events of one tenant to another.
+func LogFile(apiURL, tenant string) string {
+	sum := sha256.Sum256([]byte(apiURL + "\n" + tenant))
+	return "inventory-sync-" + hex.EncodeToString(sum[:6]) + ".db"
+}
 
 // oldLogFile is the log of the stub that came before the sync. Its batches
 // lack the data that SafeDep Cloud needs, so the syncer deletes it.
@@ -100,7 +107,7 @@ func Open(o Options, apiURL string, creds *credentials.Result, stateDir, version
 	if err != nil {
 		return nil, err
 	}
-	logPath := filepath.Join(stateDir, LogFile)
+	logPath := filepath.Join(stateDir, LogFile(apiURL, creds.TenantDomain()))
 	client, err := endpointsync.NewSyncClient(toolName, version, endpointsync.NewGrpcTransport(conn), identity,
 		endpointsync.WithWALPath(logPath))
 	if err != nil {

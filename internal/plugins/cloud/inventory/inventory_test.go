@@ -4,20 +4,28 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net"
+	"os"
 	"path/filepath"
+	"runtime"
+	"sync"
 	"testing"
 	"time"
 
+	controltowerv1grpc "buf.build/gen/go/safedep/api/grpc/go/safedep/services/controltower/v1/controltowerv1grpc"
 	controltowerv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	servicev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/controltower/v1"
 	"buf.build/go/protovalidate"
+	"github.com/safedep/dry/cloud"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/safedep/vet/v2/internal/credentials"
 	"github.com/safedep/vet/v2/internal/golden"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/inventory"
 	"github.com/safedep/vet/v2/model"
@@ -179,4 +187,61 @@ func TestDecode(t *testing.T) {
 	var schema map[string]any
 	require.NoError(t, json.Unmarshal(o.OptionsSchema(), &schema))
 	assert.Contains(t, schema["properties"], "endpoint_id")
+}
+
+type endpointServer struct {
+	controltowerv1grpc.UnimplementedEndpointServiceServer
+	mu     sync.Mutex
+	events []*servicev1.ToolEvent
+}
+
+func (e *endpointServer) SyncEvents(_ context.Context, req *servicev1.SyncEventsRequest) (*servicev1.SyncEventsResponse, error) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	ids := make([]string, 0, len(req.GetEvents()))
+	for _, ev := range req.GetEvents() {
+		ids = append(ids, ev.GetEventId())
+		e.events = append(e.events, ev)
+	}
+	return servicev1.SyncEventsResponse_builder{ConfirmedEventIds: ids}.Build(), nil
+}
+
+// TestOpenSendsThroughTheRealClient runs the endpointsync client against a
+// local server: the log of each tenant, its mode, and the removal of the
+// log of the stub that came before the sync.
+func TestOpenSendsThroughTheRealClient(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	srv := grpc.NewServer()
+	es := &endpointServer{}
+	controltowerv1grpc.RegisterEndpointServiceServer(srv, es)
+	go func() {
+		if err := srv.Serve(ln); err != nil && !errors.Is(err, grpc.ErrServerStopped) {
+			t.Log("serve:", err)
+		}
+	}()
+	t.Cleanup(srv.Stop)
+	apiURL := "http://" + ln.Addr().String()
+
+	state := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(state, "inventory-sync.wal"), []byte("{}\n"), 0o600))
+	cred, err := cloud.NewAPIKeyCredential("sk_test", "acme.safedep.io")
+	require.NoError(t, err)
+
+	s, err := inventory.Open(inventory.Options{EndpointID: "ci-runner-1"}, apiURL, &credentials.Result{Credentials: cred}, state, "test")
+	require.NoError(t, err)
+	require.NoError(t, s.Sync(context.Background(), inventory.Audit{ScanID: "s-1", Items: audit.Items[:1]}))
+	require.NoError(t, s.Close())
+
+	require.Len(t, es.events, 2, "the item and the summary")
+	assert.Equal(t, "s-1", es.events[0].GetInvocationId())
+	assert.NoFileExists(t, filepath.Join(state, "inventory-sync.wal"))
+	logPath := filepath.Join(state, inventory.LogFile(apiURL, "acme.safedep.io"))
+	info, err := os.Stat(logPath)
+	require.NoError(t, err)
+	if runtime.GOOS != "windows" {
+		assert.Equal(t, os.FileMode(0o600), info.Mode().Perm(), "the log holds the inventory of each user")
+	}
+	assert.NotEqual(t, inventory.LogFile(apiURL, "acme.safedep.io"), inventory.LogFile(apiURL, "other.safedep.io"),
+		"each tenant has its own log")
 }
