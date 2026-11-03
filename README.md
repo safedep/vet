@@ -168,7 +168,8 @@ about it. vet sends no source code and no file content.
 - Read the [contributing guide](CONTRIBUTING.md) before you open a pull request.
 
 vet also runs in the cloud. [SafeDep Cloud](https://safedep.io/) runs vet on your repositories, with
-no infrastructure to manage.
+no infrastructure to manage. With credentials, `vet endpoint audit` sends the AI tools, MCP servers
+and extensions of each machine to SafeDep Cloud.
 
 <a href="https://github.com/safedep/vet/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=safedep/vet" alt="Contributors to vet" />

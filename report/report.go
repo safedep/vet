@@ -295,17 +295,92 @@ const (
 	InventoryEditorPlugin InventoryKind = "editor-plugin"
 )
 
+// InventoryType is the type of an inventory item that the endpoint scanner
+// finds. It is finer than InventoryKind, and SafeDep Cloud uses it.
+type InventoryType string
+
+const (
+	InventoryTypeMCPServer        InventoryType = "mcp-server"
+	InventoryTypeCodingAgent      InventoryType = "coding-agent"
+	InventoryTypeAIExtension      InventoryType = "ai-extension"
+	InventoryTypeCLITool          InventoryType = "cli-tool"
+	InventoryTypeProjectConfig    InventoryType = "project-config"
+	InventoryTypeBrowserExtension InventoryType = "browser-extension"
+	InventoryTypeIDEExtension     InventoryType = "ide-extension"
+	InventoryTypeAgentPlugin      InventoryType = "agent-plugin"
+	InventoryTypeSkill            InventoryType = "skill"
+)
+
+// InventoryTypes returns every inventory type.
+func InventoryTypes() []InventoryType {
+	return []InventoryType{
+		InventoryTypeMCPServer, InventoryTypeCodingAgent, InventoryTypeAIExtension, InventoryTypeCLITool,
+		InventoryTypeProjectConfig, InventoryTypeBrowserExtension, InventoryTypeIDEExtension,
+		InventoryTypeAgentPlugin, InventoryTypeSkill,
+	}
+}
+
 // InventoryItem is a tool on a machine that is not a package of a manifest:
 // an AI tool, an MCP server, an agent skill or an editor plugin (decisions P5).
 type InventoryItem struct {
-	Kind    InventoryKind     `json:"kind"`
-	Name    string            `json:"name"`
-	Version string            `json:"version,omitempty"`
-	Path    string            `json:"path,omitempty"`
-	Client  string            `json:"client,omitempty"`
-	Scope   string            `json:"scope,omitempty"`
-	Change  model.Change      `json:"change,omitempty"`
+	Kind    InventoryKind `json:"kind"`
+	Name    string        `json:"name"`
+	Version string        `json:"version,omitempty"`
+	Path    string        `json:"path,omitempty"`
+	Client  string        `json:"client,omitempty"`
+	Scope   string        `json:"scope,omitempty"`
+	Type    InventoryType `json:"type,omitempty"`
+	// Identity is the key of the item on its machine. The next audit gives
+	// the same item the same key.
+	Identity string `json:"identity,omitempty"`
+	// Source is the key of the config file of the item. The items of one
+	// file have the same key.
+	Source string `json:"source,omitempty"`
+	// User is the account whose home directory holds the item.
+	User    *InventoryUser `json:"user,omitempty"`
+	Enabled *bool          `json:"enabled,omitempty"`
+	// MCPServer, Agent and Extension hold the data of their type.
+	MCPServer *InventoryMCP       `json:"mcp_server,omitempty"`
+	Agent     *InventoryAgent     `json:"agent,omitempty"`
+	Extension *InventoryExtension `json:"extension,omitempty"`
+	Change    model.Change        `json:"change,omitempty"`
+	// Details holds the other data of the scanner, as text.
 	Details map[string]string `json:"details,omitempty"`
+}
+
+// InventoryUser is an account on the machine.
+type InventoryUser struct {
+	Name string `json:"name"`
+	UID  string `json:"uid,omitempty"`
+}
+
+// InventoryMCP is the config of an MCP server. It holds the names of
+// the environment variables and of the headers, never their values.
+type InventoryMCP struct {
+	Transport        string   `json:"transport,omitempty"`
+	Command          string   `json:"command,omitempty"`
+	Args             []string `json:"args,omitempty"`
+	URL              string   `json:"url,omitempty"`
+	EnvNames         []string `json:"env_names,omitempty"`
+	HeaderNames      []string `json:"header_names,omitempty"`
+	AllowedTools     []string `json:"allowed_tools,omitempty"`
+	AllowedResources []string `json:"allowed_resources,omitempty"`
+}
+
+// InventoryAgent is the config of a coding agent.
+type InventoryAgent struct {
+	PermissionMode   string   `json:"permission_mode,omitempty"`
+	Model            string   `json:"model,omitempty"`
+	InstructionFiles []string `json:"instruction_files,omitempty"`
+	APIKeyEnvName    string   `json:"api_key_env_name,omitempty"`
+}
+
+// InventoryExtension is an IDE or AI extension. Ecosystem and Package name
+// the registry package when a marketplace serves it.
+type InventoryExtension struct {
+	IDE       string          `json:"ide,omitempty"`
+	Ecosystem model.Ecosystem `json:"ecosystem,omitempty"`
+	Package   string          `json:"package,omitempty"`
 }
 
 // Capability is a behavior of the application that a code signature finds,

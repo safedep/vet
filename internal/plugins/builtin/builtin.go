@@ -38,7 +38,7 @@ func Plugins() []Plugin {
 	}
 	out = append(out,
 		fromFactory(tenantpolicy.Name, tenantpolicy.New),
-		fromFactory(inventory.Name, func(c plugin.Config) (*inventory.Syncer, error) { return inventory.New(c, nil) }),
+		fromFactory(inventory.Name, inventory.Decode),
 		fromFactory(actionrefs.Name, func(c plugin.Config) (*actionrefs.Enricher, error) { return actionrefs.New(c, nil, "") }),
 		Plugin{
 			Name:   codeusage.Name,

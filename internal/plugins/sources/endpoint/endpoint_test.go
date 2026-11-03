@@ -49,6 +49,9 @@ func fakeSystem(home string, others ...string) System {
 		Scanners: func() ([]inventory.Scanner, error) {
 			return scanners.Build([]string{scanners.KindAITool, scanners.KindAgentSkill, scanners.KindIDEExtension})
 		},
+		User: func(home string) *report.InventoryUser {
+			return &report.InventoryUser{Name: filepath.Base(home), UID: "501"}
+		},
 	}
 }
 
@@ -57,6 +60,17 @@ func artifactOf(t *testing.T, s *Source) plugin.Artifact {
 	as := plugintest.TestSource(t, s)
 	require.Len(t, as, 1)
 	return as[0]
+}
+
+func inventoryItem(t *testing.T, a plugin.Artifact, name string) report.InventoryItem {
+	t.Helper()
+	for _, it := range a.Inventory {
+		if it.Name == name {
+			return it
+		}
+	}
+	require.Failf(t, "no inventory item", "name %s", name)
+	return report.InventoryItem{}
 }
 
 func TestAuditOneUser(t *testing.T) {
@@ -69,9 +83,26 @@ func TestAuditOneUser(t *testing.T) {
 	kinds := map[report.InventoryKind][]string{}
 	for _, it := range a.Inventory {
 		kinds[it.Kind] = append(kinds[it.Kind], it.Name)
-		assert.NotContains(t, it.Details["mcp.args"]+it.Details["mcp.command"], "secret", "a record holds no secret value")
+		if it.MCPServer != nil {
+			assert.NotContains(t, strings.Join(it.MCPServer.Args, " ")+it.MCPServer.Command, "secret", "a record holds no secret value")
+		}
 	}
 	assert.Contains(t, kinds[report.InventoryMCPServer], "db")
+
+	db := inventoryItem(t, a, "db")
+	assert.Equal(t, report.InventoryTypeMCPServer, db.Type)
+	assert.NotEmpty(t, db.Identity)
+	assert.NotEmpty(t, db.Source)
+	assert.Equal(t, &report.InventoryUser{Name: filepath.Base(home), UID: "501"}, db.User)
+	require.NotNil(t, db.MCPServer)
+	assert.Equal(t, "stdio", db.MCPServer.Transport)
+	assert.Equal(t, []string{"db.js"}, db.MCPServer.Args)
+	assert.Equal(t, []string{"DB_URL"}, db.MCPServer.EnvNames, "a record keeps the name of a variable, not its value")
+
+	ext := inventoryItem(t, a, "ms-python.python")
+	assert.Equal(t, report.InventoryTypeIDEExtension, ext.Type)
+	require.NotNil(t, ext.Extension)
+	assert.Equal(t, &report.InventoryExtension{IDE: ext.Extension.IDE, Ecosystem: model.EcosystemVSCode, Package: "ms-python.python"}, ext.Extension)
 	assert.Contains(t, kinds[report.InventorySkill], "review")
 	assert.Contains(t, kinds[report.InventoryEditorPlugin], "ms-python.python")
 
@@ -140,13 +171,15 @@ func TestAuditAllUsers(t *testing.T) {
 	sys.GlobalRoots = func() []string { return []string{global} }
 
 	a := artifactOf(t, New(Options{AllUsers: true}, sys))
-	var skills []string
+	owners := map[string]string{}
 	for _, it := range a.Inventory {
 		if it.Kind == report.InventorySkill {
-			skills = append(skills, it.Name)
+			require.NotNil(t, it.User)
+			owners[it.Name] = it.User.Name
 		}
 	}
-	assert.ElementsMatch(t, []string{"alice-skill", "bob-skill"}, skills)
+	assert.Equal(t, map[string]string{"alice-skill": filepath.Base(alice), "bob-skill": filepath.Base(bob)}, owners,
+		"each item names the user of its home directory")
 	var roots []string
 	for _, m := range a.Manifests {
 		roots = append(roots, m.Path)
