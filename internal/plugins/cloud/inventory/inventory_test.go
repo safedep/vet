@@ -248,8 +248,11 @@ func TestOpenSendsThroughTheRealClient(t *testing.T) {
 	require.NoError(t, s.Sync(context.Background(), inventory.Audit{ScanID: "s-1", Items: audit.Items[:1]}))
 	require.NoError(t, s.Close())
 
-	require.Len(t, es.events, 2, "the item and the summary")
-	assert.Equal(t, "s-1", es.events[0].GetInvocationId())
+	es.mu.Lock()
+	got := append([]*servicev1.ToolEvent(nil), es.events...)
+	es.mu.Unlock()
+	require.Len(t, got, 2, "the item and the summary")
+	assert.Equal(t, "s-1", got[0].GetInvocationId())
 	assert.NoFileExists(t, filepath.Join(state, "inventory-sync.wal"))
 	logPath := filepath.Join(state, inventory.LogFile(apiURL, "acme.safedep.io"))
 	info, err := os.Stat(logPath)
