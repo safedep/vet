@@ -156,7 +156,9 @@ func TestAuditCodingAgents(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, report.InventoryMCPServer, server.Kind)
 	assert.Equal(t, "docs", server.Name)
-	assert.Equal(t, "npx", server.Details["mcp.command"])
+	require.NotNil(t, server.MCPServer)
+	assert.Equal(t, "npx", server.MCPServer.Command)
+	assert.Equal(t, report.InventoryTypeCodingAgent, agent.Type)
 
 	rel, err := filepath.Rel(a.Path, filepath.Join(home, ".codex", "config.toml"))
 	require.NoError(t, err)
