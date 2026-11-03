@@ -1,6 +1,6 @@
 # Without credentials, vet endpoint audit keeps the inventory in the local
 # report, prints one hint and sends nothing.
-exec vet endpoint audit --mode plain -o json --state-dir $WORK/state
+exec vet --config $WORK/named.yml endpoint audit --mode plain -o json --state-dir $WORK/state
 ! stdout inventory_sync_unavailable
 stderr 'vet auth login'
 stub calls endpointsync 0
@@ -11,7 +11,7 @@ stub calls endpointsync 0
 # came before it.
 env SAFEDEP_API_KEY=sk_test
 env SAFEDEP_TENANT_ID=acme.safedep.io
-exec vet endpoint audit --mode plain -o json --state-dir $WORK/state
+exec vet --config $WORK/named.yml endpoint audit --mode plain -o json --state-dir $WORK/state
 ! stdout inventory_sync_unavailable
 ! stderr 'vet auth login'
 stub calls endpointsync 1
@@ -29,11 +29,11 @@ stdout -count=1 VET_INVENTORY_EVENT_TYPE_SCAN_SUMMARY
 # When SafeDep Cloud is down, the audit completes with a diagnostic, and
 # its events wait in the log. The next audit sends both audits.
 stub fail endpointsync Unavailable
-exec vet endpoint audit --mode plain -o json --state-dir $WORK/state
+exec vet --config $WORK/named.yml endpoint audit --mode plain -o json --state-dir $WORK/state
 stdout '"code":"inventory_sync_unavailable"'
 jsonq stdout trailer.gate.outcome NONE
 stub fail endpointsync OK
-exec vet endpoint audit --mode plain -o json --state-dir $WORK/state
+exec vet --config $WORK/named.yml endpoint audit --mode plain -o json --state-dir $WORK/state
 ! stdout inventory_sync_unavailable
 stub events
 stdout -count=3 VET_INVENTORY_EVENT_TYPE_SCAN_SUMMARY
@@ -42,19 +42,19 @@ stdout -count=3 VET_INVENTORY_EVENT_TYPE_SCAN_SUMMARY
 exec vet --config $WORK/off.yml endpoint audit --mode plain -o json --state-dir $WORK/state
 stub calls endpointsync 3
 
-# plugins.cloud-inventory.options.endpoint_id names the endpoint.
-exec vet --config $WORK/named.yml endpoint audit --mode plain -o json --state-dir $WORK/state
+# plugins.cloud-inventory.options.endpoint_id names the endpoint. Each
+# section sets it, so the script does not need the machine id of the host.
 stub events
 stdout 'endpoint=ci-runner-1 '
 
 # The events that wait for one tenant never go to another tenant. Each
 # tenant has its own log.
 stub fail endpointsync Unavailable
-exec vet endpoint audit --mode plain -o json --state-dir $WORK/state
+exec vet --config $WORK/named.yml endpoint audit --mode plain -o json --state-dir $WORK/state
 stdout '"code":"inventory_sync_unavailable"'
 stub fail endpointsync OK
 env SAFEDEP_TENANT_ID=other.safedep.io
-exec vet endpoint audit --mode plain -o json --state-dir $WORK/state
+exec vet --config $WORK/named.yml endpoint audit --mode plain -o json --state-dir $WORK/state
 ! stdout inventory_sync_unavailable
 stub events
 stdout -count=1 'tenant=other\.safedep\.io .*VET_INVENTORY_EVENT_TYPE_SCAN_SUMMARY'
@@ -63,6 +63,8 @@ stdout -count=1 'tenant=other\.safedep\.io .*VET_INVENTORY_EVENT_TYPE_SCAN_SUMMA
 plugins:
   cloud-inventory:
     enabled: false
+    options:
+      endpoint_id: ci-runner-1
 -- named.yml --
 plugins:
   cloud-inventory:

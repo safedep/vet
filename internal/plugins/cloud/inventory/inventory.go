@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	controltowerv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	servicev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/controltower/v1"
 	"github.com/safedep/dry/cloud/endpointsync"
 	"github.com/safedep/dry/log"
@@ -94,8 +95,8 @@ func Open(o Options, apiURL string, creds *credentials.Result, stateDir, version
 	if err != nil {
 		return nil, err
 	}
-	identity := endpointsync.NewEndpointIdentityResolver(endpointsync.WithEndpointID(o.EndpointID))
-	if _, err := identity.Resolve(); err != nil {
+	id, err := endpointsync.NewEndpointIdentityResolver(endpointsync.WithEndpointID(o.EndpointID)).Resolve()
+	if err != nil {
 		// A container or a CI runner can have no machine id. The events of
 		// the audit then never reach the log, so a retry cannot help.
 		return nil, fmt.Errorf("vet could not name the endpoint (%v). Set plugins.cloud-inventory.options.endpoint_id to send the inventory", err)
@@ -108,16 +109,37 @@ func Open(o Options, apiURL string, creds *credentials.Result, stateDir, version
 		return nil, err
 	}
 	logPath := filepath.Join(stateDir, LogFile(apiURL, creds.TenantDomain()))
-	client, err := endpointsync.NewSyncClient(toolName, version, endpointsync.NewGrpcTransport(conn), identity,
+	if err := privateFile(logPath); err != nil {
+		return nil, errors.Join(fmt.Errorf("vet could not open the inventory sync log: %w", err), conn.Close())
+	}
+	client, err := endpointsync.NewSyncClient(toolName, version, endpointsync.NewGrpcTransport(conn), resolved{id},
 		endpointsync.WithWALPath(logPath))
 	if err != nil {
 		return nil, errors.Join(fmt.Errorf("vet could not open the inventory sync log: %w", err), conn.Close())
 	}
-	// The log holds the inventory of each user of the machine.
-	if err := os.Chmod(logPath, 0o600); err != nil {
-		log.Warnf("inventory sync: chmod %s: %v", logPath, err)
-	}
 	return &Syncer{client: client, close: func() error { return errors.Join(client.Close(), conn.Close()) }}, nil
+}
+
+// resolved gives the identity that Open resolved, so the client does not
+// resolve it again and lose the hint on endpoint_id.
+type resolved struct {
+	id *controltowerv1pb.EndpointIdentity
+}
+
+func (r resolved) Resolve() (*controltowerv1pb.EndpointIdentity, error) { return r.id, nil }
+
+// privateFile makes the log with mode 0600 before SQLite opens it, because
+// the log holds the inventory of each user of the machine. SQLite gives
+// its journal files the mode of the log. An older log gets the mode too.
+func privateFile(path string) error {
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDONLY, 0o600)
+	if err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	return os.Chmod(path, 0o600)
 }
 
 // Close closes the event log and the connection.
@@ -134,28 +156,32 @@ type Audit struct {
 // an error of the send, the events wait in the log for the next run.
 func (s *Syncer) Sync(ctx context.Context, a Audit) error {
 	evs := events(a)
-	var errs []error
+	var emitErrs []error
 	for _, ev := range evs {
 		if err := s.emit(ctx, a.ScanID, ev); err != nil {
-			errs = append(errs, err)
+			emitErrs = append(emitErrs, err)
 		}
 	}
-	if err := errors.Join(errs...); err != nil {
-		return fmt.Errorf("vet could not write the inventory to the sync log: %w", err)
-	}
+	// vet sends the log also after a failed write. A full log refuses new
+	// events, and only a send empties it.
 	drain, cancel := context.WithTimeout(ctx, drainTimeout)
 	defer cancel()
 	sent, err := s.client.Sync(drain)
-	if err != nil {
-		return errors.New(unavailable(err) + ". vet sends the inventory on the next audit")
+	var errs []error
+	if emitErr := errors.Join(emitErrs...); emitErr != nil {
+		errs = append(errs, fmt.Errorf("vet could not write %d of the %d events of the audit to the sync log (%w)", len(emitErrs), len(evs), emitErr))
 	}
-	// The client drops an event that SafeDep Cloud refuses, and logs the
-	// reason. sent also counts the events of earlier audits, so a
-	// shortfall shows a refusal, but a refusal can hide behind them.
-	if sent < len(evs) {
-		return fmt.Errorf("SafeDep Cloud did not accept %d of the %d events of the audit. Run with --debug to see the reasons", len(evs)-sent, len(evs))
+	switch {
+	case err != nil:
+		errs = append(errs, errors.New(unavailable(err)+". vet sends the inventory on the next audit"))
+	case sent < len(evs)-len(emitErrs):
+		// The client drops an event that SafeDep Cloud refuses, and keeps an
+		// event over the quota for the next send. sent also counts the
+		// events of earlier audits, so a shortfall can hide behind them.
+		errs = append(errs, fmt.Errorf("SafeDep Cloud did not confirm %d of the %d events of the audit. vet sends the events that wait on the next audit. Run with --debug to see the reasons",
+			len(evs)-len(emitErrs)-sent, len(evs)))
 	}
-	return nil
+	return errors.Join(errs...)
 }
 
 func (s *Syncer) emit(ctx context.Context, scanID string, ev event) error {

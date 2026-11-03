@@ -25,6 +25,8 @@ func homeUser(home string) *report.InventoryUser {
 		return u
 	}
 	u.UID = strconv.FormatUint(uint64(st.Uid), 10)
+	// A build with no cgo reads /etc/passwd only. On macOS it does not find
+	// a normal account, so the name stays the name of the folder.
 	if acct, err := user.LookupId(u.UID); err == nil {
 		u.Name = acct.Username
 	}

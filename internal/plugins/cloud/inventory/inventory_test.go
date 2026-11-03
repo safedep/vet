@@ -38,6 +38,8 @@ type fakeClient struct {
 	syncErr error
 	// refused is the number of events that SafeDep Cloud does not accept.
 	refused int
+	// emitErr fails each write to the log.
+	emitErr error
 	synced  bool
 	closed  bool
 }
@@ -51,6 +53,9 @@ func (f *fakeClient) NewEvent() (*servicev1.ToolEvent, error) {
 }
 
 func (f *fakeClient) Emit(_ context.Context, ev *servicev1.ToolEvent) error {
+	if f.emitErr != nil {
+		return f.emitErr
+	}
 	f.emitted = append(f.emitted, ev)
 	return nil
 }
@@ -155,7 +160,17 @@ func TestSyncFailure(t *testing.T) {
 func TestSyncReportsRefusedEvents(t *testing.T) {
 	err := inventory.New(&fakeClient{refused: 2}).Sync(context.Background(), audit)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "SafeDep Cloud did not accept 2 of the 7 events")
+	assert.Contains(t, err.Error(), "SafeDep Cloud did not confirm 2 of the 7 events")
+}
+
+// TestSyncSendsTheLogAfterAFailedWrite guards a full log: only a send
+// empties it, so a failed write must not skip the send.
+func TestSyncSendsTheLogAfterAFailedWrite(t *testing.T) {
+	c := &fakeClient{emitErr: errors.New("log is full")}
+	err := inventory.New(c).Sync(context.Background(), audit)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "could not write 7 of the 7 events")
+	assert.True(t, c.synced, "vet sends the log after a failed write")
 }
 
 // TestEachTypeHasAKind fails when a new inventory type has no kind of the
@@ -241,6 +256,11 @@ func TestOpenSendsThroughTheRealClient(t *testing.T) {
 	require.NoError(t, err)
 	if runtime.GOOS != "windows" {
 		assert.Equal(t, os.FileMode(0o600), info.Mode().Perm(), "the log holds the inventory of each user")
+		for _, side := range []string{"-wal", "-shm"} {
+			if info, err := os.Stat(logPath + side); err == nil {
+				assert.Equal(t, os.FileMode(0o600), info.Mode().Perm(), "the journal file %s has the mode of the log", side)
+			}
+		}
 	}
 	assert.NotEqual(t, inventory.LogFile(apiURL, "acme.safedep.io"), inventory.LogFile(apiURL, "other.safedep.io"),
 		"each tenant has its own log")
