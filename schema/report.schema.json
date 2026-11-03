@@ -590,6 +590,55 @@
       },
       "type": "object"
     },
+    "InventoryAgent": {
+      "properties": {
+        "permission_mode": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "instruction_files": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "api_key_env_name": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "InventoryExtension": {
+      "properties": {
+        "ide": {
+          "type": "string"
+        },
+        "ecosystem": {
+          "type": "string",
+          "enum": [
+            "cargo",
+            "github-actions",
+            "go",
+            "maven",
+            "npm",
+            "nuget",
+            "openvsx",
+            "packagist",
+            "pub",
+            "pypi",
+            "rubygems",
+            "terraform-provider",
+            "vscode"
+          ]
+        },
+        "package": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "InventoryItem": {
       "properties": {
         "kind": {
@@ -616,6 +665,41 @@
         "scope": {
           "type": "string"
         },
+        "type": {
+          "type": "string",
+          "enum": [
+            "mcp-server",
+            "coding-agent",
+            "ai-extension",
+            "cli-tool",
+            "project-config",
+            "browser-extension",
+            "ide-extension",
+            "agent-plugin",
+            "skill"
+          ]
+        },
+        "identity": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/$defs/InventoryUser"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "mcp_server": {
+          "$ref": "#/$defs/InventoryMCP"
+        },
+        "agent": {
+          "$ref": "#/$defs/InventoryAgent"
+        },
+        "extension": {
+          "$ref": "#/$defs/InventoryExtension"
+        },
         "change": {
           "type": "string",
           "enum": [
@@ -638,6 +722,64 @@
       "type": "object",
       "required": [
         "kind",
+        "name"
+      ]
+    },
+    "InventoryMCP": {
+      "properties": {
+        "transport": {
+          "type": "string"
+        },
+        "command": {
+          "type": "string"
+        },
+        "args": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "url": {
+          "type": "string"
+        },
+        "env_names": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "header_names": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "allowed_tools": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "allowed_resources": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "InventoryUser": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "uid": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
         "name"
       ]
     },

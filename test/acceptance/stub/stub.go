@@ -1,6 +1,6 @@
 // Package stub is the stub SafeDep server of the acceptance suite. It
-// answers Insights v2, Malysis and the GitHub API from fixture files, and
-// it never calls the network (acceptance suite design, section 3.3).
+// answers Insights v2, Malysis and the GitHub API from fixture files,
+// records the events of the endpoint sync, and it never calls the network (acceptance suite design, section 3.3).
 package stub
 
 import (
@@ -18,6 +18,7 @@ import (
 	"sync"
 	"time"
 
+	controltowerv1grpc "buf.build/gen/go/safedep/api/grpc/go/safedep/services/controltower/v1/controltowerv1grpc"
 	ghcpv1grpc "buf.build/gen/go/safedep/api/grpc/go/safedep/services/ghcp/v1/ghcpv1grpc"
 	insightsv2grpc "buf.build/gen/go/safedep/api/grpc/go/safedep/services/insights/v2/insightsv2grpc"
 	malysisv1grpc "buf.build/gen/go/safedep/api/grpc/go/safedep/services/malysis/v1/malysisv1grpc"
@@ -60,6 +61,7 @@ type Server struct {
 	calls    map[string]int
 	readOnly bool
 	comments []Comment
+	events   []SyncedEvent
 }
 
 // Start serves the fixtures under dir on a free local port. gRPC and the
@@ -78,6 +80,7 @@ func Start(dir string) (*Server, error) {
 	insightsv2grpc.RegisterInsightServiceServer(s.grpc, &insightService{s: s})
 	malysisv1grpc.RegisterMalwareAnalysisServiceServer(s.grpc, &malysisService{s: s})
 	ghcpv1grpc.RegisterGitHubCommentsProxyServiceServer(s.grpc, &ghcpService{s: s})
+	controltowerv1grpc.RegisterEndpointServiceServer(s.grpc, &endpointService{s: s})
 
 	var protocols http.Protocols
 	protocols.SetHTTP1(true)

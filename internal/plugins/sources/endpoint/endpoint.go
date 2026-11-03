@@ -26,6 +26,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/internal/hiddencode"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/report"
 )
 
 // Name is the registered name of the source.
@@ -54,6 +55,8 @@ type System struct {
 	GlobalRoots func() []string
 	// Scanners builds the inventory scanners.
 	Scanners func() ([]inventory.Scanner, error)
+	// User returns the account that owns a home directory.
+	User func(home string) *report.InventoryUser
 }
 
 // DefaultSystem reads the real machine.
@@ -65,6 +68,7 @@ func DefaultSystem() System {
 		Privileged:  privileged,
 		GlobalRoots: systemGlobalRoots,
 		Scanners:    func() ([]inventory.Scanner, error) { return scanners.Build(nil) },
+		User:        homeUser,
 	}
 }
 
@@ -111,8 +115,12 @@ func (s *Source) artifact(ctx context.Context) (plugin.Artifact, error) {
 		if err != nil {
 			return plugin.Artifact{}, err
 		}
+		var user *report.InventoryUser
+		if len(items) > 0 {
+			user = s.sys.User(home)
+		}
 		for _, it := range items {
-			a.Inventory = append(a.Inventory, toRecord(it))
+			a.Inventory = append(a.Inventory, toRecord(it, user))
 			if p := configFile(it); p != "" {
 				files[p] = true
 			}

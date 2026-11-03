@@ -1,0 +1,67 @@
+# Without credentials, vet endpoint audit keeps the inventory in the local
+# report, prints one hint and sends nothing.
+exec vet endpoint audit --mode plain -o json --state-dir $WORK/state
+! stdout inventory_sync_unavailable
+stderr 'vet auth login'
+stub calls endpointsync 0
+
+# With credentials, the audit sends its inventory to SafeDep Cloud. Each
+# item names its user. An MCP server event holds the names of the
+# variables, never their values. The sync deletes the log of the stub that
+# came before it.
+env SAFEDEP_API_KEY=sk_test
+env SAFEDEP_TENANT_ID=acme.safedep.io
+exec vet endpoint audit --mode plain -o json --state-dir $WORK/state
+! stdout inventory_sync_unavailable
+! stderr 'vet auth login'
+stub calls endpointsync 1
+exists $WORK/state/inventory-sync.db
+! exists $WORK/state/inventory-sync.wal
+stub events
+stdout 'tenant=acme.safedep.io'
+stdout '"kind":"INVENTORY_ITEM_KIND_MCP_SERVER".*"name":"db"'
+stdout '"env_var_names":\["DB_URL"\]'
+stdout '"kind":"INVENTORY_ITEM_KIND_AGENT_SKILL".*"name":"review"'
+stdout '"invocation_context":\{"username":"'
+stdout -count=1 VET_INVENTORY_EVENT_TYPE_SCAN_SUMMARY
+! stdout value-that-must-not-leak
+
+# When SafeDep Cloud is down, the audit completes with a diagnostic, and
+# its events wait in the log. The next audit sends both audits.
+stub fail endpointsync Unavailable
+exec vet endpoint audit --mode plain -o json --state-dir $WORK/state
+stdout '"code":"inventory_sync_unavailable"'
+jsonq stdout trailer.gate.outcome NONE
+stub fail endpointsync OK
+exec vet endpoint audit --mode plain -o json --state-dir $WORK/state
+! stdout inventory_sync_unavailable
+stub events
+stdout -count=3 VET_INVENTORY_EVENT_TYPE_SCAN_SUMMARY
+
+# plugins.cloud-inventory.enabled false turns the sync off.
+exec vet --config $WORK/off.yml endpoint audit --mode plain -o json --state-dir $WORK/state
+stub calls endpointsync 3
+
+# plugins.cloud-inventory.options.endpoint_id names the endpoint.
+exec vet --config $WORK/named.yml endpoint audit --mode plain -o json --state-dir $WORK/state
+stub events
+stdout 'endpoint=ci-runner-1 '
+
+-- off.yml --
+plugins:
+  cloud-inventory:
+    enabled: false
+-- named.yml --
+plugins:
+  cloud-inventory:
+    options:
+      endpoint_id: ci-runner-1
+-- state/inventory-sync.wal --
+{"at":"2026-10-01T00:00:00Z","endpoint":"endpoint:old","items":[]}
+-- home/.cursor/mcp.json --
+{"mcpServers": {"db": {"command": "node", "args": ["db.js"], "env": {"DB_URL": "value-that-must-not-leak"}}}}
+-- home/.claude/skills/review/SKILL.md --
+---
+name: review
+description: Reviews code.
+---

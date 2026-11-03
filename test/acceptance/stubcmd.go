@@ -41,6 +41,7 @@ func StartStub(env *testscript.Env, fixtures string) error {
 //	stub calls <service> <n>
 //	stub readonly
 //	stub comments
+//	stub events
 //	stub stop
 func cmdStub(ts *testscript.TestScript, neg bool, args []string) {
 	s, ok := ts.Value(stubKey{}).(*stub.Server)
@@ -78,10 +79,15 @@ func cmdStub(ts *testscript.TestScript, neg bool, args []string) {
 			_, err := fmt.Fprintf(ts.Stdout(), "--- comment %d by %s on %s\n%s\n", c.ID, c.Login, c.Issue, c.Body)
 			ts.Check(err)
 		}
+	case args[0] == "events" && len(args) == 1:
+		for _, e := range s.Events() {
+			_, err := fmt.Fprintf(ts.Stdout(), "tenant=%s endpoint=%s %s\n", e.Tenant, e.Endpoint, e.JSON)
+			ts.Check(err)
+		}
 	case args[0] == "stop" && len(args) == 1:
 		ts.Check(s.Close())
 	default:
-		ts.Fatalf("usage: stub delay <duration> | fail <service> <code> | calls <service> <n> | readonly | comments | stop")
+		ts.Fatalf("usage: stub delay <duration> | fail <service> <code> | calls <service> <n> | readonly | comments | events | stop")
 	}
 }
 

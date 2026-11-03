@@ -790,11 +790,11 @@
   tier: P1
   guarantee: "vet endpoint audit gives a critical padded-code finding for a global npm lib/cli.js that is far larger than the published file, and the attacks gate fails."
   labels: [endpoint, hidden-code, attacks]
-- id: endpoint/inventory-sync/wal
-  title: "endpoint audit: inventory sync log"
+- id: endpoint/inventory-sync/sync
+  title: "endpoint audit: inventory sync to SafeDep Cloud"
   category: endpoint
-  tier: P2
-  guarantee: "With plugins.cloud-inventory on, vet endpoint audit writes its inventory to inventory-sync.wal in the state directory with mode 0600, records inventory_sync_unavailable, and completes."
+  tier: P1
+  guarantee: "With credentials, vet endpoint audit sends its inventory to SafeDep Cloud, with the user of each item and the names, not the values, of MCP server variables. Without credentials it prints one hint and sends nothing. When SafeDep Cloud is down, the audit completes with inventory_sync_unavailable, and the next audit sends the events that wait in the log. plugins.cloud-inventory.enabled false turns the sync off."
   labels: [endpoint, cloud, stub]
 # --- 4.9 Live rows. They call production and run with ACCEPTANCE_LIVE=1 only. ---
 - id: live/malware/known-malicious

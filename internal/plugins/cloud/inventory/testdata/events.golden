@@ -1,0 +1,210 @@
+[
+  {
+    "eventId": "e",
+    "invocationContext": {
+      "username": "alice",
+      "usernameUid": "501"
+    },
+    "invocationId": "s-1",
+    "toolName": "vet",
+    "toolVersion": "test",
+    "vetEvent": {
+      "eventType": "VET_INVENTORY_EVENT_TYPE_ITEM_OBSERVED",
+      "itemObserved": {
+        "app": "cursor",
+        "configPath": "/home/alice/.cursor/mcp.json",
+        "enabled": true,
+        "itemIdentity": "i-db",
+        "kind": "INVENTORY_ITEM_KIND_MCP_SERVER",
+        "mcpServer": {
+          "allowedTools": [
+            "query"
+          ],
+          "args": [
+            "db.js",
+            "--name",
+            "a b"
+          ],
+          "command": "node",
+          "envVarNames": [
+            "DB_URL"
+          ],
+          "headerNames": [
+            "Authorization"
+          ],
+          "transport": "TRANSPORT_STDIO"
+        },
+        "name": "db",
+        "scope": "INVENTORY_SCOPE_SYSTEM",
+        "sourceId": "s-cursor"
+      }
+    }
+  },
+  {
+    "eventId": "e",
+    "invocationContext": {
+      "username": "alice",
+      "usernameUid": "501"
+    },
+    "invocationId": "s-1",
+    "toolName": "vet",
+    "toolVersion": "test",
+    "vetEvent": {
+      "eventType": "VET_INVENTORY_EVENT_TYPE_ITEM_OBSERVED",
+      "itemObserved": {
+        "agent": {
+          "apiKeyEnvName": "ANTHROPIC_API_KEY",
+          "instructionFiles": [
+            "CLAUDE.md"
+          ],
+          "model": "opus",
+          "permissionMode": "default",
+          "version": "2.0.1"
+        },
+        "app": "claude_code",
+        "configPath": "/home/alice/.claude/settings.json",
+        "itemIdentity": "i-cc",
+        "kind": "INVENTORY_ITEM_KIND_CODING_AGENT",
+        "name": "Claude Code",
+        "scope": "INVENTORY_SCOPE_SYSTEM",
+        "sourceId": "s-cc"
+      }
+    }
+  },
+  {
+    "eventId": "e",
+    "invocationContext": {
+      "username": "alice",
+      "usernameUid": "501"
+    },
+    "invocationId": "s-1",
+    "toolName": "vet",
+    "toolVersion": "test",
+    "vetEvent": {
+      "eventType": "VET_INVENTORY_EVENT_TYPE_ITEM_OBSERVED",
+      "itemObserved": {
+        "app": "vscode",
+        "configPath": "/home/alice/.vscode/extensions/extensions.json",
+        "ideExtension": {
+          "ide": "VS Code",
+          "packageVersion": {
+            "package": {
+              "ecosystem": "ECOSYSTEM_VSCODE",
+              "name": "ms-python.python"
+            },
+            "version": "2023.20.0"
+          }
+        },
+        "itemIdentity": "i-py",
+        "kind": "INVENTORY_ITEM_KIND_IDE_EXTENSION",
+        "name": "ms-python.python",
+        "scope": "INVENTORY_SCOPE_SYSTEM",
+        "sourceId": "s-vs"
+      }
+    }
+  },
+  {
+    "eventId": "e",
+    "invocationContext": {
+      "username": "alice",
+      "usernameUid": "501"
+    },
+    "invocationId": "s-1",
+    "toolName": "vet",
+    "toolVersion": "test",
+    "vetEvent": {
+      "eventType": "VET_INVENTORY_EVENT_TYPE_ITEM_OBSERVED",
+      "itemObserved": {
+        "app": "vscode",
+        "configPath": "/home/alice/.vscode/extensions/extensions.json",
+        "ideExtension": {
+          "ide": "VS Code"
+        },
+        "itemIdentity": "i-cp",
+        "kind": "INVENTORY_ITEM_KIND_AI_EXTENSION",
+        "name": "Copilot",
+        "scope": "INVENTORY_SCOPE_SYSTEM",
+        "sourceId": "s-vs"
+      }
+    }
+  },
+  {
+    "eventId": "e",
+    "invocationContext": {
+      "username": "alice",
+      "usernameUid": "501"
+    },
+    "invocationId": "s-1",
+    "toolName": "vet",
+    "toolVersion": "test",
+    "vetEvent": {
+      "eventType": "VET_INVENTORY_EVENT_TYPE_ITEM_OBSERVED",
+      "itemObserved": {
+        "app": "gemini_cli",
+        "configPath": "/usr/local/bin/gemini",
+        "itemIdentity": "i-g",
+        "kind": "INVENTORY_ITEM_KIND_CLI_TOOL",
+        "metadata": {
+          "binary.version": "0.9.0"
+        },
+        "name": "Gemini CLI",
+        "scope": "INVENTORY_SCOPE_SYSTEM",
+        "sourceId": "s-g"
+      }
+    }
+  },
+  {
+    "eventId": "e",
+    "invocationId": "s-1",
+    "toolName": "vet",
+    "toolVersion": "test",
+    "vetEvent": {
+      "eventType": "VET_INVENTORY_EVENT_TYPE_ITEM_OBSERVED",
+      "itemObserved": {
+        "app": "claude_code",
+        "configPath": "/work/app/.claude/skills/review/SKILL.md",
+        "itemIdentity": "i-r",
+        "kind": "INVENTORY_ITEM_KIND_AGENT_SKILL",
+        "name": "review",
+        "scope": "INVENTORY_SCOPE_PROJECT",
+        "sourceId": "s-r"
+      }
+    }
+  },
+  {
+    "eventId": "e",
+    "invocationId": "s-1",
+    "toolName": "vet",
+    "toolVersion": "test",
+    "vetEvent": {
+      "eventType": "VET_INVENTORY_EVENT_TYPE_SCAN_SUMMARY",
+      "scanSummary": {
+        "completed": true,
+        "errorsCount": 1,
+        "perKindCounts": {
+          "INVENTORY_ITEM_KIND_AGENT_SKILL": 1,
+          "INVENTORY_ITEM_KIND_AI_EXTENSION": 1,
+          "INVENTORY_ITEM_KIND_CLI_TOOL": 1,
+          "INVENTORY_ITEM_KIND_CODING_AGENT": 1,
+          "INVENTORY_ITEM_KIND_IDE_EXTENSION": 1,
+          "INVENTORY_ITEM_KIND_MCP_SERVER": 1
+        },
+        "totalObserved": 6
+      }
+    }
+  },
+  {
+    "eventId": "e",
+    "invocationId": "s-1",
+    "toolName": "vet",
+    "toolVersion": "test",
+    "vetEvent": {
+      "error": {
+        "discoverer": "endpoint",
+        "errorType": "endpoint_unreadable",
+        "message": "vet could not read a folder"
+      },
+      "eventType": "VET_INVENTORY_EVENT_TYPE_ERROR"
+    }
+  }
+]
