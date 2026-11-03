@@ -64,17 +64,18 @@ func (r *Registry) Register(name string, factory AIToolDiscovererFactory) {
 func (r *Registry) Discover(ctx context.Context, config DiscoveryConfig, handler AIToolHandlerFn) error {
 	evidence := newInstallEvidence()
 	var agents []*inventory.Item
+	var handlerErr error
 
 	collect := func(it *inventory.Item) error {
-		if it == nil {
-			return handler(it)
-		}
-		if it.Kind == inventory.KindCodingAgent {
+		if it != nil && it.Kind == inventory.KindCodingAgent {
 			agents = append(agents, it)
 			return nil
 		}
-		evidence.observe(it)
-		return handler(it)
+		if it != nil {
+			evidence.observe(it)
+		}
+		handlerErr = handler(it)
+		return handlerErr
 	}
 
 	for _, entry := range r.entries {
@@ -85,8 +86,12 @@ func (r *Registry) Discover(ctx context.Context, config DiscoveryConfig, handler
 		}
 
 		if err := reader.EnumTools(ctx, collect); err != nil {
-			// The agents that came before the error still reach the
+			// A failed handler gets no more items. After a failed
+			// discoverer, the agents that came before it still reach the
 			// handler, as they did before the registry held them back.
+			if handlerErr != nil {
+				return err
+			}
 			return errors.Join(err, emitAgents(agents, evidence, handler))
 		}
 	}

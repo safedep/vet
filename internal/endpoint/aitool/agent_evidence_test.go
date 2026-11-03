@@ -255,3 +255,22 @@ func TestRegistry_DiscovererErrorKeepsTheAgentsBeforeIt(t *testing.T) {
 	require.Len(t, got, 1, "an agent found before the error still reaches the handler")
 	assert.Equal(t, inventory.KindCodingAgent, got[0].Kind)
 }
+
+func TestRegistry_FailedHandlerGetsNoMoreItems(t *testing.T) {
+	r := NewRegistry()
+	r.Register("agent", func(_ DiscoveryConfig) (AIToolReader, error) {
+		return &mockReader{name: "agent", tools: []*inventory.Item{evidenceTestAgent(codexApp)}}, nil
+	})
+	r.Register("cli", func(_ DiscoveryConfig) (AIToolReader, error) {
+		return &mockReader{name: "cli", tools: []*inventory.Item{evidenceTestCLI(codexApp, true)}}, nil
+	})
+
+	handlerErr := errors.New("handler error")
+	calls := 0
+	err := r.Discover(context.Background(), DiscoveryConfig{}, func(*inventory.Item) error {
+		calls++
+		return handlerErr
+	})
+	assert.ErrorIs(t, err, handlerErr)
+	assert.Equal(t, 1, calls, "the registry does not call a failed handler again with the held agents")
+}

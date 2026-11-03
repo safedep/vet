@@ -2,7 +2,9 @@ package aitool
 
 import (
 	"context"
+	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -315,6 +317,21 @@ func TestCodexDiscoverer_HonorsCodexHome(t *testing.T) {
 			assert.Equal(t, filepath.Join(codexHome, "config.toml"), tool.ConfigPath)
 		}
 	}
+}
+
+func TestOwnHomeComparesFolders(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("a symbolic link needs a privilege on Windows")
+	}
+	own := t.TempDir()
+	t.Setenv("HOME", own)
+	t.Setenv("USERPROFILE", own)
+	link := filepath.Join(t.TempDir(), "home-link")
+	require.NoError(t, os.Symlink(own, link))
+
+	assert.True(t, ownHome(DiscoveryConfig{}))
+	assert.True(t, ownHome(DiscoveryConfig{HomeDir: link}), "another path to the same folder is the own home")
+	assert.False(t, ownHome(DiscoveryConfig{HomeDir: t.TempDir()}))
 }
 
 // TestConfigHomeVariablesApplyToTheOwnHomeOnly guards --all-users: the

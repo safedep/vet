@@ -189,7 +189,17 @@ func ownHome(c DiscoveryConfig) bool {
 		return true
 	}
 	h, err := os.UserHomeDir()
-	return err == nil && filepath.Clean(h) == filepath.Clean(c.HomeDir)
+	if err != nil {
+		return false
+	}
+	// On macOS, /var/root and /private/var/root are one folder, so vet
+	// compares the folders and not the paths.
+	own, err := os.Stat(h)
+	if err != nil {
+		return false
+	}
+	scanned, err := os.Stat(c.HomeDir)
+	return err == nil && os.SameFile(own, scanned)
 }
 
 // vscodeUserDataDirs returns the VS Code user data folders of each OS:
