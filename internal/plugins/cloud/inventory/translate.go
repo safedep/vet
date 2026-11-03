@@ -15,11 +15,15 @@ type event struct {
 	user *report.InventoryUser
 }
 
-// events maps an audit to its events: one for each item, the summary, then
-// one for each diagnostic of the audit. A record of a scan that is not an
-// endpoint scan has no type, so the syncer does not send it.
+// events maps an audit to its events: one for each item, then the summary.
+// A record of a scan that is not an endpoint scan has no type, so the
+// syncer does not send it.
+//
+// vet sends no error event. A scanner that fails writes a log line, not a
+// diagnostic, and the other diagnostics of a scan, such as an enricher
+// warning, are not errors of the inventory.
 func events(a Audit) []event {
-	out := make([]event, 0, len(a.Items)+1+len(a.Diagnostics))
+	out := make([]event, 0, len(a.Items)+1)
 	counts := map[string]uint32{}
 	for i := range a.Items {
 		it := &a.Items[i]
@@ -41,17 +45,9 @@ func events(a Audit) []event {
 	out = append(out, event{vet: controltowerv1pb.VetInventoryEvent_builder{
 		EventType: controltowerv1pb.VetInventoryEventType_VET_INVENTORY_EVENT_TYPE_SCAN_SUMMARY,
 		ScanSummary: controltowerv1pb.VetInventoryEvent_ScanSummary_builder{
-			TotalObserved: total, Completed: true, ErrorsCount: uint32(len(a.Diagnostics)), PerKindCounts: counts,
+			TotalObserved: total, Completed: true, PerKindCounts: counts,
 		}.Build(),
 	}.Build()})
-	for _, d := range a.Diagnostics {
-		out = append(out, event{vet: controltowerv1pb.VetInventoryEvent_builder{
-			EventType: controltowerv1pb.VetInventoryEventType_VET_INVENTORY_EVENT_TYPE_ERROR,
-			Error: controltowerv1pb.VetInventoryEvent_ScanError_builder{
-				Discoverer: d.Component, ErrorType: d.Code, Message: d.Message,
-			}.Build(),
-		}.Build()})
-	}
 	return out
 }
 

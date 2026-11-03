@@ -102,7 +102,7 @@ func TestAuditOneUser(t *testing.T) {
 	ext := inventoryItem(t, a, "ms-python.python")
 	assert.Equal(t, report.InventoryTypeIDEExtension, ext.Type)
 	require.NotNil(t, ext.Extension)
-	assert.Equal(t, &report.InventoryExtension{IDE: ext.Extension.IDE, Ecosystem: model.EcosystemVSCode, Package: "ms-python.python"}, ext.Extension)
+	assert.Equal(t, &report.InventoryExtension{IDE: "VS Code", Ecosystem: model.EcosystemVSCode, Package: "ms-python.python"}, ext.Extension)
 	assert.Contains(t, kinds[report.InventorySkill], "review")
 	assert.Contains(t, kinds[report.InventoryEditorPlugin], "ms-python.python")
 

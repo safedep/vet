@@ -87,6 +87,12 @@ func Open(o Options, apiURL string, creds *credentials.Result, stateDir, version
 	if err != nil {
 		return nil, err
 	}
+	identity := endpointsync.NewEndpointIdentityResolver(endpointsync.WithEndpointID(o.EndpointID))
+	if _, err := identity.Resolve(); err != nil {
+		// A container or a CI runner can have no machine id. The events of
+		// the audit then never reach the log, so a retry cannot help.
+		return nil, fmt.Errorf("vet could not name the endpoint (%v). Set plugins.cloud-inventory.options.endpoint_id to send the inventory", err)
+	}
 	if err := os.Remove(filepath.Join(stateDir, oldLogFile)); err != nil && !errors.Is(err, os.ErrNotExist) {
 		log.Warnf("inventory sync: remove %s: %v", oldLogFile, err)
 	}
@@ -94,11 +100,15 @@ func Open(o Options, apiURL string, creds *credentials.Result, stateDir, version
 	if err != nil {
 		return nil, err
 	}
-	client, err := endpointsync.NewSyncClient(toolName, version, endpointsync.NewGrpcTransport(conn),
-		endpointsync.NewEndpointIdentityResolver(endpointsync.WithEndpointID(o.EndpointID)),
-		endpointsync.WithWALPath(filepath.Join(stateDir, LogFile)))
+	logPath := filepath.Join(stateDir, LogFile)
+	client, err := endpointsync.NewSyncClient(toolName, version, endpointsync.NewGrpcTransport(conn), identity,
+		endpointsync.WithWALPath(logPath))
 	if err != nil {
-		return nil, errors.Join(fmt.Errorf("inventory sync: %w", err), conn.Close())
+		return nil, errors.Join(fmt.Errorf("vet could not open the inventory sync log: %w", err), conn.Close())
+	}
+	// The log holds the inventory of each user of the machine.
+	if err := os.Chmod(logPath, 0o600); err != nil {
+		log.Warnf("inventory sync: chmod %s: %v", logPath, err)
 	}
 	return &Syncer{client: client, close: func() error { return errors.Join(client.Close(), conn.Close()) }}, nil
 }
@@ -109,27 +119,34 @@ func (s *Syncer) Close() error { return s.close() }
 // Audit is what the syncer sends of one audit.
 type Audit struct {
 	// ScanID ties the events of one audit together.
-	ScanID      string
-	Items       []report.InventoryItem
-	Diagnostics []report.Diagnostic
+	ScanID string
+	Items  []report.InventoryItem
 }
 
 // Sync writes the events of an audit to the log, then sends the log. After
 // an error of the send, the events wait in the log for the next run.
 func (s *Syncer) Sync(ctx context.Context, a Audit) error {
+	evs := events(a)
 	var errs []error
-	for _, ev := range events(a) {
+	for _, ev := range evs {
 		if err := s.emit(ctx, a.ScanID, ev); err != nil {
 			errs = append(errs, err)
 		}
 	}
 	if err := errors.Join(errs...); err != nil {
-		return fmt.Errorf("inventory sync: %w", err)
+		return fmt.Errorf("vet could not write the inventory to the sync log: %w", err)
 	}
 	drain, cancel := context.WithTimeout(ctx, drainTimeout)
 	defer cancel()
-	if _, err := s.client.Sync(drain); err != nil {
-		return errors.New(unavailable(err))
+	sent, err := s.client.Sync(drain)
+	if err != nil {
+		return errors.New(unavailable(err) + ". vet sends the inventory on the next audit")
+	}
+	// The client drops an event that SafeDep Cloud refuses, and logs the
+	// reason. sent also counts the events of earlier audits, so a
+	// shortfall shows a refusal, but a refusal can hide behind them.
+	if sent < len(evs) {
+		return fmt.Errorf("SafeDep Cloud did not accept %d of the %d events of the audit. Run with --debug to see the reasons", len(evs)-sent, len(evs))
 	}
 	return nil
 }

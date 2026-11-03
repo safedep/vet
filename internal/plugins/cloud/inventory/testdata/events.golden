@@ -6,6 +6,7 @@
       "usernameUid": "501"
     },
     "invocationId": "s-1",
+    "timestamp": "2026-11-03T12:00:00Z",
     "toolName": "vet",
     "toolVersion": "test",
     "vetEvent": {
@@ -47,6 +48,7 @@
       "usernameUid": "501"
     },
     "invocationId": "s-1",
+    "timestamp": "2026-11-03T12:00:00Z",
     "toolName": "vet",
     "toolVersion": "test",
     "vetEvent": {
@@ -78,6 +80,7 @@
       "usernameUid": "501"
     },
     "invocationId": "s-1",
+    "timestamp": "2026-11-03T12:00:00Z",
     "toolName": "vet",
     "toolVersion": "test",
     "vetEvent": {
@@ -110,6 +113,7 @@
       "usernameUid": "501"
     },
     "invocationId": "s-1",
+    "timestamp": "2026-11-03T12:00:00Z",
     "toolName": "vet",
     "toolVersion": "test",
     "vetEvent": {
@@ -135,6 +139,7 @@
       "usernameUid": "501"
     },
     "invocationId": "s-1",
+    "timestamp": "2026-11-03T12:00:00Z",
     "toolName": "vet",
     "toolVersion": "test",
     "vetEvent": {
@@ -156,6 +161,7 @@
   {
     "eventId": "e",
     "invocationId": "s-1",
+    "timestamp": "2026-11-03T12:00:00Z",
     "toolName": "vet",
     "toolVersion": "test",
     "vetEvent": {
@@ -174,13 +180,13 @@
   {
     "eventId": "e",
     "invocationId": "s-1",
+    "timestamp": "2026-11-03T12:00:00Z",
     "toolName": "vet",
     "toolVersion": "test",
     "vetEvent": {
       "eventType": "VET_INVENTORY_EVENT_TYPE_SCAN_SUMMARY",
       "scanSummary": {
         "completed": true,
-        "errorsCount": 1,
         "perKindCounts": {
           "INVENTORY_ITEM_KIND_AGENT_SKILL": 1,
           "INVENTORY_ITEM_KIND_AI_EXTENSION": 1,
@@ -191,20 +197,6 @@
         },
         "totalObserved": 6
       }
-    }
-  },
-  {
-    "eventId": "e",
-    "invocationId": "s-1",
-    "toolName": "vet",
-    "toolVersion": "test",
-    "vetEvent": {
-      "error": {
-        "discoverer": "endpoint",
-        "errorType": "endpoint_unreadable",
-        "message": "vet could not read a folder"
-      },
-      "eventType": "VET_INVENTORY_EVENT_TYPE_ERROR"
     }
   }
 ]

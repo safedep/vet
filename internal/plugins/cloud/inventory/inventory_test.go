@@ -6,7 +6,9 @@ import (
 	"errors"
 	"path/filepath"
 	"testing"
+	"time"
 
+	controltowerv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	servicev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/controltower/v1"
 	"buf.build/go/protovalidate"
 	"github.com/stretchr/testify/assert"
@@ -14,6 +16,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/safedep/vet/v2/internal/golden"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/inventory"
@@ -25,12 +28,18 @@ import (
 type fakeClient struct {
 	emitted []*servicev1.ToolEvent
 	syncErr error
+	// refused is the number of events that SafeDep Cloud does not accept.
+	refused int
 	synced  bool
 	closed  bool
 }
 
 func (f *fakeClient) NewEvent() (*servicev1.ToolEvent, error) {
-	return servicev1.ToolEvent_builder{EventId: "e", ToolName: "vet", ToolVersion: "test"}.Build(), nil
+	// The real client sets the same fields.
+	return servicev1.ToolEvent_builder{
+		EventId: "e", ToolName: "vet", ToolVersion: "test",
+		Timestamp: timestamppb.New(time.Date(2026, 11, 3, 12, 0, 0, 0, time.UTC)),
+	}.Build(), nil
 }
 
 func (f *fakeClient) Emit(_ context.Context, ev *servicev1.ToolEvent) error {
@@ -40,7 +49,7 @@ func (f *fakeClient) Emit(_ context.Context, ev *servicev1.ToolEvent) error {
 
 func (f *fakeClient) Sync(context.Context) (int, error) {
 	f.synced = true
-	return len(f.emitted), f.syncErr
+	return len(f.emitted) - f.refused, f.syncErr
 }
 
 func (f *fakeClient) Close() error {
@@ -52,8 +61,7 @@ func ptr[T any](v T) *T { return &v }
 
 var alice = &report.InventoryUser{Name: "alice", UID: "501"}
 
-// audit holds one item of each type and a diagnostic. The values are
-// synthetic.
+// audit holds items of most types. The values are synthetic.
 var audit = inventory.Audit{
 	ScanID: "s-1",
 	Items: []report.InventoryItem{
@@ -92,9 +100,6 @@ var audit = inventory.Audit{
 		},
 		{Kind: report.InventoryAITool, Name: "a record of a repository scan has no type"},
 	},
-	Diagnostics: []report.Diagnostic{
-		{Level: report.DiagnosticWarning, Code: "endpoint_unreadable", Component: "endpoint", Message: "vet could not read a folder"},
-	},
 }
 
 // TestEvents pins the events of an audit, and checks each one against the
@@ -108,7 +113,7 @@ func TestEvents(t *testing.T) {
 	require.NoError(t, err)
 	var got []any
 	for _, ev := range c.emitted {
-		require.NoError(t, v.Validate(ev.GetVetEvent()), "the event obeys the API contract")
+		require.NoError(t, v.Validate(ev), "the event obeys the API contract")
 		assert.Equal(t, "s-1", ev.GetInvocationId())
 		b, err := protojson.Marshal(ev)
 		require.NoError(t, err)
@@ -131,11 +136,34 @@ func TestSyncFailure(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			c := &fakeClient{syncErr: tc.err}
-			err := inventory.New(c).Sync(context.Background(), audit)
+			err := inventory.New(&fakeClient{syncErr: tc.err}).Sync(context.Background(), audit)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tc.want)
-			assert.NotEmpty(t, c.emitted, "the events stay in the log for the next run")
+			assert.Contains(t, err.Error(), "next audit")
+		})
+	}
+}
+
+func TestSyncReportsRefusedEvents(t *testing.T) {
+	err := inventory.New(&fakeClient{refused: 2}).Sync(context.Background(), audit)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "SafeDep Cloud did not accept 2 of the 7 events")
+}
+
+// TestEachTypeHasAKind fails when a new inventory type has no kind of the
+// API contract, so the sync would skip its items.
+func TestEachTypeHasAKind(t *testing.T) {
+	v, err := protovalidate.New()
+	require.NoError(t, err)
+	for _, typ := range report.InventoryTypes() {
+		t.Run(string(typ), func(t *testing.T) {
+			c := &fakeClient{}
+			a := inventory.Audit{ScanID: "s", Items: []report.InventoryItem{{Type: typ, Name: "x", Scope: "system", Identity: "i"}}}
+			require.NoError(t, inventory.New(c).Sync(context.Background(), a))
+			require.Len(t, c.emitted, 2, "an item event and the summary")
+			item := c.emitted[0].GetVetEvent().GetItemObserved()
+			assert.NotEqual(t, controltowerv1pb.InventoryItemKind_INVENTORY_ITEM_KIND_UNSPECIFIED, item.GetKind())
+			assert.NoError(t, v.Validate(c.emitted[0]), "an item with no detail data still obeys the API contract")
 		})
 	}
 }
