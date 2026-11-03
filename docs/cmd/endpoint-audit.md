@@ -62,9 +62,9 @@ variables and headers, never their values.
   as a CI runner. vet otherwise names the endpoint with the host name and the machine id, as pmg
   does.
 - When vet cannot reach SafeDep Cloud, the audit completes, and the report gets an
-  `inventory_sync_unavailable` diagnostic. The events wait in a log in the state directory, and
-  the next audit sends them. Each tenant has its own log, so vet never sends the events of one
-  tenant with the credentials of another.
+  `inventory_sync_unavailable` diagnostic. vet keeps the events that SafeDep Cloud did not
+  confirm in a log in the state directory, and the next audit sends them. Each tenant has its
+  own log, so vet never sends the events of one tenant with the credentials of another.
 
 ## Examples
 

@@ -161,9 +161,10 @@ vet sends the identity of each package (its ecosystem, name and version) to Safe
 about it. vet sends no source code and no file content.
 
 With credentials, `vet endpoint audit` also sends the inventory of the machine to SafeDep Cloud: the
-AI tools, MCP servers, skills and extensions, their config paths, and the user name and uid of each
-home directory. An MCP server record holds its command, its arguments and its URL with known secrets
-redacted, and the names of its variables and headers, never their values.
+AI tools, MCP servers, skills and extensions, their config paths, and the user name of each home
+directory. On macOS and Linux, vet also sends the uid of each home directory. An MCP server record
+holds its command, its arguments and its URL with known secrets redacted, and the names of its
+variables and headers, never their values.
 `plugins.cloud-inventory.enabled: false` turns this off.
 
 ## Community
