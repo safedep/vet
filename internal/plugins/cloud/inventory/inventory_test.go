@@ -246,6 +246,16 @@ func TestOpenSendsThroughTheRealClient(t *testing.T) {
 	s, err := inventory.Open(inventory.Options{EndpointID: "ci-runner-1"}, apiURL, &credentials.Result{Credentials: cred}, state, "test")
 	require.NoError(t, err)
 	require.NoError(t, s.Sync(context.Background(), inventory.Audit{ScanID: "s-1", Items: audit.Items[:1]}))
+	logPath := filepath.Join(state, inventory.LogFile(apiURL, "acme.safedep.io"))
+	if runtime.GOOS != "windows" {
+		// The endpointsync log runs in WAL mode. SQLite removes the journal
+		// files on a clean close, so the check runs while the log is open.
+		for _, side := range []string{"-wal", "-shm"} {
+			info, err := os.Stat(logPath + side)
+			require.NoError(t, err, "the journal file %s exists while the log is open", side)
+			assert.Equal(t, os.FileMode(0o600), info.Mode().Perm(), "the journal file %s has the mode of the log", side)
+		}
+	}
 	require.NoError(t, s.Close())
 
 	es.mu.Lock()
@@ -254,16 +264,10 @@ func TestOpenSendsThroughTheRealClient(t *testing.T) {
 	require.Len(t, got, 2, "the item and the summary")
 	assert.Equal(t, "s-1", got[0].GetInvocationId())
 	assert.NoFileExists(t, filepath.Join(state, "inventory-sync.wal"))
-	logPath := filepath.Join(state, inventory.LogFile(apiURL, "acme.safedep.io"))
 	info, err := os.Stat(logPath)
 	require.NoError(t, err)
 	if runtime.GOOS != "windows" {
 		assert.Equal(t, os.FileMode(0o600), info.Mode().Perm(), "the log holds the inventory of each user")
-		for _, side := range []string{"-wal", "-shm"} {
-			if info, err := os.Stat(logPath + side); err == nil {
-				assert.Equal(t, os.FileMode(0o600), info.Mode().Perm(), "the journal file %s has the mode of the log", side)
-			}
-		}
 	}
 	assert.NotEqual(t, inventory.LogFile(apiURL, "acme.safedep.io"), inventory.LogFile(apiURL, "other.safedep.io"),
 		"each tenant has its own log")
