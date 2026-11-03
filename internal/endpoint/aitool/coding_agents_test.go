@@ -348,22 +348,58 @@ func TestProjectConfigsInAFolderWithGlobCharacters(t *testing.T) {
 	assert.Contains(t, paths, filepath.Join(project, ".codex", "config.toml"), "a [ in the folder name is not a wildcard")
 }
 
-// TestAppDataPathOfAnotherHome guards --all-users on Windows: the APPDATA of
-// the user who runs vet is not the folder of another user.
+// TestAppDataPathOfAnotherHome guards --all-users on Windows: the APPDATA
+// and LOCALAPPDATA of the user who runs vet are not the folders of another
+// user.
 func TestAppDataPathOfAnotherHome(t *testing.T) {
+	cases := []struct {
+		key, folder string
+		path        func(DiscoveryConfig, string, ...string) string
+	}{
+		{"APPDATA", "Roaming", appDataPath},
+		{"LOCALAPPDATA", "Local", localAppDataPath},
+	}
+	for _, tc := range cases {
+		t.Run(tc.key, func(t *testing.T) {
+			own := t.TempDir()
+			t.Setenv("HOME", own)
+			t.Setenv("USERPROFILE", own)
+			data := t.TempDir()
+			t.Setenv(tc.key, data)
+			other := t.TempDir()
+
+			assert.Equal(t, filepath.Join(data, "Zed"), tc.path(DiscoveryConfig{HomeDir: own}, own, "Zed"))
+			want := ""
+			if runtime.GOOS == "windows" {
+				want = filepath.Join(other, "AppData", tc.folder, "Zed")
+			}
+			assert.Equal(t, want, tc.path(DiscoveryConfig{HomeDir: other}, other, "Zed"))
+		})
+	}
+}
+
+// TestInstallFoldersOfAnotherHome guards --all-users: the VS Code user setup
+// and the Antigravity data folders of the user who runs vet do not mark the
+// agents of another user as installed.
+func TestInstallFoldersOfAnotherHome(t *testing.T) {
+	isolateAgentEnv(t)
 	own := t.TempDir()
 	t.Setenv("HOME", own)
 	t.Setenv("USERPROFILE", own)
-	appData := t.TempDir()
-	t.Setenv("APPDATA", appData)
+	data := t.TempDir()
+	t.Setenv("APPDATA", data)
+	t.Setenv("LOCALAPPDATA", data)
+	vscodeSetup := filepath.Join(data, "Programs", "Microsoft VS Code")
+	require.NoError(t, os.MkdirAll(vscodeSetup, 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(data, "Antigravity"), 0o755))
 	other := t.TempDir()
 
-	assert.Equal(t, filepath.Join(appData, "Zed"), appDataPath(DiscoveryConfig{HomeDir: own}, own, "Zed"))
-	want := ""
-	if runtime.GOOS == "windows" {
-		want = filepath.Join(other, "AppData", "Roaming", "Zed")
-	}
-	assert.Equal(t, want, appDataPath(DiscoveryConfig{HomeDir: other}, other, "Zed"))
+	assert.Contains(t, vscodeInstallMarkers(DiscoveryConfig{HomeDir: own}, own), vscodeSetup)
+	assert.NotContains(t, vscodeInstallMarkers(DiscoveryConfig{HomeDir: other}, other), vscodeSetup)
+
+	assert.NotEmpty(t, collectTools(t, NewAntigravityDiscoverer, DiscoveryConfig{HomeDir: own}))
+	assert.Empty(t, collectTools(t, NewAntigravityDiscoverer, DiscoveryConfig{HomeDir: other}),
+		"the Antigravity folder of the user who runs vet is not the folder of another user")
 }
 
 // TestConfigHomeVariablesApplyToTheOwnHomeOnly guards --all-users: the

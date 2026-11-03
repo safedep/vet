@@ -61,7 +61,7 @@ func (d *vscodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 		vscodeDir := filepath.Join(d.homeDir, ".vscode")
 		if info, err := os.Stat(vscodeDir); err == nil && info.IsDir() {
 			agent := newCodingAgent(vscodeApp, vscodeAppDisplay, vscodeDir)
-			markAppBundle(agent, vscodeInstallMarkers())
+			markAppBundle(agent, vscodeInstallMarkers(d.config, d.homeDir))
 
 			if err := handler(agent); err != nil {
 				return err
@@ -86,11 +86,12 @@ func (d *vscodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 
 // vscodeInstallMarkers returns the documented VS Code install locations: the
 // macOS app bundle, the Windows user and system setup folders, and the Linux
-// deb and rpm install folder.
-func vscodeInstallMarkers() []string {
+// deb and rpm install folder. The user setup folder belongs to the home
+// that the discovery reads.
+func vscodeInstallMarkers(config DiscoveryConfig, homeDir string) []string {
 	return []string{
 		unixPath("Applications", "Visual Studio Code.app"),
-		envPath("LOCALAPPDATA", "Programs", "Microsoft VS Code"),
+		localAppDataPath(config, homeDir, "Programs", "Microsoft VS Code"),
 		envPath("ProgramFiles", "Microsoft VS Code"),
 		unixPath("usr", "share", "code"),
 	}
