@@ -49,7 +49,7 @@ func NewGooseDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 	// ~/.config/goose on Linux and macOS, %APPDATA%\Block\goose\config on Windows.
 	gooseDirs := []string{
 		filepath.Join(homeDir, ".config", "goose"),
-		envPath("APPDATA", "Block", "goose", "config"),
+		appDataPath(config, homeDir, "Block", "goose", "config"),
 	}
 
 	// The official CLI installer puts goose here on macOS and Linux.

@@ -42,7 +42,7 @@ func NewZedDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 	// ~/.config/zed on Linux and macOS, %APPDATA%\Zed on Windows.
 	zedDirs := []string{
 		filepath.Join(homeDir, ".config", "zed"),
-		envPath("APPDATA", "Zed"),
+		appDataPath(config, homeDir, "Zed"),
 	}
 
 	var settingsPaths []string

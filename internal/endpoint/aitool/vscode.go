@@ -43,7 +43,7 @@ func (d *vscodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 	if d.config.ScopeEnabled(inventory.ScopeSystem) {
 		// The VS Code user data folder depends on the OS. The first mcp.json
 		// that parses wins.
-		for _, dir := range vscodeUserDataDirs(d.homeDir) {
+		for _, dir := range vscodeUserDataDirs(d.config, d.homeDir) {
 			if dir == "" {
 				continue
 			}

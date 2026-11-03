@@ -6,13 +6,21 @@ import (
 )
 
 // argSecretPatterns defines key=value prefixes that may contain secrets.
+// vet matches them with "_" read as "-", so --api_key matches --api-key.
 var argSecretPatterns = []string{
 	"--token=",
 	"--api-key=",
+	"--apikey=",
+	"--access-token=",
+	"--auth-token=",
 	"--password=",
 	"--secret=",
 	"--credentials=",
 }
+
+// flagForm returns arg in lower case with "_" read as "-". The length does
+// not change, so a prefix of the result is a prefix of arg.
+func flagForm(arg string) string { return strings.ReplaceAll(strings.ToLower(arg), "_", "-") }
 
 const redacted = "<REDACTED>"
 
@@ -35,7 +43,7 @@ func SanitizeArgs(args []string) []string {
 }
 
 func sanitizeArg(arg string) string {
-	lower := strings.ToLower(arg)
+	lower := flagForm(arg)
 	for _, pattern := range argSecretPatterns {
 		if strings.HasPrefix(lower, pattern) {
 			return arg[:len(pattern)] + redacted
@@ -47,7 +55,7 @@ func sanitizeArg(arg string) string {
 // isSecretFlag reports whether arg is a secret flag with its value in the
 // next argument, as in "--token sk-ant-...".
 func isSecretFlag(arg string) bool {
-	lower := strings.ToLower(arg)
+	lower := flagForm(arg)
 	for _, pattern := range argSecretPatterns {
 		if lower == strings.TrimSuffix(pattern, "=") {
 			return true

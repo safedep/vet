@@ -334,6 +334,38 @@ func TestOwnHomeComparesFolders(t *testing.T) {
 	assert.False(t, ownHome(DiscoveryConfig{HomeDir: t.TempDir()}))
 }
 
+func TestProjectConfigsInAFolderWithGlobCharacters(t *testing.T) {
+	isolateAgentEnv(t)
+	project := filepath.Join(t.TempDir(), "app[1]")
+	require.NoError(t, copyDir(filepath.Join(fixturesDir(t), "agents", "project"), project))
+
+	var paths []string
+	for _, tool := range collectTools(t, NewCodexDiscoverer, DiscoveryConfig{HomeDir: t.TempDir(), ProjectDir: project}) {
+		if tool.Kind == inventory.KindMCPServer {
+			paths = append(paths, tool.ConfigPath)
+		}
+	}
+	assert.Contains(t, paths, filepath.Join(project, ".codex", "config.toml"), "a [ in the folder name is not a wildcard")
+}
+
+// TestAppDataPathOfAnotherHome guards --all-users on Windows: the APPDATA of
+// the user who runs vet is not the folder of another user.
+func TestAppDataPathOfAnotherHome(t *testing.T) {
+	own := t.TempDir()
+	t.Setenv("HOME", own)
+	t.Setenv("USERPROFILE", own)
+	appData := t.TempDir()
+	t.Setenv("APPDATA", appData)
+	other := t.TempDir()
+
+	assert.Equal(t, filepath.Join(appData, "Zed"), appDataPath(DiscoveryConfig{HomeDir: own}, own, "Zed"))
+	want := ""
+	if runtime.GOOS == "windows" {
+		want = filepath.Join(other, "AppData", "Roaming", "Zed")
+	}
+	assert.Equal(t, want, appDataPath(DiscoveryConfig{HomeDir: other}, other, "Zed"))
+}
+
 // TestConfigHomeVariablesApplyToTheOwnHomeOnly guards --all-users: the
 // CODEX_HOME and COPILOT_HOME of the user who runs vet must not replace the
 // folder of another user.

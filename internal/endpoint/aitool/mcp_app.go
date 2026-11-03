@@ -86,12 +86,15 @@ func (d *mcpAppDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 func (d *mcpAppDiscoverer) processProjectConfigs(handler AIToolHandlerFn) error {
 	projectDir := d.config.ProjectDir
 	for _, pattern := range d.spec.projectMCPGlobs {
-		matches, err := filepath.Glob(filepath.Join(projectDir, pattern))
+		// The pattern applies under the project folder only, so a "[" or
+		// a "*" in the folder name does not act as a wildcard.
+		matches, err := fs.Glob(os.DirFS(projectDir), filepath.ToSlash(pattern))
 		if err != nil {
 			log.Warnf("endpoint: glob %s: %v", pattern, err)
 			continue
 		}
-		for _, path := range matches {
+		for _, rel := range matches {
+			path := filepath.Join(projectDir, filepath.FromSlash(rel))
 			if err := d.emitMCPFile(path, inventory.ScopeProject, handler); err != nil {
 				return err
 			}
@@ -202,14 +205,28 @@ func ownHome(c DiscoveryConfig) bool {
 	return err == nil && os.SameFile(own, scanned)
 }
 
+// appDataPath joins elem to the roaming application data folder of the
+// home that the discovery reads: %APPDATA% for the user who runs vet, and
+// AppData\Roaming under the home of another user on Windows. With
+// --all-users, the APPDATA of the user who runs vet is not the folder of the
+// other users. It returns "" when there is no such folder.
+func appDataPath(config DiscoveryConfig, homeDir string, elem ...string) string {
+	if ownHome(config) {
+		return envPath("APPDATA", elem...)
+	}
+	if runtime.GOOS != "windows" {
+		return ""
+	}
+	return filepath.Join(append([]string{homeDir, "AppData", "Roaming"}, elem...)...)
+}
+
 // vscodeUserDataDirs returns the VS Code user data folders of each OS:
 // ~/.config/Code/User on Linux, ~/Library/Application Support/Code/User on
-// macOS and %APPDATA%\Code\User on Windows. The Windows entry is "" when
-// APPDATA is not set.
-func vscodeUserDataDirs(homeDir string) []string {
+// macOS and %APPDATA%\Code\User on Windows. The Windows entry can be "".
+func vscodeUserDataDirs(config DiscoveryConfig, homeDir string) []string {
 	return []string{
 		filepath.Join(homeDir, ".config", "Code", "User"),
 		filepath.Join(homeDir, "Library", "Application Support", "Code", "User"),
-		envPath("APPDATA", "Code", "User"),
+		appDataPath(config, homeDir, "Code", "User"),
 	}
 }

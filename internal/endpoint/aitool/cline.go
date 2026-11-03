@@ -27,7 +27,7 @@ func NewClineDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 		appDisplay:   clineAppDisplay,
 		agentMarkers: []string{clineDir},
 		systemMCPPaths: append(
-			vscodeGlobalStoragePaths(homeDir, "saoudrizwan.claude-dev", settingsFile),
+			vscodeGlobalStoragePaths(config, homeDir, "saoudrizwan.claude-dev", settingsFile),
 			filepath.Join(clineDir, "data", settingsFile),
 		),
 		instructionFiles: []string{".clinerules"},
@@ -45,7 +45,7 @@ func NewRooCodeDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 	return newMCPAppDiscoverer(config, mcpAppSpec{
 		app:        rooCodeApp,
 		appDisplay: rooCodeAppDisplay,
-		systemMCPPaths: vscodeGlobalStoragePaths(homeDir, "rooveterinaryinc.roo-cline",
+		systemMCPPaths: vscodeGlobalStoragePaths(config, homeDir, "rooveterinaryinc.roo-cline",
 			filepath.Join("settings", "mcp_settings.json")),
 		projectMCPGlobs:  []string{filepath.Join(".roo", "mcp.json")},
 		instructionFiles: []string{".roorules", filepath.Join(".roo", "rules")},
@@ -54,9 +54,9 @@ func NewRooCodeDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 
 // vscodeGlobalStoragePaths returns rel in the VS Code globalStorage folder
 // of extensionID, for the VS Code user data folder of each OS.
-func vscodeGlobalStoragePaths(homeDir, extensionID, rel string) []string {
+func vscodeGlobalStoragePaths(config DiscoveryConfig, homeDir, extensionID, rel string) []string {
 	var paths []string
-	for _, dir := range vscodeUserDataDirs(homeDir) {
+	for _, dir := range vscodeUserDataDirs(config, homeDir) {
 		if dir == "" {
 			continue
 		}

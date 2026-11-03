@@ -1,6 +1,7 @@
 package aitool
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -71,4 +72,24 @@ func TestSanitizeURL(t *testing.T) {
 func TestSanitizeArgs_RedactsURLCredentials(t *testing.T) {
 	sanitized := SanitizeArgs([]string{"mcp-remote", "https://user:pw@mcp.example.com/sse"})
 	assert.Equal(t, []string{"mcp-remote", "https://REDACTED@mcp.example.com/sse"}, sanitized)
+}
+
+func TestSanitizeArgs_RedactsOtherSpellingsOfSecretFlags(t *testing.T) {
+	cases := []struct {
+		in   []string
+		want []string
+	}{
+		{[]string{"--api_key=s3cr3t"}, []string{"--api_key=<REDACTED>"}},
+		{[]string{"--api_key", "s3cr3t"}, []string{"--api_key", "<REDACTED>"}},
+		{[]string{"--API_KEY=s3cr3t"}, []string{"--API_KEY=<REDACTED>"}},
+		{[]string{"--apikey=s3cr3t"}, []string{"--apikey=<REDACTED>"}},
+		{[]string{"--access_token", "s3cr3t"}, []string{"--access_token", "<REDACTED>"}},
+		{[]string{"--auth-token=s3cr3t"}, []string{"--auth-token=<REDACTED>"}},
+		{[]string{"--log_level", "debug"}, []string{"--log_level", "debug"}},
+	}
+	for _, tc := range cases {
+		t.Run(strings.Join(tc.in, " "), func(t *testing.T) {
+			assert.Equal(t, tc.want, SanitizeArgs(tc.in))
+		})
+	}
 }
