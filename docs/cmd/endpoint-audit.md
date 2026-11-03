@@ -18,11 +18,21 @@ reads the home directory.
 | What vet finds | How the report holds it |
 | --- | --- |
 | AI tools, coding agents, MCP servers, agent skills, Neovim plugins | Inventory records. An MCP server record holds the names of its environment variables and headers, never their values. |
-| VS Code, Cursor, Windsurf and VSCodium extensions | Packages of the `vscode` or `openvsx` ecosystem. The malware control checks them. |
+| VS Code, Cursor, Windsurf, Antigravity and VSCodium extensions, and the extensions of the VS Code and Cursor servers (`~/.vscode-server`, `~/.cursor-server`) on WSL, over Remote SSH and in a dev container | Packages of the `vscode` or `openvsx` ecosystem. The malware control checks them. |
 | Global npm packages (`~/.npm-global`, nvm, volta, fnm, asdf, mise, the Windows npm prefix) | Packages of the `npm` ecosystem. Every package control checks them. |
 | Agent and editor config files (`.vscode/tasks.json`, `.claude/settings.json`, MCP configs, the user tasks and settings of each editor) | Manifests that the agent configuration controls read. |
 | The entry scripts of the global npm (`npm/lib/cli.js`, `npm/lib/cli/entry.js`, `npm/bin/npm-cli.js`, `npm/bin/npx-cli.js`) of the user, and of the machine with `--all-users` | Manifests that the hidden-code controls read. A changed entry script runs at each npm command. |
 | With `--projects DIR`, the agent and editor configs, build configs, fonts and images, and scripts of the repositories under `DIR` | Manifests that the agent configuration and hidden-code controls read. |
+
+vet reads the config and the MCP servers of these coding agents: Claude Code, Cursor, Windsurf,
+Antigravity, VS Code, Codex, Gemini CLI, GitHub Copilot CLI, OpenCode, Qwen Code, Amp, Augment Code,
+Kiro, Amazon Q Developer, Junie, Goose, Continue, Zed, Cline and Roo Code. It finds the CLI of an
+agent on `PATH` and runs it with `--version` to confirm it.
+
+A config file can stay after a user removes the agent. So the record of each coding agent has
+`agent.evidence`, the sorted list of what vet found: `config`, `binary` (a confirmed CLI on `PATH`),
+`extension` (an IDE extension of the agent) and `app_bundle` (a documented install location, such as
+`/Applications/Zed.app`). `agent.installed` is `true` when the list holds more than `config`.
 
 The table counts the tools by kind and lists each one, with its client and its path. It shows
 10 rows. `vet report show --all` lists every tool.

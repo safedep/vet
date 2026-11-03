@@ -11,6 +11,8 @@ const (
 	metaKeyExtensionVersion   = "extension.version"
 	metaKeyExtensionEcosystem = "extension.ecosystem"
 	metaKeyExtensionIDE       = "extension.ide"
+	metaKeyAgentInstalled     = "agent.installed"
+	metaKeyAgentEvidence      = "agent.evidence"
 )
 
 // newItem makes an item with its identity, its source id and the display
@@ -29,4 +31,11 @@ func newItem(kind inventory.Kind, scope inventory.Scope, app, appDisplay, name, 
 		it.SetMeta(metaKeyAppDisplay, appDisplay)
 	}
 	return it
+}
+
+// newCodingAgent makes a system coding agent with its config at configPath.
+func newCodingAgent(app, appDisplay, configPath string) *inventory.Item {
+	agent := newItem(inventory.KindCodingAgent, inventory.ScopeSystem, app, appDisplay, appDisplay, configPath)
+	agent.Agent = &inventory.AgentDetail{}
+	return agent
 }

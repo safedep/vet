@@ -614,6 +614,14 @@ maps it to the report kind. `inventory.ItemIdentity` and `inventory.SourceID` ma
 extension that a marketplace serves is a package of an `endpoint` manifest, not an inventory item.
 _Avoid_: asset, tool (as a type name), AI tool (as a type; the report kind is `ai-tool`)
 
+**Install evidence**:
+What shows that a coding agent is on an endpoint, other than its config. A config file can stay
+after a user removes the agent. The values are `config`, `binary` (a confirmed CLI on `PATH`),
+`extension` (an IDE extension of the agent) and `app_bundle` (a documented install location). The
+inventory item of the agent holds them in `agent.evidence`, and `agent.installed` is `true` when
+they hold more than `config`. `installEvidence` in `internal/endpoint/aitool` sets both after every
+discoverer has run.
+
 **Agent config**:
 A file that tells an AI agent or an editor to run commands or connect to servers: editor tasks, agent
 settings and hooks, devcontainer files, git hooks, MCP configs and agent instruction files.

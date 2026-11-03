@@ -8,18 +8,21 @@ import (
 	"strings"
 
 	"github.com/safedep/dry/log"
+	"github.com/tidwall/jsonc"
 
 	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 // mcpServerEntry represents a single MCP server entry in an app config file.
 // This format is shared across Claude Code, Cursor, and Windsurf. Windsurf uses
-// "serverUrl" instead of "url" for remote servers; resolvedURL() normalizes this.
+// "serverUrl" instead of "url" for remote servers. Gemini CLI and Qwen Code use
+// "httpUrl" for a streamable HTTP server. resolvedURL() normalizes these.
 type mcpServerEntry struct {
 	Command      string         `json:"command,omitempty"`
 	Args         []string       `json:"args,omitempty"`
 	URL          string         `json:"url,omitempty"`
 	ServerURL    string         `json:"serverUrl,omitempty"`
+	HTTPURL      string         `json:"httpUrl,omitempty"`
 	Type         string         `json:"type,omitempty"`
 	Env          map[string]any `json:"env,omitempty"`
 	Headers      map[string]any `json:"headers,omitempty"`
@@ -27,12 +30,15 @@ type mcpServerEntry struct {
 	AllowedTools []string       `json:"allowedTools,omitempty"`
 }
 
-// resolvedURL returns the effective URL, preferring URL over ServerURL.
+// resolvedURL returns the effective URL, preferring URL over ServerURL and HTTPURL.
 func (e mcpServerEntry) resolvedURL() string {
 	if e.URL != "" {
 		return e.URL
 	}
-	return e.ServerURL
+	if e.ServerURL != "" {
+		return e.ServerURL
+	}
+	return e.HTTPURL
 }
 
 // mcpAppConfig represents an application's JSON config file containing
@@ -63,6 +69,20 @@ func parseMCPAppConfig(path string) (*mcpAppConfig, error) {
 	return &cfg, nil
 }
 
+// parseJSONCFile reads a JSON file that can hold comments and trailing
+// commas (JSONC) into v. Zed, OpenCode and Amp write such settings files.
+func parseJSONCFile(path string, v any) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(jsonc.ToJSON(data), v); err != nil {
+		log.Warnf("Failed to parse config file %s: %v", path, err)
+		return err
+	}
+	return nil
+}
+
 // detectTransport determines the MCP transport from a server entry.
 // An explicit "type" field takes priority over heuristics.
 func detectTransport(entry mcpServerEntry) inventory.Transport {
@@ -70,15 +90,18 @@ func detectTransport(entry mcpServerEntry) inventory.Transport {
 	switch strings.ReplaceAll(strings.ToLower(entry.Type), "-", "_") {
 	case "sse":
 		return inventory.TransportSSE
-	case "streamable_http":
+	case "streamable_http", "http":
 		return inventory.TransportStreamableHTTP
-	case "stdio":
+	case "stdio", "local":
 		return inventory.TransportStdio
 	}
 
 	// Fall back to heuristics from command/url presence
 	if entry.Command != "" {
 		return inventory.TransportStdio
+	}
+	if entry.HTTPURL != "" && entry.URL == "" && entry.ServerURL == "" {
+		return inventory.TransportStreamableHTTP
 	}
 	if u := entry.resolvedURL(); u != "" {
 		if strings.Contains(u, "/sse") {

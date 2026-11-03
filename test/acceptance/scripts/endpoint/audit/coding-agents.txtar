@@ -1,0 +1,30 @@
+# vet endpoint audit reads the config of more coding agents than Claude
+# Code, Cursor and VS Code: here Codex (TOML), Gemini CLI (an httpUrl
+# server) and Zed (JSONC settings). Each agent is an ai-tool record with its
+# install evidence, and each of its MCP servers is an mcp-server record with
+# no secret value.
+env CODEX_HOME=
+exec vet endpoint audit --mode plain -o json
+reportcheck stdout
+stdout '"kind":"ai-tool","name":"Codex","path":"[^"]*\.codex","client":"codex","scope":"system","details":\{"agent.evidence":"[a-z_,]*config[a-z_,]*","agent.installed":"(true|false)"'
+stdout '"kind":"mcp-server","name":"codex-docs","path":"[^"]*config\.toml","client":"codex"'
+stdout '"kind":"ai-tool","name":"Gemini CLI","path":"[^"]*settings\.json","client":"gemini_cli"'
+stdout '"kind":"mcp-server","name":"gemini-remote","path":"[^"]*settings\.json","client":"gemini_cli","scope":"system","details":\{[^}]*"mcp.transport":"streamable_http"'
+stdout '"kind":"ai-tool","name":"Zed","path":"[^"]*zed","client":"zed"'
+stdout '"kind":"mcp-server","name":"zed-git","path":"[^"]*settings\.json","client":"zed"'
+! stdout 'example-secret'
+
+-- home/.codex/config.toml --
+[mcp_servers.codex-docs]
+command = "npx"
+args = ["-y", "@example/docs-mcp"]
+env = { "DOCS_TOKEN" = "example-secret" }
+-- home/.gemini/settings.json --
+{"mcpServers": {"gemini-remote": {"httpUrl": "https://example.com/mcp", "headers": {"Authorization": "Bearer example-secret"}}}}
+-- home/.config/zed/settings.json --
+// Zed writes JSONC settings.
+{
+  "context_servers": {
+    "zed-git": {"command": "uvx", "args": ["mcp-server-git"], "env": {"GIT_TOKEN": "example-secret"},},
+  },
+}

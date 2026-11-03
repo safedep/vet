@@ -760,6 +760,12 @@
   tier: P1
   guarantee: "The table of vet endpoint audit counts the tools by kind and lists each one. The first step line names the machine, not the manifests."
   labels: [endpoint]
+- id: endpoint/audit/coding-agents
+  title: "endpoint audit: more coding agents"
+  category: endpoint
+  tier: P1
+  guarantee: "vet endpoint audit reports Codex, Gemini CLI and Zed as ai-tool records with agent.installed and agent.evidence, and their MCP servers from TOML, httpUrl and JSONC configs as mcp-server records with no secret value."
+  labels: [endpoint]
 - id: endpoint/audit/all-users-needs-root
   title: "endpoint audit: --all-users needs root"
   category: endpoint

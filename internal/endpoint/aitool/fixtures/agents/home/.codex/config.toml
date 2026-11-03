@@ -1,0 +1,15 @@
+model = "gpt-5-codex"
+
+[mcp_servers.codex-stdio]
+command = "npx"
+args = ["-y", "@example/mcp-server", "--api-key=secret123"]
+env = { "EXAMPLE_TOKEN" = "sk-secret-value" }
+env_vars = ["PASSTHROUGH_VAR", { name = "SOURCED_VAR", source = "local" }]
+enabled_tools = ["search"]
+
+[mcp_servers.codex-remote]
+url = "https://example.com/mcp"
+bearer_token_env_var = "REMOTE_TOKEN"
+http_headers = { "X-Org" = "acme" }
+env_http_headers = { "X-Api-Key" = "API_KEY_VAR" }
+enabled = false
