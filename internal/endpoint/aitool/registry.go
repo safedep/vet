@@ -57,7 +57,8 @@ func (r *Registry) Register(name string, factory AIToolDiscovererFactory) {
 }
 
 // Discover runs all registered discoverers and calls handler for each tool found.
-// Factory or discoverer errors are logged and skipped; handler errors propagate immediately.
+// A factory error is logged and skipped. A discoverer error ends the run after
+// the held agents reach the handler. A handler error ends the run at once.
 // Discover holds back each coding agent until every discoverer has run. The
 // install evidence of an agent (agent.installed, agent.evidence) comes from
 // the CLI and extension items of later discoverers.
@@ -67,6 +68,11 @@ func (r *Registry) Discover(ctx context.Context, config DiscoveryConfig, handler
 	var handlerErr error
 
 	collect := func(it *inventory.Item) error {
+		// A discoverer can drop the error of the handler. A failed handler
+		// still gets no more items.
+		if handlerErr != nil {
+			return handlerErr
+		}
 		if it != nil && it.Kind == inventory.KindCodingAgent {
 			agents = append(agents, it)
 			return nil
@@ -94,6 +100,9 @@ func (r *Registry) Discover(ctx context.Context, config DiscoveryConfig, handler
 			}
 			return errors.Join(err, emitAgents(agents, evidence, handler))
 		}
+	}
+	if handlerErr != nil {
+		return handlerErr
 	}
 	return emitAgents(agents, evidence, handler)
 }

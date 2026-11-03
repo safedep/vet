@@ -378,7 +378,7 @@ func TestToolTable(t *testing.T) {
 	r.InventoryList = []*report.InventoryItem{
 		{Kind: report.InventorySkill, Name: "review"},
 		{Kind: report.InventoryMCPServer, Name: "db", Client: "cursor"},
-		{Kind: report.InventoryAITool, Name: "Claude Code"},
+		{Kind: report.InventoryAITool, Name: "Claude Code", Path: "/h/.claude", Details: map[string]string{"agent.installed": "false"}},
 		{Kind: report.InventoryMCPServer, Name: "aws"},
 		{Kind: "browser-extension", Name: "x"},
 	}
@@ -395,6 +395,7 @@ func TestToolTable(t *testing.T) {
 	for i, want := range []string{"Claude Code", "aws", "db", "review", "x"} {
 		assert.Contains(t, names[i], want, "the tools sort by kind, then by name")
 	}
+	assert.Contains(t, names[0], "/h/.claude (config only)", "an agent that only a config shows is marked")
 
 	got = write(t, plugin.MapConfig{"limit": 2}, r)
 	assert.Contains(t, got, "› 3 more tools. vet report show --all lists each one.")

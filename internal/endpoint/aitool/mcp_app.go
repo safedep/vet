@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"syscall"
 
 	"github.com/safedep/dry/log"
 
@@ -127,7 +128,9 @@ func (d *mcpAppDiscoverer) emitMCPFile(path string, scope inventory.Scope, handl
 		// file. A file that vet cannot read, such as one of another user,
 		// gets a log line, so the audit does not miss its servers silently.
 		var pe *fs.PathError
-		if errors.As(err, &pe) && !errors.Is(err, fs.ErrNotExist) {
+		// A folder in the path that is a file gives ENOTDIR, which is
+		// also a missing file.
+		if errors.As(err, &pe) && !errors.Is(err, fs.ErrNotExist) && !errors.Is(err, syscall.ENOTDIR) {
 			log.Warnf("endpoint: read %s: %v", path, err)
 		}
 		return nil

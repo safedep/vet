@@ -274,3 +274,32 @@ func TestRegistry_FailedHandlerGetsNoMoreItems(t *testing.T) {
 	assert.ErrorIs(t, err, handlerErr)
 	assert.Equal(t, 1, calls, "the registry does not call a failed handler again with the held agents")
 }
+
+// swallowingReader drops the error of the handler.
+type swallowingReader struct{ items []*inventory.Item }
+
+func (swallowingReader) Name() string { return "swallowing" }
+func (swallowingReader) App() string  { return "swallowing" }
+func (s swallowingReader) EnumTools(_ context.Context, handler AIToolHandlerFn) error {
+	for _, it := range s.items {
+		if err := handler(it); err != nil {
+			continue
+		}
+	}
+	return nil
+}
+
+func TestRegistry_FailedHandlerGetsNoItemsFromADiscovererThatDropsTheError(t *testing.T) {
+	r := NewRegistry()
+	r.Register("swallowing", func(_ DiscoveryConfig) (AIToolReader, error) {
+		return swallowingReader{items: []*inventory.Item{evidenceTestCLI(codexApp, true), evidenceTestCLI(codexApp, true)}}, nil
+	})
+	handlerErr := errors.New("handler error")
+	calls := 0
+	err := r.Discover(context.Background(), DiscoveryConfig{}, func(*inventory.Item) error {
+		calls++
+		return handlerErr
+	})
+	assert.ErrorIs(t, err, handlerErr, "the error of the handler reaches the caller")
+	assert.Equal(t, 1, calls)
+}
