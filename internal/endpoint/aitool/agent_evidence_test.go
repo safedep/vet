@@ -229,3 +229,29 @@ func TestEnvPath_UnsetReturnsEmpty(t *testing.T) {
 	assert.Equal(t, filepath.Join(base, "Programs", "Microsoft VS Code"),
 		envPath("LOCALAPPDATA", "Programs", "Microsoft VS Code"))
 }
+
+type failingReader struct{ err error }
+
+func (failingReader) Name() string { return "failing" }
+func (failingReader) App() string  { return "failing" }
+func (f failingReader) EnumTools(context.Context, AIToolHandlerFn) error {
+	return f.err
+}
+
+func TestRegistry_DiscovererErrorKeepsTheAgentsBeforeIt(t *testing.T) {
+	r := NewRegistry()
+	r.Register("agent", func(_ DiscoveryConfig) (AIToolReader, error) {
+		return &mockReader{name: "agent", tools: []*inventory.Item{evidenceTestAgent(codexApp)}}, nil
+	})
+	enumErr := errors.New("enum error")
+	r.Register("failing", func(_ DiscoveryConfig) (AIToolReader, error) { return failingReader{err: enumErr}, nil })
+
+	var got []*inventory.Item
+	err := r.Discover(context.Background(), DiscoveryConfig{}, func(it *inventory.Item) error {
+		got = append(got, it)
+		return nil
+	})
+	assert.ErrorIs(t, err, enumErr)
+	require.Len(t, got, 1, "an agent found before the error still reaches the handler")
+	assert.Equal(t, inventory.KindCodingAgent, got[0].Kind)
+}

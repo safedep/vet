@@ -2,6 +2,8 @@ package aitool
 
 import (
 	"context"
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -118,7 +120,13 @@ func (d *mcpAppDiscoverer) emitMCPFile(path string, scope inventory.Scope, handl
 	}
 	cfg, err := d.spec.parse(path)
 	if err != nil {
-		// A missing file is the common case. The parser logs a broken file.
+		// A missing file is the common case, and the parser logs a broken
+		// file. A file that vet cannot read, such as one of another user,
+		// gets a log line, so the audit does not miss its servers silently.
+		var pe *fs.PathError
+		if errors.As(err, &pe) && !errors.Is(err, fs.ErrNotExist) {
+			log.Warnf("endpoint: read %s: %v", path, err)
+		}
 		return nil
 	}
 	return emitMCPServers(cfg, path, scope, d.spec.app, d.spec.appDisplay, handler)

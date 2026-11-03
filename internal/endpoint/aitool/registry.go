@@ -2,6 +2,7 @@ package aitool
 
 import (
 	"context"
+	"errors"
 	"os"
 
 	"github.com/safedep/dry/log"
@@ -83,19 +84,22 @@ func (r *Registry) Discover(ctx context.Context, config DiscoveryConfig, handler
 			continue
 		}
 
-		err = reader.EnumTools(ctx, collect)
-		if err != nil {
-			return err
+		if err := reader.EnumTools(ctx, collect); err != nil {
+			// The agents that came before the error still reach the
+			// handler, as they did before the registry held them back.
+			return errors.Join(err, emitAgents(agents, evidence, handler))
 		}
 	}
+	return emitAgents(agents, evidence, handler)
+}
 
+func emitAgents(agents []*inventory.Item, evidence *installEvidence, handler AIToolHandlerFn) error {
 	for _, agent := range agents {
 		evidence.enrich(agent)
 		if err := handler(agent); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
