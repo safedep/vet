@@ -564,17 +564,14 @@ func syncInventory(ctx context.Context, cfg *config.Config, creds *credentials.R
 		if err != nil {
 			return err
 		}
-		switch {
-		case rec.Inventory != nil:
+		if rec.Inventory != nil {
 			audit.Items = append(audit.Items, *rec.Inventory)
-		case rec.Diagnostic != nil:
-			audit.Diagnostics = append(audit.Diagnostics, *rec.Diagnostic)
 		}
 	}
 	if err := sendInventory(ctx, cfg, creds, store, opts, audit); err != nil {
 		return s.AddDiagnostic(ctx, &report.Diagnostic{
 			Level: report.DiagnosticWarning, Code: CodeInventorySync, Component: inventory.Name,
-			Message: err.Error() + ". vet sends the inventory on the next audit.",
+			Message: err.Error(),
 			Count:   1,
 		})
 	}

@@ -74,10 +74,13 @@ var types = map[inventory.Kind]report.InventoryType{
 func typeOf(k inventory.Kind) report.InventoryType { return types[k] }
 
 func scopeOf(s inventory.Scope) string {
-	if s == inventory.ScopeProject {
+	switch s {
+	case inventory.ScopeProject:
 		return "project"
+	case inventory.ScopeSystem:
+		return "system"
 	}
-	return "system"
+	return ""
 }
 
 func transportOf(t inventory.Transport) string {
