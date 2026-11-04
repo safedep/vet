@@ -136,6 +136,7 @@ func stripJSONC(data []byte) []byte {
 // of a string as it is. each returns how many bytes it took.
 func scanJSON(data []byte, each func(out *bytes.Buffer, i int) int) []byte {
 	var out bytes.Buffer
+	out.Grow(len(data))
 	inString, escaped := false, false
 	for i := 0; i < len(data); i++ {
 		c := data[i]
@@ -216,21 +217,28 @@ func decodeJSONC(data []byte) (any, error) {
 	return v, nil
 }
 
-var yamlLine = regexp.MustCompile(`^yaml: line (\d+):`)
+// yamlLine finds the line in a yaml.v3 syntax error, "yaml: line 3: ...",
+// and in a decode error, "yaml: unmarshal errors:\n  line 3: ...".
+var yamlLine = regexp.MustCompile(`^yaml: (?:unmarshal errors:\n\s+)?line (\d+):`)
 
 // decodeYAML decodes a YAML file into a generic value.
 func decodeYAML(data []byte) (any, error) {
 	var v any
 	if err := yaml.Unmarshal(data, &v); err != nil {
-		line := 1
-		if m := yamlLine.FindStringSubmatch(err.Error()); m != nil {
-			if n, convErr := strconv.Atoi(m[1]); convErr == nil {
-				line = n
-			}
-		}
-		return nil, &parseError{line: line, err: err}
+		return nil, yamlError(err)
 	}
 	return v, nil
+}
+
+// yamlError is a YAML error with the line that yaml.v3 puts in its text.
+func yamlError(err error) error {
+	line := 1
+	if m := yamlLine.FindStringSubmatch(err.Error()); m != nil {
+		if n, convErr := strconv.Atoi(m[1]); convErr == nil {
+			line = n
+		}
+	}
+	return &parseError{line: line, err: err}
 }
 
 // lineOf returns the line of the first occurrence of the JSON form of s,
@@ -552,107 +560,6 @@ func lefthook(data []byte) ([]command, error) {
 		}
 	}
 	return out, nil
-}
-
-// mcpServers reads the servers of an MCP config: mcpServers in the agent
-// files, servers in .vscode/mcp.json. A file can hold both keys, and a
-// client can read either, so vet reads each entry of each key. A merge
-// would let a harmless entry hide a malicious entry of the same name.
-func mcpServers(data []byte) ([]server, error) {
-	doc, err := decodeJSONC(data)
-	if err != nil {
-		return nil, err
-	}
-	root := objectOf(doc)
-	clean := stripJSONC(data)
-	var out []server
-	for _, key := range []string{"mcpServers", "servers"} {
-		section := objectOf(root[key])
-		for _, n := range sortedKeys(section) {
-			if len(out) > maxCommands {
-				return out, nil
-			}
-			e := objectOf(section[n])
-			url := ""
-			for _, k := range []string{"url", "serverUrl", "httpUrl"} {
-				if url == "" {
-					url = stringOf(e[k])
-				}
-			}
-			words := []string{stringOf(e["command"])}
-			for _, a := range listOf(e["args"]) {
-				words = append(words, stringOf(a))
-			}
-			cmd := strings.TrimSpace(strings.Join(words, " "))
-			line := keyLine(clean, key, n)
-			if line == 0 {
-				line = lineOf(data, n)
-			}
-			out = append(out, server{name: n, command: cmd, url: url, line: line})
-		}
-	}
-	return out, nil
-}
-
-// keyLine returns the line of the key at path in the JSON text clean, or 0.
-// It reads the JSON tokens, so a key in a comment or in a string does not
-// match. Of two keys of one name, the last one counts, as in the decoded
-// value. stripJSONC keeps the lines of a file, so the line is the line in
-// the file.
-func keyLine(clean []byte, path ...string) int {
-	dec := json.NewDecoder(bytes.NewReader(clean))
-	if t, err := dec.Token(); err != nil || t != json.Delim('{') {
-		return 0
-	}
-	line, err := lastKeyLine(dec, clean, path)
-	if err != nil {
-		return 0
-	}
-	return line
-}
-
-// lastKeyLine reads the rest of an object from dec and returns the line of
-// the last key at path in it.
-func lastKeyLine(dec *json.Decoder, clean []byte, path []string) (int, error) {
-	line := 0
-	for dec.More() {
-		t, err := dec.Token()
-		if err != nil {
-			return 0, err
-		}
-		if t != path[0] {
-			if err := skipValue(dec); err != nil {
-				return 0, err
-			}
-			continue
-		}
-		if len(path) == 1 {
-			line = bytes.Count(clean[:dec.InputOffset()], []byte("\n")) + 1
-			if err := skipValue(dec); err != nil {
-				return 0, err
-			}
-			continue
-		}
-		t, err = dec.Token()
-		if err != nil {
-			return 0, err
-		}
-		switch t {
-		case json.Delim('{'):
-			if line, err = lastKeyLine(dec, clean, path[1:]); err != nil {
-				return 0, err
-			}
-		case json.Delim('['):
-			if err := skipRest(dec); err != nil {
-				return 0, err
-			}
-			line = 0
-		default:
-			line = 0
-		}
-	}
-	_, err := dec.Token()
-	return line, err
 }
 
 // skipValue reads one value from dec.

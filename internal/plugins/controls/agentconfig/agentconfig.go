@@ -50,6 +50,12 @@ const (
 	// and a minified line of 1 MiB does not cost a pass for each finding.
 	maxSnippet    = 200
 	maxKeySnippet = 4 << 10
+	// maxSnippetLine is the longest line that gets a snippet. redact must
+	// read the whole line, because a cut can split an env object and hide
+	// its values from the patterns. A longer line, such as a minified
+	// ~/.claude.json of many MiB, gets no snippet, so it costs no pass and
+	// shows no secret.
+	maxSnippetLine = 64 << 10
 )
 
 // Options are plugins.agent-config.options.
@@ -122,13 +128,18 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 	if !ok {
 		return nil, nil
 	}
-	data, err := readLimited(m.Root, m.Path)
+	layout, isMCP := agentfiles.MCP(m.Path)
+	limit := int64(maxSize)
+	if layout.MaxSize > 0 {
+		limit = layout.MaxSize
+	}
+	data, err := readLimited(m.Root, m.Path, limit)
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", m.Path, err)
 	}
 	e := &emitter{path: m.Path, seen: map[string]int{}, snippets: map[int]snippet{}}
-	if len(data) > maxSize {
-		e.unreadable(1, "size", fmt.Sprintf("%s is larger than %d MiB, the most that vet reads", m.Path, maxSize>>20))
+	if int64(len(data)) > limit {
+		e.unreadable(1, "size", fmt.Sprintf("%s is larger than %d MiB, the most that vet reads", m.Path, limit>>20))
 		return e.out, nil
 	}
 	data = utf8Text(data)
@@ -137,7 +148,10 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 		e.add(IDInstructionChange, finding.SeverityInfo, 1, "instructions", "Agent instruction file "+m.Path, nil)
 		return e.out, nil
 	}
-	p, err := parse(t, data)
+	if !isMCP {
+		layout.Sections = nil
+	}
+	p, err := parse(t, layout, data)
 	if err != nil {
 		e.unreadable(errorLine(err), "parse", fmt.Sprintf("vet cannot parse %s: %s", m.Path, short(firstLine(err.Error()))))
 		// An editor can read past a syntax error and run the task, so a
@@ -163,9 +177,9 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 	return e.out, nil
 }
 
-// readLimited reads at most one byte more than maxSize, so a file that grows
+// readLimited reads at most one byte more than limit, so a file that grows
 // or has no fixed size cannot make the control read more.
-func readLimited(fsys fs.FS, name string) (data []byte, err error) {
+func readLimited(fsys fs.FS, name string, limit int64) (data []byte, err error) {
 	f, err := fsys.Open(name)
 	if err != nil {
 		return nil, err
@@ -175,7 +189,7 @@ func readLimited(fsys fs.FS, name string) (data []byte, err error) {
 			err = cerr
 		}
 	}()
-	return io.ReadAll(io.LimitReader(f, maxSize+1))
+	return io.ReadAll(io.LimitReader(f, limit+1))
 }
 
 func firstLine(s string) string {
@@ -193,17 +207,19 @@ type parsed struct {
 }
 
 // parse reads the commands of a file, the servers of an MCP config, or the
-// settings of an editor.
-func parse(t agentfiles.Type, data []byte) (parsed, error) {
+// settings of an editor. A Claude settings file holds hooks and MCP servers.
+func parse(t agentfiles.Type, l agentfiles.MCPLayout, data []byte) (parsed, error) {
 	var p parsed
 	var err error
 	switch t {
 	case agentfiles.MCPConfig:
-		p.servers, err = mcpServers(data)
 	case agentfiles.EditorSettings:
 		p.settings, err = editorSettings(data)
 	default:
 		p.commands, err = commands(t, data)
+	}
+	if err == nil && len(l.Sections) > 0 {
+		p.servers, err = mcpServers(data, l)
 	}
 	return p, err
 }
@@ -266,14 +282,17 @@ func (*Control) suspicious(e *emitter, line int, name, reason string) {
 }
 
 // suspiciousLines reports each line of a file that vet cannot parse that
-// holds a malicious command.
+// holds a malicious command. It reads the first maxSize bytes. A file with
+// a larger limit, such as ~/.claude.json, would cost a pass of each pattern
+// over many MiB.
 func (c *Control) suspiciousLines(e *emitter) {
 	dir := path.Base(path.Dir(e.path))
-	found := 0
+	found, read := 0, 0
 	for i, l := range e.lines {
-		if found >= maxCommands {
+		if found >= maxCommands || read > maxSize {
 			return
 		}
+		read += len(l) + 1
 		if reason := suspiciousReason(l, dir); reason != "" {
 			c.suspicious(e, i+1, fmt.Sprintf("line %d", i+1), reason)
 			found++
@@ -324,6 +343,10 @@ func (e *emitter) snippet(line int) snippet {
 		return snippet{}
 	}
 	s, ok := e.snippets[line]
+	if !ok && len(e.lines[line-1]) > maxSnippetLine {
+		e.snippets[line] = s
+		return s
+	}
 	if !ok {
 		s.full = redact(strings.TrimSpace(e.lines[line-1]))
 		s.display = finding.Shorten(s.full, maxSnippet)

@@ -20,7 +20,7 @@ const (
 	// the user folder of the editor. A setting can make tasks run with no
 	// prompt.
 	EditorSettings Type = "editor-settings"
-	// ClaudeSettings is .claude/settings.json, with hooks.
+	// ClaudeSettings is .claude/settings.json, with hooks and MCP servers.
 	ClaudeSettings Type = "claude-settings"
 	// DevContainer is devcontainer.json, with lifecycle commands.
 	DevContainer Type = "devcontainer"
@@ -38,22 +38,47 @@ const (
 // HomeFiles are the agent and editor files that a home directory can hold,
 // by slash path relative to the home directory. Classify knows the type of
 // each one. The user tasks of an editor run in every folder that it opens.
+// The audit reads each file that exists, so a file that the discovery
+// cannot parse still reaches the control.
 var HomeFiles = append([]string{
 	".vscode/tasks.json",
 	".claude/settings.json",
 	".claude/settings.local.json",
 	".claude/CLAUDE.md",
+	".claude.json",
 	".mcp.json",
 	".cursor/mcp.json",
 	".vscode/mcp.json",
 	".codeium/windsurf/mcp_config.json",
 	".gemini/settings.json",
+	".gemini/antigravity/mcp_config.json",
+	".codex/config.toml",
+	".copilot/mcp-config.json",
+	".augment/settings.json",
+	".junie/mcp/mcp.json",
+	".kiro/settings/mcp.json",
+	".qwen/settings.json",
+	".aws/amazonq/mcp.json",
+	".continue/config.yaml",
+	".cline/data/settings/cline_mcp_settings.json",
+	".config/goose/config.yaml",
+	"AppData/Roaming/Block/goose/config/config.yaml",
+	".config/zed/settings.json",
+	"AppData/Roaming/Zed/settings.json",
+	".config/amp/settings.json",
+	".config/amp/settings.jsonc",
+	".config/opencode/opencode.json",
+	".config/opencode/opencode.jsonc",
 }, userFiles()...)
 
 // ConfigDirs are the folders of a repository that hold agent or editor
 // config. An editor or an agent follows a symbolic link to such a folder,
 // so a scan follows it too.
-var ConfigDirs = map[string]bool{".vscode": true, ".cursor": true, ".claude": true, ".githooks": true, ".husky": true, ".devcontainer": true}
+var ConfigDirs = map[string]bool{
+	".vscode": true, ".cursor": true, ".claude": true, ".githooks": true, ".husky": true, ".devcontainer": true,
+	".codex": true, ".kiro": true, ".junie": true, ".roo": true, ".qwen": true, ".amp": true, ".continue": true,
+	".gemini": true, ".amazonq": true,
+}
 
 // editorUserDirs are the folder names of the editors that keep user tasks
 // and settings in <config dir>/<name>/User.
@@ -63,11 +88,22 @@ var editorUserDirs = []string{"Code", "Code - Insiders", "Cursor", "VSCodium", "
 // directory: Linux, macOS and Windows.
 var configDirs = []string{".config", "Library/Application Support", "AppData/Roaming"}
 
+// globalStorageMCPFiles are the MCP settings that a VS Code extension keeps
+// in its globalStorage folder, relative to the User folder of the editor.
+var globalStorageMCPFiles = []string{
+	"globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json",
+	"globalStorage/rooveterinaryinc.roo-cline/settings/mcp_settings.json",
+}
+
 func userFiles() []string {
 	var out []string
 	for _, c := range configDirs {
 		for _, e := range editorUserDirs {
-			out = append(out, c+"/"+e+"/User/tasks.json", c+"/"+e+"/User/settings.json")
+			user := c + "/" + e + "/User/"
+			out = append(out, user+"tasks.json", user+"settings.json", user+"mcp.json")
+			for _, f := range globalStorageMCPFiles {
+				out = append(out, user+f)
+			}
 		}
 	}
 	return out
@@ -103,7 +139,7 @@ func Classify(p string) (t Type, ok bool) {
 		return EditorTasks, true
 	case base == "settings.json" && (dir == ".vscode" || isEditorUserDir(path.Dir(p))):
 		return EditorSettings, true
-	case dir == ".claude" && (base == "settings.json" || base == "settings.local.json"):
+	case claudeSettings(p):
 		return ClaudeSettings, true
 	case dir == ".devcontainer" && base == "devcontainer.json", base == ".devcontainer.json":
 		return DevContainer, true
@@ -112,10 +148,7 @@ func Classify(p string) (t Type, ok bool) {
 		return GitHook, true
 	case base == "lefthook.yml" || base == "lefthook.yaml" || base == ".lefthook.yml" || base == ".lefthook.yaml":
 		return Lefthook, true
-	case base == ".mcp.json",
-		base == "mcp.json" && (dir == ".cursor" || dir == ".vscode"),
-		base == "mcp_config.json" && dir == "windsurf",
-		base == "settings.json" && dir == ".gemini":
+	case isMCP(p):
 		return MCPConfig, true
 	case instructionFiles[lower],
 		base == "copilot-instructions.md" && dir == ".github",

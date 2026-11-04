@@ -5,6 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/v2/internal/plugins/internal/agentfiles"
 )
 
 func TestEditorTasks(t *testing.T) {
@@ -100,22 +102,101 @@ func TestEditorTasks(t *testing.T) {
 	}
 }
 
-func TestKeyLine(t *testing.T) {
+func TestMCPServers(t *testing.T) {
+	standard := agentfiles.MCPLayout{Format: agentfiles.JSON, Sections: [][]string{{"mcpServers"}, {"servers"}}}
 	cases := []struct {
-		name string
-		data string
-		want int
+		name   string
+		layout agentfiles.MCPLayout
+		data   string
+		want   []server
 	}{
-		{"nested key", "{\n\"servers\": {\n\"x\": {}\n}\n}", 3},
-		{"a key in a comment", "{\n// \"servers\": {\"x\": 1}\n\"servers\": {\n\"x\": {}\n}\n}", 4},
-		{"a key in a string", "{\"note\": \"\\\"servers\\\" x\",\n\"servers\": {\n\"x\": {}}}", 3},
-		{"the last of two keys", "{\"servers\": {\"x\": 1},\n\"servers\": {\n\"x\": 2}}", 3},
-		{"no key", `{"servers": {"y": 1}}`, 0},
-		{"a list in place of an object", `{"servers": [1]}`, 0},
+		{"nested key", standard, "{\n\"servers\": {\n\"x\": {}\n}\n}", []server{{name: "x", line: 3}}},
+		{"a key in a comment", standard, "{\n// \"servers\": {\"x\": 1}\n\"servers\": {\n\"x\": {}\n}\n}", []server{{name: "x", line: 4}}},
+		{"a key in a string", standard, "{\"note\": \"\\\"servers\\\" x\",\n\"servers\": {\n\"x\": {}}}", []server{{name: "x", line: 3}}},
+		{"each of two keys", standard, "{\"servers\": {\"x\": 1},\n\"servers\": {\n\"x\": 2}}", []server{{name: "x", line: 1}, {name: "x", line: 3}}},
+		{"a list of values that are not servers", standard, `{"servers": [1]}`, nil},
+		{
+			"a list command",
+			agentfiles.MCPLayout{Format: agentfiles.JSON, Sections: [][]string{{"mcp"}}},
+			`{"mcp": {"x": {"type": "local", "command": ["bash", "-c", "id"]}}}`,
+			[]server{{name: "x", command: "bash -c id", line: 1}},
+		},
+		{
+			"an object command",
+			agentfiles.MCPLayout{Format: agentfiles.JSON, Sections: [][]string{{"context_servers"}}},
+			"{\"context_servers\": {\n\"x\": {\"command\": {\"path\": \"node\", \"args\": [\"s.js\"]}}}}",
+			[]server{{name: "x", command: "node s.js", line: 2}},
+		},
+		{
+			"a wildcard section",
+			agentfiles.MCPLayout{Format: agentfiles.JSON, Sections: [][]string{{"projects", "*", "mcpServers"}}},
+			"{\"projects\": {\"/a\": {\"history\": [1, 2],\n\"mcpServers\": {\n\"x\": {\"url\": \"https://x.example\"}}}}}",
+			[]server{{name: "x", url: "https://x.example", line: 3}},
+		},
+		{
+			"a YAML list",
+			agentfiles.MCPLayout{Format: agentfiles.YAML, Sections: [][]string{{"mcpServers"}}},
+			"name: a\nmcpServers:\n  - name: db\n    command: npx\n    args: [db]\n",
+			[]server{{name: "db", command: "npx db", line: 3}},
+		},
+		{
+			"a YAML anchor and merge key",
+			agentfiles.MCPLayout{Format: agentfiles.YAML, Sections: [][]string{{"extensions"}}},
+			"base: &b\n  cmd: sh\n  args: [-c, id]\nextensions:\n  x:\n    <<: *b\n    type: stdio\n",
+			[]server{{name: "x", command: "sh -c id", line: 5}},
+		},
+		{
+			"a skipped YAML type",
+			agentfiles.MCPLayout{Format: agentfiles.YAML, Sections: [][]string{{"extensions"}}, Skip: map[string]bool{"builtin": true}},
+			"extensions:\n  dev:\n    type: builtin\n  x:\n    type: stdio\n    cmd: sh\n",
+			[]server{{name: "x", command: "sh", line: 4}},
+		},
+		{
+			"a TOML table",
+			agentfiles.MCPLayout{Format: agentfiles.TOML, Sections: [][]string{{"mcp_servers"}}},
+			"model = \"o3\"\n\n[mcp_servers.\"a.b\"]\ncommand = \"npx\"\nargs = [\"x\"]\n",
+			[]server{{name: "a.b", command: "npx x", line: 3}},
+		},
+		{
+			"a TOML dotted key",
+			agentfiles.MCPLayout{Format: agentfiles.TOML, Sections: [][]string{{"mcp_servers"}}},
+			"# mcp_servers\n[mcp_servers]\nx.command = \"sh\"\n",
+			[]server{{name: "x", command: "sh", line: 3}},
+		},
+		{
+			"a TOML inline table",
+			agentfiles.MCPLayout{Format: agentfiles.TOML, Sections: [][]string{{"mcp_servers"}}},
+			"mcp_servers = { x = { url = \"https://x.example\" } }\n",
+			[]server{{name: "x", url: "https://x.example", line: 1}},
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, keyLine(stripJSONC([]byte(tc.data)), "servers", "x"))
+			got, err := mcpServers([]byte(tc.data), tc.layout)
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestMCPServersErrors(t *testing.T) {
+	cases := []struct {
+		name   string
+		format agentfiles.Format
+		data   string
+		line   int
+	}{
+		{"JSON cut short", agentfiles.JSON, "{\"mcpServers\": {\n\"x\": {", 2},
+		{"JSON after the root", agentfiles.JSON, "{}\n{}", 2},
+		{"duplicate YAML key", agentfiles.YAML, "mcpServers:\n  - name: a\nmcpServers: []\n", 3},
+		{"TOML syntax", agentfiles.TOML, "[mcp_servers.x]\ncommand = \n", 2},
+		{"duplicate TOML table", agentfiles.TOML, "[mcp_servers.x]\ncommand = \"a\"\n[mcp_servers.x]\ncommand = \"b\"\n", 3},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := mcpServers([]byte(tc.data), agentfiles.MCPLayout{Format: tc.format, Sections: [][]string{{"mcpServers"}, {"mcp_servers"}}})
+			require.Error(t, err)
+			assert.Equal(t, tc.line, errorLine(err))
 		})
 	}
 }
