@@ -6,10 +6,10 @@
 env CODEX_HOME=
 exec vet endpoint audit --mode plain -o json
 reportcheck stdout
-stdout '"kind":"ai-tool","name":"Codex","path":"[^"]*\.codex","client":"codex","scope":"system","details":\{"agent.evidence":"[a-z_,]*config[a-z_,]*","agent.installed":"(true|false)"'
+stdout '"kind":"ai-tool","name":"Codex","path":"[^"]*\.codex","client":"codex","scope":"system","type":"coding-agent".*?"details":\{"agent.evidence":"[a-z_,]*config[a-z_,]*","agent.installed":"(true|false)"'
 stdout '"kind":"mcp-server","name":"codex-docs","path":"[^"]*config\.toml","client":"codex"'
 stdout '"kind":"ai-tool","name":"Gemini CLI","path":"[^"]*settings\.json","client":"gemini_cli"'
-stdout '"kind":"mcp-server","name":"gemini-remote","path":"[^"]*settings\.json","client":"gemini_cli","scope":"system","details":\{[^}]*"mcp.transport":"streamable_http"'
+stdout '"kind":"mcp-server","name":"gemini-remote","path":"[^"]*settings\.json","client":"gemini_cli","scope":"system","type":"mcp-server".*?"mcp_server":\{"transport":"streamable_http"'
 stdout '"kind":"ai-tool","name":"Zed","path":"[^"]*zed","client":"zed"'
 stdout '"kind":"mcp-server","name":"zed-git","path":"[^"]*settings\.json","client":"zed"'
 ! stdout 'example-secret'

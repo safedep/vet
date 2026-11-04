@@ -160,6 +160,13 @@ After its expiry date, the suppression no longer hides the finding. Read
 vet sends the identity of each package (its ecosystem, name and version) to SafeDep to get the data
 about it. vet sends no source code and no file content.
 
+With credentials, `vet endpoint audit` also sends the inventory of the machine to SafeDep Cloud: the
+AI tools, MCP servers, skills and extensions, their config paths, and the user name of each home
+directory. On macOS and Linux, vet also sends the uid of each home directory. An MCP server record
+holds its command, its arguments and its URL with known secrets redacted, and the names of its
+variables and headers, never their values.
+`plugins.cloud-inventory.enabled: false` turns this off.
+
 ## Community
 
 - Ask questions and share ideas on [Discord](https://discord.gg/kAGEj25dCn) or in
@@ -168,7 +175,8 @@ about it. vet sends no source code and no file content.
 - Read the [contributing guide](CONTRIBUTING.md) before you open a pull request.
 
 vet also runs in the cloud. [SafeDep Cloud](https://safedep.io/) runs vet on your repositories, with
-no infrastructure to manage.
+no infrastructure to manage. With credentials, `vet endpoint audit` sends the AI tools, MCP servers
+and extensions of each machine to SafeDep Cloud.
 
 <a href="https://github.com/safedep/vet/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=safedep/vet" alt="Contributors to vet" />

@@ -209,18 +209,29 @@ func ownHome(c DiscoveryConfig) bool {
 }
 
 // appDataPath joins elem to the roaming application data folder of the
-// home that the discovery reads: %APPDATA% for the user who runs vet, and
-// AppData\Roaming under the home of another user on Windows. With
-// --all-users, the APPDATA of the user who runs vet is not the folder of the
-// other users. It returns "" when there is no such folder.
+// home that the discovery reads.
 func appDataPath(config DiscoveryConfig, homeDir string, elem ...string) string {
+	return profileDataPath(config, homeDir, "APPDATA", "Roaming", elem...)
+}
+
+// localAppDataPath joins elem to the local application data folder of the
+// home that the discovery reads.
+func localAppDataPath(config DiscoveryConfig, homeDir string, elem ...string) string {
+	return profileDataPath(config, homeDir, "LOCALAPPDATA", "Local", elem...)
+}
+
+// profileDataPath returns %key%\elem for the user who runs vet, and
+// AppData\folder\elem under the home of another user on Windows. With
+// --all-users, the variable of the user who runs vet does not point to the
+// folder of the other users. It returns "" when there is no such folder.
+func profileDataPath(config DiscoveryConfig, homeDir, key, folder string, elem ...string) string {
 	if ownHome(config) {
-		return envPath("APPDATA", elem...)
+		return envPath(key, elem...)
 	}
 	if runtime.GOOS != "windows" {
 		return ""
 	}
-	return filepath.Join(append([]string{homeDir, "AppData", "Roaming"}, elem...)...)
+	return filepath.Join(append([]string{homeDir, "AppData", folder}, elem...)...)
 }
 
 // vscodeUserDataDirs returns the VS Code user data folders of each OS:

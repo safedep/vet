@@ -1,7 +1,7 @@
 package endpoint
 
 import (
-	"strconv"
+	"maps"
 	"strings"
 
 	"github.com/safedep/vet/v2/internal/endpoint/inventory"
@@ -9,51 +9,42 @@ import (
 	"github.com/safedep/vet/v2/report"
 )
 
-// toRecord maps an inventory item to its report record. The record holds
-// names only, never a secret value: the scanners keep the names of the
-// environment variables and the headers, not their values.
-func toRecord(it *inventory.Item) report.InventoryItem {
+// toRecord maps an inventory item of the home directory of user to its
+// report record. The record holds names only, never a secret value: the
+// scanners keep the names of the environment variables and the headers,
+// not their values.
+func toRecord(it *inventory.Item, user *report.InventoryUser) report.InventoryItem {
 	r := report.InventoryItem{
-		Kind: kindOf(it), Name: it.Name, Path: it.ConfigPath, Client: it.App,
-		Scope: scopeOf(it.Scope), Details: map[string]string{},
-	}
-	for k, v := range it.Metadata {
-		r.Details[k] = v
-	}
-	if it.Enabled != nil {
-		r.Details["enabled"] = strconv.FormatBool(*it.Enabled)
+		Kind: kindOf(it), Type: typeOf(it.Kind), Name: it.Name, Path: it.ConfigPath, Client: it.App,
+		Scope: scopeOf(it.Scope), Identity: it.ItemIdentity, Source: it.SourceID, User: user,
+		Enabled: it.Enabled, Details: maps.Clone(it.Metadata),
 	}
 	if m := it.MCPServer; m != nil {
-		set(r.Details, "mcp.transport", transportOf(m.Transport))
-		set(r.Details, "mcp.command", m.Command)
-		set(r.Details, "mcp.args", strings.Join(m.Args, " "))
-		set(r.Details, "mcp.url", m.URL)
-		set(r.Details, "mcp.env_names", strings.Join(m.EnvVarNames, ","))
-		set(r.Details, "mcp.header_names", strings.Join(m.HeaderNames, ","))
+		r.MCPServer = &report.InventoryMCP{
+			Transport: transportOf(m.Transport), Command: m.Command, Args: m.Args, URL: m.URL,
+			EnvNames: m.EnvVarNames, HeaderNames: m.HeaderNames,
+			AllowedTools: m.AllowedTools, AllowedResources: m.AllowedResources,
+		}
 	}
 	if a := it.Agent; a != nil {
 		r.Version = a.Version
-		set(r.Details, "agent.permission_mode", a.PermissionMode)
-		set(r.Details, "agent.model", a.Model)
-		set(r.Details, "agent.instruction_files", strings.Join(a.InstructionFiles, ","))
+		r.Agent = &report.InventoryAgent{
+			PermissionMode: a.PermissionMode, Model: a.Model,
+			InstructionFiles: a.InstructionFiles, APIKeyEnvName: a.APIKeyEnvName,
+		}
 	}
 	if e := it.IDEExtension; e != nil {
-		set(r.Details, "extension.ide", e.IDE)
+		r.Extension = &report.InventoryExtension{IDE: e.IDE}
 		if p := e.Package; p != nil {
 			r.Version = p.Version
-			set(r.Details, "extension.ecosystem", p.Ecosystem)
+			r.Extension.Ecosystem = model.Ecosystem(p.Ecosystem)
+			r.Extension.Package = p.Name
 		}
 	}
 	if len(r.Details) == 0 {
 		r.Details = nil
 	}
 	return r
-}
-
-func set(m map[string]string, k, v string) {
-	if v != "" {
-		m[k] = v
-	}
 }
 
 func kindOf(it *inventory.Item) report.InventoryKind {
@@ -68,11 +59,28 @@ func kindOf(it *inventory.Item) report.InventoryKind {
 	return report.InventoryAITool
 }
 
+var types = map[inventory.Kind]report.InventoryType{
+	inventory.KindMCPServer:        report.InventoryTypeMCPServer,
+	inventory.KindCodingAgent:      report.InventoryTypeCodingAgent,
+	inventory.KindAIExtension:      report.InventoryTypeAIExtension,
+	inventory.KindCLITool:          report.InventoryTypeCLITool,
+	inventory.KindProjectConfig:    report.InventoryTypeProjectConfig,
+	inventory.KindBrowserExtension: report.InventoryTypeBrowserExtension,
+	inventory.KindIDEExtension:     report.InventoryTypeIDEExtension,
+	inventory.KindAgentPlugin:      report.InventoryTypeAgentPlugin,
+	inventory.KindAgentSkill:       report.InventoryTypeSkill,
+}
+
+func typeOf(k inventory.Kind) report.InventoryType { return types[k] }
+
 func scopeOf(s inventory.Scope) string {
-	if s == inventory.ScopeProject {
+	switch s {
+	case inventory.ScopeProject:
 		return "project"
+	case inventory.ScopeSystem:
+		return "system"
 	}
-	return "system"
+	return ""
 }
 
 func transportOf(t inventory.Transport) string {

@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"os"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/safedep/dry/localdb"
@@ -327,7 +326,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			Diagnostics: pol.diagnostics(),
 			BatchSize:   100, Observer: v, Opened: notContinued, Reach: code.reach,
 			Finalize: func(ctx context.Context, s *state.Scan) (report.Gate, error) {
-				if err := syncInventory(ctx, cfg, store, s); err != nil {
+				if err := syncInventory(ctx, cfg, creds, store, s); err != nil {
 					return report.Gate{}, err
 				}
 				g, err := evaluator.Finalize(ctx, s)
@@ -543,36 +542,49 @@ func actionRefs(cfg *config.Config) (*actionrefs.Enricher, error) {
 // not reach SafeDep Cloud.
 const CodeInventorySync = "inventory_sync_unavailable"
 
-// syncInventory sends the inventory of an endpoint audit when
-// plugins.cloud-inventory is on. A sync that does not reach SafeDep Cloud
-// is a diagnostic: the batch waits in the log of the state directory.
-func syncInventory(ctx context.Context, cfg *config.Config, store *state.Store, s *state.Scan) error {
+// syncInventory sends the inventory of an endpoint audit to SafeDep Cloud
+// when the run has credentials, unless plugins.cloud-inventory turns it
+// off. A sync that does not reach SafeDep Cloud is a diagnostic, and its
+// events wait in the log of the state directory.
+func syncInventory(ctx context.Context, cfg *config.Config, creds *credentials.Result, store *state.Store, s *state.Scan) error {
 	h := s.Header()
-	if h == nil || h.Scan.Kind != report.ScanKindEndpoint || !cfg.PluginEnabled(inventory.Name, false) {
+	if h == nil || h.Scan.Kind != report.ScanKindEndpoint || !cfg.PluginEnabled(inventory.Name, true) {
 		return nil
 	}
-	syncer, err := inventory.New(plugin.MapConfig(cfg.PluginOptions(inventory.Name)), inventory.NewWAL(store.StateDir()))
+	opts, err := inventory.Decode(plugin.MapConfig(cfg.PluginOptions(inventory.Name)))
 	if err != nil {
 		return app.UsageError(fmt.Sprintf("plugins.%s.options: %v", inventory.Name, err), "Fix the option in the config file.")
 	}
-	var items []report.InventoryItem
+	if creds.Anonymous() {
+		tui.Info("vet keeps the inventory in the local report. Run vet auth login to send it to SafeDep Cloud.")
+		return nil
+	}
+	audit := inventory.Audit{ScanID: h.Scan.ID}
 	for rec, err := range s.Records(ctx) {
 		if err != nil {
 			return err
 		}
 		if rec.Inventory != nil {
-			items = append(items, *rec.Inventory)
+			audit.Items = append(audit.Items, *rec.Inventory)
 		}
 	}
-	err = syncer.Sync(ctx, h.Scan.TargetKey, items)
-	if !errors.Is(err, plugin.ErrUnavailable) {
+	if err := sendInventory(ctx, cfg, creds, store, opts, audit); err != nil {
+		return s.AddDiagnostic(ctx, &report.Diagnostic{
+			Level: report.DiagnosticWarning, Code: CodeInventorySync, Component: inventory.Name,
+			Message: err.Error(),
+			Count:   1,
+		})
+	}
+	return nil
+}
+
+func sendInventory(ctx context.Context, cfg *config.Config, creds *credentials.Result, store *state.Store, opts inventory.Options, audit inventory.Audit) (err error) {
+	syncer, err := inventory.Open(opts, cfg.Cloud.Endpoints.API, creds, store.StateDir(), version.Version())
+	if err != nil {
 		return err
 	}
-	return s.AddDiagnostic(ctx, &report.Diagnostic{
-		Level: report.DiagnosticWarning, Code: CodeInventorySync, Component: inventory.Name,
-		Message: fmt.Sprintf("%s. vet keeps the inventory in %s and sends it on the next scan.", strings.TrimSuffix(err.Error(), ": "+plugin.ErrUnavailable.Error()), inventory.WALFile),
-		Count:   1,
-	})
+	defer func() { err = errors.Join(err, syncer.Close()) }()
+	return syncer.Sync(ctx, audit)
 }
 
 // newEvaluator builds the evaluator of the --fail-on value, the policy

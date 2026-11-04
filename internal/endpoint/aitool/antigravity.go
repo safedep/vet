@@ -54,17 +54,17 @@ func (d *antigravityDiscoverer) EnumTools(_ context.Context, handler AIToolHandl
 	// Linux/macOS: ~/.antigravity (legacy), ~/.config/Antigravity (XDG config),
 	// ~/.local/share/antigravity (XDG data).
 	// Windows: %APPDATA%\Antigravity, %LOCALAPPDATA%\Antigravity.
-	// os.Getenv returns "" on platforms where the variable is absent, causing
-	// filepath.Join to produce a relative path that os.Stat will not find — the
-	// directory is simply skipped.
 	agDirs := []string{
 		filepath.Join(d.homeDir, ".antigravity"),
 		filepath.Join(d.homeDir, ".config", "Antigravity"),
 		filepath.Join(d.homeDir, ".local", "share", "antigravity"),
-		filepath.Join(os.Getenv("APPDATA"), "Antigravity"),
-		filepath.Join(os.Getenv("LOCALAPPDATA"), "Antigravity"),
+		appDataPath(d.config, d.homeDir, "Antigravity"),
+		localAppDataPath(d.config, d.homeDir, "Antigravity"),
 	}
 	for _, dir := range agDirs {
+		if dir == "" {
+			continue
+		}
 		info, err := os.Stat(dir)
 		if err != nil || !info.IsDir() {
 			continue

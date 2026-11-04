@@ -8,10 +8,13 @@ import (
 	"testing"
 	"time"
 
+	controltowerv1grpc "buf.build/gen/go/safedep/api/grpc/go/safedep/services/controltower/v1/controltowerv1grpc"
 	insightsv2grpc "buf.build/gen/go/safedep/api/grpc/go/safedep/services/insights/v2/insightsv2grpc"
 	malysisv1grpc "buf.build/gen/go/safedep/api/grpc/go/safedep/services/malysis/v1/malysisv1grpc"
+	controltowermsg "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	malysismsg "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
+	controltowerv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/controltower/v1"
 	insightsv2 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/insights/v2"
 	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/malysis/v1"
 	"github.com/stretchr/testify/assert"
@@ -19,6 +22,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -121,4 +125,30 @@ func TestGitHub(t *testing.T) {
 	s.Fail(GitHub, codes.Unavailable)
 	code, _ := get("/repos/actions/checkout/git/ref/tags/v4", "")
 	assert.Equal(t, http.StatusServiceUnavailable, code)
+}
+
+func TestEndpointSync(t *testing.T) {
+	s, conn := start(t)
+	c := controltowerv1grpc.NewEndpointServiceClient(conn)
+	ctx := metadata.AppendToOutgoingContext(context.Background(), "x-tenant-id", "acme.safedep.io")
+	ev := controltowerv1.ToolEvent_builder{EventId: "e-1", ToolName: "vet"}.Build()
+	req := controltowerv1.SyncEventsRequest_builder{
+		Endpoint: controltowermsg.EndpointIdentity_builder{Identifier: "ci-runner-1"}.Build(),
+		Events:   []*controltowerv1.ToolEvent{ev},
+	}.Build()
+
+	res, err := c.SyncEvents(ctx, req)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"e-1"}, res.GetConfirmedEventIds(), "the stub confirms each event")
+	events := s.Events()
+	require.Len(t, events, 1)
+	assert.Equal(t, "acme.safedep.io", events[0].Tenant)
+	assert.Equal(t, "ci-runner-1", events[0].Endpoint)
+	assert.Contains(t, events[0].JSON, `"event_id":"e-1"`, "the event has proto field names")
+
+	s.Fail(EndpointSync, codes.Unavailable)
+	_, err = c.SyncEvents(ctx, req)
+	assert.Equal(t, codes.Unavailable, status.Code(err))
+	assert.Len(t, s.Events(), 1, "a failed call records nothing")
+	assert.Equal(t, 2, s.Calls(EndpointSync))
 }
