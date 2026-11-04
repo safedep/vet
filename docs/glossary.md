@@ -634,7 +634,10 @@ discoverer has run.
 A file that tells an AI agent or an editor to run commands or connect to servers: editor tasks, agent
 settings and hooks, devcontainer files, git hooks, MCP configs and agent instruction files.
 `internal/plugins/internal/agentfiles` classifies them, and the `agent-config` control checks them.
-`agentfiles.HomeFiles` is the one list of the files that a home directory can hold.
+`agentfiles.HomeFiles` is the one list of the files that a home directory can hold. `agentfiles.MCP`
+is the one table of the MCP config files of each coding agent, with the format (JSON, TOML or YAML)
+and the keys that hold the servers. A test fails when the endpoint discovery reads an MCP file that
+the table does not hold.
 
 **Hidden code**:
 Code that a file hides from a person who reads it: code after a long run of spaces in a build config,

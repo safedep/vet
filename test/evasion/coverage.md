@@ -25,6 +25,12 @@ detection, and commit the diff. See README.md.
 | `hook-download`: A git hook in .githooks that pipes a download to sh | `agent-hook-command`, `suspicious-command` | `agent-hook-command`, `suspicious-command` | fails | pass |
 | `ifs`: A download piped to sh, with ${IFS} in place of spaces | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `login-shell`: A download piped to the login shell in $SHELL | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
+| `mcp-amp-nested`: An Amp MCP server under the nested amp key | `mcp-server-added`, `suspicious-command` | `mcp-server-added`, `suspicious-command` | fails | pass |
+| `mcp-codex-toml`: A Codex MCP server in a quoted TOML table that pipes a download to sh | `mcp-server-added`, `suspicious-command` | `mcp-server-added`, `suspicious-command` | fails | pass |
+| `mcp-continue-anchor`: A Continue MCP server that takes its command from a YAML anchor | `mcp-server-added`, `suspicious-command` | `mcp-server-added`, `suspicious-command` | fails | pass |
+| `mcp-kiro`: A Kiro MCP server that pipes a download to sh | `mcp-server-added`, `suspicious-command` | `mcp-server-added`, `suspicious-command` | fails | pass |
+| `mcp-opencode-list`: An OpenCode MCP server with the command and its arguments in one list | `mcp-server-added`, `suspicious-command` | `mcp-server-added`, `suspicious-command` | fails | pass |
+| `mcp-qwen-npx`: Near miss: a Qwen Code MCP server that runs a published package | `mcp-server-added` | `mcp-server-added` | passes | pass |
 | `nested-c`: A download piped to sh inside bash -c inside sh -c | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `node-font`: node runs a fake font | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
 | `node-fromcharcode`: An inline node script that builds a payload from char codes | `editor-task-command`, `suspicious-command` | `editor-task-command`, `suspicious-command` | fails | pass |
@@ -158,4 +164,4 @@ detection, and commit the diff. See README.md.
 | `polinrider-rewrite`: PolinRider: a script that amends the last commit, keeps its date and force-pushes it | `history-rewrite-script` | `history-rewrite-script` | fails | pass |
 | `polinrider-task`: PolinRider: a hidden folder-open task runs node on a fake font | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | fails | pass |
 
-Total: 125 cases, 122 pass, 0 fail, 3 known misses.
+Total: 131 cases, 128 pass, 0 fail, 3 known misses.
