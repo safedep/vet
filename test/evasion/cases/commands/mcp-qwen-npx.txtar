@@ -1,0 +1,8 @@
+# Near miss: a Qwen Code MCP server that runs a published package
+want: mcp-server-added
+-- .qwen/settings.json --
+{
+  "mcpServers": {
+    "docs": {"command": "npx", "args": ["-y", "example-docs-server"]}
+  }
+}

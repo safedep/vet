@@ -30,6 +30,13 @@ func TestRedact(t *testing.T) {
 		{`token=abc npm run deploy`, `token=*** npm run deploy`},
 		{`a && api_token=abc;b`, `a && api_token=***;b`},
 		{`node --no-warnings public/a.woff2`, `node --no-warnings public/a.woff2`},
+		{`mcp_servers.x = { command = "bash", env = { API_TOKEN = "hunter2", MODE = 'x' } }`, `mcp_servers.x = { command = "bash", env = { API_TOKEN = "***", MODE = "***" } }`},
+		{`env = { API_TOKEN = "hunter2"`, `env = { API_TOKEN = "***"`},
+		{`- {name: x, command: bash, env: {API_TOKEN: hunter2, MODE: x}}`, `- {name: x, command: bash, env: {API_TOKEN: ***, MODE: "***"}}`},
+		{`requestOptions: {headers: {X-Api-Key: hunter2}}`, `requestOptions: {headers: {X-Api-Key: ***}}`},
+		{`    API_TOKEN: hunter2 two`, `    API_TOKEN: ***`},
+		{`    X-Api-Key: 'hunter2'`, `    X-Api-Key: ***`},
+		{`url: https://mcp.example/sse`, `url: https://mcp.example/sse`},
 	}
 	for _, tc := range cases {
 		assert.Equal(t, tc.want, redact(tc.in))

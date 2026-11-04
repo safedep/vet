@@ -6,6 +6,7 @@
 package agentconfig
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -50,6 +51,12 @@ const (
 	// and a minified line of 1 MiB does not cost a pass for each finding.
 	maxSnippet    = 200
 	maxKeySnippet = 4 << 10
+	// maxSnippetLine is the longest line that gets a snippet. redact must
+	// read the whole line, because a cut can split an env object and hide
+	// its values from the patterns. A longer line, such as a minified
+	// ~/.claude.json of many MiB, gets no snippet, so it costs no pass and
+	// shows no secret.
+	maxSnippetLine = 64 << 10
 )
 
 // Options are plugins.agent-config.options.
@@ -122,22 +129,30 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 	if !ok {
 		return nil, nil
 	}
-	data, err := readLimited(m.Root, m.Path)
+	layout, isMCP := agentfiles.MCP(m.Path)
+	limit := int64(maxSize)
+	if layout.MaxSize > 0 {
+		limit = layout.MaxSize
+	}
+	data, err := readLimited(m.Root, m.Path, limit)
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", m.Path, err)
 	}
 	e := &emitter{path: m.Path, seen: map[string]int{}, snippets: map[int]snippet{}}
-	if len(data) > maxSize {
-		e.unreadable(1, "size", fmt.Sprintf("%s is larger than %d MiB, the most that vet reads", m.Path, maxSize>>20))
+	if int64(len(data)) > limit {
+		e.unreadable(1, "size", fmt.Sprintf("%s is larger than %d MiB, the most that vet reads", m.Path, limit>>20))
 		return e.out, nil
 	}
 	data = utf8Text(data)
-	e.lines = strings.Split(string(data), "\n")
+	e.text = string(data)
 	if t == agentfiles.Instructions {
 		e.add(IDInstructionChange, finding.SeverityInfo, 1, "instructions", "Agent instruction file "+m.Path, nil)
 		return e.out, nil
 	}
-	p, err := parse(t, data)
+	if !isMCP {
+		layout.Sections = nil
+	}
+	p, err := parse(t, layout, data)
 	if err != nil {
 		e.unreadable(errorLine(err), "parse", fmt.Sprintf("vet cannot parse %s: %s", m.Path, short(firstLine(err.Error()))))
 		// An editor can read past a syntax error and run the task, so a
@@ -163,9 +178,9 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 	return e.out, nil
 }
 
-// readLimited reads at most one byte more than maxSize, so a file that grows
+// readLimited reads at most one byte more than limit, so a file that grows
 // or has no fixed size cannot make the control read more.
-func readLimited(fsys fs.FS, name string) (data []byte, err error) {
+func readLimited(fsys fs.FS, name string, limit int64) (data []byte, err error) {
 	f, err := fsys.Open(name)
 	if err != nil {
 		return nil, err
@@ -175,7 +190,15 @@ func readLimited(fsys fs.FS, name string) (data []byte, err error) {
 			err = cerr
 		}
 	}()
-	return io.ReadAll(io.LimitReader(f, maxSize+1))
+	// A buffer of the size of the file avoids the copies of each growth,
+	// which cost many MiB for a large ~/.claude.json.
+	size := int64(0)
+	if info, err := f.Stat(); err == nil {
+		size = min(info.Size(), limit)
+	}
+	buf := bytes.NewBuffer(make([]byte, 0, size+1+bytes.MinRead))
+	_, err = buf.ReadFrom(io.LimitReader(f, limit+1))
+	return buf.Bytes(), err
 }
 
 func firstLine(s string) string {
@@ -193,17 +216,19 @@ type parsed struct {
 }
 
 // parse reads the commands of a file, the servers of an MCP config, or the
-// settings of an editor.
-func parse(t agentfiles.Type, data []byte) (parsed, error) {
+// settings of an editor. A Claude settings file holds hooks and MCP servers.
+func parse(t agentfiles.Type, l agentfiles.MCPLayout, data []byte) (parsed, error) {
 	var p parsed
 	var err error
 	switch t {
 	case agentfiles.MCPConfig:
-		p.servers, err = mcpServers(data)
 	case agentfiles.EditorSettings:
 		p.settings, err = editorSettings(data)
 	default:
 		p.commands, err = commands(t, data)
+	}
+	if err == nil && len(l.Sections) > 0 {
+		p.servers, err = mcpServers(data, l)
 	}
 	return p, err
 }
@@ -252,9 +277,19 @@ func (c *Control) server(e *emitter, s server) {
 	}
 	e.add(IDMCPServer, finding.SeverityMedium, s.line, s.name, title,
 		&finding.Remediation{Summary: "Check who publishes the server and what it can read. Pin the version of the package that it runs."})
-	if s.command != "" {
-		c.suspicious(e, s.line, s.name, suspiciousReason(s.command, path.Base(path.Dir(e.path))))
+	if s.command == "" {
+		return
 	}
+	dir := path.Base(path.Dir(e.path))
+	reason := suspiciousReason(s.command, dir)
+	// An agent passes env to the server, so sh -c "$P" runs the payload in
+	// P. The values go to the check only, never to a title.
+	for _, v := range s.env {
+		if reason == "" {
+			reason = suspiciousReason(v, dir)
+		}
+	}
+	c.suspicious(e, s.line, s.name, reason)
 }
 
 func (*Control) suspicious(e *emitter, line int, name, reason string) {
@@ -266,11 +301,17 @@ func (*Control) suspicious(e *emitter, line int, name, reason string) {
 }
 
 // suspiciousLines reports each line of a file that vet cannot parse that
-// holds a malicious command.
+// holds a malicious command. It reads the first maxSize bytes. A file with
+// a larger limit, such as ~/.claude.json, would cost a pass of each pattern
+// over many MiB. A command past the first MiB of a broken ~/.claude.json
+// gives no finding, but Claude Code does not run a broken file either.
 func (c *Control) suspiciousLines(e *emitter) {
 	dir := path.Base(path.Dir(e.path))
 	found := 0
-	for i, l := range e.lines {
+	rest := e.text[:min(len(e.text), maxSize)]
+	for i := 0; rest != ""; i++ {
+		l, after, _ := strings.Cut(rest, "\n")
+		rest = after
 		if found >= maxCommands {
 			return
 		}
@@ -286,7 +327,6 @@ func (e *emitter) unreadable(line int, discriminator, title string) {
 		&finding.Remediation{Summary: "Fix the file or remove it. An editor or an agent can run what vet cannot read."})
 }
 
-// short cuts a command to its first 80 characters for a title.
 // hostOf names the server of an MCP URL for a title. A title holds no
 // text of a command or a URL from the file, because a redactor cannot know
 // each form of a secret. The snippet shows the redacted line.
@@ -306,10 +346,14 @@ func short(s string) string {
 // emitter builds the file findings of one file, with the occurrence index
 // among identical snippets.
 type emitter struct {
-	path  string
-	lines []string
-	seen  map[string]int
-	out   []finding.Finding
+	path string
+	// text is the file. A split into lines would cost a string header for
+	// each line, and a .claude.json can hold millions of lines. lineAt reads
+	// forward from the line that it read last.
+	text            string
+	curLine, curOff int
+	seen            map[string]int
+	out             []finding.Finding
 	// snippets holds the snippet of each line. One minified line can hold
 	// every command of a file, so the emitter reads each line once.
 	snippets map[int]snippet
@@ -319,19 +363,44 @@ type emitter struct {
 // a short text for display.
 type snippet struct{ full, display string }
 
-func (e *emitter) snippet(line int) snippet {
-	if line < 1 || line > len(e.lines) {
-		return snippet{}
+// lineAt returns line n of the text. The findings of a file come mostly in
+// line order, so the cursor moves forward. An earlier line starts from the
+// top.
+func (e *emitter) lineAt(n int) (string, bool) {
+	if n < 1 {
+		return "", false
 	}
-	s, ok := e.snippets[line]
-	if !ok {
-		s.full = redact(strings.TrimSpace(e.lines[line-1]))
-		s.display = finding.Shorten(s.full, maxSnippet)
-		if len(s.full) > maxKeySnippet {
-			s.full = strings.ToValidUTF8(s.full[:maxKeySnippet], "")
+	if e.curLine == 0 || n < e.curLine {
+		e.curLine, e.curOff = 1, 0
+	}
+	for e.curLine < n {
+		i := strings.IndexByte(e.text[e.curOff:], '\n')
+		if i < 0 {
+			return "", false
 		}
-		e.snippets[line] = s
+		e.curOff += i + 1
+		e.curLine++
 	}
+	l, _, _ := strings.Cut(e.text[e.curOff:], "\n")
+	return l, true
+}
+
+func (e *emitter) snippet(line int) snippet {
+	s, ok := e.snippets[line]
+	if ok {
+		return s
+	}
+	text, found := e.lineAt(line)
+	if !found || len(text) > maxSnippetLine {
+		e.snippets[line] = s
+		return s
+	}
+	s.full = redact(strings.TrimSpace(text))
+	s.display = finding.Shorten(s.full, maxSnippet)
+	if len(s.full) > maxKeySnippet {
+		s.full = strings.ToValidUTF8(s.full[:maxKeySnippet], "")
+	}
+	e.snippets[line] = s
 	return s
 }
 

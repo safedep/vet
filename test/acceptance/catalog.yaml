@@ -284,6 +284,12 @@
   tier: P1
   guarantee: "In pull request mode, a change that adds a .vscode/tasks.json task with runOn: folderOpen gives a high editor-task-command finding. An agent instruction file that the change does not touch gives none."
   labels: [agent-config, pr-mode]
+- id: controls/agent-config/mcp-files
+  title: "agent config: the MCP files of each coding agent"
+  category: controls
+  tier: P1
+  guarantee: "vet scan reads the MCP config of each coding agent that vet endpoint audit knows. A malicious server in .kiro/settings/mcp.json or in a .codex/config.toml table fails the attacks gate with the line of the server. A Continue YAML server that runs a published package gives mcp-server-added and passes. A malicious server in .github/mcp.json behind a .github link fails the gate."
+  labels: [agent-config, attacks]
 - id: controls/agent-config/hidden-task
   title: "agent config: a hidden folder-open task"
   category: controls
@@ -783,6 +789,12 @@
   category: endpoint
   tier: P1
   guarantee: "vet endpoint audit reads the user tasks.json of VS Code in the config folder of the home directory, and a suspicious task in it gives a finding."
+  labels: [endpoint, agent-config]
+- id: endpoint/agent-config/mcp-files
+  title: "endpoint audit: the MCP files of each coding agent"
+  category: endpoint
+  tier: P1
+  guarantee: "vet endpoint audit reads the MCP config files of the coding agents in the home directory. A Goose extension that pipes a download to sh gives a suspicious-command finding, and a Kiro MCP file that vet cannot parse gives agent-config-unreadable."
   labels: [endpoint, agent-config]
 - id: endpoint/projects/hidden-code
   title: "endpoint audit: hidden code in local repositories"

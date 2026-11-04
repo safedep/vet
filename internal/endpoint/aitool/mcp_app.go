@@ -244,3 +244,22 @@ func vscodeUserDataDirs(config DiscoveryConfig, homeDir string) []string {
 		appDataPath(config, homeDir, "Code", "User"),
 	}
 }
+
+// MCPAppFiles returns the MCP config files that the spec discoverers of r
+// read: the absolute system paths, and the project globs relative to the
+// project folder. The hand-written discoverers are not in it. The
+// agent-config control must read each file, and a test of
+// internal/plugins/internal/agentfiles checks that it does.
+func (r *Registry) MCPAppFiles(config DiscoveryConfig) (system, project []string) {
+	for _, e := range r.entries {
+		reader, err := e.factory(config)
+		if err != nil {
+			continue
+		}
+		if d, ok := reader.(*mcpAppDiscoverer); ok {
+			system = append(system, d.spec.systemMCPPaths...)
+			project = append(project, d.spec.projectMCPGlobs...)
+		}
+	}
+	return system, project
+}
