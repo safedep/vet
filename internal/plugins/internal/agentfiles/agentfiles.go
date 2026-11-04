@@ -77,7 +77,7 @@ var HomeFiles = append([]string{
 var ConfigDirs = map[string]bool{
 	".vscode": true, ".cursor": true, ".claude": true, ".githooks": true, ".husky": true, ".devcontainer": true,
 	".codex": true, ".kiro": true, ".junie": true, ".roo": true, ".qwen": true, ".amp": true, ".continue": true,
-	".gemini": true, ".amazonq": true,
+	".gemini": true, ".amazonq": true, ".github": true,
 }
 
 // editorUserDirs are the folder names of the editors that keep user tasks

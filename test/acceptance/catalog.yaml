@@ -288,7 +288,7 @@
   title: "agent config: the MCP files of each coding agent"
   category: controls
   tier: P1
-  guarantee: "vet scan reads the MCP config of each coding agent that vet endpoint audit knows. A malicious server in .kiro/settings/mcp.json or in a .codex/config.toml table fails the attacks gate with the line of the server. A Continue YAML server that runs a published package gives mcp-server-added and passes."
+  guarantee: "vet scan reads the MCP config of each coding agent that vet endpoint audit knows. A malicious server in .kiro/settings/mcp.json or in a .codex/config.toml table fails the attacks gate with the line of the server. A Continue YAML server that runs a published package gives mcp-server-added and passes. A malicious server in .github/mcp.json behind a .github link fails the gate."
   labels: [agent-config, attacks]
 - id: controls/agent-config/hidden-task
   title: "agent config: a hidden folder-open task"
