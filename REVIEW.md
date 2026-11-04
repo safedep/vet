@@ -32,6 +32,8 @@ CI and `make check` already enforce these. Do not report them:
 - A live credential that TruffleHog verifies in CI. TruffleHog does not fail CI on a secret that it
   cannot verify, and CI does not run gitleaks. So any other secret (a private key, an internal
   token, a credential for a service that TruffleHog cannot reach) stays in scope.
+  A `trufflehog:ignore` or `gitleaks:allow` comment that the pull request adds is always in
+  scope.
 - CodeQL findings.
 - Dependency versions that Dependabot and the dependency review own.
 - Lockfiles (`go.sum`, `go.work.sum`, `pnpm-lock.yaml`) and the input fixtures under `testdata/`,
