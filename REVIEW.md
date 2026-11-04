@@ -29,8 +29,10 @@ CI and `make check` already enforce these. Do not report them:
 - Lint and format findings: golangci-lint, gci, gofumpt, go vet. `make check` lints the changed lines.
 - Compile errors and failed tests, including `internal/archtest`, the command conventions test in
   `internal/cmd` and the hermetic acceptance suite.
-- Secrets that TruffleHog finds in CI, and CodeQL findings. CI does not run gitleaks, so a secret
-  that only gitleaks would find stays in scope.
+- A live credential that TruffleHog verifies in CI. TruffleHog does not fail CI on a secret that it
+  cannot verify, and CI does not run gitleaks. So any other secret (a private key, an internal
+  token, a credential for a service that TruffleHog cannot reach) stays in scope.
+- CodeQL findings.
 - Dependency versions that Dependabot and the dependency review own.
 - Lockfiles (`go.sum`, `go.work.sum`, `pnpm-lock.yaml`) and the input fixtures under `testdata/`,
   `test/extraction/corpus` and `test/evasion/cases`. A fixture is often a fake attack on purpose.
