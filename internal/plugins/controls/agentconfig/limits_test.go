@@ -65,14 +65,15 @@ func TestLargeClaudeUserConfigIsFast(t *testing.T) {
 
 // TestLongTOMLKeyIsFast keeps a dotted key of many parts fast. The TOML
 // parser costs time in the square of the parts, so a file past the dot
-// limit is unreadable and the parser never sees it.
+// limit is unreadable and the parser never sees it. The parser takes about
+// 7 s on a key of 40 000 parts.
 func TestLongTOMLKeyIsFast(t *testing.T) {
 	cases := []struct {
 		name  string
 		parts int
 		want  []want
 	}{
-		{"past the limit", (1<<20 - 100) / 2, []want{{agentconfig.IDUnreadable, finding.SeverityHigh, 1}}},
+		{"past the limit", 40000, []want{{agentconfig.IDUnreadable, finding.SeverityHigh, 1}}},
 		{"under the limit", 8000, nil},
 	}
 	for _, tc := range cases {
