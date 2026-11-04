@@ -41,8 +41,8 @@ Each rule comes from `AGENTS.md` or a doc that it names. The severity follows ea
 1. **Code in the wrong package.** A change that edits `internal/archtest` or the depguard rules of
    `.golangci.yml` to let new code pass is Important. The code must move. The rule stays.
 2. **Package identity.** Code compares package versions only with `model.PackageVersion` (`Equal`,
-   `Key`, `SamePackage`, `Compare`). A compare or a map key on the name and version strings or on
-   the PURL is Important.
+   `Key`, `SamePackage`, `Compare`), and groups the versions of one package with `NameKey`. A
+   compare or a map key on the name and version strings or on the PURL is Important.
 3. **Terminal output.** Only `internal/tui` imports `dry/tui`. Untrusted text (package names, paths,
    text from a repository or a registry) goes through `internal/tui/escape` before vet prints it.
    A missing escape is Important.
@@ -58,8 +58,9 @@ Each rule comes from `AGENTS.md` or a doc that it names. The severity follows ea
 8. **User guarantees.** A new user-facing guarantee has an acceptance script and a row in
    `test/acceptance/catalog.yaml`. A missing script or row is Important.
 9. **Detections.** A change to an attack detection adds cases to the evasion corpus and commits the
-   diff of `test/evasion/coverage.md`. A new detection starts as a control that warns, with no
-   `Attack: true`. An attack control with no clean false-positive run is Important. See
+   diff of `test/evasion/coverage.md`. A new detection with a risk of false positives starts as a
+   control that warns, with no `Attack: true`. A new attack control with that risk and no clean
+   false-positive run is Important. See
    `CONTRIBUTING-DETECTIONS.md`.
 10. **Release channels.** Code on `v2` never writes the `latest` image tag, the latest GitHub release
     or the `vet` cask. A change to `release-edge.yml`, `.goreleaser*` or `test/release` that can do
