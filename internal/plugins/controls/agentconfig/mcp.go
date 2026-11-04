@@ -40,7 +40,7 @@ func mcpServers(data []byte, l agentfiles.MCPLayout) ([]server, error) {
 // not hide a command that another agent runs.
 func serverOf(name string, v any, line int, skip map[string]bool) (server, bool) {
 	e := objectOf(v)
-	if skip[stringOf(e["type"])] {
+	if e == nil || skip[stringOf(e["type"])] {
 		return server{}, false
 	}
 	url := ""
@@ -53,7 +53,16 @@ func serverOf(name string, v any, line int, skip map[string]bool) (server, bool)
 	for _, a := range listOf(e["args"]) {
 		words = append(words, stringOf(a))
 	}
-	return server{name: name, command: strings.Join(strings.Fields(strings.Join(words, " ")), " "), url: url, line: line}, true
+	var env []string
+	for _, k := range []string{"env", "envs", "environment"} {
+		o := objectOf(e[k])
+		for _, n := range sortedKeys(o) {
+			if v := stringOf(o[n]); v != "" {
+				env = append(env, v)
+			}
+		}
+	}
+	return server{name: name, command: strings.Join(strings.Fields(strings.Join(words, " ")), " "), url: url, line: line, env: env}, true
 }
 
 // commandWords reads a server command: a string, a list of the executable
@@ -81,7 +90,9 @@ func commandWords(v any) []string {
 	return out
 }
 
-// listName names a server of a list by its name key, or by its position.
+// listName names a server of a list by its name key, or by its position. A
+// server with no name gets a new name, and its finding a new id, when a
+// server goes in before it.
 func listName(v any, i int) string {
 	if n := stringOf(objectOf(v)["name"]); n != "" {
 		return n
@@ -109,15 +120,19 @@ func jsonServers(clean []byte, l agentfiles.MCPLayout) ([]server, error) {
 	}
 	w := &jsonWalk{dec: json.NewDecoder(bytes.NewReader(clean)), clean: clean, skip: l.Skip, line: 1}
 	err := w.root(l.Sections)
-	if err == nil {
-		// A second value after the root is an error, as in encoding/json.
-		if _, err = w.dec.Token(); err == io.EOF {
-			return w.out, nil
-		} else if err == nil {
-			err = errors.New("invalid data after the top-level value")
-		}
+	// A second value after the root is an error, as in encoding/json. The
+	// check reads the rest of the bytes, because the decoder would copy a
+	// long run of white space into its buffer.
+	if err != nil {
+		return nil, w.syntaxError(err)
 	}
-	return nil, w.syntaxError(err)
+	rest := clean[min(w.dec.InputOffset(), int64(len(clean))):]
+	trimmed := bytes.TrimLeft(rest, " \t\r\n")
+	if len(trimmed) == 0 {
+		return w.out, nil
+	}
+	off := len(clean) - len(trimmed)
+	return nil, &parseError{line: bytes.Count(clean[:off], []byte("\n")) + 1, err: errors.New("invalid data after the top-level value")}
 }
 
 func (w *jsonWalk) root(sections [][]string) error {
@@ -401,9 +416,18 @@ func yamlDeref(n *yaml.Node) *yaml.Node {
 	return n
 }
 
+// maxTOMLDots is the most dots that vet lets BurntSushi/toml parse. The
+// parser costs time in the square of the parts of a dotted key, and a key
+// of 40 000 parts takes seconds. The count takes each dot, also in a
+// string, so a quote cannot hide one. A real config holds a few hundred.
+const maxTOMLDots = 8 << 10
+
 // tomlServers reads a TOML file. BurntSushi/toml gives no key positions, so
 // the lines come from a scan of the key paths of each line.
 func tomlServers(data []byte, l agentfiles.MCPLayout) ([]server, error) {
+	if bytes.Count(data, []byte(".")) > maxTOMLDots {
+		return nil, &parseError{line: 1, err: fmt.Errorf("the file holds more than %d dots, the most that vet parses", maxTOMLDots)}
+	}
 	var doc map[string]any
 	if _, err := toml.Decode(string(data), &doc); err != nil {
 		line := 1
@@ -413,26 +437,47 @@ func tomlServers(data []byte, l agentfiles.MCPLayout) ([]server, error) {
 		}
 		return nil, &parseError{line: line, err: err}
 	}
-	lines := tomlLines(data)
+	depth := 0
+	for _, sec := range l.Sections {
+		depth = max(depth, len(sec)+1)
+	}
+	lines := tomlLines(data, depth)
 	return treeServers(doc, l, data, func(keys []string, _ int) int { return lines[strings.Join(keys, "\x00")] }), nil
 }
 
-// tomlLines maps each key path to the first line that names it: a table
-// header such as [mcp_servers."a.b"], or a dotted key such as
-// mcp_servers.a.command = "x". A key in an inline table gets no line, and
-// the server falls back to the line of its name.
-func tomlLines(data []byte) map[string]int {
+// tomlLines maps each key path of up to depth parts to the first line that
+// names it: a table header such as [mcp_servers."a.b"], or a dotted key such
+// as mcp_servers.a.command = "x". A key in an inline table gets no line, and
+// the server falls back to the line of its name. The depth bounds the work
+// of a key with many parts. A line in a multi-line string is not a key.
+func tomlLines(data []byte, depth int) map[string]int {
 	out := map[string]int{}
 	record := func(keys []string, line int) {
-		for i := 1; i <= len(keys); i++ {
-			k := strings.Join(keys[:i], "\x00")
+		k := ""
+		for i := range min(len(keys), depth) {
+			if i > 0 {
+				k += "\x00"
+			}
+			k += keys[i]
 			if _, ok := out[k]; !ok {
 				out[k] = line
 			}
 		}
 	}
 	var table []string
+	multi := ""
 	for i, raw := range strings.Split(string(data), "\n") {
+		if multi != "" {
+			if strings.Contains(raw, multi) {
+				multi = ""
+			}
+			continue
+		}
+		for _, q := range []string{`"""`, `'''`} {
+			if strings.Count(raw, q)%2 == 1 {
+				multi = q
+			}
+		}
 		s := strings.TrimSpace(raw)
 		switch {
 		case s == "" || s[0] == '#':

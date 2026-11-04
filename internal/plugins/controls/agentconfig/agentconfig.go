@@ -6,6 +6,7 @@
 package agentconfig
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -143,7 +144,7 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 		return e.out, nil
 	}
 	data = utf8Text(data)
-	e.lines = strings.Split(string(data), "\n")
+	e.text = string(data)
 	if t == agentfiles.Instructions {
 		e.add(IDInstructionChange, finding.SeverityInfo, 1, "instructions", "Agent instruction file "+m.Path, nil)
 		return e.out, nil
@@ -189,7 +190,15 @@ func readLimited(fsys fs.FS, name string, limit int64) (data []byte, err error) 
 			err = cerr
 		}
 	}()
-	return io.ReadAll(io.LimitReader(f, limit+1))
+	// A buffer of the size of the file avoids the copies of each growth,
+	// which cost many MiB for a large ~/.claude.json.
+	size := int64(0)
+	if info, err := f.Stat(); err == nil {
+		size = min(info.Size(), limit)
+	}
+	buf := bytes.NewBuffer(make([]byte, 0, size+1+bytes.MinRead))
+	_, err = buf.ReadFrom(io.LimitReader(f, limit+1))
+	return buf.Bytes(), err
 }
 
 func firstLine(s string) string {
@@ -268,9 +277,19 @@ func (c *Control) server(e *emitter, s server) {
 	}
 	e.add(IDMCPServer, finding.SeverityMedium, s.line, s.name, title,
 		&finding.Remediation{Summary: "Check who publishes the server and what it can read. Pin the version of the package that it runs."})
-	if s.command != "" {
-		c.suspicious(e, s.line, s.name, suspiciousReason(s.command, path.Base(path.Dir(e.path))))
+	if s.command == "" {
+		return
 	}
+	dir := path.Base(path.Dir(e.path))
+	reason := suspiciousReason(s.command, dir)
+	// An agent passes env to the server, so sh -c "$P" runs the payload in
+	// P. The values go to the check only, never to a title.
+	for _, v := range s.env {
+		if reason == "" {
+			reason = suspiciousReason(v, dir)
+		}
+	}
+	c.suspicious(e, s.line, s.name, reason)
 }
 
 func (*Control) suspicious(e *emitter, line int, name, reason string) {
@@ -284,15 +303,18 @@ func (*Control) suspicious(e *emitter, line int, name, reason string) {
 // suspiciousLines reports each line of a file that vet cannot parse that
 // holds a malicious command. It reads the first maxSize bytes. A file with
 // a larger limit, such as ~/.claude.json, would cost a pass of each pattern
-// over many MiB.
+// over many MiB. A command past the first MiB of a broken ~/.claude.json
+// gives no finding, but Claude Code does not run a broken file either.
 func (c *Control) suspiciousLines(e *emitter) {
 	dir := path.Base(path.Dir(e.path))
-	found, read := 0, 0
-	for i, l := range e.lines {
-		if found >= maxCommands || read > maxSize {
+	found := 0
+	rest := e.text[:min(len(e.text), maxSize)]
+	for i := 0; rest != ""; i++ {
+		l, after, _ := strings.Cut(rest, "\n")
+		rest = after
+		if found >= maxCommands {
 			return
 		}
-		read += len(l) + 1
 		if reason := suspiciousReason(l, dir); reason != "" {
 			c.suspicious(e, i+1, fmt.Sprintf("line %d", i+1), reason)
 			found++
@@ -305,7 +327,6 @@ func (e *emitter) unreadable(line int, discriminator, title string) {
 		&finding.Remediation{Summary: "Fix the file or remove it. An editor or an agent can run what vet cannot read."})
 }
 
-// short cuts a command to its first 80 characters for a title.
 // hostOf names the server of an MCP URL for a title. A title holds no
 // text of a command or a URL from the file, because a redactor cannot know
 // each form of a secret. The snippet shows the redacted line.
@@ -325,10 +346,14 @@ func short(s string) string {
 // emitter builds the file findings of one file, with the occurrence index
 // among identical snippets.
 type emitter struct {
-	path  string
-	lines []string
-	seen  map[string]int
-	out   []finding.Finding
+	path string
+	// text is the file. A split into lines would cost a string header for
+	// each line, and a .claude.json can hold millions of lines. lineAt reads
+	// forward from the line that it read last.
+	text            string
+	curLine, curOff int
+	seen            map[string]int
+	out             []finding.Finding
 	// snippets holds the snippet of each line. One minified line can hold
 	// every command of a file, so the emitter reads each line once.
 	snippets map[int]snippet
@@ -338,23 +363,44 @@ type emitter struct {
 // a short text for display.
 type snippet struct{ full, display string }
 
-func (e *emitter) snippet(line int) snippet {
-	if line < 1 || line > len(e.lines) {
-		return snippet{}
+// lineAt returns line n of the text. The findings of a file come mostly in
+// line order, so the cursor moves forward. An earlier line starts from the
+// top.
+func (e *emitter) lineAt(n int) (string, bool) {
+	if n < 1 {
+		return "", false
 	}
+	if e.curLine == 0 || n < e.curLine {
+		e.curLine, e.curOff = 1, 0
+	}
+	for e.curLine < n {
+		i := strings.IndexByte(e.text[e.curOff:], '\n')
+		if i < 0 {
+			return "", false
+		}
+		e.curOff += i + 1
+		e.curLine++
+	}
+	l, _, _ := strings.Cut(e.text[e.curOff:], "\n")
+	return l, true
+}
+
+func (e *emitter) snippet(line int) snippet {
 	s, ok := e.snippets[line]
-	if !ok && len(e.lines[line-1]) > maxSnippetLine {
+	if ok {
+		return s
+	}
+	text, found := e.lineAt(line)
+	if !found || len(text) > maxSnippetLine {
 		e.snippets[line] = s
 		return s
 	}
-	if !ok {
-		s.full = redact(strings.TrimSpace(e.lines[line-1]))
-		s.display = finding.Shorten(s.full, maxSnippet)
-		if len(s.full) > maxKeySnippet {
-			s.full = strings.ToValidUTF8(s.full[:maxKeySnippet], "")
-		}
-		e.snippets[line] = s
+	s.full = redact(strings.TrimSpace(text))
+	s.display = finding.Shorten(s.full, maxSnippet)
+	if len(s.full) > maxKeySnippet {
+		s.full = strings.ToValidUTF8(s.full[:maxKeySnippet], "")
 	}
+	e.snippets[line] = s
 	return s
 }
 

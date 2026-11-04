@@ -43,6 +43,9 @@ type server struct {
 	command string
 	url     string
 	line    int
+	// env holds the values of the environment of the server, which a
+	// command such as sh -c "$P" can run.
+	env []string
 }
 
 // The parsers decode into generic values and read each field with a type
@@ -69,7 +72,21 @@ func objectOf(v any) object {
 	return nil
 }
 
-func listOf(v any) []any { l, _ := v.([]any); return l }
+// listOf returns v as a list. BurntSushi/toml decodes an array of tables to
+// []map[string]any.
+func listOf(v any) []any {
+	switch l := v.(type) {
+	case []any:
+		return l
+	case []map[string]any:
+		out := make([]any, len(l))
+		for i, o := range l {
+			out[i] = o
+		}
+		return out
+	}
+	return nil
+}
 
 func stringOf(v any) string { s, _ := v.(string); return s }
 

@@ -34,13 +34,17 @@ var standardMCP = MCPLayout{Format: JSON, Sections: [][]string{{"mcpServers"}, {
 
 // mcpFiles is the one list of the MCP config files that an agent reads,
 // with the layout of each. The endpoint discovery in internal/endpoint/aitool
-// reads the same files. TestDiscoveredMCPFilesClassify fails when the two
-// drift apart.
+// reads the same files. TestSpecMCPFilesClassify fails when a spec
+// discoverer reads a file that is not here. The hand-written discoverers
+// (Claude Code, Cursor, VS Code, Windsurf, Antigravity) have no path list,
+// so TestDiscoveredMCPFilesClassify covers only the files of its fixtures.
 //
 // Known uncovered cases: CODEX_HOME and COPILOT_HOME can move the config
 // folder to any path, which no name here matches. The legacy Continue
 // config.json, the mcp.servers key of old VS Code settings and the
-// context_servers of a Zed project settings file are not read.
+// context_servers of a Zed project settings file are not read. A Goose
+// inline_python extension runs the Python code in its code key, which the
+// control does not check.
 var mcpFiles = []struct {
 	match  func(p string) bool
 	layout MCPLayout

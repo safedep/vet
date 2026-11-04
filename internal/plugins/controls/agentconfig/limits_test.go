@@ -2,11 +2,15 @@ package agentconfig_test
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/plugins/controls/agentconfig"
 )
 
 // TestManyCommandsOnOneLine keeps a minified file of many commands fast.
@@ -57,4 +61,39 @@ func TestLargeClaudeUserConfigIsFast(t *testing.T) {
 			assert.Less(t, time.Since(start), 20*time.Second)
 		})
 	}
+}
+
+// TestLongTOMLKeyIsFast keeps a dotted key of many parts fast. The TOML
+// parser costs time in the square of the parts, so a file past the dot
+// limit is unreadable and the parser never sees it.
+func TestLongTOMLKeyIsFast(t *testing.T) {
+	cases := []struct {
+		name  string
+		parts int
+		want  []want
+	}{
+		{"past the limit", (1<<20 - 100) / 2, []want{{agentconfig.IDUnreadable, finding.SeverityHigh, 1}}},
+		{"under the limit", 8000, nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			start := time.Now()
+			got := testFile(t, ".codex/config.toml", "["+strings.Repeat("a.", tc.parts)+"a]\nx = 1\n")
+			assert.Equal(t, tc.want, got)
+			assert.Less(t, time.Since(start), 5*time.Second)
+		})
+	}
+}
+
+// TestManyLinesUseLittleMemory reads a .claude.json of 64 MiB that holds
+// only line breaks after the root. A split into one string for each line
+// would cost GiBs.
+func TestManyLinesUseLittleMemory(t *testing.T) {
+	data := `{"mcpServers": {"x": {"command": "npx"}}}` + strings.Repeat("\n", 63<<20)
+	var before, after runtime.MemStats
+	runtime.ReadMemStats(&before)
+	got := testFile(t, ".claude.json", data)
+	runtime.ReadMemStats(&after)
+	assert.Len(t, got, 1)
+	assert.Less(t, after.TotalAlloc-before.TotalAlloc, uint64(512<<20), "the read allocates a few copies of the file at most")
 }

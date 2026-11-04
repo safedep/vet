@@ -113,7 +113,7 @@ func TestMCPServers(t *testing.T) {
 		{"nested key", standard, "{\n\"servers\": {\n\"x\": {}\n}\n}", []server{{name: "x", line: 3}}},
 		{"a key in a comment", standard, "{\n// \"servers\": {\"x\": 1}\n\"servers\": {\n\"x\": {}\n}\n}", []server{{name: "x", line: 4}}},
 		{"a key in a string", standard, "{\"note\": \"\\\"servers\\\" x\",\n\"servers\": {\n\"x\": {}}}", []server{{name: "x", line: 3}}},
-		{"each of two keys", standard, "{\"servers\": {\"x\": 1},\n\"servers\": {\n\"x\": 2}}", []server{{name: "x", line: 1}, {name: "x", line: 3}}},
+		{"each of two keys", standard, "{\"servers\": {\"x\": {}},\n\"servers\": {\n\"x\": {}}}", []server{{name: "x", line: 1}, {name: "x", line: 3}}},
 		{"a list of values that are not servers", standard, `{"servers": [1]}`, nil},
 		{
 			"a list command",
@@ -168,6 +168,23 @@ func TestMCPServers(t *testing.T) {
 			agentfiles.MCPLayout{Format: agentfiles.TOML, Sections: [][]string{{"mcp_servers"}}},
 			"mcp_servers = { x = { url = \"https://x.example\" } }\n",
 			[]server{{name: "x", url: "https://x.example", line: 1}},
+		},
+		{
+			"a TOML header in a multi-line string",
+			agentfiles.MCPLayout{Format: agentfiles.TOML, Sections: [][]string{{"mcp_servers"}}},
+			"note = \"\"\"\n[mcp_servers.lint]\ncommand = \"npx\"\n\"\"\"\n[mcp_servers.lint]\ncommand = \"sh\"\n",
+			[]server{{name: "lint", command: "sh", line: 5}},
+		},
+		{
+			"a TOML array of tables",
+			agentfiles.MCPLayout{Format: agentfiles.TOML, Sections: [][]string{{"mcp_servers"}}},
+			"[[mcp_servers]]\nname = \"x\"\ncommand = \"sh\"\n",
+			[]server{{name: "x", command: "sh", line: 1}},
+		},
+		{"an entry that is not an object", standard, `{"mcpServers": {"x": "sh -c id"}}`, nil},
+		{
+			"the values of the environment", standard, `{"mcpServers": {"x": {"command": "sh", "env": {"B": "2", "A": "1", "N": 3}}}}`,
+			[]server{{name: "x", command: "sh", line: 1, env: []string{"1", "2"}}},
 		},
 	}
 	for _, tc := range cases {
