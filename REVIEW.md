@@ -58,10 +58,10 @@ Each rule comes from `AGENTS.md` or a doc that it names. The severity follows ea
 8. **User guarantees.** A new user-facing guarantee has an acceptance script and a row in
    `test/acceptance/catalog.yaml`. A missing script or row is Important.
 9. **Detections.** A change to an attack detection adds cases to the evasion corpus and commits the
-   diff of `test/evasion/coverage.md`. A new detection with a risk of false positives starts as a
-   control that warns, with no `Attack: true`. A new attack control with that risk and no clean
-   false-positive run is Important. See
-   `CONTRIBUTING-DETECTIONS.md`.
+   diff of `test/evasion/coverage.md`. A new detection starts as a control that warns, with no
+   `Attack: true`. A control gets `Attack: true` only in a change that shows a clean
+   false-positive run. A change that sets `Attack: true` with no clean run is Important.
+   `CONTRIBUTING-DETECTIONS.md` owns this rule.
 10. **Release channels.** Code on `v2` never writes the `latest` image tag, the latest GitHub release
     or the `vet` cask. A change to `release-edge.yml`, `.goreleaser*` or `test/release` that can do
     this is Important.
