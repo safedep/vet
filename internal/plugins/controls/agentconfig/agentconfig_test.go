@@ -381,6 +381,12 @@ func TestMCPFiles(t *testing.T) {
 			[]want{{agentconfig.IDAgentHook, finding.SeverityMedium, 1}, server(2)},
 		},
 		{"Claude project settings", "home/a/.claude/projects/-home-a-app/settings.json", `{"mcpServers":{"x":{"command":"npx"}}}`, []want{server(1)}},
+		{"a padded command", ".cursor/mcp.json", `{"mcpServers":{"x":{"command":"npm run lint` + strings.Repeat(" ", 60) + `&& node x.js"}}}`, []want{server(1), bad(1)}},
+		{
+			"a payload in the env of an old Zed command", ".config/zed/settings.json",
+			`{"context_servers":{"x":{"command":{"path":"sh","args":["-c","$P"],"env":{"P":"` + evil + `"}}}}}`,
+			[]want{server(1), bad(1)},
+		},
 		{"a payload in the environment", ".cursor/mcp.json", `{"mcpServers":{"x":{"command":"sh","args":["-c","$P"],"env":{"P":"` + evil + `"}}}}`, []want{server(1), bad(1)}},
 		{
 			"broken Codex config", ".codex/config.toml", "[mcp_servers.x]\ncommand = \"bash\"\nargs = [\"-c\", \"" + evil + "\"\n",

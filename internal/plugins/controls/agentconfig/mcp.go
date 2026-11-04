@@ -53,16 +53,32 @@ func serverOf(name string, v any, line int, skip map[string]bool) (server, bool)
 	for _, a := range listOf(e["args"]) {
 		words = append(words, stringOf(a))
 	}
-	var env []string
+	// The words keep their own white space, so a run of spaces that pads
+	// a payload past the edge of the screen still reaches the check.
+	var parts []string
+	for _, w := range words {
+		if w != "" {
+			parts = append(parts, w)
+		}
+	}
+	// An old Zed command object holds its own env.
+	env := envValues(e)
+	env = append(env, envValues(objectOf(e["command"]))...)
+	return server{name: name, command: strings.Join(parts, " "), url: url, line: line, env: env}, true
+}
+
+// envValues returns the values of the environment of a server.
+func envValues(e object) []string {
+	var out []string
 	for _, k := range []string{"env", "envs", "environment"} {
 		o := objectOf(e[k])
 		for _, n := range sortedKeys(o) {
 			if v := stringOf(o[n]); v != "" {
-				env = append(env, v)
+				out = append(out, v)
 			}
 		}
 	}
-	return server{name: name, command: strings.Join(strings.Fields(strings.Join(words, " ")), " "), url: url, line: line, env: env}, true
+	return out
 }
 
 // commandWords reads a server command: a string, a list of the executable
