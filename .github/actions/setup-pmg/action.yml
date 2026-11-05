@@ -27,6 +27,8 @@ runs:
   steps:
     - uses: safedep/pmg@ee9c6ccfb8c7cc31280fb91f1fa5031ec1c6ff18 # v0.34.0
       with:
+        # Dependabot updates only the SHA above. Keep this tag equal to it.
+        version: v0.34.0
         api-key: ${{ inputs.api-key }}
         tenant-id: ${{ inputs.tenant-id }}
         endpoint-id: CICD_GHA_VET
