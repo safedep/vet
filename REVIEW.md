@@ -1,6 +1,6 @@
 # Review instructions
 
-These instructions apply to the managed Claude Code Review of a pull request. `AGENTS.md` and
+These instructions apply to a review of a pull request, by a person or by Claude. `AGENTS.md` and
 `docs/glossary.md` give the project context. This file says what to report and how severe it is.
 
 ## What Important means here
