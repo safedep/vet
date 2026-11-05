@@ -58,7 +58,10 @@ jobs:
       # The live scripts ask SafeDep for package data and download no
       # package from npm, PyPI, Go or Cargo. So PMG does not change what the
       # suite checks.
+      # A dispatch can test a ref from before PMG came to this repository. That
+      # ref has no setup action, so the job runs without PMG, as it did then.
       - name: Set up PMG
+        if: hashFiles('.github/actions/setup-pmg/action.yml') != ''
         uses: ./.github/actions/setup-pmg
         with:
           api-key: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}

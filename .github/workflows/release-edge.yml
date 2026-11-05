@@ -30,6 +30,8 @@ jobs:
     uses: $/.github/workflows/ci.yml
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      SAFEDEP_CLOUD_API_KEY: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
+      SAFEDEP_CLOUD_TENANT_DOMAIN: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
 
   release:
     needs: ci
