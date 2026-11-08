@@ -116,6 +116,7 @@ func TestPURLFollowsPurlSpec(t *testing.T) {
 		{"pypi with no version", mustPV(t, EcosystemPyPI, "Django", ""), "pkg:pypi/django", "pkg:pypi/django"},
 		{"pypi trims the version", mustPV(t, EcosystemPyPI, "django", " 4.2.0 "), "pkg:pypi/django@4.2.0", "pkg:pypi/django@4.2"},
 		{"npm is unchanged", mustPV(t, EcosystemNpm, "@babel/core", "7.24.0"), "pkg:npm/%40babel/core@7.24.0", "pkg:npm/%40babel/core@7.24.0"},
+		{"nuget keeps the case of the id", mustPV(t, EcosystemNuGet, "Newtonsoft.Json", "13.0.3"), "pkg:nuget/Newtonsoft.Json@13.0.3", "pkg:nuget/newtonsoft.json@13.0.3"},
 		{"maven is unchanged", mustPV(t, EcosystemMaven, "com.google:guava", "33.0"), "pkg:maven/com.google/guava@33.0", "pkg:maven/com.google/guava@33.0"},
 	}
 	for _, tc := range cases {

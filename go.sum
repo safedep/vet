@@ -2,10 +2,10 @@ al.essio.dev/pkg/shellescape v1.5.1 h1:86HrALUujYS/h+GtqoB26SBEdkWfmMI6FubjXlsXy
 al.essio.dev/pkg/shellescape v1.5.1/go.mod h1:6sIqp7X2P6mThCQ7twERpZTuigpr6KbZWtls1U8I890=
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.12-20260825204119-511051f7f437.1 h1:Slv0uGxx219srASyiaI5C9cDlyG8kNDcXpTSYcuAeE4=
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.12-20260825204119-511051f7f437.1/go.mod h1:TCt1lluMFnctISJXvkIQ4x3ABrPuUKCWKyjKdkJNBpw=
-buf.build/gen/go/safedep/api/grpc/go v1.6.2-20261008101944-a7c8d044dfa5.1 h1:rEdnhl6maHEkzB5h7IM1RyZKUzd0nSbfzRPHidT4+O0=
-buf.build/gen/go/safedep/api/grpc/go v1.6.2-20261008101944-a7c8d044dfa5.1/go.mod h1:JhyoZ+zhE5YnDuQgA8X1n+JOgeyd1ylTckn6RZ4ozG4=
-buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.12-20261008101944-a7c8d044dfa5.2 h1:bowhWCMgy3K+YnLVe6kxsXlGg+p55+RuPddlqfy8K1Y=
-buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.12-20261008101944-a7c8d044dfa5.2/go.mod h1:LfbopTmazyAppwhYT2vdRDLDH8ZTm4QNbp9yFjGRbHs=
+buf.build/gen/go/safedep/api/grpc/go v1.6.2-20261107111754-29a1adb160aa.1 h1:4uXBhgLhLEn7IOW9avcfYIYKNOI77vOcYm9XQbvfRHo=
+buf.build/gen/go/safedep/api/grpc/go v1.6.2-20261107111754-29a1adb160aa.1/go.mod h1:4i7HWcBq17WJ1/i+2RMe/hFwUloX8o4PaviS3I9gd5I=
+buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.12-20261107111754-29a1adb160aa.2 h1:1VyJgN+9Z4T+dEVSffnJV/ETVLPsqKkYEvWHguZ/jzc=
+buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.12-20261107111754-29a1adb160aa.2/go.mod h1:LfbopTmazyAppwhYT2vdRDLDH8ZTm4QNbp9yFjGRbHs=
 buf.build/go/protovalidate v1.4.0 h1:UjLrYbt5VX7+TMOs2+pG5FhZhIG1mSfK4EIopbb4LcM=
 buf.build/go/protovalidate v1.4.0/go.mod h1:8vJfzNT6NIG2qm3uFsJDXMlRmG+bQJzbcIn1Aa0vPGs=
 cel.dev/cel-go v0.32.0 h1:irvpFKr5EuGPyxeME03ERh0rii1TX+BDAnB9eL3IvNk=
@@ -598,8 +598,8 @@ github.com/ryanuber/go-glob v1.0.0 h1:iQh3xXAumdQ+4Ufa5b25cRpC5TYKlno6hsv6Cb3pkB
 github.com/ryanuber/go-glob v1.0.0/go.mod h1:807d1WSdnB0XRJzKNil9Om6lcp/3a0v4qIHxIXzX/Yc=
 github.com/safedep/code v0.0.0-20261031125048-39cf1e24f423 h1:jKt9wmAW5f4s5azhz5hW4t9XkxBQwOJWd4XTKGrMJPc=
 github.com/safedep/code v0.0.0-20261031125048-39cf1e24f423/go.mod h1:keBa9W0u0v3i/X9K/tQHZ8v4JalWFnQq7Ik3+YLqom4=
-github.com/safedep/dry v0.0.0-20261015111342-1a19dccb938a h1:S78SaTGgxHB/AVZRuJseGiGMyAp8o+eywefaVoK4JS0=
-github.com/safedep/dry v0.0.0-20261015111342-1a19dccb938a/go.mod h1:KZFqLR9p/3iCEn1cocQ/uka3VUNN3k36q3UDHatmM2A=
+github.com/safedep/dry v0.0.0-20261108100514-739d1bfc2092 h1:lMVWPeh1L1iSr15e9K6QzNloC8VsL1npBCnKvM3no4Q=
+github.com/safedep/dry v0.0.0-20261108100514-739d1bfc2092/go.mod h1:UItnKbe5E1KKwv6Rg3bBE+PQRIAlq/DvnCtNPPp1R7w=
 github.com/safedep/vuln-symbols v0.0.0-20261020060134-9f7738baafb4 h1:xt+/q9T+Vjs4OSaLjq9AaMgYjFNIRQDOBKW3qhKH2CE=
 github.com/safedep/vuln-symbols v0.0.0-20261020060134-9f7738baafb4/go.mod h1:myhNwY+PnOfCkfu63g1YgUZlaQhPFZQz94P4yUq7eVs=
 github.com/saferwall/pe v1.6.4 h1:sevZnbF2R3okkOfG1PCwuG7D16UNdn92EpXTuH2q8Eg=
