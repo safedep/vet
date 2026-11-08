@@ -2,11 +2,12 @@
 // reads the license of a package as an SPDX license expression, compares two
 // licenses, and checks a license against allow and deny lists.
 //
-// The rules are in github.com/safedep/dry/policy/spdxlicense. The pull
-// request check of SafeDep Cloud uses the same package, so vet and the cloud
-// policy decide a license in the same way. This package adds no rule. Other
-// vet packages import this package and not dry, so that one package holds
-// the SPDX dependency of vet.
+// The rules are in github.com/safedep/dry/policy/spdxlicense. That package
+// holds the one copy of the SPDX rules that the cloud policy uses. The spec
+// is docs/specs/2026-11-07-policy-vulnerability-and-license-rules-design.md
+// in safedep/control-tower. This package adds no rule. Other vet packages
+// import this package and not dry, so that one package holds the SPDX
+// dependency of vet.
 package spdxlicense
 
 import (

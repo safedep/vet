@@ -1,9 +1,12 @@
+// These tests are the contract test of vet for docs/controls.md. They check
+// each license rule that the page promises. dry/policy/spdxlicense owns the
+// rules and their full tests.
+
 package spdxlicense
 
 import (
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,32 +54,16 @@ func TestParse(t *testing.T) {
 	}
 }
 
-// The limits of dry/policy/spdxlicense on one license value. A package
-// author writes the value, so vet must not take a long or deep value.
-const (
-	maxValueLen = 1024
-	maxDepth    = 32
-)
-
+// A package author writes the license value, so vet must not read a long or
+// deep one. dry/policy/spdxlicense owns the limits and tests them. This test
+// checks only that vet gets the outcome.
 func TestParseLimits(t *testing.T) {
-	long := strings.Repeat("(MIT OR ISC) AND ", 70) + "MIT"
-	require.Greater(t, len(long), maxValueLen)
-	start := time.Now()
-	d := Parse([]string{long})
-	assert.Less(t, time.Since(start), time.Second)
-	assert.Equal(t, []string{long}, d.Unknown, "a value over the length limit is unknown")
+	long := strings.Repeat("MIT OR ", 171) + "MIT"
+	require.Len(t, long, 1200)
+	assert.Equal(t, []string{long}, Parse([]string{long}).Unknown)
 
-	deep := strings.Repeat("(", maxDepth+2) + "MIT" + strings.Repeat(")", maxDepth+2)
+	deep := strings.Repeat("(", 34) + "MIT" + strings.Repeat(")", 34)
 	assert.Equal(t, []string{deep}, Parse([]string{deep}).Unknown)
-
-	wide := strings.Repeat("(MIT OR ISC) AND ", 40) + "MIT"
-	require.LessOrEqual(t, len(wide), maxValueLen)
-	start = time.Now()
-	p, err := NewPolicy([]string{"MIT"}, []string{"ISC"})
-	require.NoError(t, err)
-	assert.Equal(t, Pass, p.Check(Parse([]string{wide})).Verdict)
-	assert.True(t, Equal([]string{wide}, []string{wide}))
-	assert.Less(t, time.Since(start), time.Second, "evaluation is linear")
 }
 
 func TestKnown(t *testing.T) {

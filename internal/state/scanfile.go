@@ -21,8 +21,11 @@ import (
 // scanFormat is the format of a scan file. Raise it when a change makes the
 // scan files of an older vet unreadable. vet does not migrate a scan file:
 // it refuses an older one, and a stopped scan of an older format starts
-// again.
-const scanFormat = 5
+// again. The tables key packages by model.PackageKey, which holds the
+// identity rule version of dry. A new rule version in dry is a format
+// change, because the keys of an older file then name no package. Format 6
+// follows the NuGet rule 1 of dry.
+const scanFormat = 6
 
 // CodeScanFormat is the error code of a scan file of another format.
 const CodeScanFormat = "state_scan_format"

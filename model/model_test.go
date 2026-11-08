@@ -420,3 +420,33 @@ func TestGlobClassKeepsTheMeaningOfPathMatch(t *testing.T) {
 		})
 	}
 }
+
+// identityRuleVersions are the dry identity rule versions of scan format 6
+// of internal/state. A scan file keys its packages by PackageKey, which
+// holds the rule version. A new rule version in dry makes the keys of an
+// older scan file name no package, so it needs a new scan format.
+var identityRuleVersions = map[Ecosystem]int{
+	EcosystemCargo:             1,
+	EcosystemGitHubActions:     1,
+	EcosystemGo:                0,
+	EcosystemMaven:             0,
+	EcosystemNpm:               0,
+	EcosystemNuGet:             1,
+	EcosystemOpenVSX:           0,
+	EcosystemPackagist:         1,
+	EcosystemPub:               0,
+	EcosystemPyPI:              1,
+	EcosystemRubyGems:          0,
+	EcosystemTerraformProvider: 0,
+	EcosystemVSCode:            0,
+}
+
+func TestIdentityRuleVersionsMatchTheScanFormat(t *testing.T) {
+	for eco := range ecosystems {
+		t.Run(string(eco), func(t *testing.T) {
+			got := mustPV(t, eco, "Ab_c.d", "1.0.0").pv.RuleVersion()
+			assert.Equal(t, identityRuleVersions[eco], got,
+				"dry changed the identity rule of %s: raise scanFormat in internal/state, then update identityRuleVersions", eco)
+		})
+	}
+}
