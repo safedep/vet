@@ -376,16 +376,18 @@ func TestNoPackageImportsAGrammar(t *testing.T) {
 	}
 }
 
-// Only internal/spdxlicense reads SPDX license expressions. A second reader
+// Only internal/spdxlicense reads SPDX license expressions. It wraps
+// dry/policy/spdxlicense, which the cloud policy also uses. A second reader
 // would compare licenses with other rules, such as a deprecated id or an
 // or-later term.
-func TestOnlySPDXLicenseImportsGoSPDX(t *testing.T) {
+func TestOnlySPDXLicenseReadsSPDX(t *testing.T) {
 	for _, p := range listPackages(t) {
 		if isLegacy(p.path) || under(p.path, module+"/internal/spdxlicense") {
 			continue
 		}
 		for _, imp := range p.imports {
 			assert.False(t, under(imp, "github.com/github/go-spdx"), "package %s imports %s", p.path, imp)
+			assert.False(t, under(imp, "github.com/safedep/dry/policy/spdxlicense"), "package %s imports %s: use internal/spdxlicense", p.path, imp)
 		}
 	}
 }

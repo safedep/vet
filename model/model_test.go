@@ -116,6 +116,7 @@ func TestPURLFollowsPurlSpec(t *testing.T) {
 		{"pypi with no version", mustPV(t, EcosystemPyPI, "Django", ""), "pkg:pypi/django", "pkg:pypi/django"},
 		{"pypi trims the version", mustPV(t, EcosystemPyPI, "django", " 4.2.0 "), "pkg:pypi/django@4.2.0", "pkg:pypi/django@4.2"},
 		{"npm is unchanged", mustPV(t, EcosystemNpm, "@babel/core", "7.24.0"), "pkg:npm/%40babel/core@7.24.0", "pkg:npm/%40babel/core@7.24.0"},
+		{"nuget keeps the case of the id", mustPV(t, EcosystemNuGet, "Newtonsoft.Json", "13.0.3"), "pkg:nuget/Newtonsoft.Json@13.0.3", "pkg:nuget/newtonsoft.json@13.0.3"},
 		{"maven is unchanged", mustPV(t, EcosystemMaven, "com.google:guava", "33.0"), "pkg:maven/com.google/guava@33.0", "pkg:maven/com.google/guava@33.0"},
 	}
 	for _, tc := range cases {
@@ -416,6 +417,36 @@ func TestGlobClassKeepsTheMeaningOfPathMatch(t *testing.T) {
 			got, err := mustPV(t, EcosystemGo, "example.com/"+tc.name, "v1.0.0").MatchName("example.com/" + tc.pattern)
 			require.NoError(t, err)
 			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+// identityRuleVersions are the dry identity rule versions of scan format 6
+// of internal/state. A scan file keys its packages by PackageKey, which
+// holds the rule version. A new rule version in dry makes the keys of an
+// older scan file name no package, so it needs a new scan format.
+var identityRuleVersions = map[Ecosystem]int{
+	EcosystemCargo:             1,
+	EcosystemGitHubActions:     1,
+	EcosystemGo:                0,
+	EcosystemMaven:             0,
+	EcosystemNpm:               0,
+	EcosystemNuGet:             1,
+	EcosystemOpenVSX:           0,
+	EcosystemPackagist:         1,
+	EcosystemPub:               0,
+	EcosystemPyPI:              1,
+	EcosystemRubyGems:          0,
+	EcosystemTerraformProvider: 0,
+	EcosystemVSCode:            0,
+}
+
+func TestIdentityRuleVersionsMatchTheScanFormat(t *testing.T) {
+	for eco := range ecosystems {
+		t.Run(string(eco), func(t *testing.T) {
+			got := mustPV(t, eco, "Ab_c.d", "1.0.0").pv.RuleVersion()
+			assert.Equal(t, identityRuleVersions[eco], got,
+				"dry changed the identity rule of %s: raise scanFormat in internal/state, then update identityRuleVersions", eco)
 		})
 	}
 }

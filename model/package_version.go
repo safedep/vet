@@ -354,6 +354,9 @@ var purlSpecName = map[packagev1.Ecosystem]func(string) string{
 	// The cargo type keeps the name as the registry publishes it, as
 	// tokio-util, though the identity folds it to tokio_util.
 	packagev1.Ecosystem_ECOSYSTEM_CARGO: func(name string) string { return name },
+	// The nuget type keeps the case of the id, as Newtonsoft.Json, though
+	// the identity folds it to newtonsoft.json.
+	packagev1.Ecosystem_ECOSYSTEM_NUGET: func(name string) string { return name },
 }
 
 // purlURNName holds the ecosystems whose canonical name is the purl-spec

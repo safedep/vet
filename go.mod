@@ -4,14 +4,13 @@ go 1.27.3
 
 require (
 	al.essio.dev/pkg/shellescape v1.5.1
-	buf.build/gen/go/safedep/api/grpc/go v1.6.2-20261008101944-a7c8d044dfa5.1
-	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.12-20261008101944-a7c8d044dfa5.2
+	buf.build/gen/go/safedep/api/grpc/go v1.6.2-20261107111754-29a1adb160aa.1
+	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.12-20261107111754-29a1adb160aa.2
 	buf.build/go/protovalidate v1.4.0
 	cel.dev/cel-go v0.32.0
 	github.com/BurntSushi/toml v1.6.0
 	github.com/CycloneDX/cyclonedx-go v0.11.0
 	github.com/charmbracelet/x/ansi v0.11.7
-	github.com/github/go-spdx/v2 v2.4.0
 	github.com/go-git/go-git/v5 v5.19.2
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-containerregistry v0.21.7
@@ -26,7 +25,7 @@ require (
 	github.com/rogpeppe/go-internal v1.16.0
 	github.com/rust-secure-code/go-rustaudit v0.0.0-20250226111315-e20ec32e963c
 	github.com/safedep/code v0.0.0-20261031125048-39cf1e24f423
-	github.com/safedep/dry v0.0.0-20261015111342-1a19dccb938a
+	github.com/safedep/dry v0.0.0-20261108100514-739d1bfc2092
 	github.com/safedep/vuln-symbols v0.0.0-20261020060134-9f7738baafb4
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82

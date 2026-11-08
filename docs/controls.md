@@ -148,8 +148,13 @@ Annex D):
 - A `WITH` term is a license of its own. `GPL-2.0-only` does not match `GPL-2.0-only WITH
   Classpath-exception-2.0`, and the sets do not hold `WITH` terms.
 - An or-later license, such as `GPL-2.0-or-later` or `EUPL-1.1+`, lets you take that version or a
-  later one. An allow list passes it when the list has one of those versions. A deny list fails it
-  when the list has each of those versions, or the or-later id itself.
+  later one. A letter after the numbers is part of the version, so `LPPL-1.3a+` lets you take
+  `LPPL-1.3c`. A deny list fails an or-later license when the list has each of those versions, or
+  the or-later id itself. An allow list passes it when the list has one of those versions and the
+  deny list does not fail it.
+- With both lists, one choice of the expression must pass each list. `GPL-2.0-or-later OR MIT`
+  is `license-not-allowed` under `allow: [GPL-3.0-only]` with `deny: [GPL-2.0-or-later]`. The deny
+  list fails the first choice, and the allow list fails the second.
 - An entry can also name a set from the flags of the SPDX License List: `osi-approved`, `fsf-libre`
   or `osi-approved-or-fsf-libre`.
 - vet rejects an entry that is not SPDX, so a typo cannot pass a package. There are no globs.

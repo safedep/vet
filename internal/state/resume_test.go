@@ -221,8 +221,9 @@ func TestStoppedScanWithNoFile(t *testing.T) {
 	assert.NoFileExists(t, e.File)
 }
 
-// TestScanOfAnotherFormat checks that vet refuses a scan file of another
-// format, and starts a new scan in place of a stopped one of that format.
+// TestScanOfAnotherFormat checks that vet refuses a scan file of the
+// previous format, also by its path, and starts a new scan in place of a
+// stopped one of that format.
 func TestScanOfAnotherFormat(t *testing.T) {
 	ctx := context.Background()
 	s := openStore(t)
@@ -232,6 +233,12 @@ func TestScanOfAnotherFormat(t *testing.T) {
 
 	_, err := s.OpenScan(ctx, e)
 	var ue usefulerror.UsefulError
+	require.ErrorAs(t, err, &ue)
+	assert.Equal(t, CodeScanFormat, ue.Code())
+	assert.Equal(t, "scan "+e.ID+" was saved by another version of vet", ue.HumanError())
+	assert.Contains(t, ue.Help(), "Run vet scan again")
+
+	_, err = OpenScanFile(ctx, e.File)
 	require.ErrorAs(t, err, &ue)
 	assert.Equal(t, CodeScanFormat, ue.Code())
 

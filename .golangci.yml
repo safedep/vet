@@ -35,6 +35,14 @@ linters:
           deny:
             - pkg: github.com/safedep/dry/api/pb
               desc: use model.PackageVersion. Only model imports dry/api/pb.
+        # internal/spdxlicense is the one entry point to the SPDX rules of dry.
+        spdx-license:
+          files:
+            - $all
+            - "!**/internal/spdxlicense/**"
+          deny:
+            - pkg: github.com/safedep/dry/policy/spdxlicense
+              desc: import internal/spdxlicense. It is the one entry point of vet to the SPDX rules.
         version-order:
           files:
             - $all

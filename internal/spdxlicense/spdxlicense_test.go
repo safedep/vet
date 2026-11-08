@@ -1,12 +1,13 @@
+// These tests are the contract test of vet for docs/controls.md. They check
+// each license rule that the page promises. dry/policy/spdxlicense owns the
+// rules and their full tests.
+
 package spdxlicense
 
 import (
-	"slices"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/github/go-spdx/v2/spdxexp/spdxlicenses"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -53,25 +54,16 @@ func TestParse(t *testing.T) {
 	}
 }
 
+// A package author writes the license value, so vet must not read a long or
+// deep one. dry/policy/spdxlicense owns the limits and tests them. This test
+// checks only that vet gets the outcome.
 func TestParseLimits(t *testing.T) {
-	long := strings.Repeat("(MIT OR ISC) AND ", 70) + "MIT"
-	require.Greater(t, len(long), maxValueLen)
-	start := time.Now()
-	d := Parse([]string{long})
-	assert.Less(t, time.Since(start), time.Second)
-	assert.Equal(t, []string{long}, d.Unknown, "a value over the length limit is unknown")
+	long := strings.Repeat("MIT OR ", 171) + "MIT"
+	require.Len(t, long, 1200)
+	assert.Equal(t, []string{long}, Parse([]string{long}).Unknown)
 
-	deep := strings.Repeat("(", maxDepth+2) + "MIT" + strings.Repeat(")", maxDepth+2)
+	deep := strings.Repeat("(", 34) + "MIT" + strings.Repeat(")", 34)
 	assert.Equal(t, []string{deep}, Parse([]string{deep}).Unknown)
-
-	wide := strings.Repeat("(MIT OR ISC) AND ", 40) + "MIT"
-	require.LessOrEqual(t, len(wide), maxValueLen)
-	start = time.Now()
-	p, err := NewPolicy([]string{"MIT"}, []string{"ISC"})
-	require.NoError(t, err)
-	assert.Equal(t, Pass, p.Check(Parse([]string{wide})).Verdict)
-	assert.True(t, Equal([]string{wide}, []string{wide}))
-	assert.Less(t, time.Since(start), time.Second, "evaluation is linear")
 }
 
 func TestKnown(t *testing.T) {
@@ -143,6 +135,11 @@ func TestCheck(t *testing.T) {
 		{"one choice must satisfy both lists", []string{SetOSIApproved}, []string{"GPL-3.0-only"}, []string{"GPL-3.0-only OR SSPL-1.0"}, NotAllowed, nil},
 		{"a choice that satisfies both lists", []string{SetOSIApproved}, []string{"GPL-3.0-only"}, []string{"GPL-3.0-only OR MIT"}, Pass, nil},
 		{"or-later with each allowed version denied", []string{"GPL-2.0-only", "GPL-3.0-only"}, []string{"GPL-3.0-only"}, []string{"GPL-3.0-or-later OR SSPL-1.0"}, NotAllowed, nil},
+		{"a denied or-later choice does not pass the allow list", []string{"GPL-3.0-only"}, []string{"GPL-2.0-or-later"}, []string{"GPL-2.0-or-later OR MIT"}, NotAllowed, nil},
+		{"a denied or-later term alone is denied", []string{"GPL-3.0-only"}, []string{"GPL-2.0-or-later"}, []string{"GPL-2.0-or-later"}, Denied, []string{"GPL-2.0-or-later"}},
+		{"allow or-later with a letter in the version", []string{"LPPL-1.3c"}, nil, []string{"LPPL-1.3a+"}, Pass, nil},
+		{"deny or-later with an allowed lettered version", nil, []string{"LPPL-1.3a"}, []string{"LPPL-1.3a+"}, Pass, nil},
+		{"deny or-later when each lettered version is denied", nil, []string{"LPPL-1.3a", "LPPL-1.3c"}, []string{"LPPL-1.3a+"}, Denied, []string{"LPPL-1.3a+"}},
 		{"osi set allows MIT", []string{SetOSIApproved}, nil, []string{"MIT"}, Pass, nil},
 		{"osi set does not allow WTFPL", []string{SetOSIApproved}, nil, []string{"WTFPL"}, NotAllowed, nil},
 		{"fsf set allows WTFPL", []string{SetFSFLibre}, nil, []string{"WTFPL"}, Pass, nil},
@@ -244,78 +241,4 @@ func TestNoLicense(t *testing.T) {
 	assert.True(t, Parse([]string{"NONE"}).NoLicense())
 	assert.False(t, Parse([]string{"NONE", "MIT"}).NoLicense())
 	assert.False(t, Parse(nil).NoLicense())
-}
-
-// The embedded list and go-spdx must come from one SPDX License List, so a
-// set never names an id that go-spdx does not know. go generate rewrites
-// the list from the go-spdx module after a go-spdx upgrade.
-func TestListMatchesGoSPDX(t *testing.T) {
-	var active, deprecated []string
-	for _, l := range list.Licenses {
-		if l.Deprecated {
-			deprecated = append(deprecated, l.ID)
-		} else {
-			active = append(active, l.ID)
-		}
-	}
-	assert.ElementsMatch(t, spdxlicenses.GetLicenses(), active, "run go generate ./internal/spdxlicense")
-	assert.ElementsMatch(t, spdxlicenses.GetDeprecated(), deprecated, "run go generate ./internal/spdxlicense")
-	assert.NotEmpty(t, list.Version)
-	assert.True(t, strings.HasPrefix(ListVersion(), list.Version))
-}
-
-func TestSuccessors(t *testing.T) {
-	for old, t2 := range successors {
-		t.Run(old, func(t *testing.T) {
-			l, ok := ids[strings.ToLower(old)]
-			require.True(t, ok)
-			assert.True(t, l.Deprecated)
-			_, ok = ActiveID(t2.id)
-			assert.True(t, ok, "%s is an active id", t2.id)
-			if t2.exception != "" {
-				assert.Equal(t, t2.exception, exceptions[strings.ToLower(t2.exception)])
-			}
-		})
-	}
-}
-
-// Each deprecated id maps to a successor, or is on the list of ids that
-// keep their own name.
-func TestEachDeprecatedIDHasASuccessor(t *testing.T) {
-	for _, l := range list.Licenses {
-		if !l.Deprecated {
-			continue
-		}
-		t.Run(l.ID, func(t *testing.T) {
-			got, ok := canonical(l.ID)
-			require.True(t, ok)
-			if slices.Contains(keptDeprecated, l.ID) {
-				assert.Equal(t, term{id: l.ID}, got)
-				return
-			}
-			assert.NotEqual(t, l.ID, got.id)
-			_, active := ActiveID(got.id)
-			assert.True(t, active, "%s maps to the active id %s", l.ID, got.id)
-		})
-	}
-}
-
-func TestLaterVersions(t *testing.T) {
-	assert.Equal(t, []string{"GFDL-1.1-invariants-only", "GFDL-1.2-invariants-only", "GFDL-1.3-invariants-only"}, laterVersions("GFDL-1.1-invariants-or-later"))
-	assert.Equal(t, []string{"GPL-2.0-only", "GPL-3.0-only"}, laterVersions("GPL-2.0-or-later"))
-	assert.Equal(t, []string{"EUPL-1.2"}, laterVersions("EUPL-1.2"))
-	assert.Equal(t, []string{"EUPL-1.1", "EUPL-1.2"}, laterVersions("EUPL-1.1"))
-	assert.Equal(t, []string{"MIT"}, laterVersions("MIT"))
-}
-
-func TestSets(t *testing.T) {
-	osi, _ := setIDs(SetOSIApproved)
-	fsf, _ := setIDs(SetFSFLibre)
-	either, _ := setIDs(SetOSIApprovedOrFSF)
-	assert.Contains(t, osi, "Apache-2.0")
-	assert.NotContains(t, osi, "WTFPL")
-	assert.Contains(t, fsf, "WTFPL")
-	assert.Subset(t, either, osi)
-	assert.Subset(t, either, fsf)
-	assert.True(t, slices.IsSorted(either))
 }
