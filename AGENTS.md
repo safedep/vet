@@ -54,7 +54,7 @@ helper or a list. Each row is the one place for its concern.
 | GitHub token and client | `internal/github` |
 | The CI platform and the change that it builds, the adapters that write to it, and the setup files of `vet ci` | `internal/ci` |
 | Package identity: compare, key, order, PURL and the wire form of a package version | `model.PackageVersion`. It wraps the `dry/api/pb` rules. |
-| SPDX license expressions: parse, compare, allow and deny, the OSI and FSF sets | `internal/spdxlicense`. Do not call `go-spdx` from another package. |
+| SPDX license expressions: parse, compare, allow and deny, the OSI and FSF sets | `internal/spdxlicense`, which wraps `dry/policy/spdxlicense`. Do not import the dry package from another package. |
 | Source code: parse, walk, and what a JavaScript name or call stands for | `safedep/code` (`parser.ParseBytes`, `pkg/ts`, `lang/ecmascript`), only from `internal/plugins/enrichers/codeusage` and `internal/plugins/internal/hiddencode`. Do not import a tree-sitter grammar. |
 | Report types and the JSON Schema of the report | `report` |
 | Golden file comparison in tests | `internal/golden` |
