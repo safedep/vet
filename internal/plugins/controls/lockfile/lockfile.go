@@ -330,15 +330,7 @@ func (c *Control) followsConvention(resolved, name string) bool {
 			accept = append(accept, base+"/"+name)
 		}
 	}
-	if slices.Contains(accept, strings.Split(path, "/-/")[0]) {
-		return true
-	}
-	for _, t := range c.user {
-		if strings.HasPrefix(resolved, t.String()) {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(accept, strings.Split(path, "/-/")[0])
 }
 
 // trustedOf returns the trusted registries of an ecosystem: its public

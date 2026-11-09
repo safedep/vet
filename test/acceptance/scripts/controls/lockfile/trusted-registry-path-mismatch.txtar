@@ -1,0 +1,23 @@
+# A trusted registry relaxes only the host check. An entry on a trusted
+# registry whose URL names another package still gives registry-path-mismatch.
+cd proj
+exec vet --config $WORK/config.yml scan . --mode plain -o plain --fresh
+! stdout 'untrusted-registry'
+stdout 'registry-path-mismatch\tpackage-lock.json\tpackage-lock.json:6\t'
+! stdout 'registry-path-mismatch\tpackage-lock.json\tpackage-lock.json:7\t'
+
+-- config.yml --
+plugins:
+  lockfile:
+    options:
+      trusted_registries: ["https://npm.corp.example/repository/npm"]
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0", "is-odd": "3.0.1"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://npm.corp.example/repository/npm/evil-pad/-/evil-pad-1.3.0.tgz"},
+    "node_modules/is-odd": {"version": "3.0.1", "resolved": "https://npm.corp.example/repository/npm/is-odd/-/is-odd-3.0.1.tgz"}
+  }
+}

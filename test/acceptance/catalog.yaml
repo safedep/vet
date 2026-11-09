@@ -248,6 +248,12 @@
   tier: P0
   guarantee: "A lockfile entry that resolves from a registry outside the trusted list gives a finding."
   labels: [controls]
+- id: controls/lockfile/trusted-registry-path-mismatch
+  title: "lockfile: path mismatch on a trusted registry"
+  category: controls
+  tier: P0
+  guarantee: "A trusted registry relaxes only the host check. A lockfile entry on a trusted registry whose URL names another package gives registry-path-mismatch."
+  labels: [controls, lockfile]
 - id: controls/malware/known-malicious
   title: "malware: known malicious"
   category: controls
