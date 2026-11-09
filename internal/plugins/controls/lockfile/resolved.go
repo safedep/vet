@@ -91,7 +91,7 @@ func (c *Control) packageFinding(id string, m *model.Manifest, p *model.Package,
 	f.Evidence = []finding.Evidence{{Source: "lockfile", Summary: p.Resolved}}
 	f.References = []string{cweURL}
 	f.Remediation = &finding.Remediation{
-		Summary: "Make sure that the lockfile change is intended. Regenerate the lockfile from a trusted registry, or add the registry to plugins.lockfile.options.trusted_registries.",
+		Summary: remediation(id),
 	}
 	return f
 }

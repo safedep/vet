@@ -56,6 +56,22 @@ const v3 = `{
 }
 `
 
+const v3Corp = `{
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app"},
+    "node_modules/left-pad": {
+      "version": "1.3.0",
+      "resolved": "https://npm.corp.example/repository/npm/evil-pad/-/evil-pad-1.3.0.tgz"
+    },
+    "node_modules/string-width-cjs": {
+      "version": "4.2.3",
+      "resolved": "https://npm.corp.example/repository/npm/string-width/-/string-width-4.2.3.tgz"
+    }
+  }
+}
+`
+
 const v1 = `{
   "name": "old",
   "lockfileVersion": 1,
@@ -122,6 +138,11 @@ func TestEvaluate(t *testing.T) {
 				{IDUntrustedRegistry, "evil resolves from an untrusted host", 16},
 				{IDPathMismatch, "lodash resolves from the URL of another package", 20},
 			},
+		},
+		{
+			name: "a trusted registry on the URL of another package", extractor: packagelockjson.Name, content: v3Corp,
+			options: plugin.MapConfig{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}},
+			want:    []hit{{IDPathMismatch, "left-pad resolves from the URL of another package", 7}},
 		},
 		{
 			name: "lockfile version 1", extractor: packagelockjson.Name, content: v1,
@@ -199,6 +220,11 @@ func TestResolvedEntries(t *testing.T) {
 		{"a user registry on the URL of another package", map[string]any{"trusted_registries": []any{"https://npm.corp.example"}}, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://npm.corp.example/evil/-/evil-1.0.0.tgz"), []string{IDPathMismatch}},
 		{"a user registry with a base path", map[string]any{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}}, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://npm.corp.example/repository/npm/debug/-/debug-4.3.4.tgz"), nil},
 		{"a user registry with a base path on the URL of another package", map[string]any{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}}, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://npm.corp.example/repository/npm/evil/-/evil-1.0.0.tgz"), []string{IDPathMismatch}},
+		{"a scoped package on a user registry with a base path", map[string]any{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}}, pkg(model.EcosystemNpm, "@scope/util", "1.0.0", "https://npm.corp.example/repository/npm/@scope/util/-/util-1.0.0.tgz#abc"), nil},
+		{"an npm alias on a user registry", map[string]any{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}}, pkg(model.EcosystemNpm, "strip-ansi-cjs", "6.0.1", "https://npm.corp.example/repository/npm/strip-ansi/-/strip-ansi-6.0.1.tgz"), nil},
+		{"an npm alias on the URL of another package", nil, pkg(model.EcosystemNpm, "strip-ansi-cjs", "6.0.1", "https://registry.npmjs.org/evil/-/evil-6.0.1.tgz"), []string{IDPathMismatch}},
+		{"a dot segment to the URL of another package", nil, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://registry.npmjs.org/debug/-/../evil/-/evil-1.0.0.tgz"), []string{IDPathMismatch}},
+		{"an encoded dot segment to the URL of another package", nil, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://registry.npmjs.org/debug/-/%2e%2e/evil/-/evil-1.0.0.tgz"), []string{IDPathMismatch}},
 		{"uv on PyPI", nil, pkg(model.EcosystemPyPI, "requests", "2.32.0", "https://pypi.org/simple"), nil},
 		{"uv on another index", nil, pkg(model.EcosystemPyPI, "requests", "2.32.0", "https://pypi.evil.example/simple"), []string{IDUntrustedRegistry}},
 		{"cargo on crates.io", nil, pkg(model.EcosystemCargo, "serde", "1.0.0", "registry+https://github.com/rust-lang/crates.io-index"), nil},

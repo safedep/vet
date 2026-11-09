@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/url"
+	pathpkg "path"
 	"slices"
 	"sort"
 	"strings"
@@ -41,12 +42,14 @@ const (
 	cweURL      = "https://cwe.mitre.org/data/definitions/349.html"
 )
 
-// npmInconsistentURLs lists the packages that the npm registry serves from
-// the path of another package name.
-var npmInconsistentURLs = map[string]string{
-	"strip-ansi-cjs":   "https://registry.npmjs.org/strip-ansi/-/",
-	"wrap-ansi-cjs":    "https://registry.npmjs.org/wrap-ansi/-/",
-	"string-width-cjs": "https://registry.npmjs.org/string-width/-/",
+// npmAliases maps the npm aliases that common packages install, such as
+// the aliases of glob through @isaacs/cliui, to the package that a registry
+// serves for them. The alias has the path of that package on any registry,
+// public or private.
+var npmAliases = map[string]string{
+	"strip-ansi-cjs":   "strip-ansi",
+	"wrap-ansi-cjs":    "wrap-ansi",
+	"string-width-cjs": "string-width",
 }
 
 // Options are plugins.lockfile.options.
@@ -110,7 +113,7 @@ func (c *Control) Controls() []plugin.ControlInfo {
 		{
 			ID: IDPathMismatch, Family: finding.FamilyLockfile, Severity: finding.SeverityHigh,
 			Title:       "Lockfile entry with a URL of another package",
-			Description: "The resolved URL of a lockfile entry does not match the package name. An attacker can edit a lockfile to install another package under a trusted name.",
+			Description: "The resolved URL of a lockfile entry does not match the package name. An attacker can edit a lockfile to install another package under a trusted name. A trusted registry does not turn off this check.",
 		},
 		{
 			ID: IDIntegrityChanged, Family: finding.FamilyLockfile, Severity: finding.SeverityHigh,
@@ -230,9 +233,18 @@ func (c *Control) finding(id string, locus finding.Locus, key finding.Key, title
 	f.Evidence = []finding.Evidence{{Source: "lockfile", Summary: locus.Snippet}}
 	f.References = []string{cweURL}
 	f.Remediation = &finding.Remediation{
-		Summary: "Make sure that the lockfile change is intended. Regenerate the lockfile from a trusted registry, or add the registry to plugins.lockfile.options.trusted_registries.",
+		Summary: remediation(id),
 	}
 	return f
+}
+
+// remediation says how to fix a finding. A trusted registry does not turn
+// off registry-path-mismatch, so its fix does not name trusted_registries.
+func remediation(id string) string {
+	if id == IDPathMismatch {
+		return "Make sure that the lockfile change is intended. The resolved URL must name the package of the entry. Regenerate the lockfile."
+	}
+	return "Make sure that the lockfile change is intended. Regenerate the lockfile from a trusted registry, or add the registry to plugins.lockfile.options.trusted_registries."
 }
 
 // flatten turns the nested dependencies of a lockfile version 1 into the
@@ -310,9 +322,6 @@ func (c *Control) trustedSource(eco model.Ecosystem, resolved string) bool {
 // followsConvention reports whether the URL path starts with the package
 // name, as the npm registry serves it: <registry>/<name>/-/<file>.
 func (c *Control) followsConvention(resolved, name string) bool {
-	if known, ok := npmInconsistentURLs[name]; ok && strings.HasPrefix(resolved, known) {
-		return true
-	}
 	u, err := parseURL(resolved)
 	if err != nil {
 		return false
@@ -323,11 +332,20 @@ func (c *Control) followsConvention(resolved, name string) bool {
 	if u.Path == "" {
 		return false
 	}
-	path := strings.TrimPrefix(u.Path, "/")
-	accept := []string{name}
-	for _, t := range c.trustedOf(model.EcosystemNpm) {
-		if base := strings.Trim(t.Path, "/"); base != "" {
-			accept = append(accept, base+"/"+name)
+	// npm removes the dot segments of a URL before it downloads, so
+	// <name>/-/../<other>/-/<file> installs <other>. Clean does the same.
+	path := strings.TrimPrefix(pathpkg.Clean("/"+u.Path), "/")
+	names := []string{name}
+	if real, ok := npmAliases[name]; ok {
+		names = append(names, real)
+	}
+	var accept []string
+	for _, n := range names {
+		accept = append(accept, n)
+		for _, t := range c.trustedOf(model.EcosystemNpm) {
+			if base := strings.Trim(t.Path, "/"); base != "" {
+				accept = append(accept, base+"/"+n)
+			}
 		}
 	}
 	return slices.Contains(accept, strings.Split(path, "/-/")[0])

@@ -398,7 +398,7 @@ A lockfile entry resolves from a host that is not a trusted registry. An attacke
 
 **Lockfile entry with a URL of another package.** Family `lockfile`. Default severity high. Plugin `lockfile`.
 
-The resolved URL of a lockfile entry does not match the package name. An attacker can edit a lockfile to install another package under a trusted name.
+The resolved URL of a lockfile entry does not match the package name. An attacker can edit a lockfile to install another package under a trusted name. A trusted registry does not turn off this check.
 
 ### integrity-changed
 
