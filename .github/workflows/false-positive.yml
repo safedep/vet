@@ -49,6 +49,16 @@ jobs:
           ref: ${{ inputs.ref || github.ref }}
           persist-credentials: false
 
+      # A dispatch can test a ref from before PMG came to this repository. That
+      # ref has no setup action, so the job runs without PMG, as it did then.
+      - name: Set up PMG
+        if: hashFiles('.github/actions/setup-pmg/action.yml') != ''
+        uses: ./.github/actions/setup-pmg
+        with:
+          api-key: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
+          tenant-id: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
+          network-profile: .github/pmg/network/false-positive-false-positive.yml
+
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
