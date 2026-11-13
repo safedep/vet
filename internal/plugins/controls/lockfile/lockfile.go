@@ -287,11 +287,15 @@ func directAliases(root fs.FS, path string) map[string]string {
 		log.Warnf("lockfile: decode %s: %v", path, err)
 		return nil
 	}
+	// npm reads the dependency types in this order, and a later spec for a
+	// name replaces an earlier one. So a plain spec removes an earlier alias.
 	out := map[string]string{}
-	for _, deps := range []map[string]string{pj.Dependencies, pj.DevDependencies, pj.OptionalDependencies, pj.PeerDependencies} {
-		for alias, spec := range deps {
+	for _, deps := range []map[string]string{pj.PeerDependencies, pj.Dependencies, pj.OptionalDependencies, pj.DevDependencies} {
+		for name, spec := range deps {
 			if target := aliasTarget(spec); target != "" {
-				out[alias] = target
+				out[name] = target
+			} else {
+				delete(out, name)
 			}
 		}
 	}
@@ -439,9 +443,10 @@ func scopedName(seg string) bool {
 }
 
 // followsConvention reports whether the URL path starts with the package
-// name, as the npm registry serves it: <registry>/<name>/-/<file>. When the
-// name is an alias, the path can start with the target package of the alias
-// instead. target is "" for a name that is not a direct alias.
+// name, as the npm registry serves it: <registry>/<name>/-/<file>. For a
+// direct alias, the path must start with the target of the alias. A package
+// with the name of the alias is another package. target is "" for a name
+// that is not a direct alias.
 func (c *Control) followsConvention(resolved, name, target string) bool {
 	u, err := parseURL(resolved)
 	if err != nil {
@@ -463,7 +468,7 @@ func (c *Control) followsConvention(resolved, name, target string) bool {
 		names = append(names, real)
 	}
 	if target != "" {
-		names = append(names, target)
+		names = []string{target}
 	}
 	for _, rest := range c.registryPaths(u, path) {
 		if slices.Contains(names, strings.Split(rest, "/-/")[0]) {

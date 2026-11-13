@@ -91,6 +91,14 @@ const v3Alias = `{
       "version": "1.0.0",
       "resolved": "https://npm.corp.example/repository/npm/evil/-/evil-1.0.0.tgz"
     },
+    "node_modules/ms-v3": {
+      "version": "3.0.0",
+      "resolved": "https://npm.corp.example/repository/npm/ms-v3/-/ms-v3-3.0.0.tgz"
+    },
+    "node_modules/chalk-v4": {
+      "version": "4.1.2",
+      "resolved": "https://npm.corp.example/repository/npm/chalk/-/chalk-4.1.2.tgz"
+    },
     "node_modules/a/node_modules/debug-v4": {
       "name": "evil",
       "version": "1.0.0",
@@ -102,7 +110,8 @@ const v3Alias = `{
 
 const aliasManifest = `{
   "name": "app",
-  "dependencies": {"debug-v4": "npm:debug@4.3.4", "ms-v2": "npm:ms@2.1.3"},
+  "dependencies": {"debug-v4": "npm:debug@4.3.4", "ms-v2": "npm:ms@2.1.3", "ms-v3": "npm:ms@3.0.0", "chalk-v4": "npm:chalk@4.1.2"},
+  "optionalDependencies": {"chalk-v4": "4.1.2"},
   "devDependencies": {"node-types": "npm:@types/node@^20"}
 }
 `
@@ -188,15 +197,18 @@ func TestEvaluate(t *testing.T) {
 			name: "direct aliases of package.json", extractor: packagelockjson.Name, content: v3Alias, packageJSON: aliasManifest,
 			options: plugin.MapConfig{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}},
 			want: []hit{
-				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 23},
+				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 31},
+				{IDPathMismatch, "chalk-v4 resolves from the URL of another package", 26},
 				{IDPathMismatch, "ms-v2 resolves from the URL of another package", 18},
+				{IDPathMismatch, "ms-v3 resolves from the URL of another package", 22},
 			},
 		},
 		{
 			name: "aliases of the lockfile only", extractor: packagelockjson.Name, content: v3Alias,
 			options: plugin.MapConfig{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}},
 			want: []hit{
-				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 23},
+				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 31},
+				{IDPathMismatch, "chalk-v4 resolves from the URL of another package", 26},
 				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 8},
 				{IDPathMismatch, "ms-v2 resolves from the URL of another package", 18},
 				{IDPathMismatch, "node-types resolves from the URL of another package", 13},
@@ -206,7 +218,8 @@ func TestEvaluate(t *testing.T) {
 			name: "a package.json that vet cannot decode", extractor: packagelockjson.Name, content: v3Alias, packageJSON: "{",
 			options: plugin.MapConfig{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}},
 			want: []hit{
-				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 23},
+				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 31},
+				{IDPathMismatch, "chalk-v4 resolves from the URL of another package", 26},
 				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 8},
 				{IDPathMismatch, "ms-v2 resolves from the URL of another package", 18},
 				{IDPathMismatch, "node-types resolves from the URL of another package", 13},

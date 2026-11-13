@@ -149,7 +149,7 @@ layout after its base path.
 
 An npm alias, as in `"debug-v4": "npm:debug@4.3.4"`, installs `debug` at `node_modules/debug-v4`.
 `registry-path-mismatch` accepts the URL of `debug` for that entry when the `package.json` next to the
-lockfile declares the alias. The check does not read aliases from the lockfile, because an attacker can
+lockfile declares the alias. It then refuses the URL of `debug-v4`, because that is another package. The check does not read aliases from the lockfile, because an attacker can
 edit the lockfile. It does not read the aliases of workspace members or of dependencies. To pass such an
 alias, suppress the finding with a policy.
 
