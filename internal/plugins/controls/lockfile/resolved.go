@@ -42,8 +42,13 @@ func registryURL(resolved string) string {
 	for _, prefix := range []string{"registry+", "sparse+"} {
 		resolved = strings.TrimPrefix(resolved, prefix)
 	}
-	if strings.HasPrefix(resolved, "https://") || strings.HasPrefix(resolved, "http://") {
-		return resolved
+	// A URL scheme is not case sensitive. A protocol-relative URL such as
+	// //host/a.tgz also downloads from a remote host.
+	lower := strings.ToLower(resolved)
+	for _, prefix := range []string{"https://", "http://", "//"} {
+		if strings.HasPrefix(lower, prefix) {
+			return resolved
+		}
 	}
 	return ""
 }

@@ -87,9 +87,10 @@ func New(cfg plugin.Config) (plugin.Control, error) {
 	c := &Control{trusted: map[model.Ecosystem][]*url.URL{}}
 	for _, raw := range o.TrustedRegistries {
 		u, err := parseURL(raw)
-		if err != nil || u.Host == "" {
-			return nil, fmt.Errorf("lockfile: trusted registry %q is not a URL", raw)
+		if err != nil || u.Host == "" || u.Scheme == "" {
+			return nil, fmt.Errorf("lockfile: trusted registry %q is not a URL with a scheme and a host", raw)
 		}
+		u.Path = pathpkg.Clean("/" + u.Path)
 		c.user = append(c.user, u)
 	}
 	for eco, raws := range defaultRegistries {
@@ -247,7 +248,7 @@ func remediation(id string) string {
 	if id == IDPathMismatch {
 		return "Make sure that the lockfile change is intended. The resolved URL must name the package of the entry. Regenerate the lockfile."
 	}
-	return "Make sure that the lockfile change is intended. Regenerate the lockfile from a trusted registry, or add the registry to plugins.lockfile.options.trusted_registries."
+	return "Make sure that the lockfile change is intended. Regenerate the lockfile from a trusted registry. To trust the registry, add its full URL to plugins.lockfile.options.trusted_registries"
 }
 
 // flatten turns the nested dependencies of a lockfile version 1 into the
@@ -315,7 +316,7 @@ func (c *Control) trustedSource(eco model.Ecosystem, resolved string) bool {
 		if t.Port() != "" && t.Port() != u.Port() {
 			continue
 		}
-		if base := strings.Trim(t.Path, "/"); base != "" && path != base && !strings.HasPrefix(path, base+"/") {
+		if base := basePath(t); base != "" && path != base && !strings.HasPrefix(path, base+"/") {
 			continue
 		}
 		return true
@@ -323,18 +324,54 @@ func (c *Control) trustedSource(eco model.Ecosystem, resolved string) bool {
 	return false
 }
 
-// local reports whether a resolved URL is a file on the machine: a file URL,
-// or a path with no scheme and no host. A protocol-relative URL such as
-// //host/pkg.tgz has a host, so it is not local.
+// local reports whether a resolved URL is a file on the machine. That is a
+// file URL, or a path with no scheme and no host. A protocol-relative URL
+// such as //host/pkg.tgz has a host, so it is not local.
 func local(u *url.URL) bool {
 	return u.Scheme == "file" || (u.Scheme == "" && u.Host == "")
 }
 
-// cleanPath returns the URL path with no leading slash and no dot segments.
-// npm removes the dot segments of a URL before it downloads, so
-// <name>/-/../<other>/-/<file> installs <other>.
+// cleanPath returns the URL path with no leading slash and no empty
+// segments. unsafePath refuses the paths that it cannot read as npm does.
 func cleanPath(u *url.URL) string {
 	return strings.TrimPrefix(pathpkg.Clean("/"+u.Path), "/")
+}
+
+// basePath returns the path of a trusted registry with no slash at either
+// end.
+func basePath(t *url.URL) string {
+	return strings.Trim(t.Path, "/")
+}
+
+// unsafePath reports whether npm would read the path of a URL as another
+// path than Go does. Node removes the dot segments of the raw path, and it
+// reads a backslash as a slash. Go decodes %2f to a slash before it splits
+// the segments. So debug%2f-%2fd/../evil/-/evil.tgz is the path of debug for
+// Go and the path of evil for npm. No package manager writes such a path,
+// so the checks refuse it. The one encoded slash that npm writes is the slash
+// of a scoped name, as in @types%2fnode.
+func unsafePath(u *url.URL) bool {
+	raw := strings.ToLower(u.EscapedPath())
+	if strings.Contains(raw, `\`) || strings.Contains(raw, "%5c") {
+		return true
+	}
+	for _, seg := range strings.Split(raw, "/") {
+		switch strings.ReplaceAll(seg, "%2e", ".") {
+		case ".", "..":
+			return true
+		}
+		if strings.Contains(seg, "%2f") && !scopedName(seg) {
+			return true
+		}
+	}
+	return false
+}
+
+// scopedName reports whether an escaped path segment is one scoped npm
+// name, as in @types%2fnode.
+func scopedName(seg string) bool {
+	scope, name, ok := strings.Cut(seg, "%2f")
+	return ok && strings.HasPrefix(scope, "@") && len(scope) > 1 && name != "" && !strings.Contains(name, "%2f")
 }
 
 // followsConvention reports whether the URL path starts with the package
@@ -347,13 +384,14 @@ func (c *Control) followsConvention(resolved, name string) bool {
 	if local(u) {
 		return true
 	}
-	if u.Path == "" {
+	if u.Path == "" || unsafePath(u) {
 		return false
 	}
 	path := cleanPath(u)
-	if strings.EqualFold(u.Hostname(), githubPackagesHost) {
-		return githubPackagesPath(path, name)
-	}
+	// A user registry can serve the layout of GitHub Packages, as GitHub
+	// Enterprise Server does. The public registries serve only the npm
+	// layout.
+	github := strings.EqualFold(u.Hostname(), githubPackagesHost) || c.userHost(u)
 	names := []string{name}
 	if real, ok := npmAliases[name]; ok {
 		names = append(names, real)
@@ -362,14 +400,27 @@ func (c *Control) followsConvention(resolved, name string) bool {
 		if slices.Contains(names, strings.Split(rest, "/-/")[0]) {
 			return true
 		}
+		if github && githubPackagesPath(rest, name) {
+			return true
+		}
+	}
+	return false
+}
+
+// userHost reports whether a user trusted registry is on the host of the URL.
+func (c *Control) userHost(u *url.URL) bool {
+	for _, t := range c.user {
+		if strings.EqualFold(t.Hostname(), u.Hostname()) {
+			return true
+		}
 	}
 	return false
 }
 
 // registryPaths returns the URL path as it is, and the path after the base
 // path of each trusted registry on the host of the URL. A base path can hold
-// /-/ itself, as the group registry of GitLab does
-// (/api/v4/groups/<id>/-/packages/npm), so the check removes the base path
+// /-/ itself. The group registry of GitLab does, at
+// /api/v4/groups/<id>/-/packages/npm. So the check removes the base path
 // before it looks for the /-/ that follows the package name.
 func (c *Control) registryPaths(u *url.URL, path string) []string {
 	out := []string{path}
@@ -377,7 +428,7 @@ func (c *Control) registryPaths(u *url.URL, path string) []string {
 		if !strings.EqualFold(t.Hostname(), u.Hostname()) {
 			continue
 		}
-		if base := strings.Trim(t.Path, "/"); base != "" {
+		if base := basePath(t); base != "" {
 			if rest, ok := strings.CutPrefix(path, base+"/"); ok {
 				out = append(out, rest)
 			}
