@@ -133,10 +133,15 @@ vet config set plugins.reputation.options.internal_names '["acme-*"]'
 ### Private registries
 
 List a private npm registry in `trusted_registries` with its full registry URL, as `.npmrc` writes it.
-The URL includes the base path, as in `https://acme.jfrog.io/artifactory/api/npm/npm-remote` or
-`https://gitlab.example.com/api/v4/groups/5/-/packages/npm`. `registry-path-mismatch` reads the package
-name after that base path, in the layout `<base>/<name>/-/<file>`. If the URL has no base path, each
-entry of that registry gives `registry-path-mismatch`.
+`registry-path-mismatch` reads the package name after the base path of the URL, in the layout
+`<base>/<name>/-/<file>`. When a registry serves its packages under a base path, as
+`https://acme.jfrog.io/artifactory/api/npm/npm-remote` does, the URL must include that base path.
+Without it, each entry of that registry gives `registry-path-mismatch`. A registry that serves its
+packages right under the host needs no base path.
+
+A GitLab group or instance registry returns tarball URLs on the project endpoint. List the project
+endpoint of each project that publishes packages, as in
+`https://gitlab.example.com/api/v4/projects/1/packages/npm`.
 
 GitHub Packages serves the layout `https://npm.pkg.github.com/download/<@scope/name>/<version>/<hash>`.
 List it as `https://npm.pkg.github.com`. A private registry in `trusted_registries` can also serve this

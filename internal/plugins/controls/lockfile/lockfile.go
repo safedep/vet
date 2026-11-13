@@ -419,9 +419,8 @@ func (c *Control) userHost(u *url.URL) bool {
 
 // registryPaths returns the URL path as it is, and the path after the base
 // path of each trusted registry on the host of the URL. A base path can hold
-// /-/ itself. The group registry of GitLab does, at
-// /api/v4/groups/<id>/-/packages/npm. So the check removes the base path
-// before it looks for the /-/ that follows the package name.
+// /-/ itself, as /api/v4/groups/<id>/-/packages/npm does. So the check removes
+// the base path before it looks for the /-/ that follows the package name.
 func (c *Control) registryPaths(u *url.URL, path string) []string {
 	out := []string{path}
 	for _, t := range c.trustedOf(model.EcosystemNpm) {
