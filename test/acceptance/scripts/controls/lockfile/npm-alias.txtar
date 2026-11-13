@@ -1,0 +1,28 @@
+# An npm alias that package.json declares passes the name check when the URL
+# names the target of the alias. The name field of the lockfile entry does not
+# make an alias, because an attacker can edit the lockfile.
+cd proj
+exec vet --config $WORK/config.yml scan . --mode plain -o plain --fresh
+! stdout 'untrusted-registry'
+! stdout 'registry-path-mismatch\tpackage-lock.json\tpackage-lock.json:6\t'
+stdout 'registry-path-mismatch\tpackage-lock.json\tpackage-lock.json:7\t'
+stdout 'registry-path-mismatch\tpackage-lock.json\tpackage-lock.json:8\t'
+
+-- config.yml --
+plugins:
+  lockfile:
+    options:
+      trusted_registries: ["https://npm.corp.example/repository/npm"]
+-- proj/package.json --
+{"name": "app", "dependencies": {"debug-v4": "npm:debug@4.3.4", "ms-v2": "npm:ms@2.1.3", "left-pad": "1.3.0"}}
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"debug-v4": "npm:debug@4.3.4", "ms-v2": "npm:ms@2.1.3", "left-pad": "1.3.0"}},
+    "node_modules/debug-v4": {"name": "debug", "version": "4.3.4", "resolved": "https://npm.corp.example/repository/npm/debug/-/debug-4.3.4.tgz"},
+    "node_modules/ms-v2": {"name": "evil", "version": "1.0.0", "resolved": "https://npm.corp.example/repository/npm/evil/-/evil-1.0.0.tgz"},
+    "node_modules/left-pad": {"name": "evil-pad", "version": "1.3.0", "resolved": "https://npm.corp.example/repository/npm/evil-pad/-/evil-pad-1.3.0.tgz"}
+  }
+}

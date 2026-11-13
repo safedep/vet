@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/fs"
 	"net/url"
@@ -18,6 +19,8 @@ import (
 	"slices"
 	"sort"
 	"strings"
+
+	"github.com/safedep/dry/log"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/packagelockjson"
@@ -48,7 +51,7 @@ const (
 // npmAliases maps the npm aliases that common packages install, such as
 // the aliases of glob through @isaacs/cliui, to the package that a registry
 // serves for them. The alias has the path of that package on any registry,
-// public or private.
+// public or private. directAliases reads the aliases of the project.
 var npmAliases = map[string]string{
 	"strip-ansi-cjs":   "strip-ansi",
 	"wrap-ansi-cjs":    "wrap-ansi",
@@ -205,6 +208,8 @@ func (c *Control) npmLockfile(m *model.Manifest) ([]finding.Finding, error) {
 	}
 	sort.Strings(paths)
 
+	aliases := directAliases(m.Root, pathpkg.Join(pathpkg.Dir(m.Path), "package.json"))
+
 	var out []finding.Finding
 	for _, path := range paths {
 		e := entries[path]
@@ -212,6 +217,10 @@ func (c *Control) npmLockfile(m *model.Manifest) ([]finding.Finding, error) {
 			continue
 		}
 		name := nameOf(path)
+		target := ""
+		if path == "node_modules/"+name {
+			target = aliases[name]
+		}
 		locus := finding.Locus{Path: m.Path, StartLine: lineOf(data, path, e.Resolved), Snippet: e.Resolved}
 		locus.EndLine = locus.StartLine
 		key := finding.Key{Discriminator: path}
@@ -220,7 +229,7 @@ func (c *Control) npmLockfile(m *model.Manifest) ([]finding.Finding, error) {
 				fmt.Sprintf("%s resolves from an untrusted host", name),
 				fmt.Sprintf("The lockfile installs %s from %s. The host is not a trusted registry.", name, e.Resolved)))
 		}
-		if !c.followsConvention(e.Resolved, name) {
+		if !c.followsConvention(e.Resolved, name, target) {
 			out = append(out, c.finding(IDPathMismatch, locus, key,
 				fmt.Sprintf("%s resolves from the URL of another package", name),
 				fmt.Sprintf("The lockfile installs %s from %s. The URL path does not match the package name.", name, e.Resolved)))
@@ -249,6 +258,58 @@ func remediation(id string) string {
 		return "Make sure that the lockfile change is intended. The resolved URL must name the package of the entry. Regenerate the lockfile."
 	}
 	return "Make sure that the lockfile change is intended. Regenerate the lockfile from a trusted registry. To trust the registry, add its full URL to plugins.lockfile.options.trusted_registries"
+}
+
+// directAliases returns the npm aliases that a package.json declares, as in
+// "debug-v4": "npm:debug@4.3.4", from alias to package name. npm installs a
+// direct alias at node_modules/<alias>. The lockfile also records the
+// package name of an alias, but an attacker can edit the lockfile. So the
+// check reads the alias from package.json, which a reviewer sees in the
+// change. The aliases of workspace members and of dependencies are not read.
+// A package.json that vet cannot read gives no aliases, so the check reports
+// more entries, not fewer.
+func directAliases(root fs.FS, path string) map[string]string {
+	data, err := fs.ReadFile(root, path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		log.Warnf("lockfile: read %s: %v", path, err)
+		return nil
+	}
+	var pj struct {
+		Dependencies         map[string]string `json:"dependencies"`
+		DevDependencies      map[string]string `json:"devDependencies"`
+		OptionalDependencies map[string]string `json:"optionalDependencies"`
+		PeerDependencies     map[string]string `json:"peerDependencies"`
+	}
+	if err := json.Unmarshal(data, &pj); err != nil {
+		log.Warnf("lockfile: decode %s: %v", path, err)
+		return nil
+	}
+	out := map[string]string{}
+	for _, deps := range []map[string]string{pj.Dependencies, pj.DevDependencies, pj.OptionalDependencies, pj.PeerDependencies} {
+		for alias, spec := range deps {
+			if target := aliasTarget(spec); target != "" {
+				out[alias] = target
+			}
+		}
+	}
+	return out
+}
+
+// aliasTarget returns the package name of an npm alias spec, such as debug
+// for npm:debug@^4 and @types/node for npm:@types/node, or "" for another
+// spec.
+func aliasTarget(spec string) string {
+	target, ok := strings.CutPrefix(spec, "npm:")
+	if !ok || target == "" {
+		return ""
+	}
+	if i := strings.Index(target[1:], "@"); i >= 0 {
+		target = target[:i+1]
+	}
+	return target
 }
 
 // flatten turns the nested dependencies of a lockfile version 1 into the
@@ -375,8 +436,10 @@ func scopedName(seg string) bool {
 }
 
 // followsConvention reports whether the URL path starts with the package
-// name, as the npm registry serves it: <registry>/<name>/-/<file>.
-func (c *Control) followsConvention(resolved, name string) bool {
+// name, as the npm registry serves it: <registry>/<name>/-/<file>. When the
+// name is an alias, the path can start with the target package of the alias
+// instead. target is "" for a name that is not a direct alias.
+func (c *Control) followsConvention(resolved, name, target string) bool {
 	u, err := parseURL(resolved)
 	if err != nil {
 		return false
@@ -396,11 +459,14 @@ func (c *Control) followsConvention(resolved, name string) bool {
 	if real, ok := npmAliases[name]; ok {
 		names = append(names, real)
 	}
+	if target != "" {
+		names = append(names, target)
+	}
 	for _, rest := range c.registryPaths(u, path) {
 		if slices.Contains(names, strings.Split(rest, "/-/")[0]) {
 			return true
 		}
-		if github && githubPackagesPath(rest, name) {
+		if github && slices.ContainsFunc(names, func(n string) bool { return githubPackagesPath(rest, n) }) {
 			return true
 		}
 	}

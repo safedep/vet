@@ -147,6 +147,12 @@ GitHub Packages serves the layout `https://npm.pkg.github.com/download/<@scope/n
 List it as `https://npm.pkg.github.com`. A private registry in `trusted_registries` can also serve this
 layout after its base path.
 
+An npm alias, as in `"debug-v4": "npm:debug@4.3.4"`, installs `debug` at `node_modules/debug-v4`.
+`registry-path-mismatch` accepts the URL of `debug` for that entry when the `package.json` next to the
+lockfile declares the alias. The check does not read aliases from the lockfile, because an attacker can
+edit the lockfile. It does not read the aliases of workspace members or of dependencies. To pass such an
+alias, suppress the finding with a policy.
+
 ## License lists
 
 The license control checks the license of each package against two lists. It reads the license from

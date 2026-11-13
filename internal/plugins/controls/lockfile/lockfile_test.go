@@ -72,6 +72,41 @@ const v3Corp = `{
 }
 `
 
+const v3Alias = `{
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app"},
+    "node_modules/debug-v4": {
+      "name": "debug",
+      "version": "4.3.4",
+      "resolved": "https://npm.corp.example/repository/npm/debug/-/debug-4.3.4.tgz"
+    },
+    "node_modules/node-types": {
+      "name": "@types/node",
+      "version": "20.0.0",
+      "resolved": "https://npm.corp.example/repository/npm/@types/node/-/node-20.0.0.tgz"
+    },
+    "node_modules/ms-v2": {
+      "name": "evil",
+      "version": "1.0.0",
+      "resolved": "https://npm.corp.example/repository/npm/evil/-/evil-1.0.0.tgz"
+    },
+    "node_modules/a/node_modules/debug-v4": {
+      "name": "evil",
+      "version": "1.0.0",
+      "resolved": "https://npm.corp.example/repository/npm/evil/-/evil-1.0.0.tgz"
+    }
+  }
+}
+`
+
+const aliasManifest = `{
+  "name": "app",
+  "dependencies": {"debug-v4": "npm:debug@4.3.4", "ms-v2": "npm:ms@2.1.3"},
+  "devDependencies": {"node-types": "npm:@types/node@^20"}
+}
+`
+
 const v1 = `{
   "name": "old",
   "lockfileVersion": 1,
@@ -96,14 +131,18 @@ type hit struct {
 	line    int
 }
 
-func evaluate(t *testing.T, options plugin.MapConfig, extractor, content string) []hit {
+func evaluate(t *testing.T, options plugin.MapConfig, extractor, content, packageJSON string) []hit {
 	t.Helper()
 	c, err := New(options)
 	require.NoError(t, err)
+	root := fstest.MapFS{"web/package-lock.json": {Data: []byte(content)}}
+	if packageJSON != "" {
+		root["web/package.json"] = &fstest.MapFile{Data: []byte(packageJSON)}
+	}
 	m := &model.Manifest{
 		ID: "m1", Path: "web/package-lock.json", Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindLockfile,
 		Extractor: extractor,
-		Root:      fstest.MapFS{"web/package-lock.json": {Data: []byte(content)}},
+		Root:      root,
 	}
 	var out []hit
 	for _, f := range plugintest.TestControl(t, c, m, nil) {
@@ -117,10 +156,11 @@ func evaluate(t *testing.T, options plugin.MapConfig, extractor, content string)
 func TestEvaluate(t *testing.T) {
 	cases := []struct {
 		name      string
-		options   plugin.MapConfig
-		extractor string
-		content   string
-		want      []hit
+		options     plugin.MapConfig
+		extractor   string
+		content     string
+		packageJSON string
+		want        []hit
 	}{
 		{
 			name: "lockfile version 3", extractor: packagelockjson.Name, content: v3,
@@ -145,6 +185,34 @@ func TestEvaluate(t *testing.T) {
 			want:    []hit{{IDPathMismatch, "left-pad resolves from the URL of another package", 7}},
 		},
 		{
+			name: "direct aliases of package.json", extractor: packagelockjson.Name, content: v3Alias, packageJSON: aliasManifest,
+			options: plugin.MapConfig{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}},
+			want: []hit{
+				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 23},
+				{IDPathMismatch, "ms-v2 resolves from the URL of another package", 18},
+			},
+		},
+		{
+			name: "aliases of the lockfile only", extractor: packagelockjson.Name, content: v3Alias,
+			options: plugin.MapConfig{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}},
+			want: []hit{
+				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 23},
+				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 8},
+				{IDPathMismatch, "ms-v2 resolves from the URL of another package", 18},
+				{IDPathMismatch, "node-types resolves from the URL of another package", 13},
+			},
+		},
+		{
+			name: "a package.json that vet cannot decode", extractor: packagelockjson.Name, content: v3Alias, packageJSON: "{",
+			options: plugin.MapConfig{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}},
+			want: []hit{
+				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 23},
+				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 8},
+				{IDPathMismatch, "ms-v2 resolves from the URL of another package", 18},
+				{IDPathMismatch, "node-types resolves from the URL of another package", 13},
+			},
+		},
+		{
 			name: "lockfile version 1", extractor: packagelockjson.Name, content: v1,
 			want: []hit{{IDUntrustedRegistry, "nested resolves from an untrusted host", 11}},
 		},
@@ -152,7 +220,7 @@ func TestEvaluate(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, evaluate(t, tc.options, tc.extractor, tc.content))
+			assert.Equal(t, tc.want, evaluate(t, tc.options, tc.extractor, tc.content, tc.packageJSON))
 		})
 	}
 }
@@ -378,4 +446,19 @@ func TestInstalledNotLockedSkipsARemovedLockfile(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, plugintest.TestControl(t, c, installed, plugintest.NewMemState(removed, installed)),
 		"a project with no lockfile at the head has no verdict")
+}
+
+func TestAliasTarget(t *testing.T) {
+	cases := map[string]string{
+		"npm:debug@4.3.4":     "debug",
+		"npm:debug":           "debug",
+		"npm:@types/node@^20": "@types/node",
+		"npm:@types/node":     "@types/node",
+		"npm:":                "",
+		"^4.3.4":              "",
+		"github:debug/debug":  "",
+	}
+	for spec, want := range cases {
+		assert.Equal(t, want, aliasTarget(spec), spec)
+	}
 }

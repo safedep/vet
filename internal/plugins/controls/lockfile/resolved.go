@@ -26,7 +26,7 @@ func (c *Control) resolvedEntries(m *model.Manifest) []finding.Finding {
 				fmt.Sprintf("The lockfile installs %s from %s. The host is not a trusted registry.", name, raw)))
 			continue
 		}
-		if p.ID.Ecosystem() == model.EcosystemNpm && !c.followsConvention(raw, name) {
+		if p.ID.Ecosystem() == model.EcosystemNpm && !c.followsConvention(raw, name, "") {
 			out = append(out, c.packageFinding(IDPathMismatch, m, p, key,
 				fmt.Sprintf("%s resolves from the URL of another package", name),
 				fmt.Sprintf("The lockfile installs %s from %s. The URL path does not match the package name.", name, raw)))
