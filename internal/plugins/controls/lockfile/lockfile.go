@@ -39,7 +39,10 @@ const (
 
 const (
 	npmRegistry = "https://registry.npmjs.org"
-	cweURL      = "https://cwe.mitre.org/data/definitions/349.html"
+	// githubPackagesHost serves npm tarballs at
+	// /download/<@scope/name>/<version>/<hash>, not at <name>/-/<file>.
+	githubPackagesHost = "npm.pkg.github.com"
+	cweURL             = "https://cwe.mitre.org/data/definitions/349.html"
 )
 
 // npmAliases maps the npm aliases that common packages install, such as
@@ -335,6 +338,9 @@ func (c *Control) followsConvention(resolved, name string) bool {
 	// npm removes the dot segments of a URL before it downloads, so
 	// <name>/-/../<other>/-/<file> installs <other>. Clean does the same.
 	path := strings.TrimPrefix(pathpkg.Clean("/"+u.Path), "/")
+	if strings.EqualFold(u.Hostname(), githubPackagesHost) {
+		return githubPackagesPath(path, name)
+	}
 	names := []string{name}
 	if real, ok := npmAliases[name]; ok {
 		names = append(names, real)
@@ -349,6 +355,17 @@ func (c *Control) followsConvention(resolved, name string) bool {
 		}
 	}
 	return slices.Contains(accept, strings.Split(path, "/-/")[0])
+}
+
+// githubPackagesPath reports whether path is download/<name>/<version>/<hash>
+// for the package name.
+func githubPackagesPath(path, name string) bool {
+	rest, ok := strings.CutPrefix(path, "download/"+name+"/")
+	if !ok {
+		return false
+	}
+	parts := strings.Split(rest, "/")
+	return len(parts) == 2 && parts[0] != "" && parts[1] != ""
 }
 
 // trustedOf returns the trusted registries of an ecosystem: its public
