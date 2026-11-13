@@ -429,8 +429,11 @@ func unsafePath(u *url.URL) bool {
 }
 
 // scopedName reports whether an escaped path segment is one scoped npm
-// name, as in @types%2fnode.
+// name, as in @types%2fnode or %40types%2fnode.
 func scopedName(seg string) bool {
+	if rest, ok := strings.CutPrefix(seg, "%40"); ok {
+		seg = "@" + rest
+	}
 	scope, name, ok := strings.Cut(seg, "%2f")
 	return ok && strings.HasPrefix(scope, "@") && len(scope) > 1 && name != "" && !strings.Contains(name, "%2f")
 }
