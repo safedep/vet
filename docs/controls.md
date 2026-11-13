@@ -112,7 +112,7 @@ Some controls take options from the config file, under `plugins.<name>.options`.
 | --- | --- | --- |
 | `plugins.dependency-cooldown.options.days` | `2` | The cooldown window, the same default as pmg. `--cooldown-days N` sets it for one scan |
 | `plugins.dependency-cooldown.options.skip` | none | The packages that the cooldown does not check, each with a `purl` and a `reason`. A PURL with no version skips each version, and a name glob such as `pkg:golang/buf.build/gen/go/acme/*` works. Other controls still check the packages |
-| `plugins.lockfile.options.trusted_registries` | none | The registry URLs that `untrusted-registry` trusts, in addition to the public registries |
+| `plugins.lockfile.options.trusted_registries` | none | The registry URLs that `untrusted-registry` trusts, in addition to the public registries. They do not turn off `registry-path-mismatch` |
 | `plugins.reputation.options.internal_names` | none | The names of your private packages, for `dependency-confusion`. Globs such as `acme-*` work |
 | `plugins.reputation.options.new_package_days` | `30` | The age under which `new-unpopular-package` reports a package |
 | `plugins.reputation.options.min_downloads` | `1000` | The download count under which a package is unpopular |
@@ -129,6 +129,16 @@ Some controls take options from the config file, under `plugins.<name>.options`.
 ```bash
 vet config set plugins.reputation.options.internal_names '["acme-*"]'
 ```
+
+### Private registries
+
+A private npm registry in `trusted_registries` needs its full registry URL, with its base path, as `.npmrc`
+writes it. Examples are `https://acme.jfrog.io/artifactory/api/npm/npm-remote` and
+`https://gitlab.example.com/api/v4/groups/5/-/packages/npm`. `registry-path-mismatch` reads the package
+name after that base path, in the layout `<base>/<name>/-/<file>`. A host with no base path makes every
+entry of a registry with a base path give `registry-path-mismatch`. GitHub Packages has its own layout,
+`https://npm.pkg.github.com/download/<@scope/name>/<version>/<hash>`. List it as
+`https://npm.pkg.github.com`.
 
 ## License lists
 

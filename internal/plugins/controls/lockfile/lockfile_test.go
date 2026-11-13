@@ -195,6 +195,10 @@ func TestTrustedSource(t *testing.T) {
 		{"https://npm.corp.example:8443/other/a/-/a-1.tgz", false},
 		{"git+ssh://git@github.com:org/repo.git#abc", false},
 		{"file:../local", true},
+		{"https://npm.corp.example:8443/npm-evil/a/-/a-1.tgz", false},
+		{"https://npm.corp.example:8443/npm/../evil/a/-/a-1.tgz", false},
+		{"//evil.example/a/-/a-1.tgz", false},
+		{"packages/linked", true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.url, func(t *testing.T) {
@@ -228,6 +232,10 @@ func TestResolvedEntries(t *testing.T) {
 		{"GitHub Packages with no hash", map[string]any{"trusted_registries": []any{"https://npm.pkg.github.com"}}, pkg(model.EcosystemNpm, "@acme/utils", "1.2.0", "https://npm.pkg.github.com/download/@acme/utils/1.2.0"), []string{IDPathMismatch}},
 		{"GitHub Packages in the npm layout of another package", map[string]any{"trusted_registries": []any{"https://npm.pkg.github.com"}}, pkg(model.EcosystemNpm, "@acme/utils", "1.2.0", "https://npm.pkg.github.com/@acme/evil/-/evil-1.2.0.tgz"), []string{IDPathMismatch}},
 		{"GitHub Packages with a dot segment", map[string]any{"trusted_registries": []any{"https://npm.pkg.github.com"}}, pkg(model.EcosystemNpm, "@acme/utils", "1.2.0", "https://npm.pkg.github.com/download/@acme/utils/../evil/1.2.0/8f3c1d0e5b"), []string{IDPathMismatch}},
+		{"a GitLab project registry", map[string]any{"trusted_registries": []any{"https://gitlab.example.com/api/v4/projects/1/packages/npm"}}, pkg(model.EcosystemNpm, "@myscope/my-pkg", "1.3.7", "https://gitlab.example.com/api/v4/projects/1/packages/npm/@myscope/my-pkg/-/@myscope/my-pkg-1.3.7.tgz"), nil},
+		{"a GitLab group registry", map[string]any{"trusted_registries": []any{"https://gitlab.example.com/api/v4/groups/5/-/packages/npm"}}, pkg(model.EcosystemNpm, "@myscope/my-pkg", "1.3.7", "https://gitlab.example.com/api/v4/groups/5/-/packages/npm/@myscope/my-pkg/-/@myscope/my-pkg-1.3.7.tgz"), nil},
+		{"a GitLab group registry on the URL of another package", map[string]any{"trusted_registries": []any{"https://gitlab.example.com/api/v4/groups/5/-/packages/npm"}}, pkg(model.EcosystemNpm, "@myscope/my-pkg", "1.3.7", "https://gitlab.example.com/api/v4/groups/5/-/packages/npm/@myscope/evil/-/@myscope/evil-1.3.7.tgz"), []string{IDPathMismatch}},
+		{"the base path of a registry on another host", map[string]any{"trusted_registries": []any{"https://npm.corp.example/base"}}, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://registry.npmjs.org/base/debug/-/debug-4.3.4.tgz"), []string{IDPathMismatch}},
 		{"a dot segment to the URL of another package", nil, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://registry.npmjs.org/debug/-/../evil/-/evil-1.0.0.tgz"), []string{IDPathMismatch}},
 		{"an encoded dot segment to the URL of another package", nil, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://registry.npmjs.org/debug/-/%2e%2e/evil/-/evil-1.0.0.tgz"), []string{IDPathMismatch}},
 		{"uv on PyPI", nil, pkg(model.EcosystemPyPI, "requests", "2.32.0", "https://pypi.org/simple"), nil},

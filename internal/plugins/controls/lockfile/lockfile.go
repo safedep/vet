@@ -301,9 +301,10 @@ func (c *Control) trustedSource(eco model.Ecosystem, resolved string) bool {
 	if err != nil {
 		return false
 	}
-	if u.Scheme == "file" || u.Scheme == "" {
+	if local(u) {
 		return true
 	}
+	path := cleanPath(u)
 	for _, t := range c.trustedOf(eco) {
 		if t.Scheme != "" && t.Scheme != u.Scheme {
 			continue
@@ -314,12 +315,26 @@ func (c *Control) trustedSource(eco model.Ecosystem, resolved string) bool {
 		if t.Port() != "" && t.Port() != u.Port() {
 			continue
 		}
-		if t.Path != "" && !strings.HasPrefix(u.Path, t.Path) {
+		if base := strings.Trim(t.Path, "/"); base != "" && path != base && !strings.HasPrefix(path, base+"/") {
 			continue
 		}
 		return true
 	}
 	return false
+}
+
+// local reports whether a resolved URL is a file on the machine: a file URL,
+// or a path with no scheme and no host. A protocol-relative URL such as
+// //host/pkg.tgz has a host, so it is not local.
+func local(u *url.URL) bool {
+	return u.Scheme == "file" || (u.Scheme == "" && u.Host == "")
+}
+
+// cleanPath returns the URL path with no leading slash and no dot segments.
+// npm removes the dot segments of a URL before it downloads, so
+// <name>/-/../<other>/-/<file> installs <other>.
+func cleanPath(u *url.URL) string {
+	return strings.TrimPrefix(pathpkg.Clean("/"+u.Path), "/")
 }
 
 // followsConvention reports whether the URL path starts with the package
@@ -329,15 +344,13 @@ func (c *Control) followsConvention(resolved, name string) bool {
 	if err != nil {
 		return false
 	}
-	if u.Scheme == "file" || u.Scheme == "" {
+	if local(u) {
 		return true
 	}
 	if u.Path == "" {
 		return false
 	}
-	// npm removes the dot segments of a URL before it downloads, so
-	// <name>/-/../<other>/-/<file> installs <other>. Clean does the same.
-	path := strings.TrimPrefix(pathpkg.Clean("/"+u.Path), "/")
+	path := cleanPath(u)
 	if strings.EqualFold(u.Hostname(), githubPackagesHost) {
 		return githubPackagesPath(path, name)
 	}
@@ -345,16 +358,32 @@ func (c *Control) followsConvention(resolved, name string) bool {
 	if real, ok := npmAliases[name]; ok {
 		names = append(names, real)
 	}
-	var accept []string
-	for _, n := range names {
-		accept = append(accept, n)
-		for _, t := range c.trustedOf(model.EcosystemNpm) {
-			if base := strings.Trim(t.Path, "/"); base != "" {
-				accept = append(accept, base+"/"+n)
+	for _, rest := range c.registryPaths(u, path) {
+		if slices.Contains(names, strings.Split(rest, "/-/")[0]) {
+			return true
+		}
+	}
+	return false
+}
+
+// registryPaths returns the URL path as it is, and the path after the base
+// path of each trusted registry on the host of the URL. A base path can hold
+// /-/ itself, as the group registry of GitLab does
+// (/api/v4/groups/<id>/-/packages/npm), so the check removes the base path
+// before it looks for the /-/ that follows the package name.
+func (c *Control) registryPaths(u *url.URL, path string) []string {
+	out := []string{path}
+	for _, t := range c.trustedOf(model.EcosystemNpm) {
+		if !strings.EqualFold(t.Hostname(), u.Hostname()) {
+			continue
+		}
+		if base := strings.Trim(t.Path, "/"); base != "" {
+			if rest, ok := strings.CutPrefix(path, base+"/"); ok {
+				out = append(out, rest)
 			}
 		}
 	}
-	return slices.Contains(accept, strings.Split(path, "/-/")[0])
+	return out
 }
 
 // githubPackagesPath reports whether path is download/<name>/<version>/<hash>
