@@ -11,12 +11,16 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/fs"
 	"net/url"
+	pathpkg "path"
 	"slices"
 	"sort"
 	"strings"
+
+	"github.com/safedep/dry/log"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/packagelockjson"
@@ -38,15 +42,20 @@ const (
 
 const (
 	npmRegistry = "https://registry.npmjs.org"
-	cweURL      = "https://cwe.mitre.org/data/definitions/349.html"
+	// githubPackagesHost serves npm tarballs at
+	// /download/<@scope/name>/<version>/<hash>, not at <name>/-/<file>.
+	githubPackagesHost = "npm.pkg.github.com"
+	cweURL             = "https://cwe.mitre.org/data/definitions/349.html"
 )
 
-// npmInconsistentURLs lists the packages that the npm registry serves from
-// the path of another package name.
-var npmInconsistentURLs = map[string]string{
-	"strip-ansi-cjs":   "https://registry.npmjs.org/strip-ansi/-/",
-	"wrap-ansi-cjs":    "https://registry.npmjs.org/wrap-ansi/-/",
-	"string-width-cjs": "https://registry.npmjs.org/string-width/-/",
+// npmAliases maps the npm aliases that common packages install, such as
+// the aliases of glob through @isaacs/cliui, to the package that a registry
+// serves for them. The alias has the path of that package on any registry,
+// public or private. directAliases reads the aliases of the project.
+var npmAliases = map[string]string{
+	"strip-ansi-cjs":   "strip-ansi",
+	"wrap-ansi-cjs":    "wrap-ansi",
+	"string-width-cjs": "string-width",
 }
 
 // Options are plugins.lockfile.options.
@@ -81,9 +90,10 @@ func New(cfg plugin.Config) (plugin.Control, error) {
 	c := &Control{trusted: map[model.Ecosystem][]*url.URL{}}
 	for _, raw := range o.TrustedRegistries {
 		u, err := parseURL(raw)
-		if err != nil || u.Host == "" {
-			return nil, fmt.Errorf("lockfile: trusted registry %q is not a URL", raw)
+		if err != nil || u.Host == "" || u.Scheme == "" {
+			return nil, fmt.Errorf("lockfile: trusted registry %q is not a URL with a scheme and a host", raw)
 		}
+		u.Path = pathpkg.Clean("/" + u.Path)
 		c.user = append(c.user, u)
 	}
 	for eco, raws := range defaultRegistries {
@@ -110,7 +120,7 @@ func (c *Control) Controls() []plugin.ControlInfo {
 		{
 			ID: IDPathMismatch, Family: finding.FamilyLockfile, Severity: finding.SeverityHigh,
 			Title:       "Lockfile entry with a URL of another package",
-			Description: "The resolved URL of a lockfile entry does not match the package name. An attacker can edit a lockfile to install another package under a trusted name.",
+			Description: "The resolved URL of a lockfile entry does not match the package name. An attacker can edit a lockfile to install another package under a trusted name. A trusted registry does not turn off this check.",
 		},
 		{
 			ID: IDIntegrityChanged, Family: finding.FamilyLockfile, Severity: finding.SeverityHigh,
@@ -198,6 +208,8 @@ func (c *Control) npmLockfile(m *model.Manifest) ([]finding.Finding, error) {
 	}
 	sort.Strings(paths)
 
+	aliases := directAliases(m.Root, pathpkg.Join(pathpkg.Dir(m.Path), "package.json"))
+
 	var out []finding.Finding
 	for _, path := range paths {
 		e := entries[path]
@@ -205,6 +217,10 @@ func (c *Control) npmLockfile(m *model.Manifest) ([]finding.Finding, error) {
 			continue
 		}
 		name := nameOf(path)
+		target := ""
+		if path == "node_modules/"+name {
+			target = aliases[name]
+		}
 		locus := finding.Locus{Path: m.Path, StartLine: lineOf(data, path, e.Resolved), Snippet: e.Resolved}
 		locus.EndLine = locus.StartLine
 		key := finding.Key{Discriminator: path}
@@ -213,7 +229,7 @@ func (c *Control) npmLockfile(m *model.Manifest) ([]finding.Finding, error) {
 				fmt.Sprintf("%s resolves from an untrusted host", name),
 				fmt.Sprintf("The lockfile installs %s from %s. The host is not a trusted registry.", name, e.Resolved)))
 		}
-		if !c.followsConvention(e.Resolved, name) {
+		if !c.followsConvention(e.Resolved, name, target) {
 			out = append(out, c.finding(IDPathMismatch, locus, key,
 				fmt.Sprintf("%s resolves from the URL of another package", name),
 				fmt.Sprintf("The lockfile installs %s from %s. The URL path does not match the package name.", name, e.Resolved)))
@@ -230,9 +246,74 @@ func (c *Control) finding(id string, locus finding.Locus, key finding.Key, title
 	f.Evidence = []finding.Evidence{{Source: "lockfile", Summary: locus.Snippet}}
 	f.References = []string{cweURL}
 	f.Remediation = &finding.Remediation{
-		Summary: "Make sure that the lockfile change is intended. Regenerate the lockfile from a trusted registry, or add the registry to plugins.lockfile.options.trusted_registries.",
+		Summary: remediation(id),
 	}
 	return f
+}
+
+// remediation says how to fix a finding. A trusted registry does not turn
+// off registry-path-mismatch, so its fix does not name trusted_registries.
+func remediation(id string) string {
+	if id == IDPathMismatch {
+		return "Make sure that the lockfile change is intended. The resolved URL must name the package of the entry. Regenerate the lockfile."
+	}
+	return "Make sure that the lockfile change is intended. Regenerate the lockfile from a trusted registry. To trust the registry, add its full URL to plugins.lockfile.options.trusted_registries"
+}
+
+// directAliases returns the npm aliases that a package.json declares, as in
+// "debug-v4": "npm:debug@4.3.4", from alias to package name. npm installs a
+// direct alias at node_modules/<alias>. The lockfile also records the
+// package name of an alias, but an attacker can edit the lockfile. So the
+// check reads the alias from package.json, which a reviewer sees in the
+// change. The aliases of workspace members and of dependencies are not read.
+// A package.json that vet cannot read gives no aliases, so the check reports
+// more entries, not fewer.
+func directAliases(root fs.FS, path string) map[string]string {
+	data, err := fs.ReadFile(root, path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		log.Warnf("lockfile: read %s: %v", path, err)
+		return nil
+	}
+	var pj struct {
+		Dependencies         map[string]string `json:"dependencies"`
+		DevDependencies      map[string]string `json:"devDependencies"`
+		OptionalDependencies map[string]string `json:"optionalDependencies"`
+		PeerDependencies     map[string]string `json:"peerDependencies"`
+	}
+	if err := json.Unmarshal(data, &pj); err != nil {
+		log.Warnf("lockfile: decode %s: %v", path, err)
+		return nil
+	}
+	// npm reads the dependency types in this order, and a later spec for a
+	// name replaces an earlier one. So a plain spec removes an earlier alias.
+	out := map[string]string{}
+	for _, deps := range []map[string]string{pj.PeerDependencies, pj.Dependencies, pj.OptionalDependencies, pj.DevDependencies} {
+		for name, spec := range deps {
+			if target := aliasTarget(spec); target != "" {
+				out[name] = target
+			} else {
+				delete(out, name)
+			}
+		}
+	}
+	return out
+}
+
+// aliasTarget returns the package name of an npm alias spec, such as debug
+// for npm:debug@^4 and @types/node for npm:@types/node, or "" for another
+// spec.
+func aliasTarget(spec string) string {
+	target, ok := strings.CutPrefix(spec, "npm:")
+	if !ok || target == "" {
+		return ""
+	}
+	if i := strings.Index(target[1:], "@"); i >= 0 {
+		target = target[:i+1]
+	}
+	return target
 }
 
 // flatten turns the nested dependencies of a lockfile version 1 into the
@@ -286,9 +367,10 @@ func (c *Control) trustedSource(eco model.Ecosystem, resolved string) bool {
 	if err != nil {
 		return false
 	}
-	if u.Scheme == "file" || u.Scheme == "" {
+	if local(u) {
 		return true
 	}
+	path := cleanPath(u)
 	for _, t := range c.trustedOf(eco) {
 		if t.Scheme != "" && t.Scheme != u.Scheme {
 			continue
@@ -299,7 +381,7 @@ func (c *Control) trustedSource(eco model.Ecosystem, resolved string) bool {
 		if t.Port() != "" && t.Port() != u.Port() {
 			continue
 		}
-		if t.Path != "" && !strings.HasPrefix(u.Path, t.Path) {
+		if base := basePath(t); base != "" && path != base && !strings.HasPrefix(path, base+"/") {
 			continue
 		}
 		return true
@@ -307,38 +389,136 @@ func (c *Control) trustedSource(eco model.Ecosystem, resolved string) bool {
 	return false
 }
 
-// followsConvention reports whether the URL path starts with the package
-// name, as the npm registry serves it: <registry>/<name>/-/<file>.
-func (c *Control) followsConvention(resolved, name string) bool {
-	if known, ok := npmInconsistentURLs[name]; ok && strings.HasPrefix(resolved, known) {
+// local reports whether a resolved URL is a file on the machine. That is a
+// file URL, or a path with no scheme and no host. A protocol-relative URL
+// such as //host/pkg.tgz has a host, so it is not local.
+func local(u *url.URL) bool {
+	return u.Scheme == "file" || (u.Scheme == "" && u.Host == "")
+}
+
+// cleanPath returns the URL path with no leading slash and no empty
+// segments. unsafePath refuses the paths that it cannot read as npm does.
+func cleanPath(u *url.URL) string {
+	return strings.TrimPrefix(pathpkg.Clean("/"+u.Path), "/")
+}
+
+// basePath returns the path of a trusted registry with no slash at either
+// end.
+func basePath(t *url.URL) string {
+	return strings.Trim(t.Path, "/")
+}
+
+// unsafePath reports whether npm would read the path of a URL as another
+// path than Go does. Node removes the dot segments of the raw path, and it
+// reads a backslash as a slash. Go decodes %2f to a slash before it splits
+// the segments. So debug%2f-%2fd/../evil/-/evil.tgz is the path of debug for
+// Go and the path of evil for npm. No package manager writes such a path,
+// so the checks refuse it. The one encoded slash that npm writes is the slash
+// of a scoped name, as in @types%2fnode.
+func unsafePath(u *url.URL) bool {
+	raw := strings.ToLower(u.EscapedPath())
+	if strings.Contains(raw, `\`) || strings.Contains(raw, "%5c") {
 		return true
 	}
-	u, err := parseURL(resolved)
-	if err != nil {
-		return false
-	}
-	if u.Scheme == "file" || u.Scheme == "" {
-		return true
-	}
-	if u.Path == "" {
-		return false
-	}
-	path := strings.TrimPrefix(u.Path, "/")
-	accept := []string{name}
-	for _, t := range c.trustedOf(model.EcosystemNpm) {
-		if base := strings.Trim(t.Path, "/"); base != "" {
-			accept = append(accept, base+"/"+name)
+	for _, seg := range strings.Split(raw, "/") {
+		switch strings.ReplaceAll(seg, "%2e", ".") {
+		case ".", "..":
+			return true
 		}
-	}
-	if slices.Contains(accept, strings.Split(path, "/-/")[0]) {
-		return true
-	}
-	for _, t := range c.user {
-		if strings.HasPrefix(resolved, t.String()) {
+		if strings.Contains(seg, "%2f") && !scopedName(seg) {
 			return true
 		}
 	}
 	return false
+}
+
+// scopedName reports whether an escaped path segment is one scoped npm
+// name, as in @types%2fnode or %40types%2fnode.
+func scopedName(seg string) bool {
+	if rest, ok := strings.CutPrefix(seg, "%40"); ok {
+		seg = "@" + rest
+	}
+	scope, name, ok := strings.Cut(seg, "%2f")
+	return ok && strings.HasPrefix(scope, "@") && len(scope) > 1 && name != "" && !strings.Contains(name, "%2f")
+}
+
+// followsConvention reports whether the URL path starts with the package
+// name, as the npm registry serves it: <registry>/<name>/-/<file>. For a
+// direct alias, the path must start with the target of the alias. A package
+// with the name of the alias is another package. target is "" for a name
+// that is not a direct alias.
+func (c *Control) followsConvention(resolved, name, target string) bool {
+	u, err := parseURL(resolved)
+	if err != nil {
+		return false
+	}
+	if local(u) {
+		return true
+	}
+	if u.Path == "" || unsafePath(u) {
+		return false
+	}
+	path := cleanPath(u)
+	// A user registry can serve the layout of GitHub Packages, as GitHub
+	// Enterprise Server does. The public registries serve only the npm
+	// layout.
+	github := strings.EqualFold(u.Hostname(), githubPackagesHost) || c.userHost(u)
+	names := []string{name}
+	if real, ok := npmAliases[name]; ok {
+		names = append(names, real)
+	}
+	if target != "" {
+		names = []string{target}
+	}
+	for _, rest := range c.registryPaths(u, path) {
+		if slices.Contains(names, strings.Split(rest, "/-/")[0]) {
+			return true
+		}
+		if github && slices.ContainsFunc(names, func(n string) bool { return githubPackagesPath(rest, n) }) {
+			return true
+		}
+	}
+	return false
+}
+
+// userHost reports whether a user trusted registry is on the host of the URL.
+func (c *Control) userHost(u *url.URL) bool {
+	for _, t := range c.user {
+		if strings.EqualFold(t.Hostname(), u.Hostname()) {
+			return true
+		}
+	}
+	return false
+}
+
+// registryPaths returns the URL path as it is, and the path after the base
+// path of each trusted registry on the host of the URL. A base path can hold
+// /-/ itself, as /api/v4/groups/<id>/-/packages/npm does. So the check removes
+// the base path before it looks for the /-/ that follows the package name.
+func (c *Control) registryPaths(u *url.URL, path string) []string {
+	out := []string{path}
+	for _, t := range c.trustedOf(model.EcosystemNpm) {
+		if !strings.EqualFold(t.Hostname(), u.Hostname()) {
+			continue
+		}
+		if base := basePath(t); base != "" {
+			if rest, ok := strings.CutPrefix(path, base+"/"); ok {
+				out = append(out, rest)
+			}
+		}
+	}
+	return out
+}
+
+// githubPackagesPath reports whether path is download/<name>/<version>/<hash>
+// for the package name.
+func githubPackagesPath(path, name string) bool {
+	rest, ok := strings.CutPrefix(path, "download/"+name+"/")
+	if !ok {
+		return false
+	}
+	parts := strings.Split(rest, "/")
+	return len(parts) == 2 && parts[0] != "" && parts[1] != ""
 }
 
 // trustedOf returns the trusted registries of an ecosystem: its public

@@ -112,7 +112,7 @@ Some controls take options from the config file, under `plugins.<name>.options`.
 | --- | --- | --- |
 | `plugins.dependency-cooldown.options.days` | `2` | The cooldown window, the same default as pmg. `--cooldown-days N` sets it for one scan |
 | `plugins.dependency-cooldown.options.skip` | none | The packages that the cooldown does not check, each with a `purl` and a `reason`. A PURL with no version skips each version, and a name glob such as `pkg:golang/buf.build/gen/go/acme/*` works. Other controls still check the packages |
-| `plugins.lockfile.options.trusted_registries` | none | The registry URLs that `untrusted-registry` trusts, in addition to the public registries |
+| `plugins.lockfile.options.trusted_registries` | none | The registry URLs that `untrusted-registry` trusts, in addition to the public registries. They do not turn off `registry-path-mismatch` |
 | `plugins.reputation.options.internal_names` | none | The names of your private packages, for `dependency-confusion`. Globs such as `acme-*` work |
 | `plugins.reputation.options.new_package_days` | `30` | The age under which `new-unpopular-package` reports a package |
 | `plugins.reputation.options.min_downloads` | `1000` | The download count under which a package is unpopular |
@@ -129,6 +129,29 @@ Some controls take options from the config file, under `plugins.<name>.options`.
 ```bash
 vet config set plugins.reputation.options.internal_names '["acme-*"]'
 ```
+
+### Private registries
+
+List a private npm registry in `trusted_registries` with its full registry URL, as `.npmrc` writes it.
+`registry-path-mismatch` reads the package name after the base path of the URL, in the layout
+`<base>/<name>/-/<file>`. When a registry serves its packages under a base path, as
+`https://acme.jfrog.io/artifactory/api/npm/npm-remote` does, the URL must include that base path.
+Without it, each entry of that registry gives `registry-path-mismatch`. A registry that serves its
+packages right under the host needs no base path.
+
+A GitLab group or instance registry returns tarball URLs on the project endpoint. List the project
+endpoint of each project that publishes packages, as in
+`https://gitlab.example.com/api/v4/projects/1/packages/npm`.
+
+GitHub Packages serves the layout `https://npm.pkg.github.com/download/<@scope/name>/<version>/<hash>`.
+List it as `https://npm.pkg.github.com`. A private registry in `trusted_registries` can also serve this
+layout after its base path.
+
+An npm alias, as in `"debug-v4": "npm:debug@4.3.4"`, installs `debug` at `node_modules/debug-v4`.
+`registry-path-mismatch` accepts the URL of `debug` for that entry when the `package.json` next to the
+lockfile declares the alias. It then refuses the URL of `debug-v4`, because that is another package. The check does not read aliases from the lockfile, because an attacker can
+edit the lockfile. It does not read the aliases of workspace members or of dependencies. To pass such an
+alias, suppress the finding with a policy.
 
 ## License lists
 
@@ -398,7 +421,7 @@ A lockfile entry resolves from a host that is not a trusted registry. An attacke
 
 **Lockfile entry with a URL of another package.** Family `lockfile`. Default severity high. Plugin `lockfile`.
 
-The resolved URL of a lockfile entry does not match the package name. An attacker can edit a lockfile to install another package under a trusted name.
+The resolved URL of a lockfile entry does not match the package name. An attacker can edit a lockfile to install another package under a trusted name. A trusted registry does not turn off this check.
 
 ### integrity-changed
 

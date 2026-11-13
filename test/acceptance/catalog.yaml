@@ -248,6 +248,24 @@
   tier: P0
   guarantee: "A lockfile entry that resolves from a registry outside the trusted list gives a finding."
   labels: [controls]
+- id: controls/lockfile/trusted-registry-path-mismatch
+  title: "lockfile: path mismatch on a trusted registry"
+  category: controls
+  tier: P0
+  guarantee: "A trusted registry relaxes only the host check. A lockfile entry on a trusted registry whose URL names another package gives registry-path-mismatch."
+  labels: [controls, lockfile]
+- id: controls/lockfile/github-packages
+  title: "lockfile: GitHub Packages layout"
+  category: controls
+  tier: P1
+  guarantee: "A lockfile entry on GitHub Packages at download/<@scope/name>/<version>/<hash> passes the name check. An entry whose path names another package gives registry-path-mismatch."
+  labels: [controls, lockfile]
+- id: controls/lockfile/npm-alias
+  title: "lockfile: npm alias of package.json"
+  category: controls
+  tier: P1
+  guarantee: "An npm alias that package.json declares passes the name check when the URL names its target. The name field of a lockfile entry does not make an alias."
+  labels: [controls, lockfile]
 - id: controls/malware/known-malicious
   title: "malware: known malicious"
   category: controls

@@ -56,6 +56,66 @@ const v3 = `{
 }
 `
 
+const v3Corp = `{
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app"},
+    "node_modules/left-pad": {
+      "version": "1.3.0",
+      "resolved": "https://npm.corp.example/repository/npm/evil-pad/-/evil-pad-1.3.0.tgz"
+    },
+    "node_modules/string-width-cjs": {
+      "version": "4.2.3",
+      "resolved": "https://npm.corp.example/repository/npm/string-width/-/string-width-4.2.3.tgz"
+    }
+  }
+}
+`
+
+const v3Alias = `{
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app"},
+    "node_modules/debug-v4": {
+      "name": "debug",
+      "version": "4.3.4",
+      "resolved": "https://npm.corp.example/repository/npm/debug/-/debug-4.3.4.tgz"
+    },
+    "node_modules/node-types": {
+      "name": "@types/node",
+      "version": "20.0.0",
+      "resolved": "https://npm.corp.example/repository/npm/@types/node/-/node-20.0.0.tgz"
+    },
+    "node_modules/ms-v2": {
+      "name": "evil",
+      "version": "1.0.0",
+      "resolved": "https://npm.corp.example/repository/npm/evil/-/evil-1.0.0.tgz"
+    },
+    "node_modules/ms-v3": {
+      "version": "3.0.0",
+      "resolved": "https://npm.corp.example/repository/npm/ms-v3/-/ms-v3-3.0.0.tgz"
+    },
+    "node_modules/chalk-v4": {
+      "version": "4.1.2",
+      "resolved": "https://npm.corp.example/repository/npm/chalk/-/chalk-4.1.2.tgz"
+    },
+    "node_modules/a/node_modules/debug-v4": {
+      "name": "evil",
+      "version": "1.0.0",
+      "resolved": "https://npm.corp.example/repository/npm/evil/-/evil-1.0.0.tgz"
+    }
+  }
+}
+`
+
+const aliasManifest = `{
+  "name": "app",
+  "dependencies": {"debug-v4": "npm:debug@4.3.4", "ms-v2": "npm:ms@2.1.3", "ms-v3": "npm:ms@3.0.0", "chalk-v4": "npm:chalk@4.1.2"},
+  "optionalDependencies": {"chalk-v4": "4.1.2"},
+  "devDependencies": {"node-types": "npm:@types/node@^20"}
+}
+`
+
 const v1 = `{
   "name": "old",
   "lockfileVersion": 1,
@@ -80,14 +140,18 @@ type hit struct {
 	line    int
 }
 
-func evaluate(t *testing.T, options plugin.MapConfig, extractor, content string) []hit {
+func evaluate(t *testing.T, options plugin.MapConfig, extractor, content, packageJSON string) []hit {
 	t.Helper()
 	c, err := New(options)
 	require.NoError(t, err)
+	root := fstest.MapFS{"web/package-lock.json": {Data: []byte(content)}}
+	if packageJSON != "" {
+		root["web/package.json"] = &fstest.MapFile{Data: []byte(packageJSON)}
+	}
 	m := &model.Manifest{
 		ID: "m1", Path: "web/package-lock.json", Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindLockfile,
 		Extractor: extractor,
-		Root:      fstest.MapFS{"web/package-lock.json": {Data: []byte(content)}},
+		Root:      root,
 	}
 	var out []hit
 	for _, f := range plugintest.TestControl(t, c, m, nil) {
@@ -101,10 +165,11 @@ func evaluate(t *testing.T, options plugin.MapConfig, extractor, content string)
 func TestEvaluate(t *testing.T) {
 	cases := []struct {
 		name      string
-		options   plugin.MapConfig
-		extractor string
-		content   string
-		want      []hit
+		options     plugin.MapConfig
+		extractor   string
+		content     string
+		packageJSON string
+		want        []hit
 	}{
 		{
 			name: "lockfile version 3", extractor: packagelockjson.Name, content: v3,
@@ -124,6 +189,43 @@ func TestEvaluate(t *testing.T) {
 			},
 		},
 		{
+			name: "a trusted registry on the URL of another package", extractor: packagelockjson.Name, content: v3Corp,
+			options: plugin.MapConfig{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}},
+			want:    []hit{{IDPathMismatch, "left-pad resolves from the URL of another package", 7}},
+		},
+		{
+			name: "direct aliases of package.json", extractor: packagelockjson.Name, content: v3Alias, packageJSON: aliasManifest,
+			options: plugin.MapConfig{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}},
+			want: []hit{
+				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 31},
+				{IDPathMismatch, "chalk-v4 resolves from the URL of another package", 26},
+				{IDPathMismatch, "ms-v2 resolves from the URL of another package", 18},
+				{IDPathMismatch, "ms-v3 resolves from the URL of another package", 22},
+			},
+		},
+		{
+			name: "aliases of the lockfile only", extractor: packagelockjson.Name, content: v3Alias,
+			options: plugin.MapConfig{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}},
+			want: []hit{
+				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 31},
+				{IDPathMismatch, "chalk-v4 resolves from the URL of another package", 26},
+				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 8},
+				{IDPathMismatch, "ms-v2 resolves from the URL of another package", 18},
+				{IDPathMismatch, "node-types resolves from the URL of another package", 13},
+			},
+		},
+		{
+			name: "a package.json that vet cannot decode", extractor: packagelockjson.Name, content: v3Alias, packageJSON: "{",
+			options: plugin.MapConfig{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}},
+			want: []hit{
+				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 31},
+				{IDPathMismatch, "chalk-v4 resolves from the URL of another package", 26},
+				{IDPathMismatch, "debug-v4 resolves from the URL of another package", 8},
+				{IDPathMismatch, "ms-v2 resolves from the URL of another package", 18},
+				{IDPathMismatch, "node-types resolves from the URL of another package", 13},
+			},
+		},
+		{
 			name: "lockfile version 1", extractor: packagelockjson.Name, content: v1,
 			want: []hit{{IDUntrustedRegistry, "nested resolves from an untrusted host", 11}},
 		},
@@ -131,7 +233,7 @@ func TestEvaluate(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, evaluate(t, tc.options, tc.extractor, tc.content))
+			assert.Equal(t, tc.want, evaluate(t, tc.options, tc.extractor, tc.content, tc.packageJSON))
 		})
 	}
 }
@@ -155,7 +257,20 @@ func TestEvaluateErrors(t *testing.T) {
 
 func TestNewRejectsBadRegistry(t *testing.T) {
 	_, err := New(plugin.MapConfig{"trusted_registries": []any{"not a url"}})
+	require.Error(t, err)
+	_, err = New(plugin.MapConfig{"trusted_registries": []any{"//npm.corp.example/npm"}})
 	assert.Error(t, err)
+}
+
+func TestPathMismatchRemediation(t *testing.T) {
+	c, err := New(plugin.MapConfig{"trusted_registries": []any{"https://npm.corp.example"}})
+	require.NoError(t, err)
+	p := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "debug", "4.3.4"), Resolved: "https://npm.corp.example/evil/-/evil-1.0.0.tgz"}
+	m := &model.Manifest{ID: "m", Path: "yarn.lock", Kind: model.ManifestKindLockfile, Extractor: "javascript/yarnlock", Packages: []*model.Package{p}}
+	got := plugintest.TestControl(t, c, m, nil)
+	require.Len(t, got, 1)
+	assert.Equal(t, IDPathMismatch, got[0].ControlID)
+	assert.NotContains(t, got[0].Remediation.Summary, "trusted_registries")
 }
 
 func TestTrustedSource(t *testing.T) {
@@ -174,6 +289,10 @@ func TestTrustedSource(t *testing.T) {
 		{"https://npm.corp.example:8443/other/a/-/a-1.tgz", false},
 		{"git+ssh://git@github.com:org/repo.git#abc", false},
 		{"file:../local", true},
+		{"https://npm.corp.example:8443/npm-evil/a/-/a-1.tgz", false},
+		{"https://npm.corp.example:8443/npm/../evil/a/-/a-1.tgz", false},
+		{"//evil.example/a/-/a-1.tgz", false},
+		{"packages/linked", true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.url, func(t *testing.T) {
@@ -196,6 +315,38 @@ func TestResolvedEntries(t *testing.T) {
 		{"yarn on another host", nil, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://evil.example/debug-4.3.4.tgz"), []string{IDUntrustedRegistry}},
 		{"yarn on the URL of another package", nil, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://registry.npmjs.org/evil/-/evil-1.0.0.tgz"), []string{IDPathMismatch}},
 		{"a user registry", map[string]any{"trusted_registries": []any{"https://npm.corp.example"}}, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://npm.corp.example/debug/-/debug-4.3.4.tgz"), nil},
+		{"a user registry on the URL of another package", map[string]any{"trusted_registries": []any{"https://npm.corp.example"}}, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://npm.corp.example/evil/-/evil-1.0.0.tgz"), []string{IDPathMismatch}},
+		{"a user registry with a base path", map[string]any{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}}, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://npm.corp.example/repository/npm/debug/-/debug-4.3.4.tgz"), nil},
+		{"a user registry with a base path on the URL of another package", map[string]any{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}}, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://npm.corp.example/repository/npm/evil/-/evil-1.0.0.tgz"), []string{IDPathMismatch}},
+		{"a scoped package on a user registry with a base path", map[string]any{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}}, pkg(model.EcosystemNpm, "@scope/util", "1.0.0", "https://npm.corp.example/repository/npm/@scope/util/-/util-1.0.0.tgz#abc"), nil},
+		{"an npm alias on a user registry", map[string]any{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}}, pkg(model.EcosystemNpm, "strip-ansi-cjs", "6.0.1", "https://npm.corp.example/repository/npm/strip-ansi/-/strip-ansi-6.0.1.tgz"), nil},
+		{"an npm alias on the URL of another package", nil, pkg(model.EcosystemNpm, "strip-ansi-cjs", "6.0.1", "https://registry.npmjs.org/evil/-/evil-6.0.1.tgz"), []string{IDPathMismatch}},
+		{"GitHub Packages", map[string]any{"trusted_registries": []any{"https://npm.pkg.github.com"}}, pkg(model.EcosystemNpm, "@acme/utils", "1.2.0", "https://npm.pkg.github.com/download/@acme/utils/1.2.0/8f3c1d0e5b"), nil},
+		{"GitHub Packages on the URL of another package", map[string]any{"trusted_registries": []any{"https://npm.pkg.github.com"}}, pkg(model.EcosystemNpm, "@acme/utils", "1.2.0", "https://npm.pkg.github.com/download/@acme/evil/1.2.0/8f3c1d0e5b"), []string{IDPathMismatch}},
+		{"GitHub Packages with no hash", map[string]any{"trusted_registries": []any{"https://npm.pkg.github.com"}}, pkg(model.EcosystemNpm, "@acme/utils", "1.2.0", "https://npm.pkg.github.com/download/@acme/utils/1.2.0"), []string{IDPathMismatch}},
+		{"GitHub Packages in the npm layout of another package", map[string]any{"trusted_registries": []any{"https://npm.pkg.github.com"}}, pkg(model.EcosystemNpm, "@acme/utils", "1.2.0", "https://npm.pkg.github.com/@acme/evil/-/evil-1.2.0.tgz"), []string{IDPathMismatch}},
+		{"GitHub Packages with a dot segment", map[string]any{"trusted_registries": []any{"https://npm.pkg.github.com"}}, pkg(model.EcosystemNpm, "@acme/utils", "1.2.0", "https://npm.pkg.github.com/download/@acme/utils/1.2.0/.."), []string{IDPathMismatch}},
+		{"a GitLab project registry", map[string]any{"trusted_registries": []any{"https://gitlab.example.com/api/v4/projects/1/packages/npm"}}, pkg(model.EcosystemNpm, "@myscope/my-pkg", "1.3.7", "https://gitlab.example.com/api/v4/projects/1/packages/npm/@myscope/my-pkg/-/@myscope/my-pkg-1.3.7.tgz"), nil},
+		{"a base path with /-/ in it", map[string]any{"trusted_registries": []any{"https://gitlab.example.com/api/v4/groups/5/-/packages/npm"}}, pkg(model.EcosystemNpm, "@myscope/my-pkg", "1.3.7", "https://gitlab.example.com/api/v4/groups/5/-/packages/npm/@myscope/my-pkg/-/@myscope/my-pkg-1.3.7.tgz"), nil},
+		{"a base path with /-/ in it on the URL of another package", map[string]any{"trusted_registries": []any{"https://gitlab.example.com/api/v4/groups/5/-/packages/npm"}}, pkg(model.EcosystemNpm, "@myscope/my-pkg", "1.3.7", "https://gitlab.example.com/api/v4/groups/5/-/packages/npm/@myscope/evil/-/@myscope/evil-1.3.7.tgz"), []string{IDPathMismatch}},
+		{"the base path of a registry on another host", map[string]any{"trusted_registries": []any{"https://npm.corp.example/base"}}, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://registry.npmjs.org/base/debug/-/debug-4.3.4.tgz"), []string{IDPathMismatch}},
+		{"an encoded slash and a dot segment to the URL of another package", nil, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://registry.npmjs.org/debug%2f-%2fd/../evil/-/evil-1.0.0.tgz"), []string{IDPathMismatch}},
+		{"backslashes to the URL of another package", nil, pkg(model.EcosystemNpm, "debug", "4.3.4", `https://registry.npmjs.org/debug/-/..\..\..\evil/-/evil-1.0.0.tgz`), []string{IDPathMismatch}},
+		{"GitHub Packages with backslashes", map[string]any{"trusted_registries": []any{"https://npm.pkg.github.com"}}, pkg(model.EcosystemNpm, "@acme/utils", "1.2.0", `https://npm.pkg.github.com/download/@acme/utils/1.2.0/..\..\evil\1.2.0\8f3c`), []string{IDPathMismatch}},
+		{"an encoded slash out of a base path", map[string]any{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}}, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://npm.corp.example/repository/npm/debug%2f-%2fd/../../../evil/x.tgz"), []string{IDPathMismatch}},
+		{"an encoded scoped name", nil, pkg(model.EcosystemNpm, "@types/node", "1.0.0", "https://registry.npmjs.org/@types%2fnode/-/node-1.0.0.tgz"), nil},
+		{"an encoded scope marker", nil, pkg(model.EcosystemNpm, "@types/node", "1.0.0", "https://registry.npmjs.org/%40types%2fnode/-/node-1.0.0.tgz"), nil},
+		{"an encoded scope marker on the URL of another package", nil, pkg(model.EcosystemNpm, "@types/node", "1.0.0", "https://registry.npmjs.org/%40evil%2fnode/-/node-1.0.0.tgz"), []string{IDPathMismatch}},
+		{"an encoded scope marker with two encoded slashes", nil, pkg(model.EcosystemNpm, "@types/node", "1.0.0", "https://registry.npmjs.org/%40types%2fnode%2f-/node-1.0.0.tgz"), []string{IDPathMismatch}},
+		{"GitHub Packages in the npm layout", map[string]any{"trusted_registries": []any{"https://npm.pkg.github.com"}}, pkg(model.EcosystemNpm, "@acme/utils", "1.2.0", "https://npm.pkg.github.com/@acme/utils/-/utils-1.2.0.tgz"), nil},
+		{"the GitHub Packages layout on a user registry", map[string]any{"trusted_registries": []any{"https://ghe.example.com/_registry/npm"}}, pkg(model.EcosystemNpm, "@acme/utils", "1.2.0", "https://ghe.example.com/_registry/npm/download/@acme/utils/1.2.0/8f3c"), nil},
+		{"the GitHub Packages layout on the public registry", nil, pkg(model.EcosystemNpm, "@acme/utils", "1.2.0", "https://registry.npmjs.org/download/@acme/utils/1.2.0/8f3c"), []string{IDPathMismatch}},
+		{"a user registry with an uppercase host", map[string]any{"trusted_registries": []any{"https://npm.corp.example/repository/npm"}}, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://NPM.CORP.EXAMPLE/repository/npm/debug/-/debug-4.3.4.tgz"), nil},
+		{"a trusted URL with empty segments and a trailing slash", map[string]any{"trusted_registries": []any{"https://npm.corp.example/repository//npm/"}}, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://npm.corp.example/repository/npm/debug/-/debug-4.3.4.tgz"), nil},
+		{"yarn with an uppercase scheme on the URL of another package", nil, pkg(model.EcosystemNpm, "debug", "4.3.4", "HTTPS://registry.npmjs.org/evil/-/evil-1.0.0.tgz"), []string{IDPathMismatch}},
+		{"yarn with a protocol-relative URL", nil, pkg(model.EcosystemNpm, "debug", "4.3.4", "//evil.example/debug/-/debug-4.3.4.tgz"), []string{IDUntrustedRegistry}},
+		{"a dot segment to the URL of another package", nil, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://registry.npmjs.org/debug/-/../../evil/-/evil-1.0.0.tgz"), []string{IDPathMismatch}},
+		{"an encoded dot segment to the URL of another package", nil, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://registry.npmjs.org/debug/-/%2e%2e/evil/-/evil-1.0.0.tgz"), []string{IDPathMismatch}},
 		{"uv on PyPI", nil, pkg(model.EcosystemPyPI, "requests", "2.32.0", "https://pypi.org/simple"), nil},
 		{"uv on another index", nil, pkg(model.EcosystemPyPI, "requests", "2.32.0", "https://pypi.evil.example/simple"), []string{IDUntrustedRegistry}},
 		{"cargo on crates.io", nil, pkg(model.EcosystemCargo, "serde", "1.0.0", "registry+https://github.com/rust-lang/crates.io-index"), nil},
@@ -311,4 +462,19 @@ func TestInstalledNotLockedSkipsARemovedLockfile(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, plugintest.TestControl(t, c, installed, plugintest.NewMemState(removed, installed)),
 		"a project with no lockfile at the head has no verdict")
+}
+
+func TestAliasTarget(t *testing.T) {
+	cases := map[string]string{
+		"npm:debug@4.3.4":     "debug",
+		"npm:debug":           "debug",
+		"npm:@types/node@^20": "@types/node",
+		"npm:@types/node":     "@types/node",
+		"npm:":                "",
+		"^4.3.4":              "",
+		"github:debug/debug":  "",
+	}
+	for spec, want := range cases {
+		assert.Equal(t, want, aliasTarget(spec), spec)
+	}
 }
