@@ -140,6 +140,17 @@ jobs:
         with:
           persist-credentials: false
 
+      # PMG runs on Linux only. It sees the Go module downloads of the build.
+      # The scan reaches no package registry, so PMG does not change what the
+      # job checks.
+      - name: Set up PMG
+        if: runner.os == 'Linux'
+        uses: ./.github/actions/setup-pmg
+        with:
+          api-key: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
+          tenant-id: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
+          network-profile: .github/pmg/network/action-test-scan.yml
+
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
