@@ -1,6 +1,5 @@
 # main imports every item of a module with a glob use, then calls one
 lang: rust
-miss: the search does not resolve a name that a glob use brings in, so the call stays unresolved
 unit: cargo:dep@1.2.0 vendor/dep-1.2.0
 called: dep::html::render
 not-called: dep::html::escape

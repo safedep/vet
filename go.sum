@@ -594,8 +594,8 @@ github.com/rust-secure-code/go-rustaudit v0.0.0-20250226111315-e20ec32e963c h1:8
 github.com/rust-secure-code/go-rustaudit v0.0.0-20250226111315-e20ec32e963c/go.mod h1:kwM/7r/rVluTE8qJbHAffduuqmSv4knVQT2IajGvSiA=
 github.com/ryanuber/go-glob v1.0.0 h1:iQh3xXAumdQ+4Ufa5b25cRpC5TYKlno6hsv6Cb3pkBk=
 github.com/ryanuber/go-glob v1.0.0/go.mod h1:807d1WSdnB0XRJzKNil9Om6lcp/3a0v4qIHxIXzX/Yc=
-github.com/safedep/code v0.0.0-20261031125048-39cf1e24f423 h1:jKt9wmAW5f4s5azhz5hW4t9XkxBQwOJWd4XTKGrMJPc=
-github.com/safedep/code v0.0.0-20261031125048-39cf1e24f423/go.mod h1:keBa9W0u0v3i/X9K/tQHZ8v4JalWFnQq7Ik3+YLqom4=
+github.com/safedep/code v0.0.0-20261116074243-344772a2cbc5 h1:kt2wtyKkEt+6G2wMMjutNKefbrD1TPC5wigCGhPIEgI=
+github.com/safedep/code v0.0.0-20261116074243-344772a2cbc5/go.mod h1:keBa9W0u0v3i/X9K/tQHZ8v4JalWFnQq7Ik3+YLqom4=
 github.com/safedep/dry v0.0.0-20261108100514-739d1bfc2092 h1:lMVWPeh1L1iSr15e9K6QzNloC8VsL1npBCnKvM3no4Q=
 github.com/safedep/dry v0.0.0-20261108100514-739d1bfc2092/go.mod h1:UItnKbe5E1KKwv6Rg3bBE+PQRIAlq/DvnCtNPPp1R7w=
 github.com/safedep/vuln-symbols v0.0.0-20261020060134-9f7738baafb4 h1:xt+/q9T+Vjs4OSaLjq9AaMgYjFNIRQDOBKW3qhKH2CE=

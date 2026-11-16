@@ -1,6 +1,6 @@
 # main calls a trait method on a trait object of a type of the dependency
 lang: rust
-miss: the search links no method call on a trait object, FOU-578
+miss: the call goes through a trait object, so the path has a cha call. vet does not say called for a path with a cha call, because a cha call can be a guess
 unit: cargo:dep@1.2.0 vendor/dep-1.2.0
 called: dep::Html::write
 -- Cargo.toml --

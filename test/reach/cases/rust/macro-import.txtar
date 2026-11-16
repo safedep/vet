@@ -1,6 +1,5 @@
 # main uses a macro of the crate, which expands to a call of the vulnerable function
 lang: rust
-miss: the search does not expand a macro, so the call in it stays unresolved
 unit: cargo:dep@1.2.0 vendor/dep-1.2.0
 called: dep::render
 -- Cargo.toml --
