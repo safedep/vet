@@ -35,9 +35,12 @@ these workflows. See
 vet calls the GitHub API with `GITHUB_TOKEN`, or with the token of the `gh` CLI when one exists, and
 without a token otherwise. The `github.api_url` config key sets another API address.
 
-`--dry-run` prints a diff and writes nothing. The `unpinned-action` control of `vet scan` finds the
-same actions, except the tags that the lockfile locks, and its fix names this command. A scan never
-writes the repository.
+`--dry-run` prints a diff and writes nothing. A scan never writes the repository.
+
+The `unpinned-action` control of `vet scan` reports these actions, and its fix names this command.
+When vet trusts the lockfile, the scan accepts a tag that the lockfile locks. Where GitHub enforces the
+lockfile, the fix leaves a step of a listed workflow, also when the scan reports it.
+[Fix workflow findings](../controls.md#fix-workflow-findings) tells how to pin such a step.
 
 ## Examples
 
@@ -52,5 +55,5 @@ vet fix github-actions run ./service -o json
 | Code | Meaning |
 | --- | --- |
 | 0 | vet pinned every action, or there was nothing to pin. |
-| 2 | A flag is not valid. |
+| 2 | A flag is not valid, or vet cannot read the GitHub Actions lockfile. vet changes no file. |
 | 3 | vet could not resolve one or more actions, or could not write a file. vet pins and writes the others. |

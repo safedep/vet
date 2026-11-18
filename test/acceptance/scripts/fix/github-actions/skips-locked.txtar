@@ -15,6 +15,19 @@ exec vet fix github-actions run --dry-run -o json
 stdout '"skipped":'
 stdout '"\.github/workflows/ci\.yml"'
 
+# A write that fails after other writes keeps the pins that vet wrote, so vet
+# names gh actions-lock for them too.
+[!unix] skip 'chmod does not block a write on Windows'
+[root] skip 'root writes each folder'
+cp $WORK/other.yml .github/workflows/other.yml
+cp $WORK/action.yml .github/actions/build/action.yml
+chmod 555 .github/actions/build
+! exec vet fix github-actions run --mode plain
+chmod 755 .github/actions/build
+stderr 'The repository has a GitHub Actions lockfile\. To add the new pins to it, run gh actions-lock'
+grep 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4' .github/workflows/other.yml
+grep 'actions/checkout@v4$' .github/actions/build/action.yml
+
 -- .github/workflows/ci.yml --
 on: push
 jobs:
@@ -43,6 +56,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+-- other.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+-- action.yml --
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
 -- .github/workflows/actions.lock --
 version: 'v0.0.3'
 workflows:
