@@ -16,6 +16,7 @@ import (
 	"github.com/safedep/vet/v2/internal/app"
 	vfix "github.com/safedep/vet/v2/internal/fix"
 	"github.com/safedep/vet/v2/internal/github"
+	"github.com/safedep/vet/v2/internal/github/actionslock"
 	"github.com/safedep/vet/v2/internal/runner"
 	"github.com/safedep/vet/v2/internal/tui"
 	"github.com/safedep/vet/v2/internal/tui/escape"
@@ -56,8 +57,9 @@ a tag or a branch to the commit SHA of that ref, and keep the ref in a
 comment. vet resolves the SHA with the GitHub API, with GITHUB_TOKEN or
 the token of the gh CLI when one exists. Local actions, Docker images,
 actions of the same repository and expressions do not change. vet edits
-only the uses: value, so the file keeps its format. vet leaves each step
-that the GitHub Actions lockfile locks. gh actions-lock updates it.
+only the uses: value, so the file keeps its format. vet leaves the step
+actions of each workflow that the GitHub Actions lockfile lists, and
+names gh actions-lock.
 
 --dry-run prints the diff and writes nothing. DIR is the root of the
 repository. The default is the current directory.`,
@@ -101,6 +103,11 @@ repository. The default is the current directory.`,
 				}
 			}
 			summary(plan, dryRun)
+			if leave && plan.Edits() > 0 {
+				if err := lockAdvice(root); err != nil {
+					return err
+				}
+			}
 			if len(plan.Failures) > 0 {
 				msg := "vet could not pin " + humanize.Count(len(plan.Failures), "action")
 				help := "Check the action names and the refs, then run the fix again."
@@ -141,7 +148,7 @@ func printPlan(a *app.App, plan *vfix.Plan, dryRun bool) error {
 
 func summary(plan *vfix.Plan, dryRun bool) {
 	if len(plan.Skipped) > 0 {
-		tui.Info("The GitHub Actions lockfile locks steps in %s. vet did not change them. To update them, run gh actions-lock", humanize.Count(len(plan.Skipped), "file"))
+		tui.Info("The GitHub Actions lockfile lists %s. vet did not change their step actions. To update them, run gh actions-lock", humanize.Count(len(plan.Skipped), "workflow"))
 	}
 	switch {
 	case plan.Edits() == 0 && len(plan.Failures) > 0:
@@ -153,4 +160,18 @@ func summary(plan *vfix.Plan, dryRun bool) {
 	default:
 		tui.Success("Pinned %s in %s.", humanize.Count(plan.Edits(), "action"), humanize.Count(len(plan.Files), "file"))
 	}
+}
+
+// lockAdvice names gh actions-lock when the repository has a GitHub Actions
+// lockfile that lists a workflow. A new pin in a composite action that a
+// listed workflow uses needs a lockfile entry, or GitHub fails the run.
+func lockAdvice(root string) error {
+	lock, err := actionslock.Read(os.DirFS(root), ".")
+	if err != nil {
+		return err
+	}
+	if lock.ListsAny() {
+		tui.Info("The repository has a GitHub Actions lockfile. To add the new pins to it, run gh actions-lock")
+	}
+	return nil
 }

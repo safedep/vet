@@ -258,7 +258,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	}
 	trustLock, err := TrustsActionsLock(rt, os.Getenv)
 	if err != nil {
-		return configError(fmt.Errorf("plugins.%s.options: %w", workflow.Name, err))
+		return err
 	}
 	ctrls, err := controls.Build(settingsOf(rt, o.CooldownDays, trustLock))
 	if err != nil {
@@ -703,7 +703,7 @@ func ActionsLockEnforced(rt *config.Runtime, getenv func(string) string) bool {
 func FixLeavesActionsLock(rt *config.Runtime, getenv func(string) string) (bool, error) {
 	trust, err := TrustsActionsLock(rt, getenv)
 	if err != nil {
-		return false, app.UsageError(fmt.Sprintf("plugins.%s.options: %v", workflow.Name, err), "Fix the option in the config file. vet config validate checks it.")
+		return false, err
 	}
 	return trust || ActionsLockEnforced(rt, getenv), nil
 }
@@ -714,7 +714,7 @@ func FixLeavesActionsLock(rt *config.Runtime, getenv func(string) string) (bool,
 func TrustsActionsLock(rt *config.Runtime, getenv func(string) string) (bool, error) {
 	o, err := workflow.Decode(plugin.MapConfig(rt.Config.PluginOptions(workflow.Name)))
 	if err != nil {
-		return false, err
+		return false, app.UsageError(fmt.Sprintf("plugins.%s.options: %v", workflow.Name, err), "Fix the option in the config file. vet config validate checks it.")
 	}
 	if o.TrustActionsLock != nil {
 		return *o.TrustActionsLock, nil

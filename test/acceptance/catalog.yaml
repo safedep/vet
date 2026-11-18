@@ -666,7 +666,7 @@
   title: "the fix leaves the workflows that the actions lockfile locks"
   category: fix
   tier: P1
-  guarantee: "vet fix github-actions run leaves each step that the GitHub Actions lockfile locks, in a listed workflow and in a composite action that it uses, names gh actions-lock, and pins the workflows that the lockfile does not list."
+  guarantee: "vet fix github-actions run leaves the step actions of each workflow that the GitHub Actions lockfile lists, pins the other files, and names gh actions-lock."
   labels: [fix, workflow]
 - id: state/continue/options-change
   title: "other scan options start a new scan"

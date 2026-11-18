@@ -64,8 +64,9 @@ type Plan struct {
 	Root     string    `json:"root"`
 	Files    []*File   `json:"files"`
 	Failures []Failure `json:"failures"`
-	// Skipped are the files with a tag that the fix leaves because the
-	// GitHub Actions lockfile locks its step. gh actions-lock updates them.
+	// Skipped are the listed workflows with a tag that the fix leaves. The
+	// GitHub Actions lockfile locks their steps, and gh actions-lock updates
+	// them.
 	Skipped []string `json:"skipped"`
 }
 
@@ -97,26 +98,17 @@ var ErrActionsLock = errors.New("read the GitHub Actions lockfile")
 
 // actionsLockLeaves returns a test for the uses: values that the fix
 // leaves because the GitHub Actions lockfile of root locks the step: each
-// step action of a listed workflow, and of a composite action that a listed
-// workflow uses. A new commit SHA there has no lockfile entry, and GitHub
-// fails the run. A reusable workflow at job level needs no entry, so the
-// fix pins it.
+// step action of a listed workflow. A new commit SHA there has no lockfile
+// entry, and GitHub fails the run. A reusable workflow at job level needs
+// no entry, so the fix pins it.
 func actionsLockLeaves(root string) (func(rel, uses string) bool, error) {
-	fsys := os.DirFS(root)
-	lock, err := actionslock.Read(fsys, ".")
+	lock, err := actionslock.Read(os.DirFS(root), ".")
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrActionsLock, err)
 	}
-	callers := lock.Callers(fsys, ".")
 	return func(rel, uses string) bool {
-		if !actionslock.IsAction(uses) {
-			return false
-		}
-		if _, key, ok := actionslock.WorkflowKey(rel); ok {
-			return lock.Workflow(key).Listed()
-		}
-		_, dir, ok := actionslock.ActionRoot(rel)
-		return ok && len(callers[dir]) > 0
+		_, key, ok := actionslock.WorkflowKey(rel)
+		return ok && actionslock.IsAction(uses) && lock.Workflow(key).Listed()
 	}, nil
 }
 

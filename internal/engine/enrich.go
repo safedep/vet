@@ -67,16 +67,22 @@ func (r *run) prepare(ctx context.Context) (stop func()) {
 // its own work.
 func (r *run) enrichDiagnostics() {
 	for _, e := range r.o.Enrichers {
-		d, ok := e.Plugin.(plugin.Diagnoser)
-		if !ok {
-			continue
+		r.pluginDiagnostics(e.Name, e.Plugin)
+	}
+}
+
+// pluginDiagnostics adds the diagnostics of a plugin that reports them. A
+// diagnostic with no component gets the name of the plugin.
+func (r *run) pluginDiagnostics(name string, p any) {
+	d, ok := p.(plugin.Diagnoser)
+	if !ok {
+		return
+	}
+	for _, diag := range d.Diagnostics() {
+		if diag.Component == "" {
+			diag.Component = name
 		}
-		for _, diag := range d.Diagnostics() {
-			if diag.Component == "" {
-				diag.Component = e.Name
-			}
-			r.diags.put(&diag)
-		}
+		r.diags.put(&diag)
 	}
 }
 

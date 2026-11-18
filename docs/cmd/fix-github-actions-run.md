@@ -25,8 +25,8 @@ repository (from the `origin` remote), expressions, and actions that a SHA alrea
 only the `uses:` value, so each file keeps its format, its comments and its line ends. It writes a
 file through a temporary file and a rename.
 
-vet leaves each step that the GitHub Actions lockfile locks, and names `gh actions-lock` for it. The
-`skipped` list of the plan names the files with such a step. See
+vet leaves the step actions of each workflow that the GitHub Actions lockfile lists, and names
+`gh actions-lock`. The `skipped` list of the plan names these workflows. See
 [Fix workflow findings](../controls.md#fix-workflow-findings).
 
 vet calls the GitHub API with `GITHUB_TOKEN`, or with the token of the `gh` CLI when one exists, and

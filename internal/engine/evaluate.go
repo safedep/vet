@@ -59,16 +59,7 @@ func (r *run) evaluate(ctx context.Context) error {
 // its own work.
 func (r *run) controlDiagnostics() {
 	for _, c := range r.o.Controls {
-		d, ok := c.Plugin.(plugin.Diagnoser)
-		if !ok {
-			continue
-		}
-		for _, diag := range d.Diagnostics() {
-			if diag.Component == "" {
-				diag.Component = c.ID
-			}
-			r.diags.put(&diag)
-		}
+		r.pluginDiagnostics(c.ID, c.Plugin)
 	}
 }
 

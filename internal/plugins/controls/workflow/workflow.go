@@ -51,8 +51,8 @@ type Options struct {
 	// or its owner/repo part, with path.Match.
 	AllowUnpinned []string `json:"allow_unpinned"`
 	// TrustActionsLock makes vet trust the GitHub Actions lockfile. With no
-	// value, vet trusts it when GitHub enforces it: on GitHub.com and
-	// GHE.com, not on GitHub Enterprise Server. The runner sets the value.
+	// value, the runner trusts it when GitHub enforces it: on GitHub.com and
+	// GHE.com, not on GitHub Enterprise Server. The control alone trusts it.
 	TrustActionsLock *bool `json:"trust_actions_lock"`
 }
 
@@ -242,30 +242,20 @@ func scripts(s step) []*yaml.Node {
 	return out
 }
 
-// lock returns the part of the GitHub Actions lockfile that locks the
-// steps of a workflow or composite action file. A composite action runs
-// under each listed workflow that uses it. A lockfile that vet cannot read
-// locks nothing, so each tag gives a finding.
+// lock returns the part of the GitHub Actions lockfile for a workflow file.
+// A composite action gets none: it can run under a workflow that the
+// lockfile does not list, so each of its tags gives a finding. A lockfile
+// that vet cannot read locks nothing.
 func (c *Control) lock(m *model.Manifest) actionslock.WorkflowLock {
-	if !c.trustLock {
+	root, key, ok := actionslock.WorkflowKey(m.Path)
+	if !c.trustLock || !ok {
 		return actionslock.WorkflowLock{}
 	}
-	if root, key, ok := actionslock.WorkflowKey(m.Path); ok {
-		return c.readLock(m, root).Workflow(key)
-	}
-	if root, dir, ok := actionslock.ActionRoot(m.Path); ok {
-		l := c.readLock(m, root)
-		return l.Workflows(l.Callers(m.Root, root)[dir])
-	}
-	return actionslock.WorkflowLock{}
-}
-
-func (c *Control) readLock(m *model.Manifest, root string) *actionslock.Lock {
 	l, err := c.locks.Read(m.Root, root)
 	if err != nil {
 		c.warn(err)
 	}
-	return l
+	return l.Workflow(key)
 }
 
 // warn keeps one diagnostic for each lockfile that vet cannot read.

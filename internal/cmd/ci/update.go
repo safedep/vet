@@ -102,17 +102,17 @@ repository. The default is the current directory.`,
 				tui.Info("The pins of %s are up to date", wfPath)
 				return nil
 			case dryRun:
-				_, err := fmt.Fprint(output.Stdout(), escape.Text(plan.Diff()))
-				return err
+				if _, err := fmt.Fprint(output.Stdout(), escape.Text(plan.Diff())); err != nil {
+					return err
+				}
+				lockAdvice(listed, wfPath)
+				return nil
 			}
 			if err := plan.Apply(); err != nil {
 				return err
 			}
 			tui.Success("Moved %s in %s", humanize.Count(plan.Edits(), "pin"), wfPath)
-			if listed {
-				// GitHub fails the run until the lockfile has the new pins.
-				tui.Info("The GitHub Actions lockfile lists %s. To add the new pins to it, run gh actions-lock", wfPath)
-			}
+			lockAdvice(listed, wfPath)
 			return nil
 		},
 	}
@@ -121,7 +121,8 @@ repository. The default is the current directory.`,
 }
 
 // lockfileLists reports whether the GitHub Actions lockfile of dir lists the
-// workflow, where GitHub enforces the lockfile.
+// workflow, where GitHub enforces the lockfile. A lockfile that vet cannot
+// read gives a warning, because it decides only the advice.
 func lockfileLists(rt *config.Runtime, dir, workflow string) (bool, error) {
 	leave, err := runner.FixLeavesActionsLock(rt, os.Getenv)
 	if err != nil || !leave {
@@ -129,8 +130,17 @@ func lockfileLists(rt *config.Runtime, dir, workflow string) (bool, error) {
 	}
 	lock, err := actionslock.Read(os.DirFS(dir), ".")
 	if err != nil {
-		return false, app.UsageError(fmt.Sprintf("read the GitHub Actions lockfile: %v", err), "Fix the lockfile, or write it again with gh actions-lock.")
+		tui.Warning("vet cannot read the GitHub Actions lockfile: %s", escape.Line(err.Error()))
+		return false, nil
 	}
 	_, key, ok := actionslock.WorkflowKey(workflow)
 	return ok && lock.Workflow(key).Listed(), nil
+}
+
+// lockAdvice names gh actions-lock for a workflow that the lockfile lists.
+// GitHub fails the run until the lockfile has the new pins.
+func lockAdvice(listed bool, workflow string) {
+	if listed {
+		tui.Info("The GitHub Actions lockfile lists %s. To add the new pins to it, run gh actions-lock", workflow)
+	}
 }

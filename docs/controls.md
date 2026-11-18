@@ -232,13 +232,12 @@ workflow that the file lists, GitHub runs each step action at the commit that th
 run fails when a step action has no entry. A moved tag does not change the run of a listed workflow.
 
 - `unpinned-action` accepts a tag of a step when the lockfile locks it for the workflow.
-- A composite action under `.github/actions/` runs under each listed workflow that uses it, as
-  `./path` or `$/path`. Its tag passes when the lockfile locks it for each of these workflows.
-- In a listed workflow, or a composite action that a listed workflow uses, a tag with no entry gets
-  the finding "is not in the actions lockfile". Its fix is `gh actions-lock`.
+- In a listed workflow, a tag with no entry gets the finding "is not in the actions lockfile". Its fix
+  is `gh actions-lock`.
 - These still get a finding: a reusable workflow at job level, a Docker image with no digest, a
-  workflow that the lockfile does not list, and a composite action that no listed workflow uses.
-  GitHub does not lock the first two.
+  workflow that the lockfile does not list, and each tag of a composite action under
+  `.github/actions/`. GitHub does not lock the first two. A composite action can run under a workflow
+  that the lockfile does not list.
 - In pull request mode, a workflow is modified when the change removes one of its lockfile entries,
   also when the workflow file stays the same.
 - vet reads the file with the parser of GitHub, and only schema version `v0.0.3`. A lockfile that vet
@@ -253,10 +252,11 @@ run fails when a step action has no entry. A moved tag does not change the run o
 ## Fix workflow findings
 
 `vet fix github-actions run` pins each third-party action to its commit SHA, and keeps the tag in a
-comment. It leaves each step that the [Actions lockfile](#actions-lockfile) locks: the step actions
-of a listed workflow, and of a composite action that a listed workflow uses. A new SHA there has no
-lockfile entry, and GitHub fails the run. `gh actions-lock` updates these steps. The fix still pins a
-reusable workflow at job level, because it needs no lockfile entry. See
+comment. It leaves each step action of a workflow that the [Actions lockfile](#actions-lockfile)
+lists. A new SHA there has no lockfile entry, and GitHub fails the run. `gh actions-lock` updates these
+steps. The fix pins the rest, such as a reusable workflow at job level and a composite action. When
+the lockfile lists a workflow, run `gh actions-lock` after the fix, because a composite action that a
+listed workflow uses needs an entry for its new pins. See
 [fix-github-actions-run.md](cmd/fix-github-actions-run.md).
 
 ## Control reference

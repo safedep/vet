@@ -15,8 +15,8 @@ type Lock struct {
 	// Workflows maps a workflow key to the keys, as owner/repo@ref, that it
 	// uses.
 	Workflows map[string][]string
-	// Commits sets the commit SHA of a key. Each other key gets a commit
-	// made from its name.
+	// Commits sets the commit SHA of a key. A key with a commit SHA as its
+	// ref gets that SHA, and each other key a commit made from its name.
 	Commits map[string]string
 	// Hosts sets the hostname of a key.
 	Hosts map[string]string
@@ -54,6 +54,11 @@ func (l Lock) String() string {
 func (l Lock) commit(key string) string {
 	if c, ok := l.Commits[key]; ok {
 		return c
+	}
+	if _, ref, _ := strings.Cut(key, "@"); len(ref) == 40 {
+		if _, err := hex.DecodeString(ref); err == nil {
+			return strings.ToLower(ref)
+		}
 	}
 	sum := sha256.Sum256([]byte(key))
 	return hex.EncodeToString(sum[:20])

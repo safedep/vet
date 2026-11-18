@@ -1,18 +1,19 @@
-# vet fix github-actions run leaves a workflow that the GitHub Actions
-# lockfile lists, and the composite action that it uses, and names
-# gh actions-lock. A new SHA there has no entry, and GitHub fails the run.
-# A workflow that the lockfile does not list gets its pins.
+# vet fix github-actions run leaves the step actions of a workflow that the
+# GitHub Actions lockfile lists. A new SHA there has no entry, and GitHub
+# fails the run. A workflow that the lockfile does not list, and a
+# composite action, get their pins. vet names gh actions-lock for both.
 env VET_PLUGINS_WORKFLOW_OPTIONS_TRUST_ACTIONS_LOCK=true
 exec vet fix github-actions run --mode plain
-stderr 'The GitHub Actions lockfile locks steps in 2 files\. vet did not change them\. To update them, run gh actions-lock'
-stderr 'Pinned 1 action in 1 file\.'
+stderr 'The GitHub Actions lockfile lists 1 workflow\. vet did not change their step actions\. To update them, run gh actions-lock'
+stderr 'Pinned 2 actions in 2 files\.'
+stderr 'The repository has a GitHub Actions lockfile\. To add the new pins to it, run gh actions-lock'
 cmp .github/workflows/ci.yml $WORK/ci.yml
-cmp .github/actions/build/action.yml $WORK/action.yml
+grep 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4' .github/actions/build/action.yml
 grep 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4' .github/workflows/other.yml
 stub calls github 1
 exec vet fix github-actions run --dry-run -o json
 stdout '"skipped":'
-stdout '"\.github/actions/build/action\.yml"'
+stdout '"\.github/workflows/ci\.yml"'
 
 -- .github/workflows/ci.yml --
 on: push
@@ -31,11 +32,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/build
 -- .github/actions/build/action.yml --
-runs:
-  using: composite
-  steps:
-    - uses: actions/checkout@v4
--- action.yml --
 runs:
   using: composite
   steps:

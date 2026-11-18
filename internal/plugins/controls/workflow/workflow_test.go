@@ -277,7 +277,7 @@ jobs:
 	lock := actionslocktest.Lock{Workflows: map[string][]string{
 		".github/workflows/ci.yml": {"acme/build@v1.2.0", "acme/cache@v4"},
 	}}.String()
-	caller := fstest.MapFS{".github/workflows/ci.yml": {Data: []byte("on: push\njobs:\n  b:\n    steps:\n      - uses: ./.github/actions/build\n")}}
+	caller := fstest.MapFS{".github/workflows/ci.yml": {Data: []byte("on: push\njobs:\n  b:\n    steps:\n      - uses: $/.github/actions/build\n")}}
 	reusable := hit{IDUnpinnedAction, 11, "acme/build/.github/workflows/x.yml@v1.2.0 is not pinned to a commit SHA"}
 	listed := []hit{
 		reusable,
@@ -328,13 +328,10 @@ jobs:
 			lockPath: ".github/workflows/actions.lock", lock: lock + "extra: true\n", want: all, wantFix: allFix, wantDiag: true,
 		},
 		{
+			// A workflow that the lockfile does not list can use the action
+			// too, and GitHub then runs its tags unlocked.
 			name: "composite action that a listed workflow uses", path: ".github/actions/build/action.yml", data: composite,
 			lockPath: ".github/workflows/actions.lock", lock: lock, extra: caller,
-			want: []hit{{IDUnpinnedAction, 5, "acme/other@v1 is not in the actions lockfile"}}, wantFix: []string{lockCommand},
-		},
-		{
-			name: "composite action that no listed workflow uses", path: ".github/actions/build/action.yml", data: composite,
-			lockPath: ".github/workflows/actions.lock", lock: lock,
 			want: []hit{
 				{IDUnpinnedAction, 4, "acme/build@v1.2.0 is not pinned to a commit SHA"},
 				{IDUnpinnedAction, 5, "acme/other@v1 is not pinned to a commit SHA"},

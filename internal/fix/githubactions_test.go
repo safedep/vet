@@ -207,8 +207,9 @@ func TestPlanLeavesTheFilesThatTheActionsLockLists(t *testing.T) {
 		require.NoError(t, os.WriteFile(full, []byte(content), 0o644))
 	}
 	listed := actionslocktest.Lock{Workflows: map[string][]string{
-		".github/workflows/ci.yml":    {"actions/checkout@v4"},
-		".github/workflows/calls.yml": {"actions/checkout@v4"},
+		".github/workflows/ci.yml":     {"actions/checkout@v4"},
+		".github/workflows/calls.yml":  {"actions/checkout@v4"},
+		".github/workflows/pinned.yml": {"actions/checkout@" + sha},
 	}}.String()
 	cases := []struct {
 		name        string
@@ -219,9 +220,9 @@ func TestPlanLeavesTheFilesThatTheActionsLockLists(t *testing.T) {
 		wantErr     bool
 	}{
 		{
-			name: "listed workflows and the composite action that they use", lock: listed, actionsLock: true,
-			wantFiles:   []string{".github/workflows/other.yml", ".github/actions/unused/action.yml", ".github/workflows/calls.yml"},
-			wantSkipped: []string{".github/workflows/ci.yml", ".github/actions/local/action.yml", ".github/workflows/calls.yml"},
+			name: "listed workflows", lock: listed, actionsLock: true,
+			wantFiles:   []string{".github/workflows/other.yml", ".github/actions/local/action.yml", ".github/actions/unused/action.yml", ".github/workflows/calls.yml"},
+			wantSkipped: []string{".github/workflows/ci.yml", ".github/workflows/calls.yml"},
 		},
 		{
 			name: "lockfile that GitHub does not enforce", lock: listed, actionsLock: false,
@@ -241,7 +242,9 @@ func TestPlanLeavesTheFilesThatTheActionsLockLists(t *testing.T) {
 			write(t, root, ".github/workflows/other.yml", "jobs:\n  b:\n    steps:\n      - uses: actions/checkout@v4\n")
 			write(t, root, ".github/actions/unused/action.yml", "runs:\n  using: composite\n  steps:\n    - uses: actions/checkout@v4\n")
 			// A reusable workflow needs no lockfile entry, so the fix pins it
-			// in a listed workflow too.
+			// in a listed workflow too. A listed workflow with no tag is not
+			// skipped.
+			write(t, root, ".github/workflows/pinned.yml", "jobs:\n  b:\n    steps:\n      - uses: actions/checkout@"+sha+"\n")
 			write(t, root, ".github/workflows/calls.yml", "jobs:\n  call:\n    uses: acme/shared/.github/workflows/x.yml@v1\n  b:\n    steps:\n      - uses: actions/checkout@v4\n")
 			write(t, root, ".github/workflows/actions.lock", tc.lock)
 			p, err := PlanPins(context.Background(), PinOptions{Root: root, Resolver: &fakeResolver{}, SameRepo: "my-org/app", ActionsLock: tc.actionsLock})

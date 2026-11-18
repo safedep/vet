@@ -53,6 +53,8 @@ func TestStatus(t *testing.T) {
 	assert.Equal(t, Unlisted, none.Workflow(".github/workflows/ci.yml").Status("acme/build@v1.2.0"))
 	assert.False(t, none.Workflow(".github/workflows/ci.yml").Listed())
 	assert.True(t, l.Workflow(".github/workflows/empty.yml").Listed())
+	assert.True(t, l.ListsAny())
+	assert.False(t, none.ListsAny())
 }
 
 func TestCoverage(t *testing.T) {
@@ -223,58 +225,4 @@ func TestCacheParsesEachContentOnce(t *testing.T) {
 	require.NoError(t, err)
 	assert.Same(t, a, b, "the same content gives the kept parse")
 	assert.NotSame(t, a, other)
-}
-
-func TestActionRoot(t *testing.T) {
-	tests := []struct {
-		path     string
-		wantRoot string
-		wantDir  string
-		wantOK   bool
-	}{
-		{".github/actions/build/action.yml", ".", ".github/actions/build", true},
-		{"sub/.github/actions/build/action.yaml", "sub", ".github/actions/build", true},
-		{".github/actions/build/notes.yml", "", "", false},
-		{"tools/build/action.yml", "", "", false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.path, func(t *testing.T) {
-			root, dir, ok := ActionRoot(tt.path)
-			assert.Equal(t, tt.wantOK, ok)
-			assert.Equal(t, tt.wantRoot, root)
-			assert.Equal(t, tt.wantDir, dir)
-		})
-	}
-}
-
-func TestCallersAndWorkflows(t *testing.T) {
-	lock := actionslocktest.Lock{Workflows: map[string][]string{
-		".github/workflows/a.yml": {"acme/build@v1", "acme/test@v1"},
-		".github/workflows/b.yml": {"acme/build@v1"},
-	}}
-	l, err := Parse([]byte(lock.String()))
-	require.NoError(t, err)
-	step := func(uses string) string { return "jobs:\n  j:\n    steps:\n      - uses: " + uses + "\n" }
-	fsys := fstest.MapFS{
-		".github/workflows/a.yml":             {Data: []byte(step("./.github/actions/outer"))},
-		".github/workflows/b.yml":             {Data: []byte(step("$/.github/actions/inner"))},
-		".github/workflows/c.yml":             {Data: []byte(step("./.github/actions/unused"))},
-		".github/actions/outer/action.yml":    {Data: []byte("runs:\n  using: composite\n  steps:\n    - uses: ./.github/actions/inner\n    - uses: ./../escape\n")},
-		".github/actions/inner/action.yaml":   {Data: []byte("runs:\n  using: composite\n  steps:\n    - uses: acme/build@v1\n")},
-		".github/actions/unused/action.yml":   {Data: []byte("runs:\n  using: composite\n  steps:\n    - uses: acme/build@v1\n")},
-		".github/workflows/actions.lock":      {Data: []byte(lock.String())},
-		".github/actions/outer/extra/x.yml":   {},
-		".github/actions/inner/action.yml.bk": {},
-	}
-	callers := l.Callers(fsys, ".")
-	assert.Equal(t, map[string][]string{
-		".github/actions/outer": {".github/workflows/a.yml"},
-		".github/actions/inner": {".github/workflows/a.yml", ".github/workflows/b.yml"},
-	}, callers, "an unlisted workflow and a path out of the repository give no caller")
-
-	inner := l.Workflows(callers[".github/actions/inner"])
-	assert.True(t, inner.Listed())
-	assert.Equal(t, Locked, inner.Status("acme/build@v1"))
-	assert.Equal(t, Missing, inner.Status("acme/test@v1"), "b.yml does not lock it")
-	assert.False(t, l.Workflows(callers[".github/actions/unused"]).Listed())
 }

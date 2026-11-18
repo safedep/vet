@@ -694,3 +694,23 @@ func TestPullRequestModeContinuesWithTheHeadActionsLock(t *testing.T) {
 	assert.True(t, res.Continued)
 	assert.Equal(t, model.ChangeModified, workflowChange(t, res), "the kept change of the workflow does not hide the removed lockfile")
 }
+
+// diagnoserControl reports one diagnostic about its own work.
+type diagnoserControl struct{ fileControl }
+
+func (diagnoserControl) Diagnostics() []report.Diagnostic {
+	return []report.Diagnostic{{Level: report.DiagnosticWarning, Code: "control_note", Message: "a note of the control"}}
+}
+
+func TestScanReportsTheDiagnosticsOfAControl(t *testing.T) {
+	f := newFixture(t)
+	o := f.options(t, project(t), &fakeEnricher{}, Control{ID: "noted", Plugin: diagnoserControl{}})
+	res := runScan(t, o)
+	var got []string
+	for _, d := range diagnosticsOf(t, res) {
+		if d.Code == "control_note" {
+			got = append(got, d.Component+": "+d.Message)
+		}
+	}
+	assert.Equal(t, []string{"noted: a note of the control"}, got)
+}
