@@ -11,34 +11,54 @@ import (
 	"github.com/safedep/vet/v2/report"
 )
 
+// stageRun names the diagnostics that each run writes again: those of the
+// caller, of the walk, and of the base of a pull request scan. A continued
+// scan replaces those of the earlier run.
+const stageRun = "run"
+
 // diagnostics counts the diagnostics of a run, so that one problem that
 // repeats, such as a backend that does not answer, gives one record.
 type diagnostics struct {
 	mu    sync.Mutex
-	byKey map[string]*report.Diagnostic
+	byKey map[string]staged
 	order []string
 	total int
 }
 
+// staged is a diagnostic and the stage whose work writes it again in a
+// continued scan. An empty stage keeps the diagnostic.
+type staged struct {
+	stage string
+	diag  *report.Diagnostic
+}
+
 func newDiagnostics() *diagnostics {
-	return &diagnostics{byKey: map[string]*report.Diagnostic{}}
+	return &diagnostics{byKey: map[string]staged{}}
 }
 
 func (d *diagnostics) add(level report.DiagnosticLevel, code, component, msg string) {
-	d.put(&report.Diagnostic{Level: level, Code: code, Component: component, Message: msg})
+	d.addIn("", level, code, component, msg)
+}
+
+func (d *diagnostics) addIn(stage string, level report.DiagnosticLevel, code, component, msg string) {
+	d.putIn(stage, &report.Diagnostic{Level: level, Code: code, Component: component, Message: msg})
 }
 
 func (d *diagnostics) put(diag *report.Diagnostic) {
+	d.putIn("", diag)
+}
+
+func (d *diagnostics) putIn(stage string, diag *report.Diagnostic) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	d.total++
-	key := strings.Join([]string{string(diag.Level), diag.Code, diag.Component, string(diag.Change), diag.Message}, "\x00")
+	key := strings.Join([]string{stage, string(diag.Level), diag.Code, diag.Component, string(diag.Change), diag.Message}, "\x00")
 	if prev, ok := d.byKey[key]; ok {
-		prev.Count++
+		prev.diag.Count++
 		return
 	}
 	diag.Count = 1
-	d.byKey[key] = diag
+	d.byKey[key] = staged{stage: stage, diag: diag}
 	d.order = append(d.order, key)
 }
 
@@ -50,8 +70,9 @@ func (d *diagnostics) flush(ctx context.Context, scan *state.Scan) error {
 	slices.Sort(keys)
 	var errs []error
 	for _, k := range keys {
-		errs = append(errs, scan.AddDiagnostic(ctx, d.byKey[k]))
+		s := d.byKey[k]
+		errs = append(errs, scan.AddStageDiagnostic(ctx, s.stage, s.diag))
 	}
-	d.byKey, d.order = map[string]*report.Diagnostic{}, nil
+	d.byKey, d.order = map[string]staged{}, nil
 	return errors.Join(errs...)
 }

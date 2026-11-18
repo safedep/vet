@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/report"
 )
 
 func TestContinueAfterInterrupt(t *testing.T) {
@@ -107,4 +109,68 @@ func TestOpenedRunsBeforeTheFirstStage(t *testing.T) {
 	}
 	runScan(t, o)
 	assert.Equal(t, []string{"opened", StageExtract, StageEnrich, StageEvaluate, StageReport}, log.calls)
+}
+
+func TestContinueWritesEachDiagnosticOfTheRunOnce(t *testing.T) {
+	cases := []struct {
+		name    string
+		code    string
+		project func(*testing.T) string
+		set     func(*Options)
+	}{
+		{
+			name: "control", code: "control_note", project: project,
+			set: func(o *Options) { o.Controls = []Control{{ID: "noted", Plugin: diagnoserControl{}}} },
+		},
+		{
+			name: "caller", code: report.CodeBasePolicyInvalid, project: project,
+			set: func(o *Options) {
+				o.Diagnostics = []*report.Diagnostic{{Level: report.DiagnosticWarning, Code: report.CodeBasePolicyInvalid, Component: "policy", Message: "the base policy does not load"}}
+			},
+		},
+		{
+			name: "pull request base", code: report.CodeDeltaFailed, project: unreadableBaseProject,
+			set: func(o *Options) { o.BaseRef = "HEAD" },
+		},
+		{
+			name: "walk", code: report.CodeExtractFailed,
+			project: func(t *testing.T) string {
+				if runtime.GOOS == "windows" || os.Geteuid() == 0 {
+					t.Skip("chmod does not stop root or a Windows user from reading a folder")
+				}
+				dir := project(t)
+				locked := filepath.Join(dir, "locked")
+				require.NoError(t, os.Mkdir(locked, 0o000))
+				t.Cleanup(func() { assert.NoError(t, os.Chmod(locked, 0o700)) })
+				return dir
+			},
+			set: func(*Options) {},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newFixture(t)
+			dir := tc.project(t)
+			ctx, cancel := context.WithCancelCause(context.Background())
+			defer cancel(nil)
+			o := f.options(t, dir, &fakeEnricher{})
+			tc.set(&o)
+			o.Observer = stopAfter{stage: StageEvaluate, done: 1, cancel: cancel}
+			stopped, err := Run(ctx, o)
+			require.ErrorIs(t, err, app.ErrInterrupted)
+			require.NoError(t, stopped.Scan.Close())
+
+			o = f.options(t, dir, &fakeEnricher{})
+			tc.set(&o)
+			res := runScan(t, o)
+			require.True(t, res.Continued)
+			n := 0
+			for _, d := range diagnosticsOf(t, res) {
+				if d.Code == tc.code {
+					n++
+				}
+			}
+			assert.Equal(t, 1, n, "the continued scan replaces the diagnostic of the stopped run")
+		})
+	}
 }

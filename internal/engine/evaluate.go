@@ -26,6 +26,9 @@ func (r *run) evaluate(ctx context.Context) error {
 	if err := scan.ClearFindings(ctx); err != nil {
 		return err
 	}
+	if err := scan.ClearDiagnostics(ctx, StageEvaluate); err != nil {
+		return err
+	}
 	ids, err := scan.UnevaluatedManifests(ctx)
 	if err != nil {
 		return err
@@ -57,7 +60,7 @@ func (r *run) evaluate(ctx context.Context) error {
 // its own work.
 func (r *run) controlDiagnostics() {
 	for _, c := range r.o.Controls {
-		r.pluginDiagnostics(c.ID, c.Plugin)
+		r.pluginDiagnostics(StageEvaluate, c.ID, c.Plugin)
 	}
 }
 
@@ -104,17 +107,17 @@ func (r *run) evaluateApplication(ctx context.Context) []finding.Finding {
 func (r *run) valid(pluginID, where string, fs []finding.Finding, err error) []finding.Finding {
 	switch {
 	case errors.Is(err, plugin.ErrUnavailable):
-		r.diags.add(report.DiagnosticWarning, report.CodeControlUnavailable, pluginID,
+		r.diags.addIn(StageEvaluate, report.DiagnosticWarning, report.CodeControlUnavailable, pluginID,
 			fmt.Sprintf("%s did not run on some manifests, because its data was not available", pluginID))
 		return nil
 	case err != nil:
-		r.diags.add(report.DiagnosticError, report.CodeControlFailed, pluginID, fmt.Sprintf("%s: %v", where, err))
+		r.diags.addIn(StageEvaluate, report.DiagnosticError, report.CodeControlFailed, pluginID, fmt.Sprintf("%s: %v", where, err))
 		return nil
 	}
 	out := fs[:0:0]
 	for _, f := range fs {
 		if err := f.Validate(); err != nil {
-			r.diags.add(report.DiagnosticError, report.CodeInvalidFinding, pluginID, err.Error())
+			r.diags.addIn(StageEvaluate, report.DiagnosticError, report.CodeInvalidFinding, pluginID, err.Error())
 			continue
 		}
 		f.Attack = r.attack(pluginID, f.ControlID)
