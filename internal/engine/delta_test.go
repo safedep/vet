@@ -17,6 +17,7 @@ import (
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/app"
+	"github.com/safedep/vet/v2/internal/github/actionslock/actionslocktest"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
@@ -597,18 +598,50 @@ func TestPullRequestModeGivesAWholeEnricherEveryPackage(t *testing.T) {
 	assert.Equal(t, 6, code.seen, "the whole enricher also reads the unchanged and the removed packages")
 }
 
-func TestPullRequestModeReportsAWorkflowThatTheActionsLockNoLongerLocks(t *testing.T) {
-	const (
-		workflowFile = ".github/workflows/ci.yml"
-		lockFile     = ".github/workflows/actions.lock"
-		workflowText = "on: push\njobs:\n  b:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: acme/build@v1\n"
-	)
-	lockText := func(workflows, commit string) string {
-		return "version: 'v0.0.3'\nworkflows:\n" + workflows + "dependencies:\n    'acme/build@v1':\n        ref: 'v1'\n        commit: 'sha1-" +
-			commit + "'\n        owner_id: 101\n        repo_id: 201\n"
+const (
+	lockedWorkflow = ".github/workflows/ci.yml"
+	actionsLock    = ".github/workflows/actions.lock"
+)
+
+// lockProject commits a workflow and the base lockfile, and then writes the
+// head lockfile. An empty lockfile text means no lockfile.
+func lockProject(t *testing.T, base, head string) string {
+	t.Helper()
+	dir := t.TempDir()
+	repo, err := gogit.PlainInit(dir, false)
+	require.NoError(t, err)
+	write(t, dir, lockedWorkflow, "on: push\njobs:\n  b:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: acme/build@v1\n      - uses: acme/test@v1\n")
+	if base != "" {
+		write(t, dir, actionsLock, base)
 	}
-	const listed = "    '.github/workflows/ci.yml':\n        - 'acme/build@v1'\n"
-	locked := lockText(listed, "1111111111111111111111111111111111111111")
+	wt, err := repo.Worktree()
+	require.NoError(t, err)
+	require.NoError(t, wt.AddGlob("."))
+	_, err = wt.Commit("base", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@example.com", When: time.Now()}})
+	require.NoError(t, err)
+	require.NoError(t, os.RemoveAll(filepath.Join(dir, filepath.FromSlash(actionsLock))))
+	if head != "" {
+		write(t, dir, actionsLock, head)
+	}
+	return dir
+}
+
+func workflowChange(t *testing.T, res *Result) model.Change {
+	t.Helper()
+	for m, err := range res.Scan.Manifests(context.Background()) {
+		require.NoError(t, err)
+		if m.Path == lockedWorkflow {
+			return m.Change
+		}
+	}
+	t.Fatalf("no manifest %s", lockedWorkflow)
+	return ""
+}
+
+func TestPullRequestModeReportsAWorkflowThatTheActionsLockNoLongerLocks(t *testing.T) {
+	keys := []string{"acme/build@v1", "acme/test@v1"}
+	locked := actionslocktest.Lock{Workflows: map[string][]string{lockedWorkflow: keys}}
+	moved := actionslocktest.Lock{Workflows: locked.Workflows, Commits: map[string]string{"acme/build@v1": "2222222222222222222222222222222222222222"}}
 	cases := []struct {
 		name  string
 		base  string
@@ -616,46 +649,48 @@ func TestPullRequestModeReportsAWorkflowThatTheActionsLockNoLongerLocks(t *testi
 		trust bool
 		want  model.Change
 	}{
-		{name: "lockfile kept", base: locked, head: locked, trust: true, want: model.ChangeUnchanged},
-		{name: "lockfile removed", base: locked, trust: true, want: model.ChangeModified},
-		{name: "entry removed", base: locked, head: lockText("    '.github/workflows/ci.yml': []\n", "1111111111111111111111111111111111111111"), trust: true, want: model.ChangeModified},
-		{name: "workflow removed from the lockfile", base: locked, head: lockText("    '.github/workflows/other.yml':\n        - 'acme/build@v1'\n", "1111111111111111111111111111111111111111"), trust: true, want: model.ChangeModified},
-		{name: "commit moved", base: locked, head: lockText(listed, "2222222222222222222222222222222222222222"), trust: true, want: model.ChangeUnchanged},
-		{name: "lockfile that vet cannot read", base: locked, head: locked + "extra: true\n", trust: true, want: model.ChangeModified},
-		{name: "lockfile added", head: locked, trust: true, want: model.ChangeUnchanged},
-		{name: "lockfile not trusted", base: locked, trust: false, want: model.ChangeUnchanged},
+		{name: "lockfile kept", base: locked.String(), head: locked.String(), trust: true, want: model.ChangeUnchanged},
+		{name: "lockfile removed", base: locked.String(), trust: true, want: model.ChangeModified},
+		{name: "entry removed", base: locked.String(), head: actionslocktest.Lock{Workflows: map[string][]string{lockedWorkflow: keys[1:]}}.String(), trust: true, want: model.ChangeModified},
+		{name: "workflow removed from the lockfile", base: locked.String(), head: actionslocktest.Lock{Workflows: map[string][]string{".github/workflows/other.yml": keys}}.String(), trust: true, want: model.ChangeModified},
+		{name: "commit moved", base: locked.String(), head: moved.String(), trust: true, want: model.ChangeUnchanged},
+		{name: "lockfile that vet cannot read", base: locked.String(), head: locked.String() + "extra: true\n", trust: true, want: model.ChangeModified},
+		{name: "lockfile added", head: locked.String(), trust: true, want: model.ChangeUnchanged},
+		{name: "lockfile not trusted", base: locked.String(), trust: false, want: model.ChangeUnchanged},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			dir := t.TempDir()
-			repo, err := gogit.PlainInit(dir, false)
-			require.NoError(t, err)
-			write(t, dir, workflowFile, workflowText)
-			if tc.base != "" {
-				write(t, dir, lockFile, tc.base)
-			}
-			wt, err := repo.Worktree()
-			require.NoError(t, err)
-			require.NoError(t, wt.AddGlob("."))
-			_, err = wt.Commit("base", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@example.com", When: time.Now()}})
-			require.NoError(t, err)
-			require.NoError(t, os.RemoveAll(filepath.Join(dir, filepath.FromSlash(lockFile))))
-			if tc.head != "" {
-				write(t, dir, lockFile, tc.head)
-			}
-
 			f := newFixture(t)
-			o := f.options(t, dir, &fakeEnricher{})
+			o := f.options(t, lockProject(t, tc.base, tc.head), &fakeEnricher{})
 			o.BaseRef = "HEAD"
 			o.TrustActionsLock = tc.trust
 			for run := range 2 {
-				changes := map[string]model.Change{}
-				for m, err := range runScan(t, o).Scan.Manifests(context.Background()) {
-					require.NoError(t, err)
-					changes[m.Path] = m.Change
-				}
-				assert.Equal(t, tc.want, changes[workflowFile], "run %d; the second run reads the kept base", run+1)
+				assert.Equal(t, tc.want, workflowChange(t, runScan(t, o)), "run %d; the second run reads the kept base", run+1)
 			}
 		})
 	}
+}
+
+func TestPullRequestModeContinuesWithTheHeadActionsLock(t *testing.T) {
+	locked := actionslocktest.Lock{Workflows: map[string][]string{lockedWorkflow: {"acme/build@v1", "acme/test@v1"}}}.String()
+	dir := lockProject(t, locked, locked)
+	f := newFixture(t)
+	o := f.options(t, dir, &fakeEnricher{})
+	o.BaseRef = "HEAD"
+	o.TrustActionsLock = true
+
+	ctx, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
+	stopped := o
+	// The walk visits actions.lock and then ci.yml, so the stop after two
+	// files comes after vet keeps the workflow.
+	stopped.Observer = stopAfter{stage: StageExtract, done: 2, cancel: cancel}
+	res, err := Run(ctx, stopped)
+	require.ErrorIs(t, err, app.ErrInterrupted)
+	require.NoError(t, res.Scan.Close())
+
+	require.NoError(t, os.Remove(filepath.Join(dir, filepath.FromSlash(actionsLock))))
+	res = runScan(t, o)
+	assert.True(t, res.Continued)
+	assert.Equal(t, model.ChangeModified, workflowChange(t, res), "the kept change of the workflow does not hide the removed lockfile")
 }

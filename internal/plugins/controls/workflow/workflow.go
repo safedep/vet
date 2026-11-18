@@ -48,44 +48,43 @@ type Options struct {
 	// "my-org/*" or "actions/checkout". A pattern matches the action name,
 	// or its owner/repo part, with path.Match.
 	AllowUnpinned []string `json:"allow_unpinned"`
-	// TrustActionsLock accepts a tag that the GitHub Actions lockfile locks
-	// for the workflow. The default is true for GitHub.com and GHE.com, and
-	// false when github.api_url names GitHub Enterprise Server, which does
-	// not enforce the lockfile.
-	TrustActionsLock bool `json:"trust_actions_lock"`
+	// TrustActionsLock makes vet trust the GitHub Actions lockfile. With no
+	// value, vet trusts it when GitHub enforces it: on GitHub.com and
+	// GHE.com, not on GitHub Enterprise Server. The runner sets the value.
+	TrustActionsLock *bool `json:"trust_actions_lock"`
+}
+
+// Decode decodes and checks the options.
+func Decode(cfg plugin.Config) (Options, error) {
+	var o Options
+	if err := cfg.Decode(&o); err != nil {
+		return Options{}, err
+	}
+	for _, p := range o.AllowUnpinned {
+		if _, err := path.Match(p, ""); err != nil {
+			return Options{}, fmt.Errorf("workflow: allow_unpinned pattern %q: %w", p, err)
+		}
+	}
+	return o, nil
 }
 
 // OptionTrustActionsLock is the config key of Options.TrustActionsLock.
 const OptionTrustActionsLock = "trust_actions_lock"
 
-// TrustsActionsLock reports whether the options of the plugin trust the
-// GitHub Actions lockfile. With no trust_actions_lock option, vet trusts the
-// lockfile when GitHub enforces it for the API at apiURL.
-func TrustsActionsLock(options map[string]any, apiURL string) bool {
-	if v, ok := options[OptionTrustActionsLock].(bool); ok {
-		return v
-	}
-	return actionslock.Enforced(apiURL)
-}
-
 // Control evaluates the workflow files.
 type Control struct {
 	allow     []string
 	trustLock bool
+	locks     actionslock.Cache
 }
 
 // New builds the control from its options.
 func New(cfg plugin.Config) (plugin.Control, error) {
-	o := Options{TrustActionsLock: true}
-	if err := cfg.Decode(&o); err != nil {
+	o, err := Decode(cfg)
+	if err != nil {
 		return nil, err
 	}
-	for _, p := range o.AllowUnpinned {
-		if _, err := path.Match(p, ""); err != nil {
-			return nil, fmt.Errorf("workflow: allow_unpinned pattern %q: %w", p, err)
-		}
-	}
-	return &Control{allow: o.AllowUnpinned, trustLock: o.TrustActionsLock}, nil
+	return &Control{allow: o.AllowUnpinned, trustLock: o.TrustActionsLock == nil || *o.TrustActionsLock}, nil
 }
 
 var infos = map[string]plugin.ControlInfo{
@@ -233,42 +232,38 @@ func scripts(s step) []*yaml.Node {
 	return out
 }
 
-// workflowLock is the GitHub Actions lockfile of a workflow file, with the
-// key of the workflow in it.
-type workflowLock struct {
-	lock *actionslock.Lock
-	key  string
-}
-
-// lock reads the lockfile of a workflow file. A composite action and a file
-// with no lockfile get none. A lockfile that vet cannot read locks nothing,
-// so each tag gives a finding.
-func (c *Control) lock(m *model.Manifest) workflowLock {
-	root, key, ok := actionslock.Workflow(m.Path)
+// lock returns the GitHub Actions lockfile part of a workflow file. A
+// composite action and a file with no lockfile get none. A lockfile that vet
+// cannot read locks nothing, so each tag gives a finding.
+func (c *Control) lock(m *model.Manifest) actionslock.WorkflowLock {
+	root, key, ok := actionslock.WorkflowKey(m.Path)
 	if !c.trustLock || !ok {
-		return workflowLock{}
+		return actionslock.WorkflowLock{}
 	}
-	l, err := actionslock.Read(m.Root, root)
+	l, err := c.locks.Read(m.Root, root)
 	if err != nil {
 		log.Warnf("workflow: read the actions lockfile of %s: %v", m.Path, err)
-		return workflowLock{}
 	}
-	return workflowLock{lock: l, key: key}
+	return l.Workflow(key)
 }
 
-func (c *Control) unpinned(e *emitter, wl workflowLock) {
+func (c *Control) unpinned(e *emitter, wl actionslock.WorkflowLock) {
 	for _, u := range e.doc.uses() {
 		value := scalar(u.node)
 		if strings.Contains(value, "${{") {
 			continue
 		}
 		name, ok := pinned(value)
-		if ok || c.allowed(name) || u.step && wl.lock.Locks(wl.key, value) {
+		status := actionslock.Unlisted
+		if u.step {
+			status = wl.Status(value)
+		}
+		if ok || c.allowed(name) || status == actionslock.Locked {
 			continue
 		}
 		title := fmt.Sprintf("%s is not pinned to a commit SHA", value)
 		rem := &finding.Remediation{Summary: "Pin the action to the commit SHA of the tag, and keep the tag in a comment.", Command: fixCommand}
-		if u.step && wl.lock.Lists(wl.key) && actionslock.IsAction(value) {
+		if status == actionslock.Missing {
 			// GitHub fails the run of a listed workflow at this step.
 			title = fmt.Sprintf("%s is not in the actions lockfile", value)
 			rem = &finding.Remediation{Summary: "Add the action to the GitHub Actions lockfile.", Command: lockCommand}

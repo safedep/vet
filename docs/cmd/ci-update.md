@@ -23,8 +23,8 @@ vet edits only the `uses:` lines of the two actions. The new tag becomes the com
 Each other line stays as it is. The command does not change other actions or other workflow files.
 
 Use it when Dependabot or Renovate does not move the pins. `vet ci init` sets up Dependabot to do it.
-When the GitHub Actions lockfile lists the workflow, vet does not move the pins, because a new SHA
-with no lockfile entry fails the run. `gh actions-lock` moves them.
+vet does not move the pins of a workflow that the GitHub Actions lockfile lists. `gh actions-lock`
+moves them. See [Actions lockfile](../controls.md#actions-lockfile).
 `--dry-run` prints the diff and writes nothing.
 
 ## Examples

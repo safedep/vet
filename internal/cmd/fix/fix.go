@@ -3,8 +3,10 @@
 package fix
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -14,7 +16,7 @@ import (
 	"github.com/safedep/vet/v2/internal/app"
 	vfix "github.com/safedep/vet/v2/internal/fix"
 	"github.com/safedep/vet/v2/internal/github"
-	"github.com/safedep/vet/v2/internal/plugins/controls/workflow"
+	"github.com/safedep/vet/v2/internal/runner"
 	"github.com/safedep/vet/v2/internal/tui"
 	"github.com/safedep/vet/v2/internal/tui/escape"
 	"github.com/safedep/vet/v2/internal/tui/humanize"
@@ -54,9 +56,8 @@ a tag or a branch to the commit SHA of that ref, and keep the ref in a
 comment. vet resolves the SHA with the GitHub API, with GITHUB_TOKEN or
 the token of the gh CLI when one exists. Local actions, Docker images,
 actions of the same repository and expressions do not change. vet edits
-only the uses: value, so the file keeps its format. A workflow that the
-GitHub Actions lockfile lists does not change, nor do the composite
-actions when the lockfile lists a workflow. gh actions-lock updates them.
+only the uses: value, so the file keeps its format. vet leaves the files
+that the GitHub Actions lockfile lists. gh actions-lock updates them.
 
 --dry-run prints the diff and writes nothing. DIR is the root of the
 repository. The default is the current directory.`,
@@ -76,10 +77,14 @@ repository. The default is the current directory.`,
 			if err != nil {
 				return err
 			}
-			plan, err := vfix.PlanPins(cmd.Context(), vfix.PinOptions{
-				Root: root, Resolver: vfix.GitHubResolver{Client: client},
-				TrustActionsLock: workflow.TrustsActionsLock(rt.Config.PluginOptions(workflow.Name), rt.Config.GitHub.APIURL),
-			})
+			leave, err := runner.FixLeavesActionsLock(rt, os.Getenv)
+			if err != nil {
+				return err
+			}
+			plan, err := vfix.PlanPins(cmd.Context(), vfix.PinOptions{Root: root, Resolver: vfix.GitHubResolver{Client: client}, ActionsLock: leave})
+			if errors.Is(err, vfix.ErrActionsLock) {
+				return app.UsageError(err.Error(), "Fix the lockfile, or write it again with gh actions-lock.")
+			}
 			if err != nil {
 				return err
 			}
@@ -135,8 +140,8 @@ func printPlan(a *app.App, plan *vfix.Plan, dryRun bool) error {
 }
 
 func summary(plan *vfix.Plan, dryRun bool) {
-	if len(plan.Locked) > 0 {
-		tui.Info("The GitHub Actions lockfile locks the actions of %s. vet leaves them. To update them, run gh actions-lock", humanize.Count(len(plan.Locked), "file"))
+	if len(plan.Skipped) > 0 {
+		tui.Info("The GitHub Actions lockfile lists %s. vet did not change them. To update their actions, run gh actions-lock", humanize.Count(len(plan.Skipped), "file"))
 	}
 	switch {
 	case plan.Edits() == 0 && len(plan.Failures) > 0:

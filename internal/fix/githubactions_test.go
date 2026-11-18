@@ -12,6 +12,8 @@ import (
 	gh "github.com/google/go-github/v70/github"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/v2/internal/github/actionslock/actionslocktest"
 )
 
 const sha = "11bd71901bbe5b1630ceea73d27597364c9af683"
@@ -197,58 +199,48 @@ func TestPinnedTags(t *testing.T) {
 	assert.Error(t, err)
 }
 
-const actionsLock = `version: 'v0.0.3'
-workflows:
-    '.github/workflows/ci.yml':
-        - 'actions/checkout@v4'
-dependencies:
-    'actions/checkout@v4':
-        ref: 'v4'
-        commit: 'sha1-` + sha + `'
-        owner_id: 101
-        repo_id: 201
-`
-
-func TestPlanLeavesTheFilesThatTheActionsLockLocks(t *testing.T) {
+func TestPlanLeavesTheFilesThatTheActionsLockLists(t *testing.T) {
 	write := func(t *testing.T, root, rel, content string) {
 		t.Helper()
 		full := filepath.Join(root, filepath.FromSlash(rel))
 		require.NoError(t, os.MkdirAll(filepath.Dir(full), 0o755))
 		require.NoError(t, os.WriteFile(full, []byte(content), 0o644))
 	}
+	listed := actionslocktest.Lock{Workflows: map[string][]string{".github/workflows/ci.yml": {"actions/checkout@v4"}}}.String()
 	cases := []struct {
-		name       string
-		lock       string
-		trust      bool
-		wantFiles  []string
-		wantLocked []string
-		wantErr    bool
+		name        string
+		lock        string
+		actionsLock bool
+		wantFiles   []string
+		wantSkipped []string
+		wantErr     bool
 	}{
 		{
-			name: "listed workflow and composite actions", lock: actionsLock, trust: true,
-			wantFiles:  []string{".github/workflows/other.yml"},
-			wantLocked: []string{".github/workflows/ci.yml", ".github/actions/local/action.yml"},
+			name: "listed workflow and the composite action that it uses", lock: listed, actionsLock: true,
+			wantFiles:   []string{".github/workflows/other.yml", ".github/actions/unused/action.yml"},
+			wantSkipped: []string{".github/workflows/ci.yml", ".github/actions/local/action.yml"},
 		},
 		{
-			name: "lockfile not trusted", lock: actionsLock, trust: false,
-			wantFiles:  []string{".github/workflows/ci.yml", ".github/workflows/other.yml", ".github/actions/local/action.yml"},
-			wantLocked: []string{},
+			name: "lockfile that GitHub does not enforce", lock: listed, actionsLock: false,
+			wantFiles:   []string{".github/workflows/ci.yml", ".github/workflows/other.yml", ".github/actions/local/action.yml", ".github/actions/unused/action.yml"},
+			wantSkipped: []string{},
 		},
 		{
-			name: "lockfile that lists no workflow", lock: "version: 'v0.0.3'\nworkflows: {}\ndependencies: {}\n", trust: true,
-			wantFiles:  []string{".github/workflows/ci.yml", ".github/workflows/other.yml", ".github/actions/local/action.yml"},
-			wantLocked: []string{},
+			name: "lockfile that lists no workflow", lock: actionslocktest.Lock{}.String(), actionsLock: true,
+			wantFiles:   []string{".github/workflows/ci.yml", ".github/workflows/other.yml", ".github/actions/local/action.yml", ".github/actions/unused/action.yml"},
+			wantSkipped: []string{},
 		},
-		{name: "lockfile that vet cannot read", lock: actionsLock + "extra: true\n", trust: true, wantErr: true},
+		{name: "lockfile that vet cannot read", lock: listed + "extra: true\n", actionsLock: true, wantErr: true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			root := project(t)
 			write(t, root, ".github/workflows/other.yml", "jobs:\n  b:\n    steps:\n      - uses: actions/checkout@v4\n")
+			write(t, root, ".github/actions/unused/action.yml", "runs:\n  using: composite\n  steps:\n    - uses: actions/checkout@v4\n")
 			write(t, root, ".github/workflows/actions.lock", tc.lock)
-			p, err := PlanPins(context.Background(), PinOptions{Root: root, Resolver: &fakeResolver{}, SameRepo: "my-org/app", TrustActionsLock: tc.trust})
+			p, err := PlanPins(context.Background(), PinOptions{Root: root, Resolver: &fakeResolver{}, SameRepo: "my-org/app", ActionsLock: tc.actionsLock})
 			if tc.wantErr {
-				assert.Error(t, err)
+				assert.ErrorIs(t, err, ErrActionsLock)
 				return
 			}
 			require.NoError(t, err)
@@ -257,19 +249,7 @@ func TestPlanLeavesTheFilesThatTheActionsLockLocks(t *testing.T) {
 				files = append(files, f.Path)
 			}
 			assert.ElementsMatch(t, tc.wantFiles, files)
-			assert.ElementsMatch(t, tc.wantLocked, p.Locked)
+			assert.ElementsMatch(t, tc.wantSkipped, p.Skipped)
 		})
 	}
-
-	t.Run("repins of a listed workflow", func(t *testing.T) {
-		root := project(t)
-		write(t, root, ".github/workflows/actions.lock", actionsLock)
-		p, err := PlanRepins(context.Background(), RepinOptions{
-			Root: root, Files: []string{".github/workflows/ci.yml"}, TrustActionsLock: true,
-			Pins: map[string]Pin{"actions/checkout": {SHA: sha, Ref: "v4"}},
-		})
-		require.NoError(t, err)
-		assert.Zero(t, p.Edits())
-		assert.Equal(t, []string{".github/workflows/ci.yml"}, p.Locked)
-	})
 }

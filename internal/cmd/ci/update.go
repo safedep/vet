@@ -1,14 +1,16 @@
 package ci
 
 import (
+	"errors"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/ci/githubci"
 	"github.com/safedep/vet/v2/internal/fix"
-	"github.com/safedep/vet/v2/internal/plugins/controls/workflow"
+	"github.com/safedep/vet/v2/internal/runner"
 	"github.com/safedep/vet/v2/internal/tui"
 	"github.com/safedep/vet/v2/internal/tui/escape"
 	"github.com/safedep/vet/v2/internal/tui/humanize"
@@ -28,8 +30,8 @@ version. A pin never moves to an older release.
 
 vet edits only the uses: lines of the two actions, and writes the new
 tag as the comment. Each other line stays. Use it when Dependabot or
-Renovate does not move the pins. When the GitHub Actions lockfile lists
-the workflow, vet does not move the pins, and gh actions-lock moves them.
+Renovate does not move the pins. vet does not move the pins of a workflow
+that the GitHub Actions lockfile lists. gh actions-lock moves them.
 --dry-run prints the diff and writes nothing. DIR is the root of the repository. The default is the current
 directory.`,
 		Example: `  vet ci update --dry-run   # Show the new pins and write nothing
@@ -57,6 +59,28 @@ directory.`,
 					"Run vet ci init --force to write the workflow again.")
 			}
 
+			rt, err := a.Config(app.ConfigOptions{})
+			if err != nil {
+				return err
+			}
+			leave, err := runner.FixLeavesActionsLock(rt, os.Getenv)
+			if err != nil {
+				return err
+			}
+			if leave {
+				skipped, err := fix.ActionsLockSkips(repo.dir, []string{wfPath})
+				if errors.Is(err, fix.ErrActionsLock) {
+					return app.UsageError(err.Error(), "Fix the lockfile, or write it again with gh actions-lock.")
+				}
+				if err != nil {
+					return err
+				}
+				if len(skipped) > 0 {
+					tui.Info("The GitHub Actions lockfile lists %s. vet does not move its pins. To move them, run gh actions-lock", wfPath)
+					return nil
+				}
+			}
+
 			pinner, err := newPinner(cmd.Context(), a)
 			if err != nil {
 				return err
@@ -78,20 +102,9 @@ directory.`,
 					pins[githubci.CheckoutRepo] = checkout
 				}
 			}
-			rt, err := a.Config(app.ConfigOptions{})
+			plan, err := fix.PlanRepins(cmd.Context(), fix.RepinOptions{Root: repo.dir, Files: []string{wfPath}, Pins: pins})
 			if err != nil {
 				return err
-			}
-			plan, err := fix.PlanRepins(cmd.Context(), fix.RepinOptions{
-				Root: repo.dir, Files: []string{wfPath}, Pins: pins,
-				TrustActionsLock: workflow.TrustsActionsLock(rt.Config.PluginOptions(workflow.Name), rt.Config.GitHub.APIURL),
-			})
-			if err != nil {
-				return err
-			}
-			if len(plan.Locked) > 0 {
-				tui.Info("The GitHub Actions lockfile locks the actions of %s. To move its pins, run gh actions-lock", wfPath)
-				return nil
 			}
 			for _, f := range plan.Failures {
 				tui.Warning("%s:%d: %s: %s", escape.Line(f.Path), f.Line, escape.Line(f.Action), escape.Line(f.Reason))

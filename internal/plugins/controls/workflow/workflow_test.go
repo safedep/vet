@@ -4,13 +4,13 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"strings"
 	"testing"
 	"testing/fstest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/safedep/vet/v2/internal/github/actionslock/actionslocktest"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/plugin/plugintest"
@@ -273,26 +273,17 @@ jobs:
   steps:
     - uses: acme/build@v1.2.0
 `
-	const lock = `version: 'v0.0.3'
-workflows:
-    '.github/workflows/ci.yml':
-        - 'acme/build@v1.2.0'
-        - 'acme/cache@v4'
-    '.github/actions/build/action.yml':
-        - 'acme/build@v1.2.0'
-dependencies:
-    'acme/build@v1.2.0':
-        ref: 'v1.2.0'
-        commit: 'sha1-1111111111111111111111111111111111111111'
-        owner_id: 101
-        repo_id: 201
-    'acme/cache@v4':
-        ref: 'v4'
-        commit: 'sha1-2222222222222222222222222222222222222222'
-        owner_id: 101
-        repo_id: 202
-`
+	lock := actionslocktest.Lock{Workflows: map[string][]string{
+		".github/workflows/ci.yml":         {"acme/build@v1.2.0", "acme/cache@v4"},
+		".github/actions/build/action.yml": {"acme/build@v1.2.0"},
+	}}.String()
 	reusable := hit{IDUnpinnedAction, 11, "acme/build/.github/workflows/x.yml@v1.2.0 is not pinned to a commit SHA"}
+	listed := []hit{
+		reusable,
+		{IDUnpinnedAction, 8, "acme/other@v1 is not in the actions lockfile"},
+		{IDUnpinnedAction, 9, "docker://alpine:3.19 is not pinned to a commit SHA"},
+	}
+	listedFix := []string{fixCommand, lockCommand, fixCommand}
 	all := []hit{
 		reusable,
 		{IDUnpinnedAction, 6, "acme/build@v1.2.0 is not pinned to a commit SHA"},
@@ -300,53 +291,50 @@ dependencies:
 		{IDUnpinnedAction, 8, "acme/other@v1 is not pinned to a commit SHA"},
 		{IDUnpinnedAction, 9, "docker://alpine:3.19 is not pinned to a commit SHA"},
 	}
+	allFix := []string{fixCommand, fixCommand, fixCommand, fixCommand, fixCommand}
 	cases := []struct {
-		name    string
-		path    string
-		data    string
-		lock    string
-		options plugin.MapConfig
-		want    []hit
-		wantFix []string
+		name     string
+		path     string
+		data     string
+		lockPath string
+		lock     string
+		options  plugin.MapConfig
+		want     []hit
+		wantFix  []string
 	}{
 		{
-			name: "listed workflow", path: ".github/workflows/ci.yml", data: workflow, lock: lock,
-			want: []hit{
-				reusable,
-				{IDUnpinnedAction, 8, "acme/other@v1 is not in the actions lockfile"},
-				{IDUnpinnedAction, 9, "docker://alpine:3.19 is not pinned to a commit SHA"},
-			},
-			wantFix: []string{fixCommand, lockCommand, fixCommand},
+			name: "listed workflow", path: ".github/workflows/ci.yml", data: workflow,
+			lockPath: ".github/workflows/actions.lock", lock: lock, want: listed, wantFix: listedFix,
 		},
 		{
-			name: "nested repository", path: "sub/.github/workflows/ci.yml", data: workflow, lock: lock,
-			want: []hit{
-				reusable,
-				{IDUnpinnedAction, 8, "acme/other@v1 is not in the actions lockfile"},
-				{IDUnpinnedAction, 9, "docker://alpine:3.19 is not pinned to a commit SHA"},
-			},
+			name: "nested repository", path: "sub/.github/workflows/ci.yml", data: workflow,
+			lockPath: "sub/.github/workflows/actions.lock", lock: lock, want: listed, wantFix: listedFix,
 		},
-		{name: "workflow that the lockfile does not list", path: ".github/workflows/other.yml", data: workflow, lock: lock, want: all},
-		{name: "no lockfile", path: ".github/workflows/ci.yml", data: workflow, want: all},
 		{
-			name: "lockfile not trusted", path: ".github/workflows/ci.yml", data: workflow, lock: lock,
-			options: plugin.MapConfig{OptionTrustActionsLock: false}, want: all,
+			name: "workflow that the lockfile does not list", path: ".github/workflows/other.yml", data: workflow,
+			lockPath: ".github/workflows/actions.lock", lock: lock, want: all, wantFix: allFix,
 		},
-		{name: "lockfile that vet cannot read", path: ".github/workflows/ci.yml", data: workflow, lock: lock + "extra: true\n", want: all},
+		{name: "no lockfile", path: ".github/workflows/ci.yml", data: workflow, want: all, wantFix: allFix},
 		{
-			name: "composite action", path: ".github/actions/build/action.yml", data: composite, lock: lock,
-			want: []hit{{IDUnpinnedAction, 4, "acme/build@v1.2.0 is not pinned to a commit SHA"}},
+			name: "lockfile not trusted", path: ".github/workflows/ci.yml", data: workflow,
+			lockPath: ".github/workflows/actions.lock", lock: lock, options: plugin.MapConfig{OptionTrustActionsLock: false},
+			want: all, wantFix: allFix,
+		},
+		{
+			name: "lockfile that vet cannot read", path: ".github/workflows/ci.yml", data: workflow,
+			lockPath: ".github/workflows/actions.lock", lock: lock + "extra: true\n", want: all, wantFix: allFix,
+		},
+		{
+			name: "composite action", path: ".github/actions/build/action.yml", data: composite,
+			lockPath: ".github/workflows/actions.lock", lock: lock,
+			want: []hit{{IDUnpinnedAction, 4, "acme/build@v1.2.0 is not pinned to a commit SHA"}}, wantFix: []string{fixCommand},
 		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			root := fstest.MapFS{tc.path: {Data: []byte(tc.data)}}
-			if tc.lock != "" {
-				dir := ".github/workflows/"
-				if strings.HasPrefix(tc.path, "sub/") {
-					dir = "sub/" + dir
-				}
-				root[dir+"actions.lock"] = &fstest.MapFile{Data: []byte(tc.lock)}
+			if tc.lockPath != "" {
+				root[tc.lockPath] = &fstest.MapFile{Data: []byte(tc.lock)}
 			}
 			c, err := New(tc.options)
 			require.NoError(t, err)
@@ -361,9 +349,7 @@ dependencies:
 				fixes = append(fixes, f.Remediation.Command)
 			}
 			assert.Equal(t, tc.want, got)
-			if tc.wantFix != nil {
-				assert.Equal(t, tc.wantFix, fixes)
-			}
+			assert.Equal(t, tc.wantFix, fixes)
 		})
 	}
 }

@@ -25,10 +25,8 @@ repository (from the `origin` remote), expressions, and actions that a SHA alrea
 only the `uses:` value, so each file keeps its format, its comments and its line ends. It writes a
 file through a temporary file and a rename.
 
-A workflow that the GitHub Actions lockfile lists stays as it is. The composite actions stay too when
-the lockfile lists a workflow. A new SHA in such a file has no lockfile entry, and GitHub fails the
-run. vet counts these files, and `gh actions-lock` updates them. The `locked` list of the plan names
-them. `plugins.workflow.options.trust_actions_lock: false` turns this off. See
+vet leaves the files that the GitHub Actions lockfile lists, and the composite actions that they use,
+and names `gh actions-lock` for them. The `skipped` list of the plan names these files. See
 [Actions lockfile](../controls.md#actions-lockfile).
 
 vet calls the GitHub API with `GITHUB_TOKEN`, or with the token of the `gh` CLI when one exists, and

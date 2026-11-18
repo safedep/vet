@@ -3,9 +3,9 @@
 # the run. vet names gh actions-lock.
 env VET_PLUGINS_WORKFLOW_OPTIONS_TRUST_ACTIONS_LOCK=true
 exec vet ci update --mode plain
-stderr 'The GitHub Actions lockfile locks the actions of .github/workflows/vet.yml'
-stderr 'gh actions-lock'
+stderr 'The GitHub Actions lockfile lists .github/workflows/vet.yml\. vet does not move its pins\. To move them, run gh actions-lock'
 cmp .github/workflows/vet.yml $WORK/old.yml
+stub calls github 0
 
 -- .github/workflows/vet.yml --
 name: vet

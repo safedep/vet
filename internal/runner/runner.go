@@ -23,6 +23,7 @@ import (
 	"github.com/safedep/vet/v2/internal/credentials"
 	"github.com/safedep/vet/v2/internal/engine"
 	"github.com/safedep/vet/v2/internal/github"
+	"github.com/safedep/vet/v2/internal/github/actionslock"
 	"github.com/safedep/vet/v2/internal/overview"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/inventory"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/tenantpolicy"
@@ -255,12 +256,14 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	configError := func(err error) error {
 		return app.UsageError(err.Error(), "Fix the option in the config file. vet config validate checks it.")
 	}
-	settings := settingsOf(rt, o.CooldownDays)
-	ctrls, err := controls.Build(settings)
+	trustLock, err := TrustsActionsLock(rt, os.Getenv)
+	if err != nil {
+		return configError(fmt.Errorf("plugins.%s.options: %w", workflow.Name, err))
+	}
+	ctrls, err := controls.Build(settingsOf(rt, o.CooldownDays, trustLock))
 	if err != nil {
 		return configError(err)
 	}
-	trustLock, _ := settings.PluginOptions(workflow.Name)[workflow.OptionTrustActionsLock].(bool)
 	refs, err := actionRefs(cfg)
 	if err != nil {
 		return configError(err)
@@ -670,21 +673,53 @@ type override struct {
 }
 
 // settingsOf returns the plugin settings of the config, with the options
-// that a flag or another config key sets.
-func settingsOf(rt *config.Runtime, days int) pluginSettings {
+// that a flag or the runner sets.
+func settingsOf(rt *config.Runtime, days int, trustLock bool) pluginSettings {
 	s := pluginSettings{cfg: rt.Config, origins: rt.Origins, overrides: map[string]map[string]override{}}
 	if days > 0 {
 		s.overrides[cooldown.Name] = map[string]override{"days": {value: days, origin: config.Origin{Layer: config.LayerFlag, Source: "--cooldown-days"}}}
 	}
-	// github.api_url decides whether vet trusts the GitHub Actions lockfile,
-	// unless the workflow options say it.
-	opts := rt.Config.PluginOptions(workflow.Name)
-	if _, set := opts[workflow.OptionTrustActionsLock]; !set {
-		s.overrides[workflow.Name] = map[string]override{workflow.OptionTrustActionsLock: {
-			value: workflow.TrustsActionsLock(opts, rt.Config.GitHub.APIURL), origin: rt.Origins.Of("github.api_url"),
-		}}
-	}
+	key := workflow.OptionTrustActionsLock
+	s.overrides[workflow.Name] = map[string]override{key: {value: trustLock, origin: rt.Origins.Of("plugins." + workflow.Name + ".options." + key)}}
 	return s
+}
+
+// ActionsLockEnforced reports whether GitHub enforces the GitHub Actions
+// lockfile of the target, from the GitHub API that vet uses. A GitHub
+// Actions run on GitHub Enterprise Server sets GITHUB_API_URL to that
+// server, so vet reads it when github.api_url has its default.
+func ActionsLockEnforced(rt *config.Runtime, getenv func(string) string) bool {
+	api := rt.Config.GitHub.APIURL
+	if env := getenv("GITHUB_API_URL"); getenv("GITHUB_ACTIONS") == "true" && env != "" && rt.Origins.Of("github.api_url").Layer == config.LayerDefault {
+		api = env
+	}
+	return actionslock.Enforced(api)
+}
+
+// FixLeavesActionsLock reports whether a fix leaves the files that the
+// GitHub Actions lockfile lists. A new commit SHA in such a file has no
+// lockfile entry, and GitHub fails the run where it enforces the lockfile.
+// The fix also leaves them when the config trusts the lockfile.
+func FixLeavesActionsLock(rt *config.Runtime, getenv func(string) string) (bool, error) {
+	trust, err := TrustsActionsLock(rt, getenv)
+	if err != nil {
+		return false, app.UsageError(fmt.Sprintf("plugins.%s.options: %v", workflow.Name, err), "Fix the option in the config file. vet config validate checks it.")
+	}
+	return trust || ActionsLockEnforced(rt, getenv), nil
+}
+
+// TrustsActionsLock reports whether vet trusts the GitHub Actions lockfile.
+// plugins.workflow.options.trust_actions_lock decides. With no value, vet
+// trusts the lockfile where GitHub enforces it.
+func TrustsActionsLock(rt *config.Runtime, getenv func(string) string) (bool, error) {
+	o, err := workflow.Decode(plugin.MapConfig(rt.Config.PluginOptions(workflow.Name)))
+	if err != nil {
+		return false, err
+	}
+	if o.TrustActionsLock != nil {
+		return *o.TrustActionsLock, nil
+	}
+	return ActionsLockEnforced(rt, getenv), nil
 }
 
 // PluginOrigin names the flag or the config layer that sets an option.

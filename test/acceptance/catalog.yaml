@@ -438,7 +438,7 @@
   title: "workflow: a tag that the actions lockfile locks"
   category: controls
   tier: P1
-  guarantee: "With plugins.workflow.options.trust_actions_lock, a tag that the GitHub Actions lockfile locks for the workflow gives no unpinned-action finding. A step that a listed workflow does not lock gives a finding that names gh actions-lock. A workflow that the lockfile does not list gives the plain finding. A github.api_url that is not GitHub.com or GHE.com turns the lockfile off by default."
+  guarantee: "With plugins.workflow.options.trust_actions_lock, a tag that the GitHub Actions lockfile locks for the workflow gives no unpinned-action finding. A step that a listed workflow does not lock gives a finding that names gh actions-lock. A workflow that the lockfile does not list gives the plain finding. With a github.api_url that is not GitHub.com or GHE.com, vet does not trust the lockfile by default."
   labels: [controls, workflow, config]
 - id: scan/working-tree/never-writes
   title: "a scan never writes the target"
@@ -666,7 +666,7 @@
   title: "the fix leaves the workflows that the actions lockfile locks"
   category: fix
   tier: P1
-  guarantee: "vet fix github-actions run leaves each workflow that the GitHub Actions lockfile lists, names gh actions-lock, and pins the workflows that the lockfile does not list."
+  guarantee: "vet fix github-actions run leaves each workflow that the GitHub Actions lockfile lists, names gh actions-lock, and pins the workflows that the lockfile does not list. A composite action that a listed workflow uses stays too."
   labels: [fix, workflow]
 - id: state/continue/options-change
   title: "other scan options start a new scan"

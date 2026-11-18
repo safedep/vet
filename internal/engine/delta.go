@@ -35,9 +35,9 @@ type base struct {
 	// links tells, for each base link, whether its head path was a link
 	// when vet read the base. The base of a link depends on it.
 	links map[string]bool
-	// locks maps the folder that holds a .github folder to the keys that
-	// its GitHub Actions lockfile locks for each workflow.
-	locks map[string]map[string][]string
+	// locks maps the folder that holds a .github folder to the coverage of
+	// its GitHub Actions lockfile.
+	locks map[string]actionslock.Coverage
 }
 
 // sameLinks reports whether each base link has the head mode that it had
@@ -112,13 +112,13 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 		}
 	}()
 
-	b := &base{manifests: map[string]*model.Manifest{}, hashes: map[string]plumbing.Hash{}, links: map[string]bool{}, locks: map[string]map[string][]string{}}
+	b := &base{manifests: map[string]*model.Manifest{}, hashes: map[string]plumbing.Hash{}, links: map[string]bool{}, locks: map[string]actionslock.Coverage{}}
 	var files []string
 	err = tree.Walk(ctx, func(rel string, f *object.File) error {
 		if r.skipped(rel) {
 			return nil
 		}
-		if root, ok := actionslock.Lockfile(rel); ok {
+		if root, ok := actionslock.LockfileRoot(rel); ok {
 			b.addLock(root, f)
 		}
 		hash := f.Hash
@@ -196,6 +196,24 @@ func (b *base) addLock(root string, f *object.File) {
 	if l, err := actionslock.Parse([]byte(data)); err == nil {
 		b.locks[root] = l.Coverage()
 	}
+}
+
+// unlocked returns the workflow paths that the base lockfile locks a key for
+// and the head lockfile does not. The workflow file can stay the same, and
+// its step then runs unlocked.
+func (b *base) unlocked(fsys fs.FS) map[string]bool {
+	out := map[string]bool{}
+	for root, coverage := range b.locks {
+		head, err := actionslock.Read(fsys, root)
+		if err != nil {
+			// A head lockfile that vet cannot read locks nothing.
+			head = nil
+		}
+		for _, w := range coverage.Lost(head.Coverage()) {
+			out[path.Join(root, w)] = true
+		}
+	}
+	return out
 }
 
 // skipped reports a path under a skipped or an excluded directory.

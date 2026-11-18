@@ -43,6 +43,15 @@ linters:
           deny:
             - pkg: github.com/safedep/dry/policy/spdxlicense
               desc: import internal/spdxlicense. It is the one entry point of vet to the SPDX rules.
+        # internal/github/actionslock is the one entry point to the GitHub
+        # Actions lockfile parser.
+        actions-lockfile:
+          files:
+            - $all
+            - "!**/internal/github/actionslock/**"
+          deny:
+            - pkg: github.com/github/actions-lockfile
+              desc: import internal/github/actionslock. It is the one entry point of vet to the GitHub Actions lockfile.
         version-order:
           files:
             - $all

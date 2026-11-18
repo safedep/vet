@@ -1,14 +1,16 @@
 // Package actionslock reads the GitHub Actions lockfile,
-// .github/workflows/actions.lock. GitHub runs each step action of a
-// workflow that the file lists at the commit that the file records, and
-// fails the run when a step action has no entry.
+// .github/workflows/actions.lock, with the parser of GitHub. GitHub runs
+// each step action of a workflow that the file lists at the commit that the
+// file records, and fails the run when a step action has no entry.
 //
 // GitHub checks that the recorded commit is reachable from the recorded
-// ref, not that it is the commit of the ref. A lockfile change can lock a
-// tag to an older commit of its history. vet does not detect this.
+// ref, not that it is the commit of the ref. A lockfile change can move the
+// commit of a tag to another commit of its history. vet does not detect
+// this.
 package actionslock
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -17,17 +19,23 @@ import (
 	"path"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/github/actions-lockfile/go/pkg/lockfile"
+	"gopkg.in/yaml.v3"
 )
 
-// Name is the file name of the lockfile in the workflows folder.
-const Name = "actions.lock"
+const (
+	name         = "actions.lock"
+	workflowsDir = ".github/workflows"
+	// maxKeys is the most keys that vet reads in one YAML mapping. The YAML
+	// library finds duplicate keys in quadratic time, so a file of 1 MiB of
+	// keys costs minutes. A real lockfile has far fewer.
+	maxKeys = 10000
+)
 
 // MaxSize is the largest lockfile that vet reads, in bytes.
 const MaxSize = lockfile.MaxParseSize
-
-const workflowsDir = ".github/workflows"
 
 // policy accepts only the schema version that GitHub writes since general
 // availability. vet does not trust a file that it cannot read as GitHub
@@ -41,6 +49,12 @@ type Lock struct {
 
 // Parse parses the content of a lockfile.
 func Parse(data []byte) (*Lock, error) {
+	if len(data) > MaxSize {
+		return nil, fmt.Errorf("the file has more than %d bytes", MaxSize)
+	}
+	if err := checkKeys(data); err != nil {
+		return nil, err
+	}
 	f, err := lockfile.ParseWithPolicy(data, policy)
 	if err != nil {
 		return nil, err
@@ -48,57 +62,119 @@ func Parse(data []byte) (*Lock, error) {
 	return &Lock{f: f}, nil
 }
 
+func checkKeys(data []byte) error {
+	var root yaml.Node
+	if err := yaml.Unmarshal(data, &root); err != nil {
+		return err
+	}
+	var walk func(*yaml.Node) error
+	walk = func(n *yaml.Node) error {
+		if n.Kind == yaml.MappingNode && len(n.Content)/2 > maxKeys {
+			return fmt.Errorf("line %d: a mapping has more than %d keys", n.Line, maxKeys)
+		}
+		for _, c := range n.Content {
+			if err := walk(c); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	return walk(&root)
+}
+
 // Read reads the lockfile of the repository at root in fsys. It returns
-// nil and no error when the repository has no lockfile. GitHub reads the
-// file from git, so a link, or a name in another case, is not the
-// lockfile.
+// nil and no error when the repository has no lockfile.
 func Read(fsys fs.FS, root string) (*Lock, error) {
+	var c Cache
+	return c.Read(fsys, root)
+}
+
+// Cache parses each distinct lockfile once. A scan reads the lockfile of a
+// repository for each of its workflows, and a hostile lockfile of 1 MiB
+// costs time to parse. The zero value is ready to use.
+type Cache struct {
+	mu    sync.Mutex
+	locks map[[sha256.Size]byte]parsed
+}
+
+type parsed struct {
+	lock *Lock
+	err  error
+}
+
+// Read is Read with the parse of each distinct content kept.
+func (c *Cache) Read(fsys fs.FS, root string) (*Lock, error) {
+	file, data, err := readFile(fsys, root)
+	if err != nil || data == nil {
+		return nil, err
+	}
+	sum := sha256.Sum256(data)
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	p, ok := c.locks[sum]
+	if !ok {
+		p.lock, p.err = Parse(data)
+		if p.err != nil {
+			p.err = fmt.Errorf("%s: %w", file, p.err)
+		}
+		if c.locks == nil {
+			c.locks = map[[sha256.Size]byte]parsed{}
+		}
+		c.locks[sum] = p
+	}
+	return p.lock, p.err
+}
+
+// readFile returns the path and the content of the lockfile of the
+// repository at root, or no content when there is no lockfile. GitHub reads
+// the file from git, so a link, or a name in another case, is not the
+// lockfile.
+func readFile(fsys fs.FS, root string) (string, []byte, error) {
 	dir := path.Join(root, workflowsDir)
 	entries, err := fs.ReadDir(fsys, dir)
 	if errors.Is(err, fs.ErrNotExist) {
-		return nil, nil
+		return "", nil, nil
 	}
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
-	i := slices.IndexFunc(entries, func(e fs.DirEntry) bool { return e.Name() == Name })
+	i := slices.IndexFunc(entries, func(e fs.DirEntry) bool { return e.Name() == name })
 	if i < 0 || !entries[i].Type().IsRegular() {
-		return nil, nil
+		return "", nil, nil
 	}
-	file := path.Join(dir, Name)
+	file := path.Join(dir, name)
 	info, err := entries[i].Info()
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	if info.Size() > MaxSize {
-		return nil, fmt.Errorf("%s: the file has more than %d bytes", file, MaxSize)
+		return "", nil, fmt.Errorf("%s: the file has more than %d bytes", file, MaxSize)
 	}
 	data, err := fs.ReadFile(fsys, file)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
-	l, err := Parse(data)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", file, err)
+	if data == nil {
+		data = []byte{}
 	}
-	return l, nil
+	return file, data, nil
 }
 
-// Lockfile reports a repository path that is a lockfile, and returns the
-// folder that holds its .github folder.
-func Lockfile(p string) (root string, ok bool) {
-	if path.Base(p) != Name {
+// LockfileRoot reports a repository path that is a lockfile, and returns
+// the folder that holds its .github folder.
+func LockfileRoot(p string) (string, bool) {
+	if path.Base(p) != name {
 		return "", false
 	}
 	return rootOf(p)
 }
 
-// Workflow splits the path of a workflow file into the folder that holds
-// its .github folder and the key of the workflow in the lockfile. ok is
-// false for a file that is not directly in a .github/workflows folder,
+// WorkflowKey splits the path of a workflow file into the folder that
+// holds its .github folder and the key of the workflow in the lockfile. ok
+// is false for a file that is not directly in a .github/workflows folder,
 // such as a composite action.
-func Workflow(p string) (root, key string, ok bool) {
-	if path.Base(p) == Name {
+func WorkflowKey(p string) (root, key string, ok bool) {
+	if path.Base(p) == name {
 		return "", "", false
 	}
 	if root, ok = rootOf(p); !ok {
@@ -114,50 +190,62 @@ func rootOf(p string) (string, bool) {
 	if dir == workflowsDir {
 		return ".", true
 	}
-	root, ok := strings.CutSuffix(dir, "/"+workflowsDir)
-	return root, ok
+	if root, ok := strings.CutSuffix(dir, "/"+workflowsDir); ok {
+		return root, true
+	}
+	return "", false
 }
 
-// Lists reports whether the lockfile lists the workflow. GitHub enforces
+// Status is what the lockfile says about the uses: value of a step.
+type Status int
+
+const (
+	// Unlisted is a step of a workflow that the lockfile does not list, or
+	// a uses: value that names no repository action, such as a Docker
+	// image. GitHub runs it unlocked.
+	Unlisted Status = iota
+	// Locked is a step that GitHub runs at the recorded commit.
+	Locked
+	// Missing is a step of a listed workflow that has no entry. GitHub
+	// fails the run.
+	Missing
+)
+
+// WorkflowLock is the part of a lockfile for one workflow.
+type WorkflowLock struct {
+	listed bool
+	keys   map[string]bool
+}
+
+// Workflow returns the part of the lockfile for the workflow key.
+func (l *Lock) Workflow(key string) WorkflowLock {
+	if l == nil {
+		return WorkflowLock{}
+	}
+	_, listed := l.f.LookupWorkflow(key)
+	return WorkflowLock{listed: listed, keys: l.locked(key)}
+}
+
+// Listed reports whether the lockfile lists the workflow. GitHub enforces
 // the lockfile only for a listed workflow.
-func (l *Lock) Lists(workflow string) bool {
-	if l == nil {
-		return false
-	}
-	_, ok := l.f.LookupWorkflow(workflow)
-	return ok
-}
+func (w WorkflowLock) Listed() bool { return w.listed }
 
-// ListsAny reports whether the lockfile lists a workflow. A composite
-// action of the repository then runs under a locked workflow.
-func (l *Lock) ListsAny() bool {
-	return l != nil && len(l.f.Workflows) > 0
-}
-
-// Locks reports whether the lockfile locks the uses: value of a step of
-// the workflow to a commit. A uses: value that names no repository action,
-// such as a Docker image or a reusable workflow, is never locked.
-func (l *Lock) Locks(workflow, uses string) bool {
+// Status returns what the lockfile says about the uses: value of a step.
+func (w WorkflowLock) Status(uses string) Status {
 	ref := lockfile.ParseActionRef(uses)
-	if l == nil || ref == nil {
-		return false
+	switch {
+	case !w.listed || ref == nil:
+		return Unlisted
+	case w.keys[lockfile.IndexKey(ref.Owner, ref.Repo, ref.Ref)]:
+		return Locked
 	}
-	return l.Locked(workflow)[lockfile.IndexKey(ref.Owner, ref.Repo, ref.Ref)]
+	return Missing
 }
 
-// IsAction reports a uses: value that names a repository action, which a
-// listed workflow must lock.
-func IsAction(uses string) bool {
-	return lockfile.ParseActionRef(uses) != nil
-}
-
-// Locked returns the keys, as owner/repo@ref, that the lockfile locks for
+// locked returns the keys, as owner/repo@ref, that the lockfile locks for
 // the workflow. An entry of another host than GitHub.com does not count.
-func (l *Lock) Locked(workflow string) map[string]bool {
+func (l *Lock) locked(workflow string) map[string]bool {
 	out := map[string]bool{}
-	if l == nil {
-		return out
-	}
 	keys, _ := l.f.LookupWorkflow(workflow)
 	for _, k := range keys {
 		if a, ok := l.f.Dependencies[k]; ok && (a.Hostname == "" || a.Hostname == "github.com") {
@@ -167,19 +255,33 @@ func (l *Lock) Locked(workflow string) map[string]bool {
 	return out
 }
 
-// Coverage returns the keys that the lockfile locks for each workflow that
-// it lists.
-func (l *Lock) Coverage() map[string][]string {
-	out := map[string][]string{}
+// Coverage maps each workflow key of a lockfile to the keys that the
+// lockfile locks for it.
+type Coverage map[string][]string
+
+// Coverage returns the coverage of the lockfile.
+func (l *Lock) Coverage() Coverage {
+	out := Coverage{}
 	if l == nil {
 		return out
 	}
 	for w := range l.f.Workflows {
-		keys := slices.Sorted(maps.Keys(l.Locked(w)))
-		if len(keys) > 0 {
-			out[w] = keys
+		if keys := l.locked(w); len(keys) > 0 {
+			out[w] = slices.Sorted(maps.Keys(keys))
 		}
 	}
+	return out
+}
+
+// Lost returns the workflow keys that lose a locked key from c to head.
+func (c Coverage) Lost(head Coverage) []string {
+	var out []string
+	for w, keys := range c {
+		if slices.ContainsFunc(keys, func(k string) bool { return !slices.Contains(head[w], k) }) {
+			out = append(out, w)
+		}
+	}
+	slices.Sort(out)
 	return out
 }
 

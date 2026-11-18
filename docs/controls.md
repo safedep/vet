@@ -101,8 +101,8 @@ add a technique.
 `vet scan --base-ref REF` compares the target with a git ref. vet reports only the findings of the
 packages and the workflows that the change adds or modifies. Some controls run only in this mode,
 because they need the base: `integrity-changed`, `lockfile-only-change`, `install-scripts-added`
-and `ai-bom-delta`. A change to the [Actions lockfile](#actions-lockfile) counts as a change to each
-workflow that the lockfile no longer locks a step for.
+and `ai-bom-delta`. A workflow is also modified when the change removes one of its entries from the
+[Actions lockfile](#actions-lockfile).
 
 ## Options
 
@@ -121,7 +121,7 @@ Some controls take options from the config file, under `plugins.<name>.options`.
 | `plugins.malware.options.trust_automated_analysis` | `false` | Report an unverified malicious verdict as `malware`, not `suspicious-package` |
 | `plugins.malware.options.minimum_confidence` | `high` | The lowest confidence of an unverified verdict that vet reports as `malware` |
 | `plugins.workflow.options.allow_unpinned` | none | The actions that `unpinned-action` accepts with a tag |
-| `plugins.workflow.options.trust_actions_lock` | `true`, `false` when `github.api_url` names GitHub Enterprise Server | `unpinned-action` accepts a tag that the [Actions lockfile](#actions-lockfile) locks |
+| `plugins.workflow.options.trust_actions_lock` | `true` on GitHub.com and GHE.com, `false` on GitHub Enterprise Server | Trust the [Actions lockfile](#actions-lockfile) in `unpinned-action`, in pull request mode, and in the fixes. The fixes also leave the listed files where GitHub enforces the lockfile |
 | `plugins.actionrefs.options.max_calls` | `50`, `500` with a token | The GitHub API calls that `impostor-commit` makes for one repository in a scan |
 | `plugins.license.options.allow` | none | The licenses that a package can have. See [License lists](#license-lists) |
 | `plugins.license.options.deny` | none | The licenses that a package cannot have |
@@ -229,7 +229,7 @@ that points to the commit, the default branch, then each other branch and tag.
 
 `gh actions-lock` writes the GitHub Actions lockfile, `.github/workflows/actions.lock`. For each
 workflow that the file lists, GitHub runs each step action at the commit that the file records. The
-run fails when a step action has no entry. So a tag that the lockfile locks is as safe as a commit SHA.
+run fails when a step action has no entry. A moved tag does not change the run of a listed workflow.
 
 - `unpinned-action` accepts a tag of a step when the lockfile locks it for the workflow.
 - In a workflow that the lockfile lists, a step action with no entry gets the finding "is not in the
@@ -237,21 +237,23 @@ run fails when a step action has no entry. So a tag that the lockfile locks is a
 - These still get a finding: a reusable workflow at job level, a Docker image with no digest, a
   workflow that the lockfile does not list, and a composite action under `.github/actions/`. GitHub
   does not lock the first two. vet does not find the workflows that use a composite action.
-- vet reads only schema version `v0.0.3`. A lockfile that vet cannot read locks nothing, and vet logs
-  a warning.
-- GitHub Enterprise Server does not enforce the lockfile. vet trusts it only when `github.api_url` is
-  GitHub.com or GHE.com. `plugins.workflow.options.trust_actions_lock` overrides this.
+- In pull request mode, a workflow is modified when the change removes one of its lockfile entries,
+  also when the workflow file stays the same.
+- vet reads the file with the parser of GitHub, and only schema version `v0.0.3`. A lockfile that vet
+  cannot read locks nothing, and vet logs a warning.
+- GitHub Enterprise Server does not enforce the lockfile. vet trusts it only when the GitHub API is
+  GitHub.com or GHE.com. That API is `github.api_url`. When that key has its default, a GitHub
+  Actions run reads `GITHUB_API_URL`. `plugins.workflow.options.trust_actions_lock` decides when you
+  set it.
 - GitHub checks that the locked commit is in the history of the tag, not that it is the commit of the
-  tag. vet does not detect a lockfile change that locks a tag to an older commit.
-- In pull request mode, a lockfile change that removes an entry, or a workflow, counts as a change to
-  that workflow.
+  tag. vet does not report a lockfile change that moves the commit of a tag.
 
 ## Fix workflow findings
 
 `vet fix github-actions run` pins each third-party action to its commit SHA, and keeps the tag in a
-comment. It leaves each workflow that the [Actions lockfile](#actions-lockfile) lists. It also leaves
-the composite actions when the lockfile lists a workflow. A new SHA in such a file has no entry, and
-GitHub fails the run. `gh actions-lock` updates these files. See
+comment. It leaves the files that the [Actions lockfile](#actions-lockfile) lists: each listed
+workflow, and each composite action that a listed workflow uses. A new SHA in such a file has no
+lockfile entry, and GitHub fails the run. `gh actions-lock` updates these files. See
 [fix-github-actions-run.md](cmd/fix-github-actions-run.md).
 
 ## Control reference

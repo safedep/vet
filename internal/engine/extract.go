@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/safedep/vet/v2/internal/gitbase"
-	"github.com/safedep/vet/v2/internal/github/actionslock"
 	"github.com/safedep/vet/v2/internal/pathglob"
 	"github.com/safedep/vet/v2/internal/plugins/extractors"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/installed"
@@ -109,7 +108,10 @@ func (r *run) extractFiles(ctx context.Context, a plugin.Artifact, done *int) er
 		if err != nil {
 			return err
 		}
-		d = &delta{base: b, seen: map[string]bool{}, heads: map[string]*actionslock.Lock{}}
+		d = &delta{base: b, seen: map[string]bool{}}
+		if r.o.TrustActionsLock {
+			d.unlocked = b.unlocked(fsys)
+		}
 	}
 	visit := func(rel string, info fs.FileInfo) error {
 		if err := ctx.Err(); err != nil {
@@ -149,30 +151,9 @@ func (r *run) extractFiles(ctx context.Context, a plugin.Artifact, done *int) er
 type delta struct {
 	base *base
 	seen map[string]bool
-	// heads maps the folder that holds a .github folder to its head
-	// GitHub Actions lockfile.
-	heads map[string]*actionslock.Lock
-}
-
-// lockReduced reports a workflow that the base lockfile locks a key for
-// and the head lockfile does not. The workflow file can stay the same,
-// and its step still runs unlocked.
-func (d *delta) lockReduced(fsys fs.FS, workflow string) bool {
-	root, key, ok := actionslock.Workflow(workflow)
-	if !ok || len(d.base.locks[root][key]) == 0 {
-		return false
-	}
-	head, read := d.heads[root]
-	if !read {
-		var err error
-		if head, err = actionslock.Read(fsys, root); err != nil {
-			// A head lockfile that vet cannot read locks nothing.
-			head = nil
-		}
-		d.heads[root] = head
-	}
-	locked := head.Locked(key)
-	return slices.ContainsFunc(d.base.locks[root][key], func(k string) bool { return !locked[k] })
+	// unlocked holds the workflow paths that the change no longer locks a
+	// step for.
+	unlocked map[string]bool
 }
 
 func (r *run) walk(fsys fs.FS, a plugin.Artifact, readsInstalled bool, visit func(string, fs.FileInfo) error) error {
@@ -302,7 +283,10 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 	if err != nil {
 		return err
 	}
-	if prev != nil && prev.Status != state.ArtifactPending && prev.Size == info.Size() && prev.MTime.Equal(info.ModTime().Truncate(time.Millisecond)) {
+	// A workflow that the change unlocks gets its change again, because its
+	// file can stay the same while the lockfile changes.
+	if prev != nil && prev.Status != state.ArtifactPending && prev.Size == info.Size() && prev.MTime.Equal(info.ModTime().Truncate(time.Millisecond)) &&
+		(d == nil || !d.unlocked[rel]) {
 		if d != nil {
 			// The saved manifests already carry their change against the base.
 			for _, e := range wanted {
@@ -343,7 +327,7 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 				// hidden-code extractor, but the file was there.
 				m.Change = fileChange(true, inBase, same)
 			}
-			if r.o.TrustActionsLock && m.Kind == model.ManifestKindWorkflow && m.Change == model.ChangeUnchanged && d.lockReduced(fsys, m.Path) {
+			if m.Kind == model.ManifestKindWorkflow && m.Change == model.ChangeUnchanged && d.unlocked[m.Path] {
 				// A change to the lockfile alone unlocks a step of the
 				// workflow, so pull request mode reports its findings.
 				m.Change = model.ChangeModified

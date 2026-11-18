@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
@@ -62,9 +63,9 @@ type Plan struct {
 	Root     string    `json:"root"`
 	Files    []*File   `json:"files"`
 	Failures []Failure `json:"failures"`
-	// Locked are the files that the fix does not edit because the GitHub
-	// Actions lockfile locks their actions. gh actions-lock updates them.
-	Locked []string `json:"locked"`
+	// Skipped are the files that the fix leaves because the GitHub Actions
+	// lockfile lists them. gh actions-lock updates them.
+	Skipped []string `json:"skipped"`
 }
 
 // NeedsToken is true when a GitHub token can fix a failure of the plan.
@@ -84,9 +85,81 @@ type PinOptions struct {
 	// SameRepo is owner/repo of the repository at Root. Its actions stay.
 	// Empty reads the origin remote of the git repository.
 	SameRepo string
-	// TrustActionsLock leaves the files that the GitHub Actions lockfile
-	// locks.
-	TrustActionsLock bool
+	// ActionsLock leaves the files that ActionsLockSkips returns. Set it
+	// when GitHub enforces the GitHub Actions lockfile.
+	ActionsLock bool
+}
+
+// ErrActionsLock is the error of a GitHub Actions lockfile that vet cannot
+// read.
+var ErrActionsLock = errors.New("read the GitHub Actions lockfile")
+
+// ActionsLockSkips returns the files that the fix leaves because the
+// GitHub Actions lockfile of root lists them: each listed workflow, and
+// each composite action that a listed workflow uses. A new commit SHA in
+// such a file has no lockfile entry, and GitHub fails the run.
+func ActionsLockSkips(root string, files []string) ([]string, error) {
+	lock, err := actionslock.Read(os.DirFS(root), ".")
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrActionsLock, err)
+	}
+	if lock == nil {
+		return nil, nil
+	}
+	skip := map[string]bool{}
+	var queue []string
+	for _, rel := range files {
+		if _, key, ok := actionslock.WorkflowKey(rel); ok && lock.Workflow(key).Listed() {
+			skip[rel] = true
+			queue = append(queue, rel)
+		}
+	}
+	actions := map[string]string{}
+	for _, rel := range files {
+		if _, _, ok := actionslock.WorkflowKey(rel); !ok {
+			actions[path.Dir(rel)] = rel
+		}
+	}
+	for len(queue) > 0 {
+		rel := queue[0]
+		queue = queue[1:]
+		data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(rel)))
+		if err != nil {
+			return nil, err
+		}
+		for _, dir := range localActions(data) {
+			if a, ok := actions[dir]; ok && !skip[a] {
+				skip[a] = true
+				queue = append(queue, a)
+			}
+		}
+	}
+	var out []string
+	for _, rel := range files {
+		if skip[rel] {
+			out = append(out, rel)
+		}
+	}
+	return out, nil
+}
+
+// localActions returns the folder of each local action that a file uses,
+// as ./path or $/path.
+func localActions(data []byte) []string {
+	var doc yaml.Node
+	if err := yaml.Unmarshal(data, &doc); err != nil {
+		return nil
+	}
+	var out []string
+	for _, n := range usesNodes(&doc) {
+		v, _, _ := strings.Cut(n.Value, "@")
+		for _, prefix := range []string{"./", "$/"} {
+			if rest, ok := strings.CutPrefix(v, prefix); ok {
+				out = append(out, path.Clean(rest))
+			}
+		}
+	}
+	return out
 }
 
 // PlanPins finds each third-party uses: with a tag or a branch in the
@@ -101,8 +174,15 @@ func PlanPins(ctx context.Context, o PinOptions) (*Plan, error) {
 	if err != nil {
 		return nil, err
 	}
+	var skipped []string
+	if o.ActionsLock {
+		if skipped, err = ActionsLockSkips(o.Root, files); err != nil {
+			return nil, err
+		}
+		files = slices.DeleteFunc(files, func(f string) bool { return slices.Contains(skipped, f) })
+	}
 	cache := map[string]string{}
-	return plan(ctx, o.Root, files, o.TrustActionsLock, func(ctx context.Context, repo, ref string) (Pin, bool, error) {
+	p, err := plan(ctx, o.Root, files, func(ctx context.Context, repo, ref string) (Pin, bool, error) {
 		if github.IsCommitSHA(ref) || strings.EqualFold(repo, o.SameRepo) {
 			return Pin{}, false, nil
 		}
@@ -118,6 +198,11 @@ func PlanPins(ctx context.Context, o PinOptions) (*Plan, error) {
 		}
 		return Pin{SHA: sha, Ref: ref, KeepComment: true}, true, nil
 	})
+	if err != nil {
+		return nil, err
+	}
+	p.Skipped = append(p.Skipped, skipped...)
+	return p, nil
 }
 
 // Pin is the commit SHA of an action and the ref that the comment of the
@@ -136,15 +221,12 @@ type RepinOptions struct {
 	Files []string
 	// Pins maps owner/repo to the new pin of its actions.
 	Pins map[string]Pin
-	// TrustActionsLock leaves the files that the GitHub Actions lockfile
-	// locks.
-	TrustActionsLock bool
 }
 
 // PlanRepins moves each action of Pins in Files to its new pin. A line
 // that has the pin already stays.
 func PlanRepins(ctx context.Context, o RepinOptions) (*Plan, error) {
-	return plan(ctx, o.Root, o.Files, o.TrustActionsLock, func(_ context.Context, repo, ref string) (Pin, bool, error) {
+	return plan(ctx, o.Root, o.Files, func(_ context.Context, repo, ref string) (Pin, bool, error) {
 		p, ok := o.Pins[strings.ToLower(repo)]
 		return p, ok && !strings.EqualFold(ref, p.SHA), nil
 	})
@@ -177,20 +259,9 @@ func PinnedTags(data []byte) (map[string]string, error) {
 // line.
 type pinner func(ctx context.Context, repo, ref string) (Pin, bool, error)
 
-func plan(ctx context.Context, root string, files []string, trustLock bool, pin pinner) (*Plan, error) {
-	p := &Plan{Root: root, Files: []*File{}, Failures: []Failure{}, Locked: []string{}}
-	var lock *actionslock.Lock
-	if trustLock {
-		var err error
-		if lock, err = actionslock.Read(os.DirFS(root), "."); err != nil {
-			return nil, err
-		}
-	}
+func plan(ctx context.Context, root string, files []string, pin pinner) (*Plan, error) {
+	p := &Plan{Root: root, Files: []*File{}, Failures: []Failure{}, Skipped: []string{}}
 	for _, rel := range files {
-		if locked(lock, rel) {
-			p.Locked = append(p.Locked, rel)
-			continue
-		}
 		data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(rel)))
 		if err != nil {
 			return nil, err
@@ -202,17 +273,6 @@ func plan(ctx context.Context, root string, files []string, trustLock bool, pin 
 		}
 	}
 	return p, nil
-}
-
-// locked reports a file whose actions the lockfile locks. A new commit SHA
-// in such a file has no lockfile entry, and GitHub fails the run. A
-// composite action runs under the workflows that use it, so it counts when
-// the lockfile lists any workflow.
-func locked(lock *actionslock.Lock, rel string) bool {
-	if _, key, ok := actionslock.Workflow(rel); ok {
-		return lock.Lists(key)
-	}
-	return lock.ListsAny()
 }
 
 func planFile(ctx context.Context, rel string, data []byte, pin pinner) (*File, []Failure) {
