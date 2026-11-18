@@ -278,8 +278,8 @@ run fails when a step action has no entry. A moved tag does not change the run o
 `vet fix github-actions run` pins each third-party action to its commit SHA, and keeps the tag in a
 comment. Where GitHub enforces the [Actions lockfile](#actions-lockfile), or when vet trusts it, the
 fix leaves each step action of a workflow that the lockfile lists. A new SHA there has no lockfile
-entry, and GitHub fails the run. `gh actions-lock` updates these
-steps. The fix pins the rest, such as a reusable workflow at job level and a composite action. When
+entry. Where GitHub enforces the lockfile, it fails the run at such a step. `gh actions-lock` updates
+these steps. The fix pins the rest, such as a reusable workflow at job level and a composite action. When
 the lockfile lists a workflow, run `gh actions-lock` after the fix, because a composite action that a
 listed workflow uses needs an entry for its new pins. `gh actions-lock` refuses a composite action
 that a workflow uses as `./path`. `gh actions-lock --migrate-local-actions` rewrites such a reference

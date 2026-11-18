@@ -108,7 +108,7 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 	}
 	defer func() {
 		if err := os.RemoveAll(tmp); err != nil {
-			r.diags.add(report.DiagnosticWarning, report.CodeDeltaFailed, "delta", err.Error())
+			r.diags.addIn(stageRun, report.DiagnosticWarning, report.CodeDeltaFailed, "delta", err.Error())
 		}
 	}()
 
@@ -164,7 +164,7 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 			// each package of its head file is added. vet reports more,
 			// not less, and says why.
 			failed = true
-			r.diags.add(report.DiagnosticWarning, report.CodeDeltaFailed, "delta",
+			r.diags.addIn(stageRun, report.DiagnosticWarning, report.CodeDeltaFailed, "delta",
 				fmt.Sprintf("read the base of %s: %v. vet compares its packages with an empty base", rel, err))
 		}
 		for _, m := range ms {
@@ -178,7 +178,7 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 	}
 	if err := cache.save(b); err != nil {
 		// A base that vet cannot keep costs one more extraction next time.
-		r.diags.add(report.DiagnosticWarning, report.CodeDeltaFailed, "delta", "keep the base extraction: "+err.Error())
+		r.diags.addIn(stageRun, report.DiagnosticWarning, report.CodeDeltaFailed, "delta", "keep the base extraction: "+err.Error())
 	}
 	return b, nil
 }

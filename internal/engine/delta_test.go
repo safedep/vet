@@ -328,7 +328,10 @@ func TestPreviousVersion(t *testing.T) {
 	}
 }
 
-func TestPullRequestModeReportsABaseThatVetCannotRead(t *testing.T) {
+// unreadableBaseProject commits a package-lock.json that does not parse, and
+// writes a valid one to the working tree.
+func unreadableBaseProject(t *testing.T) string {
+	t.Helper()
 	dir := t.TempDir()
 	repo, err := gogit.PlainInit(dir, false)
 	require.NoError(t, err)
@@ -342,9 +345,12 @@ func TestPullRequestModeReportsABaseThatVetCannotRead(t *testing.T) {
   "": {"name": "app", "dependencies": {"ms": "2.1.3"}},
   "node_modules/ms": {"version": "2.1.3", "integrity": "sha512-a"}
 }}`)
+	return dir
+}
 
+func TestPullRequestModeReportsABaseThatVetCannotRead(t *testing.T) {
 	f := newFixture(t)
-	o := f.options(t, dir, &fakeEnricher{})
+	o := f.options(t, unreadableBaseProject(t), &fakeEnricher{})
 	o.BaseRef = "HEAD"
 	res := runScan(t, o)
 

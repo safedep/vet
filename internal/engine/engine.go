@@ -342,9 +342,12 @@ func (osFS) Open(name string) (fs.File, error) { return os.Open(filepath.FromSla
 
 func (r *run) stages(ctx context.Context, artifacts []plugin.Artifact) error {
 	r.diags = newDiagnostics()
+	if err := r.res.Scan.ClearDiagnostics(ctx, stageRun); err != nil {
+		return err
+	}
 	for _, d := range r.o.Diagnostics {
 		c := *d
-		r.diags.put(&c)
+		r.diags.putIn(stageRun, &c)
 	}
 	r.artifacts = artifacts
 	if err := r.bindSource(ctx); err != nil {

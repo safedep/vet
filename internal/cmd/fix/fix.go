@@ -98,15 +98,21 @@ repository. The default is the current directory.`,
 			if err := printPlan(a, plan, dryRun); err != nil {
 				return err
 			}
+			advise := func() {
+				if leave && plan.Edits() > 0 {
+					lockAdvice(root)
+				}
+			}
 			if !dryRun {
 				if err := plan.Apply(); err != nil {
+					// Apply keeps the files that it wrote before the error,
+					// and their new pins need lockfile entries too.
+					advise()
 					return err
 				}
 			}
 			summary(plan, dryRun)
-			if leave && plan.Edits() > 0 {
-				lockAdvice(root)
-			}
+			advise()
 			if len(plan.Failures) > 0 {
 				msg := "vet could not pin " + humanize.Count(len(plan.Failures), "action")
 				help := "Check the action names and the refs, then run the fix again."
@@ -175,6 +181,6 @@ func lockAdvice(root string) {
 	if lock.ListsAny() {
 		tui.Info("The repository has a GitHub Actions lockfile. To add the new pins to it, run gh actions-lock")
 		tui.Info("For a composite action that a workflow uses as ./path, run gh actions-lock --migrate-local-actions")
-		tui.Info("That command rewrites the uses: lines of the workflows. Review them before you commit")
+		tui.Info("Review the uses: lines that this command rewrites before you commit")
 	}
 }
