@@ -103,6 +103,9 @@ type Options struct {
 	BaseRef     string
 	OptionsHash string
 	VetVersion  string
+	// TrustActionsLock makes pull request mode report a workflow whose
+	// GitHub Actions lockfile the change no longer locks a step for.
+	TrustActionsLock bool
 
 	Resume         bool
 	Fresh          bool

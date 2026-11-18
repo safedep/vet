@@ -28,6 +28,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/cloud/tenantpolicy"
 	"github.com/safedep/vet/v2/internal/plugins/controls"
 	"github.com/safedep/vet/v2/internal/plugins/controls/cooldown"
+	"github.com/safedep/vet/v2/internal/plugins/controls/workflow"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/actionrefs"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/codeusage"
@@ -182,6 +183,8 @@ type hashed struct {
 	Tenant    string   `json:"tenant,omitempty"`
 	Enrichers []string `json:"enrichers,omitempty"`
 	Packages  string   `json:"packages,omitempty"`
+	// TrustActionsLock changes which workflows pull request mode reports.
+	TrustActionsLock bool `json:"trust_actions_lock,omitempty"`
 	// Reach changes the reach of each finding, so a stopped scan with
 	// another level does not continue.
 	Reach report.ReachLevel `json:"reach,omitempty"`
@@ -252,10 +255,12 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	configError := func(err error) error {
 		return app.UsageError(err.Error(), "Fix the option in the config file. vet config validate checks it.")
 	}
-	ctrls, err := controls.Build(withCooldown(rt, o.CooldownDays))
+	settings := settingsOf(rt, o.CooldownDays)
+	ctrls, err := controls.Build(settings)
 	if err != nil {
 		return configError(err)
 	}
+	trustLock, _ := settings.PluginOptions(workflow.Name)[workflow.OptionTrustActionsLock].(bool)
 	refs, err := actionRefs(cfg)
 	if err != nil {
 		return configError(err)
@@ -299,7 +304,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		exclude := append(append([]string{}, cfg.Scan.Exclude...), o.Exclude...)
 		hash, err := state.OptionsHash(hashed{
 			BaseRef: o.BaseRef, Exclude: exclude, API: cfg.Cloud.Endpoints.API, Anonymous: creds.Anonymous(),
-			Tenant: creds.TenantDomain(), Enrichers: enricherIDs(set), Packages: string(packages), Reach: code.reach.Level, Budget: code.budget,
+			Tenant: creds.TenantDomain(), Enrichers: enricherIDs(set), Packages: string(packages), TrustActionsLock: trustLock, Reach: code.reach.Level, Budget: code.budget,
 			Entrypoints: code.config.Entrypoints, EntrypointsOnly: code.config.EntrypointsOnly,
 			SymbolsBundle: code.config.SymbolsBundle, SymbolsPin: code.config.SymbolsPin,
 		})
@@ -321,7 +326,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 				return extractors.For(packagesFor(packages, k))
 			},
 			Enrichers: enricherSpecs(set), Controls: engineControls(ctrls), Exclude: exclude,
-			Kind: kind, Mode: mode, BaseRef: o.BaseRef, OptionsHash: hash, VetVersion: version.Version(),
+			Kind: kind, Mode: mode, BaseRef: o.BaseRef, OptionsHash: hash, VetVersion: version.Version(), TrustActionsLock: trustLock,
 			Resume: o.Resume, Fresh: o.Fresh, ContinueWithin: within, Strict: o.Strict || cfg.Scan.Strict,
 			Diagnostics: pol.diagnostics(),
 			BatchSize:   100, Observer: v, Opened: notContinued, Reach: code.reach,
@@ -664,10 +669,20 @@ type override struct {
 	origin config.Origin
 }
 
-func withCooldown(rt *config.Runtime, days int) pluginSettings {
+// settingsOf returns the plugin settings of the config, with the options
+// that a flag or another config key sets.
+func settingsOf(rt *config.Runtime, days int) pluginSettings {
 	s := pluginSettings{cfg: rt.Config, origins: rt.Origins, overrides: map[string]map[string]override{}}
 	if days > 0 {
 		s.overrides[cooldown.Name] = map[string]override{"days": {value: days, origin: config.Origin{Layer: config.LayerFlag, Source: "--cooldown-days"}}}
+	}
+	// github.api_url decides whether vet trusts the GitHub Actions lockfile,
+	// unless the workflow options say it.
+	opts := rt.Config.PluginOptions(workflow.Name)
+	if _, set := opts[workflow.OptionTrustActionsLock]; !set {
+		s.overrides[workflow.Name] = map[string]override{workflow.OptionTrustActionsLock: {
+			value: workflow.TrustsActionsLock(opts, rt.Config.GitHub.APIURL), origin: rt.Origins.Of("github.api_url"),
+		}}
 	}
 	return s
 }

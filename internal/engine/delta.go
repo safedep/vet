@@ -18,6 +18,7 @@ import (
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/gitbase"
+	"github.com/safedep/vet/v2/internal/github/actionslock"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/scalibr"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
@@ -34,6 +35,9 @@ type base struct {
 	// links tells, for each base link, whether its head path was a link
 	// when vet read the base. The base of a link depends on it.
 	links map[string]bool
+	// locks maps the folder that holds a .github folder to the keys that
+	// its GitHub Actions lockfile locks for each workflow.
+	locks map[string]map[string][]string
 }
 
 // sameLinks reports whether each base link has the head mode that it had
@@ -108,11 +112,14 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 		}
 	}()
 
-	b := &base{manifests: map[string]*model.Manifest{}, hashes: map[string]plumbing.Hash{}, links: map[string]bool{}}
+	b := &base{manifests: map[string]*model.Manifest{}, hashes: map[string]plumbing.Hash{}, links: map[string]bool{}, locks: map[string]map[string][]string{}}
 	var files []string
 	err = tree.Walk(ctx, func(rel string, f *object.File) error {
 		if r.skipped(rel) {
 			return nil
+		}
+		if root, ok := actionslock.Lockfile(rel); ok {
+			b.addLock(root, f)
 		}
 		hash := f.Hash
 		isLink := f.Mode == filemode.Symlink
@@ -173,6 +180,22 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 		r.diags.add(report.DiagnosticWarning, report.CodeDeltaFailed, "delta", "keep the base extraction: "+err.Error())
 	}
 	return b, nil
+}
+
+// addLock records the coverage of a base lockfile. GitHub reads the
+// lockfile as a regular file of the commit. A base lockfile that vet
+// cannot read locked nothing, so the change can reduce nothing.
+func (b *base) addLock(root string, f *object.File) {
+	if !f.Mode.IsRegular() || f.Size > actionslock.MaxSize {
+		return
+	}
+	data, err := f.Contents()
+	if err != nil {
+		return
+	}
+	if l, err := actionslock.Parse([]byte(data)); err == nil {
+		b.locks[root] = l.Coverage()
+	}
 }
 
 // skipped reports a path under a skipped or an excluded directory.

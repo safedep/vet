@@ -59,11 +59,13 @@ type baseFile struct {
 	Manifests []baseManifest    `json:"manifests"`
 	Hashes    map[string]string `json:"hashes"`
 	Links     map[string]bool   `json:"links,omitempty"`
+	// Locks is base.locks.
+	Locks map[string]map[string][]string `json:"locks,omitempty"`
 }
 
 // baseFileVersion is the version of the stored form. vet extracts the base
 // again when a kept file has another version.
-const baseFileVersion = 2
+const baseFileVersion = 3
 
 type baseManifest struct {
 	Manifest model.Manifest  `json:"manifest"`
@@ -79,7 +81,7 @@ func (c baseCache) load() (*base, bool) {
 	if err := json.Unmarshal(data, &f); err != nil || f.Version != baseFileVersion {
 		return nil, false
 	}
-	b := &base{manifests: map[string]*model.Manifest{}, hashes: map[string]plumbing.Hash{}, links: f.Links}
+	b := &base{manifests: map[string]*model.Manifest{}, hashes: map[string]plumbing.Hash{}, links: f.Links, locks: f.Locks}
 	for i := range f.Manifests {
 		m := f.Manifests[i].Manifest
 		for j := range f.Manifests[i].Packages {
@@ -94,7 +96,7 @@ func (c baseCache) load() (*base, bool) {
 }
 
 func (c baseCache) save(b *base) error {
-	f := baseFile{Version: baseFileVersion, Hashes: map[string]string{}, Links: b.links}
+	f := baseFile{Version: baseFileVersion, Hashes: map[string]string{}, Links: b.links, Locks: b.locks}
 	ids := make([]string, 0, len(b.manifests))
 	for id := range b.manifests {
 		ids = append(ids, id)

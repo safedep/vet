@@ -18,6 +18,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/safedep/vet/v2/internal/github"
+	"github.com/safedep/vet/v2/internal/github/actionslock"
 )
 
 // Resolver resolves a tag or a branch of a GitHub repository to a commit
@@ -61,6 +62,9 @@ type Plan struct {
 	Root     string    `json:"root"`
 	Files    []*File   `json:"files"`
 	Failures []Failure `json:"failures"`
+	// Locked are the files that the fix does not edit because the GitHub
+	// Actions lockfile locks their actions. gh actions-lock updates them.
+	Locked []string `json:"locked"`
 }
 
 // NeedsToken is true when a GitHub token can fix a failure of the plan.
@@ -80,6 +84,9 @@ type PinOptions struct {
 	// SameRepo is owner/repo of the repository at Root. Its actions stay.
 	// Empty reads the origin remote of the git repository.
 	SameRepo string
+	// TrustActionsLock leaves the files that the GitHub Actions lockfile
+	// locks.
+	TrustActionsLock bool
 }
 
 // PlanPins finds each third-party uses: with a tag or a branch in the
@@ -95,7 +102,7 @@ func PlanPins(ctx context.Context, o PinOptions) (*Plan, error) {
 		return nil, err
 	}
 	cache := map[string]string{}
-	return plan(ctx, o.Root, files, func(ctx context.Context, repo, ref string) (Pin, bool, error) {
+	return plan(ctx, o.Root, files, o.TrustActionsLock, func(ctx context.Context, repo, ref string) (Pin, bool, error) {
 		if github.IsCommitSHA(ref) || strings.EqualFold(repo, o.SameRepo) {
 			return Pin{}, false, nil
 		}
@@ -129,12 +136,15 @@ type RepinOptions struct {
 	Files []string
 	// Pins maps owner/repo to the new pin of its actions.
 	Pins map[string]Pin
+	// TrustActionsLock leaves the files that the GitHub Actions lockfile
+	// locks.
+	TrustActionsLock bool
 }
 
 // PlanRepins moves each action of Pins in Files to its new pin. A line
 // that has the pin already stays.
 func PlanRepins(ctx context.Context, o RepinOptions) (*Plan, error) {
-	return plan(ctx, o.Root, o.Files, func(_ context.Context, repo, ref string) (Pin, bool, error) {
+	return plan(ctx, o.Root, o.Files, o.TrustActionsLock, func(_ context.Context, repo, ref string) (Pin, bool, error) {
 		p, ok := o.Pins[strings.ToLower(repo)]
 		return p, ok && !strings.EqualFold(ref, p.SHA), nil
 	})
@@ -167,9 +177,20 @@ func PinnedTags(data []byte) (map[string]string, error) {
 // line.
 type pinner func(ctx context.Context, repo, ref string) (Pin, bool, error)
 
-func plan(ctx context.Context, root string, files []string, pin pinner) (*Plan, error) {
-	p := &Plan{Root: root, Files: []*File{}, Failures: []Failure{}}
+func plan(ctx context.Context, root string, files []string, trustLock bool, pin pinner) (*Plan, error) {
+	p := &Plan{Root: root, Files: []*File{}, Failures: []Failure{}, Locked: []string{}}
+	var lock *actionslock.Lock
+	if trustLock {
+		var err error
+		if lock, err = actionslock.Read(os.DirFS(root), "."); err != nil {
+			return nil, err
+		}
+	}
 	for _, rel := range files {
+		if locked(lock, rel) {
+			p.Locked = append(p.Locked, rel)
+			continue
+		}
 		data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(rel)))
 		if err != nil {
 			return nil, err
@@ -181,6 +202,17 @@ func plan(ctx context.Context, root string, files []string, pin pinner) (*Plan, 
 		}
 	}
 	return p, nil
+}
+
+// locked reports a file whose actions the lockfile locks. A new commit SHA
+// in such a file has no lockfile entry, and GitHub fails the run. A
+// composite action runs under the workflows that use it, so it counts when
+// the lockfile lists any workflow.
+func locked(lock *actionslock.Lock, rel string) bool {
+	if _, key, ok := actionslock.Workflow(rel); ok {
+		return lock.Lists(key)
+	}
+	return lock.ListsAny()
 }
 
 func planFile(ctx context.Context, rel string, data []byte, pin pinner) (*File, []Failure) {

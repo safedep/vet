@@ -30,8 +30,9 @@ jobs:
 ```
 
 Pin the action to the full commit SHA of a release, with the tag in a comment. `vet ci init` writes
-the pin of the vet that runs it. Do not use a tag or a branch such as `@v2` as the ref. vet's own
-`unpinned-action` control reports such a ref.
+the pin of the vet that runs it. Do not use a tag or a branch such as `@v2` as the ref, unless the
+GitHub Actions lockfile locks it. vet's own `unpinned-action` control reports such a ref. See
+[Actions lockfile](controls.md#actions-lockfile).
 
 `vet ci init` also adds a Dependabot entry with a one day cooldown, so Dependabot moves the pins. When
 you use no Dependabot and no Renovate, run `vet ci update` and commit the diff.

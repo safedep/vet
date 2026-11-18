@@ -8,6 +8,7 @@ import (
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/ci/githubci"
 	"github.com/safedep/vet/v2/internal/fix"
+	"github.com/safedep/vet/v2/internal/plugins/controls/workflow"
 	"github.com/safedep/vet/v2/internal/tui"
 	"github.com/safedep/vet/v2/internal/tui/escape"
 	"github.com/safedep/vet/v2/internal/tui/humanize"
@@ -27,8 +28,9 @@ version. A pin never moves to an older release.
 
 vet edits only the uses: lines of the two actions, and writes the new
 tag as the comment. Each other line stays. Use it when Dependabot or
-Renovate does not move the pins. --dry-run prints the diff and writes
-nothing. DIR is the root of the repository. The default is the current
+Renovate does not move the pins. When the GitHub Actions lockfile lists
+the workflow, vet does not move the pins, and gh actions-lock moves them.
+--dry-run prints the diff and writes nothing. DIR is the root of the repository. The default is the current
 directory.`,
 		Example: `  vet ci update --dry-run   # Show the new pins and write nothing
   vet ci update             # Move the pins`,
@@ -76,9 +78,20 @@ directory.`,
 					pins[githubci.CheckoutRepo] = checkout
 				}
 			}
-			plan, err := fix.PlanRepins(cmd.Context(), fix.RepinOptions{Root: repo.dir, Files: []string{wfPath}, Pins: pins})
+			rt, err := a.Config(app.ConfigOptions{})
 			if err != nil {
 				return err
+			}
+			plan, err := fix.PlanRepins(cmd.Context(), fix.RepinOptions{
+				Root: repo.dir, Files: []string{wfPath}, Pins: pins,
+				TrustActionsLock: workflow.TrustsActionsLock(rt.Config.PluginOptions(workflow.Name), rt.Config.GitHub.APIURL),
+			})
+			if err != nil {
+				return err
+			}
+			if len(plan.Locked) > 0 {
+				tui.Info("The GitHub Actions lockfile locks the actions of %s. To move its pins, run gh actions-lock", wfPath)
+				return nil
 			}
 			for _, f := range plan.Failures {
 				tui.Warning("%s:%d: %s: %s", escape.Line(f.Path), f.Line, escape.Line(f.Action), escape.Line(f.Reason))

@@ -1,0 +1,44 @@
+# A tag that the GitHub Actions lockfile locks for a workflow gives no
+# finding. In a workflow that the lockfile lists, a step with no entry gives
+# a finding that names gh actions-lock. A workflow that the lockfile does
+# not list gives the plain finding. The stub GitHub API is not GitHub.com,
+# so vet trusts the lockfile only when the config says so.
+cd proj
+exec vet scan . --mode plain -o plain
+stdout 'unpinned-action\t.github/workflows/ci.yml\t.github/workflows/ci.yml:6'
+
+env VET_PLUGINS_WORKFLOW_OPTIONS_TRUST_ACTIONS_LOCK=true
+exec vet scan . --mode plain -o plain
+! stdout 'ci.yml:6'
+stdout 'unpinned-action\t.github/workflows/ci.yml\t.github/workflows/ci.yml:7'
+stdout 'unpinned-action\t.github/workflows/other.yml\t.github/workflows/other.yml:6'
+exec vet scan . --mode plain -o json
+stdout 'actions/setup-go@v5 is not in the actions lockfile'
+stdout '"command":"gh actions-lock"'
+
+-- proj/.github/workflows/ci.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+-- proj/.github/workflows/other.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+-- proj/.github/workflows/actions.lock --
+version: 'v0.0.3'
+workflows:
+    '.github/workflows/ci.yml':
+        - 'actions/checkout@v4'
+dependencies:
+    'actions/checkout@v4':
+        ref: 'v4'
+        commit: 'sha1-11bd71901bbe5b1630ceea73d27597364c9af683'
+        owner_id: 44036562
+        repo_id: 197814629

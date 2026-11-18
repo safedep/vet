@@ -101,7 +101,8 @@ add a technique.
 `vet scan --base-ref REF` compares the target with a git ref. vet reports only the findings of the
 packages and the workflows that the change adds or modifies. Some controls run only in this mode,
 because they need the base: `integrity-changed`, `lockfile-only-change`, `install-scripts-added`
-and `ai-bom-delta`.
+and `ai-bom-delta`. A change to the [Actions lockfile](#actions-lockfile) counts as a change to each
+workflow that the lockfile no longer locks a step for.
 
 ## Options
 
@@ -120,6 +121,7 @@ Some controls take options from the config file, under `plugins.<name>.options`.
 | `plugins.malware.options.trust_automated_analysis` | `false` | Report an unverified malicious verdict as `malware`, not `suspicious-package` |
 | `plugins.malware.options.minimum_confidence` | `high` | The lowest confidence of an unverified verdict that vet reports as `malware` |
 | `plugins.workflow.options.allow_unpinned` | none | The actions that `unpinned-action` accepts with a tag |
+| `plugins.workflow.options.trust_actions_lock` | `true`, `false` when `github.api_url` names GitHub Enterprise Server | `unpinned-action` accepts a tag that the [Actions lockfile](#actions-lockfile) locks |
 | `plugins.actionrefs.options.max_calls` | `50`, `500` with a token | The GitHub API calls that `impostor-commit` makes for one repository in a scan |
 | `plugins.license.options.allow` | none | The licenses that a package can have. See [License lists](#license-lists) |
 | `plugins.license.options.deny` | none | The licenses that a package cannot have |
@@ -223,10 +225,34 @@ that points to the commit, the default branch, then each other branch and tag.
   moves a major or a minor tag, such as `v4`, to each new release.
 - `plugins.actionrefs.enabled: false` turns off the check.
 
+## Actions lockfile
+
+`gh actions-lock` writes the GitHub Actions lockfile, `.github/workflows/actions.lock`. For each
+workflow that the file lists, GitHub runs each step action at the commit that the file records. The
+run fails when a step action has no entry. So a tag that the lockfile locks is as safe as a commit SHA.
+
+- `unpinned-action` accepts a tag of a step when the lockfile locks it for the workflow.
+- In a workflow that the lockfile lists, a step action with no entry gets the finding "is not in the
+  actions lockfile". Its fix is `gh actions-lock`.
+- These still get a finding: a reusable workflow at job level, a Docker image with no digest, a
+  workflow that the lockfile does not list, and a composite action under `.github/actions/`. GitHub
+  does not lock the first two. vet does not find the workflows that use a composite action.
+- vet reads only schema version `v0.0.3`. A lockfile that vet cannot read locks nothing, and vet logs
+  a warning.
+- GitHub Enterprise Server does not enforce the lockfile. vet trusts it only when `github.api_url` is
+  GitHub.com or GHE.com. `plugins.workflow.options.trust_actions_lock` overrides this.
+- GitHub checks that the locked commit is in the history of the tag, not that it is the commit of the
+  tag. vet does not detect a lockfile change that locks a tag to an older commit.
+- In pull request mode, a lockfile change that removes an entry, or a workflow, counts as a change to
+  that workflow.
+
 ## Fix workflow findings
 
 `vet fix github-actions run` pins each third-party action to its commit SHA, and keeps the tag in a
-comment. See [fix-github-actions-run.md](cmd/fix-github-actions-run.md).
+comment. It leaves each workflow that the [Actions lockfile](#actions-lockfile) lists. It also leaves
+the composite actions when the lockfile lists a workflow. A new SHA in such a file has no entry, and
+GitHub fails the run. `gh actions-lock` updates these files. See
+[fix-github-actions-run.md](cmd/fix-github-actions-run.md).
 
 ## Control reference
 
@@ -488,7 +514,7 @@ A script interpolates an event field that an outside user controls, such as the 
 
 **Action not pinned to a commit SHA.** Family `workflow`. Default severity medium. Plugin `workflow`.
 
-A step uses an action by a tag or a branch. The owner of the action, or an attacker who controls it, can move the tag to other code. A local action passes. $/path runs from the commit of the workflow. ./path runs from the workspace, which the checkout steps of the job fill.
+A step uses an action by a tag or a branch. The owner of the action, or an attacker who controls it, can move the tag to other code. A local action passes. $/path runs from the commit of the workflow. ./path runs from the workspace, which the checkout steps of the job fill. A tag passes when the GitHub Actions lockfile locks it for the workflow.
 
 ### impostor-commit
 

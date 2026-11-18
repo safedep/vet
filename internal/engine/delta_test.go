@@ -596,3 +596,66 @@ func TestPullRequestModeGivesAWholeEnricherEveryPackage(t *testing.T) {
 	assert.Equal(t, 3, network.seen, "a batch enricher reads only the introduced packages")
 	assert.Equal(t, 6, code.seen, "the whole enricher also reads the unchanged and the removed packages")
 }
+
+func TestPullRequestModeReportsAWorkflowThatTheActionsLockNoLongerLocks(t *testing.T) {
+	const (
+		workflowFile = ".github/workflows/ci.yml"
+		lockFile     = ".github/workflows/actions.lock"
+		workflowText = "on: push\njobs:\n  b:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: acme/build@v1\n"
+	)
+	lockText := func(workflows, commit string) string {
+		return "version: 'v0.0.3'\nworkflows:\n" + workflows + "dependencies:\n    'acme/build@v1':\n        ref: 'v1'\n        commit: 'sha1-" +
+			commit + "'\n        owner_id: 101\n        repo_id: 201\n"
+	}
+	const listed = "    '.github/workflows/ci.yml':\n        - 'acme/build@v1'\n"
+	locked := lockText(listed, "1111111111111111111111111111111111111111")
+	cases := []struct {
+		name  string
+		base  string
+		head  string
+		trust bool
+		want  model.Change
+	}{
+		{name: "lockfile kept", base: locked, head: locked, trust: true, want: model.ChangeUnchanged},
+		{name: "lockfile removed", base: locked, trust: true, want: model.ChangeModified},
+		{name: "entry removed", base: locked, head: lockText("    '.github/workflows/ci.yml': []\n", "1111111111111111111111111111111111111111"), trust: true, want: model.ChangeModified},
+		{name: "workflow removed from the lockfile", base: locked, head: lockText("    '.github/workflows/other.yml':\n        - 'acme/build@v1'\n", "1111111111111111111111111111111111111111"), trust: true, want: model.ChangeModified},
+		{name: "commit moved", base: locked, head: lockText(listed, "2222222222222222222222222222222222222222"), trust: true, want: model.ChangeUnchanged},
+		{name: "lockfile that vet cannot read", base: locked, head: locked + "extra: true\n", trust: true, want: model.ChangeModified},
+		{name: "lockfile added", head: locked, trust: true, want: model.ChangeUnchanged},
+		{name: "lockfile not trusted", base: locked, trust: false, want: model.ChangeUnchanged},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+			repo, err := gogit.PlainInit(dir, false)
+			require.NoError(t, err)
+			write(t, dir, workflowFile, workflowText)
+			if tc.base != "" {
+				write(t, dir, lockFile, tc.base)
+			}
+			wt, err := repo.Worktree()
+			require.NoError(t, err)
+			require.NoError(t, wt.AddGlob("."))
+			_, err = wt.Commit("base", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@example.com", When: time.Now()}})
+			require.NoError(t, err)
+			require.NoError(t, os.RemoveAll(filepath.Join(dir, filepath.FromSlash(lockFile))))
+			if tc.head != "" {
+				write(t, dir, lockFile, tc.head)
+			}
+
+			f := newFixture(t)
+			o := f.options(t, dir, &fakeEnricher{})
+			o.BaseRef = "HEAD"
+			o.TrustActionsLock = tc.trust
+			for run := range 2 {
+				changes := map[string]model.Change{}
+				for m, err := range runScan(t, o).Scan.Manifests(context.Background()) {
+					require.NoError(t, err)
+					changes[m.Path] = m.Change
+				}
+				assert.Equal(t, tc.want, changes[workflowFile], "run %d; the second run reads the kept base", run+1)
+			}
+		})
+	}
+}

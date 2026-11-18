@@ -16,6 +16,7 @@ import (
 	"github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/internal/engine"
 	"github.com/safedep/vet/v2/internal/plugins/controls/cooldown"
+	"github.com/safedep/vet/v2/internal/plugins/controls/workflow"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/insights"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/plain"
@@ -218,7 +219,7 @@ func TestPluginOriginNamesTheSource(t *testing.T) {
 			}
 			l, err := config.Load(tc.opts)
 			require.NoError(t, err)
-			s := withCooldown(&config.Runtime{Loaded: l}, tc.days)
+			s := settingsOf(&config.Runtime{Loaded: l}, tc.days)
 			assert.Equal(t, tc.want, s.PluginOrigin(cooldown.Name, "days"))
 		})
 	}
@@ -252,4 +253,30 @@ func TestEnricherSpecsCarryTheCacheRule(t *testing.T) {
 	assert.True(t, got[0].Prior)
 	assert.Nil(t, got[1].Keep, "an enricher with no rule keeps each result")
 	assert.False(t, got[1].Prior)
+}
+
+func TestSettingsTrustTheActionsLockWhereGitHubEnforcesIt(t *testing.T) {
+	const ghes = "github:\n  api_url: https://github.acme.internal/api/v3\n"
+	cases := []struct {
+		name       string
+		config     string
+		want       bool
+		wantOrigin string
+	}{
+		{"GitHub.com", "", true, ""},
+		{"GHE.com", "github:\n  api_url: https://api.acme.ghe.com\n", true, "file config.yml"},
+		{"GitHub Enterprise Server", ghes, false, "file config.yml"},
+		{"option set on GitHub Enterprise Server", ghes + "plugins:\n  workflow:\n    options:\n      trust_actions_lock: true\n", true, "file config.yml"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			file := filepath.Join(t.TempDir(), "config.yml")
+			require.NoError(t, os.WriteFile(file, []byte(tc.config), 0o600))
+			l, err := config.Load(config.LoadOptions{ConfigFile: file, LookupEnv: func(string) (string, bool) { return "", false }})
+			require.NoError(t, err)
+			s := settingsOf(&config.Runtime{Loaded: l}, 0)
+			assert.Equal(t, tc.want, s.PluginOptions(workflow.Name)[workflow.OptionTrustActionsLock])
+			assert.Equal(t, tc.wantOrigin, s.PluginOrigin(workflow.Name, workflow.OptionTrustActionsLock))
+		})
+	}
 }

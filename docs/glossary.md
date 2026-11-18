@@ -248,6 +248,13 @@ commit can come from a fork. `model.ActionCommit` on `Package.Action`, set by th
 enricher. The `impostor-commit` control reports it.
 _Avoid_: fork commit, orphan commit, dangling commit
 
+**Actions lockfile**:
+The GitHub Actions lockfile, `.github/workflows/actions.lock`, that `gh actions-lock` writes. For each
+workflow that it lists, GitHub runs each step action at the commit that it records, and fails the run
+when a step action has no entry. `internal/github/actionslock` reads it with the parser of GitHub.
+`unpinned-action` accepts a tag that it locks.
+_Avoid_: workflow lockfile, lockfile (a manifest kind)
+
 **Code usage**:
 The evidence that the target's code imports a package, and in which files. `model.Usage`, set by the
 `codeusage` enricher. `Usage.Imports` holds the import line of each file, and `Usage.TestOnly` marks a
