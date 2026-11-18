@@ -232,8 +232,9 @@ workflow that the file lists, GitHub runs each step action at the commit that th
 run fails when a step action has no entry. A moved tag does not change the run of a listed workflow.
 
 - `unpinned-action` accepts a tag of a step when the lockfile locks it for the workflow.
-- In a listed workflow, a tag with no entry gets the finding "is not in the actions lockfile". Its fix
-  is `gh actions-lock`.
+- In a listed workflow, a step action with no entry gets the finding "is not in the actions lockfile",
+  also when it names a commit SHA or `allow_unpinned` lists it. GitHub fails the run at that step. The
+  fix is `gh actions-lock`.
 - These still get a finding: a reusable workflow at job level, a Docker image with no digest, a
   workflow that the lockfile does not list, and each tag of a composite action under
   `.github/actions/`. GitHub does not lock the first two. A composite action can run under a workflow
@@ -256,7 +257,13 @@ comment. It leaves each step action of a workflow that the [Actions lockfile](#a
 lists. A new SHA there has no lockfile entry, and GitHub fails the run. `gh actions-lock` updates these
 steps. The fix pins the rest, such as a reusable workflow at job level and a composite action. When
 the lockfile lists a workflow, run `gh actions-lock` after the fix, because a composite action that a
-listed workflow uses needs an entry for its new pins. See
+listed workflow uses needs an entry for its new pins. `gh actions-lock` refuses a composite action
+that a workflow uses as `./path`. `gh actions-lock --migrate-local-actions` rewrites such a reference
+to `$/path`, which runs at the commit of the workflow. Review each rewritten line.
+
+With `trust_actions_lock: false` on GitHub.com, `unpinned-action` reports a locked tag, and the fix
+still leaves it, because GitHub enforces the lockfile. Pin the step by hand and run
+`gh actions-lock`, or remove the workflow from the lockfile. See
 [fix-github-actions-run.md](cmd/fix-github-actions-run.md).
 
 ## Control reference

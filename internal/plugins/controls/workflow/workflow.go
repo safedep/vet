@@ -288,7 +288,9 @@ func (c *Control) unpinned(e *emitter, wl actionslock.WorkflowLock) {
 		}
 		name, ok := pinned(value)
 		status := wl.Status(value)
-		if ok || c.allowed(name) || status == actionslock.Locked {
+		// GitHub fails the run of a listed workflow at a step with no entry,
+		// also for a commit SHA and for an action that allow_unpinned lists.
+		if status != actionslock.Missing && (ok || c.allowed(name) || status == actionslock.Locked) {
 			continue
 		}
 		title := fmt.Sprintf("%s is not pinned to a commit SHA", value)

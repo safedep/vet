@@ -172,6 +172,7 @@ func lockAdvice(root string) error {
 	}
 	if lock.ListsAny() {
 		tui.Info("The repository has a GitHub Actions lockfile. To add the new pins to it, run gh actions-lock")
+		tui.Info("For a composite action that a workflow uses as ./path, run gh actions-lock --migrate-local-actions")
 	}
 	return nil
 }
