@@ -277,6 +277,7 @@ func TestTrustsActionsLock(t *testing.T) {
 		{name: "github.api_url over GITHUB_API_URL", config: "github:\n  api_url: https://api.github.com\n", env: ghesRunner, want: true, wantLeave: true},
 		{name: "option set on GitHub Enterprise Server", config: ghes + option("true"), want: true, wantLeave: true},
 		{name: "option off on GitHub.com", config: option("false"), want: false, wantLeave: true},
+		{name: "option in another letter case", config: "plugins:\n  workflow:\n    options:\n      Trust_Actions_Lock: false\n", want: false, wantLeave: true},
 		{name: "option with no value", config: ghes + option("")},
 		{name: "option that is not a bool", config: option(`"yes"`), wantErr: true},
 		{name: "other workflow option that is not valid", config: "plugins:\n  workflow:\n    enabled: false\n    options:\n      allow_unpinned: ['[']\n", want: true, wantLeave: true},

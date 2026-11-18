@@ -253,17 +253,19 @@ run fails when a step action has no entry. A moved tag does not change the run o
 ## Fix workflow findings
 
 `vet fix github-actions run` pins each third-party action to its commit SHA, and keeps the tag in a
-comment. It leaves each step action of a workflow that the [Actions lockfile](#actions-lockfile)
-lists. A new SHA there has no lockfile entry, and GitHub fails the run. `gh actions-lock` updates these
+comment. Where GitHub enforces the [Actions lockfile](#actions-lockfile), or when vet trusts it, the
+fix leaves each step action of a workflow that the lockfile lists. A new SHA there has no lockfile
+entry, and GitHub fails the run. `gh actions-lock` updates these
 steps. The fix pins the rest, such as a reusable workflow at job level and a composite action. When
 the lockfile lists a workflow, run `gh actions-lock` after the fix, because a composite action that a
 listed workflow uses needs an entry for its new pins. `gh actions-lock` refuses a composite action
 that a workflow uses as `./path`. `gh actions-lock --migrate-local-actions` rewrites such a reference
 to `$/path`, which runs at the commit of the workflow. Review each rewritten line.
 
-With `trust_actions_lock: false` on GitHub.com, `unpinned-action` reports a locked tag, and the fix
-still leaves it, because GitHub enforces the lockfile. Pin the step by hand and run
-`gh actions-lock`, or remove the workflow from the lockfile. See
+With `trust_actions_lock: false` on GitHub.com or GHE.com, `unpinned-action` reports a locked tag,
+and the fix still leaves it, because GitHub enforces the lockfile. Pin the step by hand and run
+`gh actions-lock`. Where your policy does not require a lockfile, you can remove the workflow from
+the lockfile instead, and then run the fix to pin the step. See
 [fix-github-actions-run.md](cmd/fix-github-actions-run.md).
 
 ## Control reference

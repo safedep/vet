@@ -57,9 +57,10 @@ a tag or a branch to the commit SHA of that ref, and keep the ref in a
 comment. vet resolves the SHA with the GitHub API, with GITHUB_TOKEN or
 the token of the gh CLI when one exists. Local actions, Docker images,
 actions of the same repository and expressions do not change. vet edits
-only the uses: value, so the file keeps its format. vet leaves the step
-actions of each workflow that the GitHub Actions lockfile lists, and
-names gh actions-lock.
+only the uses: value, so the file keeps its format. Where GitHub enforces
+the GitHub Actions lockfile, or when the config trusts it, vet leaves the
+step actions of each workflow that the lockfile lists, and names
+gh actions-lock.
 
 --dry-run prints the diff and writes nothing. DIR is the root of the
 repository. The default is the current directory.`,
@@ -174,5 +175,6 @@ func lockAdvice(root string) {
 	if lock.ListsAny() {
 		tui.Info("The repository has a GitHub Actions lockfile. To add the new pins to it, run gh actions-lock")
 		tui.Info("For a composite action that a workflow uses as ./path, run gh actions-lock --migrate-local-actions")
+		tui.Info("That command rewrites the uses: lines of the workflows. Review them before you commit")
 	}
 }

@@ -96,20 +96,40 @@ type PinOptions struct {
 // read.
 var ErrActionsLock = errors.New("read the GitHub Actions lockfile")
 
+// leaveFunc reports a uses: value of the document doc in the file rel that
+// the fix leaves.
+type leaveFunc func(rel string, doc *yaml.Node, uses string) bool
+
 // actionsLockLeaves returns a test for the uses: values that the fix
 // leaves because the GitHub Actions lockfile of root locks the step: each
 // step action of a listed workflow. A new commit SHA there has no lockfile
 // entry, and GitHub fails the run. A reusable workflow at job level needs
-// no entry, so the fix pins it.
-func actionsLockLeaves(root string) (func(rel, uses string) bool, error) {
+// no entry, so the fix pins it. A file with runs: is an action, also in
+// .github/workflows. GitHub does not run it as a workflow, so the fix pins
+// it.
+func actionsLockLeaves(root string) (leaveFunc, error) {
 	lock, err := actionslock.Read(os.DirFS(root), ".")
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrActionsLock, err)
 	}
-	return func(rel, uses string) bool {
+	return func(rel string, doc *yaml.Node, uses string) bool {
 		_, key, ok := actionslock.WorkflowKey(rel)
-		return ok && actionslock.IsAction(uses) && lock.Lists(key)
+		return ok && !actionFile(doc) && actionslock.IsAction(uses) && lock.Lists(key)
 	}, nil
+}
+
+// actionFile reports a document with a top-level runs: key.
+func actionFile(doc *yaml.Node) bool {
+	if len(doc.Content) == 0 || doc.Content[0].Kind != yaml.MappingNode {
+		return false
+	}
+	m := doc.Content[0].Content
+	for i := 0; i+1 < len(m); i += 2 {
+		if m[i].Value == "runs" {
+			return true
+		}
+	}
+	return false
 }
 
 // PlanPins finds each third-party uses: with a tag or a branch in the
@@ -124,7 +144,7 @@ func PlanPins(ctx context.Context, o PinOptions) (*Plan, error) {
 	if err != nil {
 		return nil, err
 	}
-	var leave func(rel, uses string) bool
+	var leave leaveFunc
 	if o.ActionsLock {
 		listed, err := actionsLockLeaves(o.Root)
 		if err != nil {
@@ -132,10 +152,10 @@ func PlanPins(ctx context.Context, o PinOptions) (*Plan, error) {
 		}
 		// The fix leaves an action of the same repository anyway, so the
 		// lockfile does not skip it.
-		leave = func(rel, uses string) bool {
+		leave = func(rel string, doc *yaml.Node, uses string) bool {
 			action, _, _ := strings.Cut(uses, "@")
 			parts := strings.SplitN(action, "/", 3)
-			return len(parts) >= 2 && !strings.EqualFold(parts[0]+"/"+parts[1], o.SameRepo) && listed(rel, uses)
+			return len(parts) >= 2 && !strings.EqualFold(parts[0]+"/"+parts[1], o.SameRepo) && listed(rel, doc, uses)
 		}
 	}
 	cache := map[string]string{}
@@ -213,7 +233,7 @@ type pinner func(ctx context.Context, repo, ref string) (Pin, bool, error)
 
 // plan plans the edits of files. leave, when set, names the uses: values
 // that stay.
-func plan(ctx context.Context, root string, files []string, leave func(rel, uses string) bool, pin pinner) (*Plan, error) {
+func plan(ctx context.Context, root string, files []string, leave leaveFunc, pin pinner) (*Plan, error) {
 	p := &Plan{Root: root, Files: []*File{}, Failures: []Failure{}, Skipped: []string{}}
 	for _, rel := range files {
 		data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(rel)))
@@ -232,7 +252,7 @@ func plan(ctx context.Context, root string, files []string, leave func(rel, uses
 	return p, nil
 }
 
-func planFile(ctx context.Context, rel string, data []byte, leave func(rel, uses string) bool, pin pinner) (*File, []Failure) {
+func planFile(ctx context.Context, rel string, data []byte, leave leaveFunc, pin pinner) (*File, []Failure) {
 	f := &File{Path: rel, Edits: []Edit{}, before: data}
 	var doc yaml.Node
 	if err := yaml.Unmarshal(data, &doc); err != nil {
@@ -249,7 +269,7 @@ func planFile(ctx context.Context, rel string, data []byte, leave func(rel, uses
 		if len(parts) < 2 {
 			continue
 		}
-		if leave != nil && leave(rel, n.Value) {
+		if leave != nil && leave(rel, &doc, n.Value) {
 			f.skipped = f.skipped || !github.IsCommitSHA(ref)
 			continue
 		}

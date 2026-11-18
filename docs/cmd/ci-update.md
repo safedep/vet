@@ -24,7 +24,8 @@ Each other line stays as it is. The command does not change other actions or oth
 
 Use it when Dependabot or Renovate does not move the pins. `vet ci init` sets up Dependabot to do it.
 When the GitHub Actions lockfile lists the workflow, run `gh actions-lock` in the repository after
-the move. Where GitHub enforces the lockfile, it fails the run until the lockfile has the new pins. See
+the move. Review the diff, and commit the workflow and the lockfile together. Where GitHub enforces
+the lockfile, it fails the run until the lockfile has the new pins. See
 [Actions lockfile](../controls.md#actions-lockfile).
 `--dry-run` prints the diff and writes nothing.
 

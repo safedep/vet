@@ -11,6 +11,7 @@ package workflow
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"maps"
@@ -72,6 +73,24 @@ func decode(cfg plugin.Config) (Options, error) {
 
 // OptionTrustActionsLock is the config key of Options.TrustActionsLock.
 const OptionTrustActionsLock = "trust_actions_lock"
+
+// TrustOption returns Options.TrustActionsLock of opts, or nil when opts
+// does not set it. It matches the key in any letter case, as decode does,
+// so the runner and the control read the same value. It reads no other
+// option, so an option that is not valid does not change the trust.
+func TrustOption(opts map[string]any) (*bool, error) {
+	var o struct {
+		TrustActionsLock *bool `json:"trust_actions_lock"`
+	}
+	b, err := json.Marshal(opts)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(b, &o); err != nil {
+		return nil, err
+	}
+	return o.TrustActionsLock, nil
+}
 
 // CodeActionsLockUnreadable is the diagnostic code of a GitHub Actions
 // lockfile that vet cannot read. unpinned-action then reports the tags

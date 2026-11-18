@@ -211,6 +211,7 @@ func TestPlanLeavesTheFilesThatTheActionsLockLists(t *testing.T) {
 		".github/workflows/calls.yml":  {"actions/checkout@v4"},
 		".github/workflows/pinned.yml": {"actions/checkout@" + sha},
 		".github/workflows/own.yml":    {"my-org/app@v1"},
+		".github/workflows/action.yml": {"actions/checkout@v4"},
 	}}.String()
 	cases := []struct {
 		name        string
@@ -222,17 +223,17 @@ func TestPlanLeavesTheFilesThatTheActionsLockLists(t *testing.T) {
 	}{
 		{
 			name: "listed workflows", lock: listed, actionsLock: true,
-			wantFiles:   []string{".github/workflows/other.yml", ".github/actions/local/action.yml", ".github/actions/unused/action.yml", ".github/workflows/calls.yml"},
+			wantFiles:   []string{".github/workflows/other.yml", ".github/actions/local/action.yml", ".github/actions/unused/action.yml", ".github/workflows/calls.yml", ".github/workflows/action.yml"},
 			wantSkipped: []string{".github/workflows/ci.yml", ".github/workflows/calls.yml"},
 		},
 		{
 			name: "lockfile that GitHub does not enforce", lock: listed, actionsLock: false,
-			wantFiles:   []string{".github/workflows/ci.yml", ".github/workflows/other.yml", ".github/actions/local/action.yml", ".github/actions/unused/action.yml", ".github/workflows/calls.yml"},
+			wantFiles:   []string{".github/workflows/ci.yml", ".github/workflows/other.yml", ".github/actions/local/action.yml", ".github/actions/unused/action.yml", ".github/workflows/calls.yml", ".github/workflows/action.yml"},
 			wantSkipped: []string{},
 		},
 		{
 			name: "lockfile that lists no workflow", lock: actionslocktest.Lock{}.String(), actionsLock: true,
-			wantFiles:   []string{".github/workflows/ci.yml", ".github/workflows/other.yml", ".github/actions/local/action.yml", ".github/actions/unused/action.yml", ".github/workflows/calls.yml"},
+			wantFiles:   []string{".github/workflows/ci.yml", ".github/workflows/other.yml", ".github/actions/local/action.yml", ".github/actions/unused/action.yml", ".github/workflows/calls.yml", ".github/workflows/action.yml"},
 			wantSkipped: []string{},
 		},
 		{name: "lockfile that vet cannot read", lock: listed + "extra: true\n", actionsLock: true, wantErr: true},
@@ -250,6 +251,9 @@ func TestPlanLeavesTheFilesThatTheActionsLockLists(t *testing.T) {
 			// The fix leaves an action of the same repository anyway, so the
 			// lockfile does not skip it.
 			write(t, root, ".github/workflows/own.yml", "jobs:\n  b:\n    steps:\n      - uses: my-org/app/tools@v1\n")
+			// A file with runs: is an action. GitHub does not run it as a
+			// workflow, so the fix pins it although the lockfile lists it.
+			write(t, root, ".github/workflows/action.yml", "runs:\n  using: composite\n  steps:\n    - uses: actions/checkout@v4\n")
 			write(t, root, ".github/workflows/actions.lock", tc.lock)
 			p, err := PlanPins(context.Background(), PinOptions{Root: root, Resolver: &fakeResolver{}, SameRepo: "my-org/app", ActionsLock: tc.actionsLock})
 			if tc.wantErr {
