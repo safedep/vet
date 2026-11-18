@@ -48,7 +48,28 @@ func (r *run) evaluate(ctx context.Context) error {
 		}
 		r.o.Observer.Progress(StageEvaluate, i+1, len(ids))
 	}
-	return scan.AddFindings(ctx, "", r.evaluateApplication(ctx))
+	if err := scan.AddFindings(ctx, "", r.evaluateApplication(ctx)); err != nil {
+		return err
+	}
+	r.controlDiagnostics()
+	return nil
+}
+
+// controlDiagnostics adds the diagnostics that each control reports about
+// its own work.
+func (r *run) controlDiagnostics() {
+	for _, c := range r.o.Controls {
+		d, ok := c.Plugin.(plugin.Diagnoser)
+		if !ok {
+			continue
+		}
+		for _, diag := range d.Diagnostics() {
+			if diag.Component == "" {
+				diag.Component = c.ID
+			}
+			r.diags.put(&diag)
+		}
+	}
 }
 
 func (r *run) evaluateManifest(ctx context.Context, m *model.Manifest) []finding.Finding {

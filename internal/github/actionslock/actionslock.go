@@ -196,6 +196,33 @@ func rootOf(p string) (string, bool) {
 	return "", false
 }
 
+// ActionRoot splits the path of a composite action file into the folder
+// that holds its .github folder and the folder of the action, relative to
+// that folder. ok is false for a file that is not an action.yml or an
+// action.yaml under a .github/actions folder.
+func ActionRoot(p string) (root, dir string, ok bool) {
+	if b := path.Base(p); b != "action.yml" && b != "action.yaml" {
+		return "", "", false
+	}
+	q := "/" + p
+	i := strings.Index(q, "/.github/actions/")
+	if i < 0 {
+		return "", "", false
+	}
+	root = "."
+	if i > 0 {
+		root = q[1:i]
+	}
+	return root, path.Dir(q[i+1:]), true
+}
+
+// IsAction reports a uses: value that names a repository action. A
+// listed workflow must lock it. A reusable workflow, a Docker image and a
+// local action need no lockfile entry.
+func IsAction(uses string) bool {
+	return lockfile.ParseActionRef(uses) != nil
+}
+
 // Status is what the lockfile says about the uses: value of a step.
 type Status int
 
@@ -224,6 +251,93 @@ func (l *Lock) Workflow(key string) WorkflowLock {
 	}
 	_, listed := l.f.LookupWorkflow(key)
 	return WorkflowLock{listed: listed, keys: l.locked(key)}
+}
+
+// Workflows returns the part of the lockfile that all the workflow keys
+// share. A step of a local action runs under each workflow that uses the
+// action, so the lockfile locks the step only when it locks it for each of
+// them.
+func (l *Lock) Workflows(keys []string) WorkflowLock {
+	if l == nil || len(keys) == 0 {
+		return WorkflowLock{}
+	}
+	out := l.Workflow(keys[0])
+	for _, k := range keys[1:] {
+		w := l.Workflow(k)
+		out.listed = out.listed && w.listed
+		for key := range out.keys {
+			if !w.keys[key] {
+				delete(out.keys, key)
+			}
+		}
+	}
+	return out
+}
+
+// Callers returns, for the folder of each local action, the keys of the
+// listed workflows that use it, directly or through another local action.
+// GitHub locks the remote actions of such an action under each of these
+// workflows. The folders are relative to root. A file that vet cannot read
+// uses no action.
+func (l *Lock) Callers(fsys fs.FS, root string) map[string][]string {
+	out := map[string][]string{}
+	if l == nil {
+		return out
+	}
+	for _, w := range slices.Sorted(maps.Keys(l.f.Workflows)) {
+		seen := map[string]bool{}
+		queue := localUses(fsys, path.Join(root, w))
+		for len(queue) > 0 {
+			d := queue[0]
+			queue = queue[1:]
+			if seen[d] {
+				continue
+			}
+			seen[d] = true
+			out[d] = append(out[d], w)
+			for _, f := range []string{"action.yml", "action.yaml"} {
+				queue = append(queue, localUses(fsys, path.Join(root, d, f))...)
+			}
+		}
+	}
+	return out
+}
+
+// localUses returns the folder of each local action, as ./path or $/path,
+// that a workflow or action file uses.
+func localUses(fsys fs.FS, file string) []string {
+	info, err := fs.Stat(fsys, file)
+	if err != nil || !info.Mode().IsRegular() || info.Size() > MaxSize {
+		return nil
+	}
+	data, err := fs.ReadFile(fsys, file)
+	if err != nil {
+		return nil
+	}
+	var doc yaml.Node
+	if err := yaml.Unmarshal(data, &doc); err != nil {
+		return nil
+	}
+	var out []string
+	var walk func(*yaml.Node)
+	walk = func(n *yaml.Node) {
+		for i, c := range n.Content {
+			if n.Kind == yaml.MappingNode && i%2 == 0 && c.Value == "uses" && i+1 < len(n.Content) {
+				v, _, _ := strings.Cut(n.Content[i+1].Value, "@")
+				for _, prefix := range []string{"./", "$/"} {
+					if rest, ok := strings.CutPrefix(v, prefix); ok {
+						if d := path.Clean(rest); fs.ValidPath(d) && d != "." {
+							out = append(out, d)
+						}
+					}
+				}
+				continue
+			}
+			walk(c)
+		}
+	}
+	walk(&doc)
+	return out
 }
 
 // Listed reports whether the lockfile lists the workflow. GitHub enforces

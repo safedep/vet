@@ -56,8 +56,8 @@ a tag or a branch to the commit SHA of that ref, and keep the ref in a
 comment. vet resolves the SHA with the GitHub API, with GITHUB_TOKEN or
 the token of the gh CLI when one exists. Local actions, Docker images,
 actions of the same repository and expressions do not change. vet edits
-only the uses: value, so the file keeps its format. vet leaves the files
-that the GitHub Actions lockfile lists. gh actions-lock updates them.
+only the uses: value, so the file keeps its format. vet leaves each step
+that the GitHub Actions lockfile locks. gh actions-lock updates it.
 
 --dry-run prints the diff and writes nothing. DIR is the root of the
 repository. The default is the current directory.`,
@@ -141,7 +141,7 @@ func printPlan(a *app.App, plan *vfix.Plan, dryRun bool) error {
 
 func summary(plan *vfix.Plan, dryRun bool) {
 	if len(plan.Skipped) > 0 {
-		tui.Info("The GitHub Actions lockfile lists %s. vet did not change them. To update their actions, run gh actions-lock", humanize.Count(len(plan.Skipped), "file"))
+		tui.Info("The GitHub Actions lockfile locks steps in %s. vet did not change them. To update them, run gh actions-lock", humanize.Count(len(plan.Skipped), "file"))
 	}
 	switch {
 	case plan.Edits() == 0 && len(plan.Failures) > 0:

@@ -1,22 +1,13 @@
-# vet ci update does not move the pins of a vet workflow that the GitHub
-# Actions lockfile lists. A new SHA there has no entry, and GitHub fails
-# the run. vet names gh actions-lock.
+# vet ci update moves the pin of a vet workflow that the GitHub Actions
+# lockfile lists, and names gh actions-lock. GitHub fails the run until the
+# lockfile has the new pin.
 env VET_PLUGINS_WORKFLOW_OPTIONS_TRUST_ACTIONS_LOCK=true
 exec vet ci update --mode plain
-stderr 'The GitHub Actions lockfile lists .github/workflows/vet.yml\. vet does not move its pins\. To move them, run gh actions-lock'
-cmp .github/workflows/vet.yml $WORK/old.yml
-stub calls github 0
+stderr 'Moved 1 pin in .github/workflows/vet.yml'
+stderr 'The GitHub Actions lockfile lists .github/workflows/vet.yml\. To add the new pins to it, run gh actions-lock'
+grep 'safedep/vet@2222222222222222222222222222222222222222' .github/workflows/vet.yml
 
 -- .github/workflows/vet.yml --
-name: vet
-on:
-  pull_request:
-jobs:
-  vet:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: safedep/vet@1111111111111111111111111111111111111111 # v2.0.0-alpha.20260101000000
--- old.yml --
 name: vet
 on:
   pull_request:

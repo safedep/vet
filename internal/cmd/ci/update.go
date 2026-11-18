@@ -1,7 +1,6 @@
 package ci
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
@@ -9,7 +8,9 @@ import (
 
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/ci/githubci"
+	"github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/internal/fix"
+	"github.com/safedep/vet/v2/internal/github/actionslock"
 	"github.com/safedep/vet/v2/internal/runner"
 	"github.com/safedep/vet/v2/internal/tui"
 	"github.com/safedep/vet/v2/internal/tui/escape"
@@ -30,10 +31,10 @@ version. A pin never moves to an older release.
 
 vet edits only the uses: lines of the two actions, and writes the new
 tag as the comment. Each other line stays. Use it when Dependabot or
-Renovate does not move the pins. vet does not move the pins of a workflow
-that the GitHub Actions lockfile lists. gh actions-lock moves them.
---dry-run prints the diff and writes nothing. DIR is the root of the repository. The default is the current
-directory.`,
+Renovate does not move the pins. When the GitHub Actions lockfile lists
+the workflow, run gh actions-lock after the move to add the new pins to
+it. --dry-run prints the diff and writes nothing. DIR is the root of the
+repository. The default is the current directory.`,
 		Example: `  vet ci update --dry-run   # Show the new pins and write nothing
   vet ci update             # Move the pins`,
 		Args: cobra.MaximumNArgs(1),
@@ -63,22 +64,9 @@ directory.`,
 			if err != nil {
 				return err
 			}
-			leave, err := runner.FixLeavesActionsLock(rt, os.Getenv)
+			listed, err := lockfileLists(rt, repo.dir, wfPath)
 			if err != nil {
 				return err
-			}
-			if leave {
-				skipped, err := fix.ActionsLockSkips(repo.dir, []string{wfPath})
-				if errors.Is(err, fix.ErrActionsLock) {
-					return app.UsageError(err.Error(), "Fix the lockfile, or write it again with gh actions-lock.")
-				}
-				if err != nil {
-					return err
-				}
-				if len(skipped) > 0 {
-					tui.Info("The GitHub Actions lockfile lists %s. vet does not move its pins. To move them, run gh actions-lock", wfPath)
-					return nil
-				}
 			}
 
 			pinner, err := newPinner(cmd.Context(), a)
@@ -121,9 +109,28 @@ directory.`,
 				return err
 			}
 			tui.Success("Moved %s in %s", humanize.Count(plan.Edits(), "pin"), wfPath)
+			if listed {
+				// GitHub fails the run until the lockfile has the new pins.
+				tui.Info("The GitHub Actions lockfile lists %s. To add the new pins to it, run gh actions-lock", wfPath)
+			}
 			return nil
 		},
 	}
 	c.Flags().BoolVar(&dryRun, "dry-run", false, "Print the diff and write nothing")
 	return c
+}
+
+// lockfileLists reports whether the GitHub Actions lockfile of dir lists the
+// workflow, where GitHub enforces the lockfile.
+func lockfileLists(rt *config.Runtime, dir, workflow string) (bool, error) {
+	leave, err := runner.FixLeavesActionsLock(rt, os.Getenv)
+	if err != nil || !leave {
+		return false, err
+	}
+	lock, err := actionslock.Read(os.DirFS(dir), ".")
+	if err != nil {
+		return false, app.UsageError(fmt.Sprintf("read the GitHub Actions lockfile: %v", err), "Fix the lockfile, or write it again with gh actions-lock.")
+	}
+	_, key, ok := actionslock.WorkflowKey(workflow)
+	return ok && lock.Workflow(key).Listed(), nil
 }

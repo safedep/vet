@@ -13,11 +13,12 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
+	"maps"
 	"path"
 	"slices"
 	"strings"
+	"sync"
 
-	"github.com/safedep/dry/log"
 	"gopkg.in/yaml.v3"
 
 	"github.com/safedep/vet/v2/finding"
@@ -25,6 +26,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/report"
 )
 
 // Name is the plugin name and the config key under plugins.
@@ -71,11 +73,19 @@ func Decode(cfg plugin.Config) (Options, error) {
 // OptionTrustActionsLock is the config key of Options.TrustActionsLock.
 const OptionTrustActionsLock = "trust_actions_lock"
 
+// CodeActionsLockUnreadable is the diagnostic code of a GitHub Actions
+// lockfile that vet cannot read. unpinned-action then reports the tags
+// that the file locks.
+const CodeActionsLockUnreadable = "actions_lock_unreadable"
+
 // Control evaluates the workflow files.
 type Control struct {
 	allow     []string
 	trustLock bool
 	locks     actionslock.Cache
+
+	mu    sync.Mutex
+	diags map[string]report.Diagnostic
 }
 
 // New builds the control from its options.
@@ -232,19 +242,52 @@ func scripts(s step) []*yaml.Node {
 	return out
 }
 
-// lock returns the GitHub Actions lockfile part of a workflow file. A
-// composite action and a file with no lockfile get none. A lockfile that vet
-// cannot read locks nothing, so each tag gives a finding.
+// lock returns the part of the GitHub Actions lockfile that locks the
+// steps of a workflow or composite action file. A composite action runs
+// under each listed workflow that uses it. A lockfile that vet cannot read
+// locks nothing, so each tag gives a finding.
 func (c *Control) lock(m *model.Manifest) actionslock.WorkflowLock {
-	root, key, ok := actionslock.WorkflowKey(m.Path)
-	if !c.trustLock || !ok {
+	if !c.trustLock {
 		return actionslock.WorkflowLock{}
 	}
+	if root, key, ok := actionslock.WorkflowKey(m.Path); ok {
+		return c.readLock(m, root).Workflow(key)
+	}
+	if root, dir, ok := actionslock.ActionRoot(m.Path); ok {
+		l := c.readLock(m, root)
+		return l.Workflows(l.Callers(m.Root, root)[dir])
+	}
+	return actionslock.WorkflowLock{}
+}
+
+func (c *Control) readLock(m *model.Manifest, root string) *actionslock.Lock {
 	l, err := c.locks.Read(m.Root, root)
 	if err != nil {
-		log.Warnf("workflow: read the actions lockfile of %s: %v", m.Path, err)
+		c.warn(err)
 	}
-	return l.Workflow(key)
+	return l
+}
+
+// warn keeps one diagnostic for each lockfile that vet cannot read.
+func (c *Control) warn(err error) {
+	msg := fmt.Sprintf("vet cannot read the GitHub Actions lockfile, so %s reports the tags that it locks: %v", IDUnpinnedAction, err)
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.diags == nil {
+		c.diags = map[string]report.Diagnostic{}
+	}
+	c.diags[msg] = report.Diagnostic{Level: report.DiagnosticWarning, Code: CodeActionsLockUnreadable, Component: Name, Message: msg}
+}
+
+// Diagnostics returns a warning for each lockfile that vet cannot read.
+func (c *Control) Diagnostics() []report.Diagnostic {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	out := make([]report.Diagnostic, 0, len(c.diags))
+	for _, k := range slices.Sorted(maps.Keys(c.diags)) {
+		out = append(out, c.diags[k])
+	}
+	return out
 }
 
 func (c *Control) unpinned(e *emitter, wl actionslock.WorkflowLock) {
@@ -254,10 +297,7 @@ func (c *Control) unpinned(e *emitter, wl actionslock.WorkflowLock) {
 			continue
 		}
 		name, ok := pinned(value)
-		status := actionslock.Unlisted
-		if u.step {
-			status = wl.Status(value)
-		}
+		status := wl.Status(value)
 		if ok || c.allowed(name) || status == actionslock.Locked {
 			continue
 		}
@@ -294,4 +334,5 @@ var (
 	_ plugin.Control   = (*Control)(nil)
 	_ plugin.Describer = (*Control)(nil)
 	_ plugin.Schemer   = (*Control)(nil)
+	_ plugin.Diagnoser = (*Control)(nil)
 )

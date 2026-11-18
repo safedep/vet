@@ -272,11 +272,12 @@ jobs:
   using: composite
   steps:
     - uses: acme/build@v1.2.0
+    - uses: acme/other@v1
 `
 	lock := actionslocktest.Lock{Workflows: map[string][]string{
-		".github/workflows/ci.yml":         {"acme/build@v1.2.0", "acme/cache@v4"},
-		".github/actions/build/action.yml": {"acme/build@v1.2.0"},
+		".github/workflows/ci.yml": {"acme/build@v1.2.0", "acme/cache@v4"},
 	}}.String()
+	caller := fstest.MapFS{".github/workflows/ci.yml": {Data: []byte("on: push\njobs:\n  b:\n    steps:\n      - uses: ./.github/actions/build\n")}}
 	reusable := hit{IDUnpinnedAction, 11, "acme/build/.github/workflows/x.yml@v1.2.0 is not pinned to a commit SHA"}
 	listed := []hit{
 		reusable,
@@ -298,9 +299,11 @@ jobs:
 		data     string
 		lockPath string
 		lock     string
+		extra    fstest.MapFS
 		options  plugin.MapConfig
 		want     []hit
 		wantFix  []string
+		wantDiag bool
 	}{
 		{
 			name: "listed workflow", path: ".github/workflows/ci.yml", data: workflow,
@@ -322,17 +325,29 @@ jobs:
 		},
 		{
 			name: "lockfile that vet cannot read", path: ".github/workflows/ci.yml", data: workflow,
-			lockPath: ".github/workflows/actions.lock", lock: lock + "extra: true\n", want: all, wantFix: allFix,
+			lockPath: ".github/workflows/actions.lock", lock: lock + "extra: true\n", want: all, wantFix: allFix, wantDiag: true,
 		},
 		{
-			name: "composite action", path: ".github/actions/build/action.yml", data: composite,
+			name: "composite action that a listed workflow uses", path: ".github/actions/build/action.yml", data: composite,
+			lockPath: ".github/workflows/actions.lock", lock: lock, extra: caller,
+			want: []hit{{IDUnpinnedAction, 5, "acme/other@v1 is not in the actions lockfile"}}, wantFix: []string{lockCommand},
+		},
+		{
+			name: "composite action that no listed workflow uses", path: ".github/actions/build/action.yml", data: composite,
 			lockPath: ".github/workflows/actions.lock", lock: lock,
-			want: []hit{{IDUnpinnedAction, 4, "acme/build@v1.2.0 is not pinned to a commit SHA"}}, wantFix: []string{fixCommand},
+			want: []hit{
+				{IDUnpinnedAction, 4, "acme/build@v1.2.0 is not pinned to a commit SHA"},
+				{IDUnpinnedAction, 5, "acme/other@v1 is not pinned to a commit SHA"},
+			},
+			wantFix: []string{fixCommand, fixCommand},
 		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			root := fstest.MapFS{tc.path: {Data: []byte(tc.data)}}
+			for p, f := range tc.extra {
+				root[p] = f
+			}
 			if tc.lockPath != "" {
 				root[tc.lockPath] = &fstest.MapFile{Data: []byte(tc.lock)}
 			}
@@ -350,6 +365,14 @@ jobs:
 			}
 			assert.Equal(t, tc.want, got)
 			assert.Equal(t, tc.wantFix, fixes)
+			diags := c.(*Control).Diagnostics()
+			if !tc.wantDiag {
+				assert.Empty(t, diags)
+				return
+			}
+			require.Len(t, diags, 1)
+			assert.Equal(t, CodeActionsLockUnreadable, diags[0].Code)
+			assert.Contains(t, diags[0].Message, ".github/workflows/actions.lock")
 		})
 	}
 }

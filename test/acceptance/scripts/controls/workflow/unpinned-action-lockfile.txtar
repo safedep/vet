@@ -16,6 +16,12 @@ exec vet scan . --mode plain -o json
 stdout 'actions/setup-go@v5 is not in the actions lockfile'
 stdout '"command":"gh actions-lock"'
 
+# A lockfile that vet cannot read locks nothing, and vet warns.
+cp $WORK/old.lock .github/workflows/actions.lock
+exec vet scan . --mode plain -o plain
+stdout 'unpinned-action\t.github/workflows/ci.yml\t.github/workflows/ci.yml:6'
+stderr 'vet cannot read the GitHub Actions lockfile'
+
 -- proj/.github/workflows/ci.yml --
 on: push
 jobs:
@@ -42,3 +48,6 @@ dependencies:
         commit: 'sha1-11bd71901bbe5b1630ceea73d27597364c9af683'
         owner_id: 44036562
         repo_id: 197814629
+-- old.lock --
+version: 'v0.0.2'
+workflows: {}

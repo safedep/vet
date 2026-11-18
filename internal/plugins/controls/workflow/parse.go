@@ -25,8 +25,6 @@ type step struct {
 type usesRef struct {
 	job  string
 	node *yaml.Node
-	// step is false for a job that calls a reusable workflow.
-	step bool
 }
 
 // parse returns nil for a file that is not a YAML mapping, such as a
@@ -145,7 +143,7 @@ func (d *document) uses() []usesRef {
 	}
 	for _, s := range d.steps() {
 		if u := get(s.node, "uses"); scalar(u) != "" {
-			out = append(out, usesRef{job: s.job, node: u, step: true})
+			out = append(out, usesRef{job: s.job, node: u})
 		}
 	}
 	return out

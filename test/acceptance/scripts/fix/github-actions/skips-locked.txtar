@@ -4,12 +4,15 @@
 # A workflow that the lockfile does not list gets its pins.
 env VET_PLUGINS_WORKFLOW_OPTIONS_TRUST_ACTIONS_LOCK=true
 exec vet fix github-actions run --mode plain
-stderr 'The GitHub Actions lockfile lists 2 files\. vet did not change them\. To update their actions, run gh actions-lock'
+stderr 'The GitHub Actions lockfile locks steps in 2 files\. vet did not change them\. To update them, run gh actions-lock'
 stderr 'Pinned 1 action in 1 file\.'
 cmp .github/workflows/ci.yml $WORK/ci.yml
 cmp .github/actions/build/action.yml $WORK/action.yml
 grep 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4' .github/workflows/other.yml
 stub calls github 1
+exec vet fix github-actions run --dry-run -o json
+stdout '"skipped":'
+stdout '"\.github/actions/build/action\.yml"'
 
 -- .github/workflows/ci.yml --
 on: push
