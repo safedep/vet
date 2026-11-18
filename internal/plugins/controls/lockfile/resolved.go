@@ -26,7 +26,7 @@ func (c *Control) resolvedEntries(m *model.Manifest) []finding.Finding {
 				fmt.Sprintf("The lockfile installs %s from %s. The host is not a trusted registry.", name, raw)))
 			continue
 		}
-		if p.ID.Ecosystem() == model.EcosystemNpm && !c.followsConvention(raw, name) {
+		if p.ID.Ecosystem() == model.EcosystemNpm && !c.followsConvention(raw, name, "") {
 			out = append(out, c.packageFinding(IDPathMismatch, m, p, key,
 				fmt.Sprintf("%s resolves from the URL of another package", name),
 				fmt.Sprintf("The lockfile installs %s from %s. The URL path does not match the package name.", name, raw)))
@@ -42,8 +42,13 @@ func registryURL(resolved string) string {
 	for _, prefix := range []string{"registry+", "sparse+"} {
 		resolved = strings.TrimPrefix(resolved, prefix)
 	}
-	if strings.HasPrefix(resolved, "https://") || strings.HasPrefix(resolved, "http://") {
-		return resolved
+	// A URL scheme is not case sensitive. A protocol-relative URL such as
+	// //host/a.tgz also downloads from a remote host.
+	lower := strings.ToLower(resolved)
+	for _, prefix := range []string{"https://", "http://", "//"} {
+		if strings.HasPrefix(lower, prefix) {
+			return resolved
+		}
 	}
 	return ""
 }
@@ -91,7 +96,7 @@ func (c *Control) packageFinding(id string, m *model.Manifest, p *model.Package,
 	f.Evidence = []finding.Evidence{{Source: "lockfile", Summary: p.Resolved}}
 	f.References = []string{cweURL}
 	f.Remediation = &finding.Remediation{
-		Summary: "Make sure that the lockfile change is intended. Regenerate the lockfile from a trusted registry, or add the registry to plugins.lockfile.options.trusted_registries.",
+		Summary: remediation(id),
 	}
 	return f
 }

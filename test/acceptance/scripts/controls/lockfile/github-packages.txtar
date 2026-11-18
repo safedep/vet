@@ -1,0 +1,24 @@
+# GitHub Packages serves npm tarballs at download/<@scope/name>/<version>/<hash>.
+# An entry in that layout passes the name check. An entry whose path names
+# another package gives registry-path-mismatch.
+cd proj
+exec vet --config $WORK/config.yml scan . --mode plain -o plain --fresh
+! stdout 'untrusted-registry'
+stdout 'registry-path-mismatch\tpackage-lock.json\tpackage-lock.json:6\t'
+! stdout 'registry-path-mismatch\tpackage-lock.json\tpackage-lock.json:7\t'
+
+-- config.yml --
+plugins:
+  lockfile:
+    options:
+      trusted_registries: ["https://npm.pkg.github.com"]
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"@acme/utils": "1.2.0", "@acme/ui": "2.0.0"}},
+    "node_modules/@acme/utils": {"version": "1.2.0", "resolved": "https://npm.pkg.github.com/download/@acme/evil/1.2.0/8f3c1d0e5b"},
+    "node_modules/@acme/ui": {"version": "2.0.0", "resolved": "https://npm.pkg.github.com/download/@acme/ui/2.0.0/4a7b9c2d1e"}
+  }
+}
