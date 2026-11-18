@@ -25,11 +25,19 @@ repository (from the `origin` remote), expressions, and actions that a SHA alrea
 only the `uses:` value, so each file keeps its format, its comments and its line ends. It writes a
 file through a temporary file and a rename.
 
+Where GitHub enforces the GitHub Actions lockfile, or when `trust_actions_lock` is `true`, vet leaves
+the step actions of each workflow that the lockfile lists, and names `gh actions-lock`. GitHub
+enforces the lockfile on GitHub.com and GHE.com. There, vet leaves these steps also with
+`trust_actions_lock: false`, because a new SHA fails the run. The `skipped` list of the plan names
+these workflows. See
+[Fix workflow findings](../controls.md#fix-workflow-findings).
+
 vet calls the GitHub API with `GITHUB_TOKEN`, or with the token of the `gh` CLI when one exists, and
 without a token otherwise. The `github.api_url` config key sets another API address.
 
 `--dry-run` prints a diff and writes nothing. The `unpinned-action` control of `vet scan` finds the
-same actions, and its fix names this command. A scan never writes the repository.
+same actions, except the tags that the lockfile locks, and its fix names this command. A scan never
+writes the repository.
 
 ## Examples
 

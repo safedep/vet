@@ -18,6 +18,7 @@ import (
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/gitbase"
+	"github.com/safedep/vet/v2/internal/github/actionslock"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/scalibr"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
@@ -34,6 +35,9 @@ type base struct {
 	// links tells, for each base link, whether its head path was a link
 	// when vet read the base. The base of a link depends on it.
 	links map[string]bool
+	// locks maps the folder that holds a .github folder to the coverage of
+	// its GitHub Actions lockfile.
+	locks map[string]actionslock.Coverage
 }
 
 // sameLinks reports whether each base link has the head mode that it had
@@ -108,11 +112,15 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 		}
 	}()
 
-	b := &base{manifests: map[string]*model.Manifest{}, hashes: map[string]plumbing.Hash{}, links: map[string]bool{}}
+	b := &base{manifests: map[string]*model.Manifest{}, hashes: map[string]plumbing.Hash{}, links: map[string]bool{}, locks: map[string]actionslock.Coverage{}}
 	var files []string
+	lockFailed := false
 	err = tree.Walk(ctx, func(rel string, f *object.File) error {
 		if r.skipped(rel) {
 			return nil
+		}
+		if root, ok := actionslock.LockfileRoot(rel); ok && !b.addLock(root, f) {
+			lockFailed = true
 		}
 		hash := f.Hash
 		isLink := f.Mode == filemode.Symlink
@@ -143,7 +151,7 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 	if err != nil {
 		return nil, err
 	}
-	failed := false
+	failed := lockFailed
 	for _, rel := range files {
 		ms, errs := scalibr.ExtractFile(ctx, scalibr.File{Root: tmp, Path: rel}, exs)
 		for _, err := range errs {
@@ -173,6 +181,42 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 		r.diags.add(report.DiagnosticWarning, report.CodeDeltaFailed, "delta", "keep the base extraction: "+err.Error())
 	}
 	return b, nil
+}
+
+// addLock records the coverage of a base lockfile. GitHub reads the
+// lockfile as a regular file of the commit. A base lockfile that vet
+// cannot parse locked nothing, so the change can reduce nothing. addLock
+// is false when git cannot give the content, so vet does not keep the base.
+func (b *base) addLock(root string, f *object.File) bool {
+	if (f.Mode != filemode.Regular && f.Mode != filemode.Executable) || f.Size > actionslock.MaxSize {
+		return true
+	}
+	data, err := f.Contents()
+	if err != nil {
+		return false
+	}
+	if l, err := actionslock.Parse([]byte(data)); err == nil {
+		b.locks[root] = l.Coverage()
+	}
+	return true
+}
+
+// unlocked returns the workflow paths that the base lockfile locks a key for
+// and the head lockfile does not. The workflow file can stay the same, and
+// its step then runs unlocked.
+func (b *base) unlocked(fsys fs.FS) map[string]bool {
+	out := map[string]bool{}
+	for root, coverage := range b.locks {
+		head, err := actionslock.Read(fsys, root)
+		if err != nil {
+			// A head lockfile that vet cannot read locks nothing.
+			head = nil
+		}
+		for _, w := range coverage.Lost(head.Coverage()) {
+			out[path.Join(root, w)] = true
+		}
+	}
+	return out
 }
 
 // skipped reports a path under a skipped or an excluded directory.

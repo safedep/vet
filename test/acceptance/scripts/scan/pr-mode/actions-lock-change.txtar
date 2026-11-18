@@ -1,0 +1,43 @@
+[!git] skip 'needs git'
+# A change that removes the GitHub Actions lockfile modifies each workflow
+# that it locked, so pull request mode reports the tags of that workflow.
+# A workflow that the lockfile did not lock stays unchanged.
+env VET_PLUGINS_WORKFLOW_OPTIONS_TRUST_ACTIONS_LOCK=true
+cd proj
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+exec vet scan . --mode plain -o plain --base-ref HEAD
+! stdout 'unpinned-action'
+
+rm .github/workflows/actions.lock
+exec git -c user.email=t@example.com -c user.name=t commit -q -am head
+exec vet scan . --mode plain -o plain --base-ref HEAD~1
+stdout 'unpinned-action\t.github/workflows/ci.yml\t.github/workflows/ci.yml:6'
+! stdout 'old.yml'
+
+-- proj/.github/workflows/ci.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+-- proj/.github/workflows/old.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v5
+-- proj/.github/workflows/actions.lock --
+version: 'v0.0.3'
+workflows:
+    '.github/workflows/ci.yml':
+        - 'actions/checkout@v4'
+dependencies:
+    'actions/checkout@v4':
+        ref: 'v4'
+        commit: 'sha1-11bd71901bbe5b1630ceea73d27597364c9af683'
+        owner_id: 44036562
+        repo_id: 197814629

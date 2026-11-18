@@ -17,6 +17,7 @@ import (
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/app"
+	"github.com/safedep/vet/v2/internal/github/actionslock/actionslocktest"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
@@ -595,4 +596,127 @@ func TestPullRequestModeGivesAWholeEnricherEveryPackage(t *testing.T) {
 	runScan(t, o)
 	assert.Equal(t, 3, network.seen, "a batch enricher reads only the introduced packages")
 	assert.Equal(t, 6, code.seen, "the whole enricher also reads the unchanged and the removed packages")
+}
+
+const (
+	lockedWorkflow = ".github/workflows/ci.yml"
+	actionsLock    = ".github/workflows/actions.lock"
+)
+
+// lockProject commits a workflow and the base lockfile, and then writes the
+// head lockfile. An empty lockfile text means no lockfile. exec commits the
+// base lockfile with the executable mode.
+func lockProject(t *testing.T, base, head string, exec bool) string {
+	t.Helper()
+	dir := t.TempDir()
+	repo, err := gogit.PlainInit(dir, false)
+	require.NoError(t, err)
+	write(t, dir, lockedWorkflow, "on: push\njobs:\n  b:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: acme/build@v1\n      - uses: acme/test@v1\n")
+	if base != "" {
+		write(t, dir, actionsLock, base)
+		if exec {
+			require.NoError(t, os.Chmod(filepath.Join(dir, filepath.FromSlash(actionsLock)), 0o700))
+		}
+	}
+	wt, err := repo.Worktree()
+	require.NoError(t, err)
+	require.NoError(t, wt.AddGlob("."))
+	_, err = wt.Commit("base", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@example.com", When: time.Now()}})
+	require.NoError(t, err)
+	require.NoError(t, os.RemoveAll(filepath.Join(dir, filepath.FromSlash(actionsLock))))
+	if head != "" {
+		write(t, dir, actionsLock, head)
+	}
+	return dir
+}
+
+func workflowChange(t *testing.T, res *Result) model.Change {
+	t.Helper()
+	for m, err := range res.Scan.Manifests(context.Background()) {
+		require.NoError(t, err)
+		if m.Path == lockedWorkflow {
+			return m.Change
+		}
+	}
+	t.Fatalf("no manifest %s", lockedWorkflow)
+	return ""
+}
+
+func TestPullRequestModeReportsAWorkflowThatTheActionsLockNoLongerLocks(t *testing.T) {
+	keys := []string{"acme/build@v1", "acme/test@v1"}
+	locked := actionslocktest.Lock{Workflows: map[string][]string{lockedWorkflow: keys}}
+	moved := actionslocktest.Lock{Workflows: locked.Workflows, Commits: map[string]string{"acme/build@v1": "2222222222222222222222222222222222222222"}}
+	cases := []struct {
+		name  string
+		base  string
+		head  string
+		trust bool
+		exec  bool
+		want  model.Change
+	}{
+		{name: "lockfile kept", base: locked.String(), head: locked.String(), trust: true, want: model.ChangeUnchanged},
+		{name: "lockfile removed", base: locked.String(), trust: true, want: model.ChangeModified},
+		{name: "executable lockfile removed", base: locked.String(), trust: true, exec: true, want: model.ChangeModified},
+		{name: "entry removed", base: locked.String(), head: actionslocktest.Lock{Workflows: map[string][]string{lockedWorkflow: keys[1:]}}.String(), trust: true, want: model.ChangeModified},
+		{name: "workflow removed from the lockfile", base: locked.String(), head: actionslocktest.Lock{Workflows: map[string][]string{".github/workflows/other.yml": keys}}.String(), trust: true, want: model.ChangeModified},
+		{name: "commit moved", base: locked.String(), head: moved.String(), trust: true, want: model.ChangeUnchanged},
+		{name: "lockfile that vet cannot read", base: locked.String(), head: locked.String() + "extra: true\n", trust: true, want: model.ChangeModified},
+		{name: "lockfile added", head: locked.String(), trust: true, want: model.ChangeUnchanged},
+		{name: "lockfile not trusted", base: locked.String(), trust: false, want: model.ChangeUnchanged},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newFixture(t)
+			o := f.options(t, lockProject(t, tc.base, tc.head, tc.exec), &fakeEnricher{})
+			o.BaseRef = "HEAD"
+			o.TrustActionsLock = tc.trust
+			for run := range 2 {
+				assert.Equal(t, tc.want, workflowChange(t, runScan(t, o)), "run %d; the second run reads the kept base", run+1)
+			}
+		})
+	}
+}
+
+func TestPullRequestModeContinuesWithTheHeadActionsLock(t *testing.T) {
+	locked := actionslocktest.Lock{Workflows: map[string][]string{lockedWorkflow: {"acme/build@v1", "acme/test@v1"}}}.String()
+	dir := lockProject(t, locked, locked, false)
+	f := newFixture(t)
+	o := f.options(t, dir, &fakeEnricher{})
+	o.BaseRef = "HEAD"
+	o.TrustActionsLock = true
+
+	ctx, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
+	stopped := o
+	// The walk visits actions.lock and then ci.yml, so the stop after two
+	// files comes after vet keeps the workflow.
+	stopped.Observer = stopAfter{stage: StageExtract, done: 2, cancel: cancel}
+	res, err := Run(ctx, stopped)
+	require.ErrorIs(t, err, app.ErrInterrupted)
+	require.NoError(t, res.Scan.Close())
+
+	require.NoError(t, os.Remove(filepath.Join(dir, filepath.FromSlash(actionsLock))))
+	res = runScan(t, o)
+	assert.True(t, res.Continued)
+	assert.Equal(t, model.ChangeModified, workflowChange(t, res), "the kept change of the workflow does not hide the removed lockfile")
+}
+
+// diagnoserControl reports one diagnostic about its own work.
+type diagnoserControl struct{ fileControl }
+
+func (diagnoserControl) Diagnostics() []report.Diagnostic {
+	return []report.Diagnostic{{Level: report.DiagnosticWarning, Code: "control_note", Message: "a note of the control"}}
+}
+
+func TestScanReportsTheDiagnosticsOfAControl(t *testing.T) {
+	f := newFixture(t)
+	o := f.options(t, project(t), &fakeEnricher{}, Control{ID: "noted", Plugin: diagnoserControl{}})
+	res := runScan(t, o)
+	var got []string
+	for _, d := range diagnosticsOf(t, res) {
+		if d.Code == "control_note" {
+			got = append(got, d.Component+": "+d.Message)
+		}
+	}
+	assert.Equal(t, []string{"noted: a note of the control"}, got)
 }

@@ -434,6 +434,12 @@
   tier: P0
   guarantee: "A workflow that uses an action by tag gives a finding. An action pinned by SHA gives none. A local action, as ./path or $/path, gives none."
   labels: [controls]
+- id: controls/workflow/unpinned-action-lockfile
+  title: "workflow: a tag that the actions lockfile locks"
+  category: controls
+  tier: P1
+  guarantee: "With plugins.workflow.options.trust_actions_lock, a tag that the GitHub Actions lockfile locks for the workflow gives no unpinned-action finding. A step that a listed workflow does not lock gives a finding that names gh actions-lock. A workflow that the lockfile does not list gives the plain finding. A lockfile that vet cannot read gives a warning and locks nothing. With a github.api_url that is not GitHub.com or GHE.com, vet does not trust the lockfile by default."
+  labels: [controls, workflow, config]
 - id: scan/working-tree/never-writes
   title: "a scan never writes the target"
   category: scan
@@ -470,6 +476,12 @@
   tier: P0
   guarantee: "A workflow file changed between the base and the head gives a finding on that file only."
   labels: [scan]
+- id: scan/pr-mode/actions-lock-change
+  title: "pr mode: a change that unlocks a workflow"
+  category: scan
+  tier: P1
+  guarantee: "When vet trusts the GitHub Actions lockfile, a change that removes it modifies each workflow that it locked, so pull request mode reports the unpinned actions of that workflow. A workflow that the lockfile did not lock stays unchanged."
+  labels: [scan, pr-mode, workflow]
 - id: scan/sources/directory
   title: "sources: directory"
   category: scan
@@ -650,6 +662,12 @@
   tier: P2
   guarantee: "vet fix github-actions run prints one line with a short reason for each action that it could not pin, one hint and no \"No action to pin\" line, and exits 3."
   labels: [fix]
+- id: fix/github-actions/skips-locked
+  title: "the fix leaves the workflows that the actions lockfile locks"
+  category: fix
+  tier: P1
+  guarantee: "vet fix github-actions run leaves the step actions of each workflow that the GitHub Actions lockfile lists, pins the other files, and names gh actions-lock."
+  labels: [fix, workflow]
 - id: state/continue/options-change
   title: "other scan options start a new scan"
   category: state
@@ -928,6 +946,12 @@
   category: ci
   tier: P1
   guarantee: "vet ci update moves the safedep/vet and actions/checkout pins of the vet workflow to the newest release, and keeps each other line."
+  labels: [action, ci-setup]
+- id: ci/setup/update-locked
+  title: "vet ci update names gh actions-lock for a listed workflow"
+  category: ci
+  tier: P2
+  guarantee: "vet ci update moves the pins of a vet workflow that the GitHub Actions lockfile lists, and names gh actions-lock to add the new pins to the lockfile."
   labels: [action, ci-setup]
 - id: reach/import/levels
   title: "a vulnerability finding says whether the code imports its package"

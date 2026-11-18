@@ -117,9 +117,10 @@ type CapabilityFinder interface {
 	Capabilities(ctx context.Context) ([]report.Capability, error)
 }
 
-// Diagnoser is an enricher that reports the limits of its work, such as
-// source files that it could not parse. The engine reads the diagnostics
-// once for each scan, after the enrichers, and adds them to the report.
+// Diagnoser is an enricher or a control that reports the limits of its
+// work, such as source files that it could not parse. The engine reads the
+// diagnostics once for each scan, after the enrichers or after the
+// controls, and adds them to the report.
 type Diagnoser interface {
 	Diagnostics() []report.Diagnostic
 }

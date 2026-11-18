@@ -109,6 +109,9 @@ func (r *run) extractFiles(ctx context.Context, a plugin.Artifact, done *int) er
 			return err
 		}
 		d = &delta{base: b, seen: map[string]bool{}}
+		if r.o.TrustActionsLock {
+			d.unlocked = b.unlocked(fsys)
+		}
 	}
 	visit := func(rel string, info fs.FileInfo) error {
 		if err := ctx.Err(); err != nil {
@@ -148,6 +151,9 @@ func (r *run) extractFiles(ctx context.Context, a plugin.Artifact, done *int) er
 type delta struct {
 	base *base
 	seen map[string]bool
+	// unlocked holds the workflow paths that the change no longer locks a
+	// step for.
+	unlocked map[string]bool
 }
 
 func (r *run) walk(fsys fs.FS, a plugin.Artifact, readsInstalled bool, visit func(string, fs.FileInfo) error) error {
@@ -277,7 +283,10 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 	if err != nil {
 		return err
 	}
-	if prev != nil && prev.Status != state.ArtifactPending && prev.Size == info.Size() && prev.MTime.Equal(info.ModTime().Truncate(time.Millisecond)) {
+	// A workflow that the change unlocks gets its change again, because its
+	// file can stay the same while the lockfile changes.
+	if prev != nil && prev.Status != state.ArtifactPending && prev.Size == info.Size() && prev.MTime.Equal(info.ModTime().Truncate(time.Millisecond)) &&
+		(d == nil || !d.unlocked[rel]) {
 		if d != nil {
 			// The saved manifests already carry their change against the base.
 			for _, e := range wanted {
@@ -317,6 +326,11 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 				// The base file gave no manifest, such as a clean file of the
 				// hidden-code extractor, but the file was there.
 				m.Change = fileChange(true, inBase, same)
+			}
+			if m.Kind == model.ManifestKindWorkflow && m.Change == model.ChangeUnchanged && d.unlocked[m.Path] {
+				// A change to the lockfile alone unlocks a step of the
+				// workflow, so pull request mode reports its findings.
+				m.Change = model.ChangeModified
 			}
 			d.seen[m.ID] = true
 		}

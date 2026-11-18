@@ -11,18 +11,23 @@ package workflow
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/fs"
+	"maps"
 	"path"
 	"slices"
 	"strings"
+	"sync"
 
 	"gopkg.in/yaml.v3"
 
 	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/github/actionslock"
 	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/report"
 )
 
 // Name is the plugin name and the config key under plugins.
@@ -35,7 +40,10 @@ const (
 	IDUnpinnedAction    = "unpinned-action"
 )
 
-const fixCommand = "vet fix github-actions run"
+const (
+	fixCommand  = "vet fix github-actions run"
+	lockCommand = "gh actions-lock"
+)
 
 // Options are plugins.workflow.options.
 type Options struct {
@@ -43,25 +51,69 @@ type Options struct {
 	// "my-org/*" or "actions/checkout". A pattern matches the action name,
 	// or its owner/repo part, with path.Match.
 	AllowUnpinned []string `json:"allow_unpinned"`
+	// TrustActionsLock makes vet trust the GitHub Actions lockfile. With no
+	// value, the runner trusts it when GitHub enforces it: on GitHub.com and
+	// GHE.com, not on GitHub Enterprise Server. The control alone trusts it.
+	TrustActionsLock *bool `json:"trust_actions_lock"`
 }
+
+// decode decodes and checks the options.
+func decode(cfg plugin.Config) (Options, error) {
+	var o Options
+	if err := cfg.Decode(&o); err != nil {
+		return Options{}, err
+	}
+	for _, p := range o.AllowUnpinned {
+		if _, err := path.Match(p, ""); err != nil {
+			return Options{}, fmt.Errorf("workflow: allow_unpinned pattern %q: %w", p, err)
+		}
+	}
+	return o, nil
+}
+
+// OptionTrustActionsLock is the config key of Options.TrustActionsLock.
+const OptionTrustActionsLock = "trust_actions_lock"
+
+// TrustOption returns Options.TrustActionsLock of opts, or nil when opts
+// does not set it. It matches the key in any letter case, as decode does,
+// so the runner and the control read the same value. It reads no other
+// option, so an option that is not valid does not change the trust.
+func TrustOption(opts map[string]any) (*bool, error) {
+	var o struct {
+		TrustActionsLock *bool `json:"trust_actions_lock"`
+	}
+	b, err := json.Marshal(opts)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(b, &o); err != nil {
+		return nil, err
+	}
+	return o.TrustActionsLock, nil
+}
+
+// CodeActionsLockUnreadable is the diagnostic code of a GitHub Actions
+// lockfile that vet cannot read. unpinned-action then reports the tags
+// that the file locks.
+const CodeActionsLockUnreadable = "actions_lock_unreadable"
 
 // Control evaluates the workflow files.
 type Control struct {
-	allow []string
+	allow     []string
+	trustLock bool
+	locks     actionslock.Cache
+
+	mu    sync.Mutex
+	diags map[string]report.Diagnostic
 }
 
 // New builds the control from its options.
 func New(cfg plugin.Config) (plugin.Control, error) {
-	var o Options
-	if err := cfg.Decode(&o); err != nil {
+	o, err := decode(cfg)
+	if err != nil {
 		return nil, err
 	}
-	for _, p := range o.AllowUnpinned {
-		if _, err := path.Match(p, ""); err != nil {
-			return nil, fmt.Errorf("workflow: allow_unpinned pattern %q: %w", p, err)
-		}
-	}
-	return &Control{allow: o.AllowUnpinned}, nil
+	return &Control{allow: o.AllowUnpinned, trustLock: o.TrustActionsLock == nil || *o.TrustActionsLock}, nil
 }
 
 var infos = map[string]plugin.ControlInfo{
@@ -78,7 +130,7 @@ var infos = map[string]plugin.ControlInfo{
 	IDUnpinnedAction: {
 		ID: IDUnpinnedAction, Family: finding.FamilyWorkflow, Severity: finding.SeverityMedium,
 		Title:       "Action not pinned to a commit SHA",
-		Description: "A step uses an action by a tag or a branch. The owner of the action, or an attacker who controls it, can move the tag to other code. A local action passes. $/path runs from the commit of the workflow. ./path runs from the workspace, which the checkout steps of the job fill.",
+		Description: "A step uses an action by a tag or a branch. The owner of the action, or an attacker who controls it, can move the tag to other code. A local action passes. $/path runs from the commit of the workflow. ./path runs from the workspace, which the checkout steps of the job fill. A tag passes when the GitHub Actions lockfile locks it for the workflow.",
 	},
 }
 
@@ -111,7 +163,7 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 	e := &emitter{path: m.Path, doc: d, seen: map[string]int{}}
 	c.dangerousTrigger(e)
 	c.templateInjection(e)
-	c.unpinned(e)
+	c.unpinned(e, c.lock(m, d))
 	c.pins(e, m)
 	c.hardening(e)
 	return e.out, nil
@@ -209,18 +261,67 @@ func scripts(s step) []*yaml.Node {
 	return out
 }
 
-func (c *Control) unpinned(e *emitter) {
+// lock returns the part of the GitHub Actions lockfile for a workflow file.
+// A composite action gets none: it can run under a workflow that the
+// lockfile does not list, so each of its tags gives a finding. A lockfile
+// that vet cannot read locks nothing.
+func (c *Control) lock(m *model.Manifest, d *document) actionslock.WorkflowLock {
+	root, key, ok := actionslock.WorkflowKey(m.Path)
+	// A file with runs: is an action, also in .github/workflows. GitHub does
+	// not run it as a listed workflow.
+	if !c.trustLock || !ok || get(d.root, "runs") != nil {
+		return actionslock.WorkflowLock{}
+	}
+	l, err := c.locks.Read(m.Root, root)
+	if err != nil {
+		c.warn(err)
+	}
+	return l.Workflow(key)
+}
+
+// warn keeps one diagnostic for each lockfile that vet cannot read.
+func (c *Control) warn(err error) {
+	msg := fmt.Sprintf("vet cannot read the GitHub Actions lockfile, so %s reports the tags that it locks: %v", IDUnpinnedAction, err)
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.diags == nil {
+		c.diags = map[string]report.Diagnostic{}
+	}
+	c.diags[msg] = report.Diagnostic{Level: report.DiagnosticWarning, Code: CodeActionsLockUnreadable, Component: Name, Message: msg}
+}
+
+// Diagnostics returns a warning for each lockfile that vet cannot read.
+func (c *Control) Diagnostics() []report.Diagnostic {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	out := make([]report.Diagnostic, 0, len(c.diags))
+	for _, k := range slices.Sorted(maps.Keys(c.diags)) {
+		out = append(out, c.diags[k])
+	}
+	return out
+}
+
+func (c *Control) unpinned(e *emitter, wl actionslock.WorkflowLock) {
 	for _, u := range e.doc.uses() {
 		value := scalar(u.node)
 		if strings.Contains(value, "${{") {
 			continue
 		}
 		name, ok := pinned(value)
-		if ok || c.allowed(name) {
+		status := wl.Status(value)
+		// GitHub fails the run of a listed workflow at a step with no entry,
+		// also for a commit SHA and for an action that allow_unpinned lists.
+		if status != actionslock.Missing && (ok || c.allowed(name) || status == actionslock.Locked) {
 			continue
 		}
-		e.add(IDUnpinnedAction, line(u.node, 0), name, value, fmt.Sprintf("%s is not pinned to a commit SHA", value),
-			&finding.Remediation{Summary: "Pin the action to the commit SHA of the tag, and keep the tag in a comment.", Command: fixCommand})
+		title := fmt.Sprintf("%s is not pinned to a commit SHA", value)
+		rem := &finding.Remediation{Summary: "Pin the action to the commit SHA of the tag, and keep the tag in a comment.", Command: fixCommand}
+		if status == actionslock.Missing {
+			// GitHub fails the run of a listed workflow at this step.
+			title = fmt.Sprintf("%s is not in the actions lockfile", value)
+			rem = &finding.Remediation{Summary: "Add the action to the GitHub Actions lockfile.", Command: lockCommand}
+		}
+		e.add(IDUnpinnedAction, line(u.node, 0), name, value, title, rem)
 	}
 }
 
@@ -246,4 +347,5 @@ var (
 	_ plugin.Control   = (*Control)(nil)
 	_ plugin.Describer = (*Control)(nil)
 	_ plugin.Schemer   = (*Control)(nil)
+	_ plugin.Diagnoser = (*Control)(nil)
 )

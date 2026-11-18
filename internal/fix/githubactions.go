@@ -18,6 +18,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/safedep/vet/v2/internal/github"
+	"github.com/safedep/vet/v2/internal/github/actionslock"
 )
 
 // Resolver resolves a tag or a branch of a GitHub repository to a commit
@@ -42,6 +43,8 @@ type File struct {
 	Edits  []Edit `json:"edits"`
 	before []byte
 	after  []byte
+	// skipped is true when the plan leaves a tag of the file.
+	skipped bool
 }
 
 // Failure is an action that the fix could not pin.
@@ -61,6 +64,10 @@ type Plan struct {
 	Root     string    `json:"root"`
 	Files    []*File   `json:"files"`
 	Failures []Failure `json:"failures"`
+	// Skipped are the listed workflows with a tag that the fix leaves. The
+	// GitHub Actions lockfile locks their steps, and gh actions-lock updates
+	// them.
+	Skipped []string `json:"skipped"`
 }
 
 // NeedsToken is true when a GitHub token can fix a failure of the plan.
@@ -80,6 +87,49 @@ type PinOptions struct {
 	// SameRepo is owner/repo of the repository at Root. Its actions stay.
 	// Empty reads the origin remote of the git repository.
 	SameRepo string
+	// ActionsLock leaves the step actions that the GitHub Actions lockfile
+	// locks. Set it when GitHub enforces the lockfile.
+	ActionsLock bool
+}
+
+// ErrActionsLock is the error of a GitHub Actions lockfile that vet cannot
+// read.
+var ErrActionsLock = errors.New("read the GitHub Actions lockfile")
+
+// leaveFunc reports a uses: value of the document doc in the file rel that
+// the fix leaves.
+type leaveFunc func(rel string, doc *yaml.Node, uses string) bool
+
+// actionsLockLeaves returns a test for the uses: values that the fix
+// leaves because the GitHub Actions lockfile of root locks the step: each
+// step action of a listed workflow. A new commit SHA there has no lockfile
+// entry, and GitHub fails the run. A reusable workflow at job level needs
+// no entry, so the fix pins it. A file with runs: is an action, also in
+// .github/workflows. GitHub does not run it as a workflow, so the fix pins
+// it.
+func actionsLockLeaves(root string) (leaveFunc, error) {
+	lock, err := actionslock.Read(os.DirFS(root), ".")
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrActionsLock, err)
+	}
+	return func(rel string, doc *yaml.Node, uses string) bool {
+		_, key, ok := actionslock.WorkflowKey(rel)
+		return ok && !actionFile(doc) && actionslock.IsAction(uses) && lock.Lists(key)
+	}, nil
+}
+
+// actionFile reports a document with a top-level runs: key.
+func actionFile(doc *yaml.Node) bool {
+	if len(doc.Content) == 0 || doc.Content[0].Kind != yaml.MappingNode {
+		return false
+	}
+	m := doc.Content[0].Content
+	for i := 0; i+1 < len(m); i += 2 {
+		if m[i].Value == "runs" {
+			return true
+		}
+	}
+	return false
 }
 
 // PlanPins finds each third-party uses: with a tag or a branch in the
@@ -94,8 +144,22 @@ func PlanPins(ctx context.Context, o PinOptions) (*Plan, error) {
 	if err != nil {
 		return nil, err
 	}
+	var leave leaveFunc
+	if o.ActionsLock {
+		listed, err := actionsLockLeaves(o.Root)
+		if err != nil {
+			return nil, err
+		}
+		// The fix leaves an action of the same repository anyway, so the
+		// lockfile does not skip it.
+		leave = func(rel string, doc *yaml.Node, uses string) bool {
+			action, _, _ := strings.Cut(uses, "@")
+			parts := strings.SplitN(action, "/", 3)
+			return len(parts) >= 2 && !strings.EqualFold(parts[0]+"/"+parts[1], o.SameRepo) && listed(rel, doc, uses)
+		}
+	}
 	cache := map[string]string{}
-	return plan(ctx, o.Root, files, func(ctx context.Context, repo, ref string) (Pin, bool, error) {
+	return plan(ctx, o.Root, files, leave, func(ctx context.Context, repo, ref string) (Pin, bool, error) {
 		if github.IsCommitSHA(ref) || strings.EqualFold(repo, o.SameRepo) {
 			return Pin{}, false, nil
 		}
@@ -134,7 +198,7 @@ type RepinOptions struct {
 // PlanRepins moves each action of Pins in Files to its new pin. A line
 // that has the pin already stays.
 func PlanRepins(ctx context.Context, o RepinOptions) (*Plan, error) {
-	return plan(ctx, o.Root, o.Files, func(_ context.Context, repo, ref string) (Pin, bool, error) {
+	return plan(ctx, o.Root, o.Files, nil, func(_ context.Context, repo, ref string) (Pin, bool, error) {
 		p, ok := o.Pins[strings.ToLower(repo)]
 		return p, ok && !strings.EqualFold(ref, p.SHA), nil
 	})
@@ -167,14 +231,19 @@ func PinnedTags(data []byte) (map[string]string, error) {
 // line.
 type pinner func(ctx context.Context, repo, ref string) (Pin, bool, error)
 
-func plan(ctx context.Context, root string, files []string, pin pinner) (*Plan, error) {
-	p := &Plan{Root: root, Files: []*File{}, Failures: []Failure{}}
+// plan plans the edits of files. leave, when set, names the uses: values
+// that stay.
+func plan(ctx context.Context, root string, files []string, leave leaveFunc, pin pinner) (*Plan, error) {
+	p := &Plan{Root: root, Files: []*File{}, Failures: []Failure{}, Skipped: []string{}}
 	for _, rel := range files {
 		data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(rel)))
 		if err != nil {
 			return nil, err
 		}
-		f, fails := planFile(ctx, rel, data, pin)
+		f, fails := planFile(ctx, rel, data, leave, pin)
+		if f.skipped {
+			p.Skipped = append(p.Skipped, rel)
+		}
 		p.Failures = append(p.Failures, fails...)
 		if len(f.Edits) > 0 {
 			p.Files = append(p.Files, f)
@@ -183,7 +252,7 @@ func plan(ctx context.Context, root string, files []string, pin pinner) (*Plan, 
 	return p, nil
 }
 
-func planFile(ctx context.Context, rel string, data []byte, pin pinner) (*File, []Failure) {
+func planFile(ctx context.Context, rel string, data []byte, leave leaveFunc, pin pinner) (*File, []Failure) {
 	f := &File{Path: rel, Edits: []Edit{}, before: data}
 	var doc yaml.Node
 	if err := yaml.Unmarshal(data, &doc); err != nil {
@@ -198,6 +267,10 @@ func planFile(ctx context.Context, rel string, data []byte, pin pinner) (*File, 
 		}
 		parts := strings.SplitN(action, "/", 3)
 		if len(parts) < 2 {
+			continue
+		}
+		if leave != nil && leave(rel, &doc, n.Value) {
+			f.skipped = f.skipped || !github.IsCommitSHA(ref)
 			continue
 		}
 		p, ok, err := pin(ctx, parts[0]+"/"+parts[1], ref)

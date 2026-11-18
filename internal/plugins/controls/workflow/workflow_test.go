@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/safedep/vet/v2/internal/github/actionslock/actionslocktest"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/plugin/plugintest"
@@ -250,6 +251,150 @@ func TestElementNamesThePartAtFault(t *testing.T) {
 				slices.Sort(got[k])
 			}
 			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestUnpinnedActionsLock(t *testing.T) {
+	const workflow = `on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: acme/build@v1.2.0
+      - uses: acme/cache/save@v4
+      - uses: acme/other@v1
+      - uses: docker://alpine:3.19
+      - uses: acme/pinned@1111111111111111111111111111111111111111
+  call:
+    uses: acme/build/.github/workflows/x.yml@v1.2.0
+`
+	const composite = `runs:
+  using: composite
+  steps:
+    - uses: acme/build@v1.2.0
+    - uses: acme/other@v1
+`
+	lock := actionslocktest.Lock{Workflows: map[string][]string{
+		".github/workflows/ci.yml": {"acme/build@v1.2.0", "acme/cache@v4"},
+	}}.String()
+	caller := fstest.MapFS{".github/workflows/ci.yml": {Data: []byte("on: push\njobs:\n  b:\n    steps:\n      - uses: $/.github/actions/build\n")}}
+	reusable := hit{IDUnpinnedAction, 12, "acme/build/.github/workflows/x.yml@v1.2.0 is not pinned to a commit SHA"}
+	listed := []hit{
+		reusable,
+		{IDUnpinnedAction, 8, "acme/other@v1 is not in the actions lockfile"},
+		{IDUnpinnedAction, 9, "docker://alpine:3.19 is not pinned to a commit SHA"},
+		{IDUnpinnedAction, 10, "acme/pinned@1111111111111111111111111111111111111111 is not in the actions lockfile"},
+	}
+	listedFix := []string{fixCommand, lockCommand, fixCommand, lockCommand}
+	all := []hit{
+		reusable,
+		{IDUnpinnedAction, 6, "acme/build@v1.2.0 is not pinned to a commit SHA"},
+		{IDUnpinnedAction, 7, "acme/cache/save@v4 is not pinned to a commit SHA"},
+		{IDUnpinnedAction, 8, "acme/other@v1 is not pinned to a commit SHA"},
+		{IDUnpinnedAction, 9, "docker://alpine:3.19 is not pinned to a commit SHA"},
+	}
+	allFix := []string{fixCommand, fixCommand, fixCommand, fixCommand, fixCommand}
+	cases := []struct {
+		name     string
+		path     string
+		data     string
+		lockPath string
+		lock     string
+		extra    fstest.MapFS
+		options  plugin.MapConfig
+		want     []hit
+		wantFix  []string
+		wantDiag bool
+	}{
+		{
+			name: "listed workflow", path: ".github/workflows/ci.yml", data: workflow,
+			lockPath: ".github/workflows/actions.lock", lock: lock, want: listed, wantFix: listedFix,
+		},
+		{
+			// allow_unpinned accepts a tag, but GitHub still fails the run of a
+			// listed workflow at a step with no entry.
+			name: "listed workflow with allow_unpinned", path: ".github/workflows/ci.yml", data: workflow,
+			lockPath: ".github/workflows/actions.lock", lock: lock, options: plugin.MapConfig{"allow_unpinned": []any{"acme/*"}},
+			want: []hit{
+				{IDUnpinnedAction, 8, "acme/other@v1 is not in the actions lockfile"},
+				{IDUnpinnedAction, 9, "docker://alpine:3.19 is not pinned to a commit SHA"},
+				{IDUnpinnedAction, 10, "acme/pinned@1111111111111111111111111111111111111111 is not in the actions lockfile"},
+			},
+			wantFix: []string{lockCommand, fixCommand, lockCommand},
+		},
+		{
+			name: "nested repository", path: "sub/.github/workflows/ci.yml", data: workflow,
+			lockPath: "sub/.github/workflows/actions.lock", lock: lock, want: listed, wantFix: listedFix,
+		},
+		{
+			name: "workflow that the lockfile does not list", path: ".github/workflows/other.yml", data: workflow,
+			lockPath: ".github/workflows/actions.lock", lock: lock, want: all, wantFix: allFix,
+		},
+		{name: "no lockfile", path: ".github/workflows/ci.yml", data: workflow, want: all, wantFix: allFix},
+		{
+			name: "lockfile not trusted", path: ".github/workflows/ci.yml", data: workflow,
+			lockPath: ".github/workflows/actions.lock", lock: lock, options: plugin.MapConfig{OptionTrustActionsLock: false},
+			want: all, wantFix: allFix,
+		},
+		{
+			name: "lockfile that vet cannot read", path: ".github/workflows/ci.yml", data: workflow,
+			lockPath: ".github/workflows/actions.lock", lock: lock + "extra: true\n", want: all, wantFix: allFix, wantDiag: true,
+		},
+		{
+			// A file with runs: is an action, also in .github/workflows, and a
+			// listed key does not lock it.
+			name: "action file in the workflows folder", path: ".github/workflows/ci.yml", data: composite,
+			lockPath: ".github/workflows/actions.lock", lock: lock,
+			want: []hit{
+				{IDUnpinnedAction, 4, "acme/build@v1.2.0 is not pinned to a commit SHA"},
+				{IDUnpinnedAction, 5, "acme/other@v1 is not pinned to a commit SHA"},
+			},
+			wantFix: []string{fixCommand, fixCommand},
+		},
+		{
+			// A workflow that the lockfile does not list can use the action
+			// too, and GitHub then runs its tags unlocked.
+			name: "composite action that a listed workflow uses", path: ".github/actions/build/action.yml", data: composite,
+			lockPath: ".github/workflows/actions.lock", lock: lock, extra: caller,
+			want: []hit{
+				{IDUnpinnedAction, 4, "acme/build@v1.2.0 is not pinned to a commit SHA"},
+				{IDUnpinnedAction, 5, "acme/other@v1 is not pinned to a commit SHA"},
+			},
+			wantFix: []string{fixCommand, fixCommand},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			root := fstest.MapFS{tc.path: {Data: []byte(tc.data)}}
+			for p, f := range tc.extra {
+				root[p] = f
+			}
+			if tc.lockPath != "" {
+				root[tc.lockPath] = &fstest.MapFile{Data: []byte(tc.lock)}
+			}
+			c, err := New(tc.options)
+			require.NoError(t, err)
+			m := &model.Manifest{ID: "m1", Path: tc.path, Kind: model.ManifestKindWorkflow, Root: root}
+			var got []hit
+			var fixes []string
+			for _, f := range plugintest.TestControl(t, c, m, nil) {
+				if f.ControlID != IDUnpinnedAction {
+					continue
+				}
+				got = append(got, hit{control: f.ControlID, line: f.Locus.StartLine, title: f.Title})
+				fixes = append(fixes, f.Remediation.Command)
+			}
+			assert.Equal(t, tc.want, got)
+			assert.Equal(t, tc.wantFix, fixes)
+			diags := c.(*Control).Diagnostics()
+			if !tc.wantDiag {
+				assert.Empty(t, diags)
+				return
+			}
+			require.Len(t, diags, 1)
+			assert.Equal(t, CodeActionsLockUnreadable, diags[0].Code)
+			assert.Contains(t, diags[0].Message, ".github/workflows/actions.lock")
 		})
 	}
 }

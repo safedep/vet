@@ -16,6 +16,7 @@ import (
 	"github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/internal/engine"
 	"github.com/safedep/vet/v2/internal/plugins/controls/cooldown"
+	"github.com/safedep/vet/v2/internal/plugins/controls/workflow"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/insights"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/plain"
@@ -218,7 +219,7 @@ func TestPluginOriginNamesTheSource(t *testing.T) {
 			}
 			l, err := config.Load(tc.opts)
 			require.NoError(t, err)
-			s := withCooldown(&config.Runtime{Loaded: l}, tc.days)
+			s := settingsOf(&config.Runtime{Loaded: l}, tc.days, true)
 			assert.Equal(t, tc.want, s.PluginOrigin(cooldown.Name, "days"))
 		})
 	}
@@ -252,4 +253,55 @@ func TestEnricherSpecsCarryTheCacheRule(t *testing.T) {
 	assert.True(t, got[0].Prior)
 	assert.Nil(t, got[1].Keep, "an enricher with no rule keeps each result")
 	assert.False(t, got[1].Prior)
+}
+
+func TestTrustsActionsLock(t *testing.T) {
+	const ghes = "github:\n  api_url: https://github.acme.internal/api/v3\n"
+	option := func(v string) string {
+		return "plugins:\n  workflow:\n    options:\n      trust_actions_lock: " + v + "\n"
+	}
+	ghesRunner := map[string]string{"GITHUB_ACTIONS": "true", "GITHUB_API_URL": "https://github.acme.internal/api/v3"}
+	cases := []struct {
+		name      string
+		config    string
+		env       map[string]string
+		want      bool
+		wantLeave bool
+		wantErr   bool
+	}{
+		{name: "GitHub.com", want: true, wantLeave: true},
+		{name: "GHE.com", config: "github:\n  api_url: https://api.acme.ghe.com\n", want: true, wantLeave: true},
+		{name: "GitHub Enterprise Server", config: ghes},
+		{name: "GitHub Actions run on GitHub Enterprise Server", env: ghesRunner},
+		{name: "GITHUB_API_URL outside GitHub Actions", env: map[string]string{"GITHUB_API_URL": "https://github.acme.internal/api/v3"}, want: true, wantLeave: true},
+		{name: "github.api_url over GITHUB_API_URL", config: "github:\n  api_url: https://api.github.com\n", env: ghesRunner, want: true, wantLeave: true},
+		{name: "option set on GitHub Enterprise Server", config: ghes + option("true"), want: true, wantLeave: true},
+		{name: "option off on GitHub.com", config: option("false"), want: false, wantLeave: true},
+		{name: "option in another letter case", config: "plugins:\n  workflow:\n    options:\n      Trust_Actions_Lock: false\n", want: false, wantLeave: true},
+		{name: "option with no value", config: ghes + option("")},
+		{name: "option that is not a bool", config: option(`"yes"`), wantErr: true},
+		{name: "other workflow option that is not valid", config: "plugins:\n  workflow:\n    enabled: false\n    options:\n      allow_unpinned: ['[']\n", want: true, wantLeave: true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			file := filepath.Join(t.TempDir(), "config.yml")
+			require.NoError(t, os.WriteFile(file, []byte(tc.config), 0o600))
+			l, err := config.Load(config.LoadOptions{ConfigFile: file, LookupEnv: func(string) (string, bool) { return "", false }})
+			require.NoError(t, err)
+			rt := &config.Runtime{Loaded: l}
+			getenv := func(k string) string { return tc.env[k] }
+			got, err := TrustsActionsLock(rt, getenv)
+			leave, leaveErr := FixLeavesActionsLock(rt, getenv)
+			if tc.wantErr {
+				assert.Error(t, err)
+				assert.Error(t, leaveErr)
+				return
+			}
+			require.NoError(t, err)
+			require.NoError(t, leaveErr)
+			assert.Equal(t, tc.want, got)
+			assert.Equal(t, tc.wantLeave, leave, "the fix leaves the listed files")
+			assert.Equal(t, tc.want, settingsOf(rt, 0, got).PluginOptions(workflow.Name)[workflow.OptionTrustActionsLock])
+		})
+	}
 }

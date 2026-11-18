@@ -52,6 +52,7 @@ helper or a list. Each row is the one place for its concern.
 | A path pattern of `scan.exclude` or of a policy suppression | `internal/pathglob` |
 | A token in a git URL | `git.Redact` in `internal/plugins/sources/git` |
 | GitHub token and client | `internal/github` |
+| The GitHub Actions lockfile, `.github/workflows/actions.lock` | `internal/github/actionslock`, which wraps the parser of GitHub |
 | The CI platform and the change that it builds, the adapters that write to it, and the setup files of `vet ci` | `internal/ci` |
 | Package identity: compare, key, order, PURL and the wire form of a package version | `model.PackageVersion`. It wraps the `dry/api/pb` rules. |
 | SPDX license expressions: parse, compare, allow and deny, the OSI and FSF sets | `internal/spdxlicense`, which wraps `dry/policy/spdxlicense`. Do not import the dry package from another package. |

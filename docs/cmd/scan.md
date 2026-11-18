@@ -37,9 +37,11 @@ policy NAME with no extension and no directory is `policies/NAME.yml` in the vet
 as `vet policy init` writes it, unless the current directory has a file with that name.
 
 `--base-ref` compares the target with a git ref, for example `origin/main`. vet then checks only the
-packages and the workflows that the change adds or modifies, and reports only their findings. vet
-keeps the extraction of the base commit in the state directory. The next scan with the same base
-commit reads it and does not extract the base again. The table counts the changed packages. It
+packages and the workflows that the change adds or modifies, and reports only their findings. When vet
+trusts the GitHub Actions lockfile, a workflow is also modified when the change removes one of its
+lockfile entries. When
+vet reads each base file, it keeps the extraction of the base commit in the state directory. The
+next scan with the same base commit reads it and does not extract the base again. The table counts the changed packages. It
 shows a CHANGE column only when the rows have different changes. A `--base-ref` that git does not
 know exits with code 2 and leaves no scan in the index.
 

@@ -20,6 +20,8 @@ import (
 // findings, because evaluation is local and fast, and the controls or the
 // policy can change between two runs of one scan.
 func (r *run) evaluate(ctx context.Context) error {
+	// A stopped scan keeps the diagnostics of the manifests that it evaluated.
+	defer r.controlDiagnostics()
 	scan := r.res.Scan
 	if err := scan.ClearFindings(ctx); err != nil {
 		return err
@@ -49,6 +51,14 @@ func (r *run) evaluate(ctx context.Context) error {
 		r.o.Observer.Progress(StageEvaluate, i+1, len(ids))
 	}
 	return scan.AddFindings(ctx, "", r.evaluateApplication(ctx))
+}
+
+// controlDiagnostics adds the diagnostics that each control reports about
+// its own work.
+func (r *run) controlDiagnostics() {
+	for _, c := range r.o.Controls {
+		r.pluginDiagnostics(c.ID, c.Plugin)
+	}
 }
 
 func (r *run) evaluateManifest(ctx context.Context, m *model.Manifest) []finding.Finding {

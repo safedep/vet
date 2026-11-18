@@ -12,6 +12,8 @@ import (
 	gh "github.com/google/go-github/v70/github"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/v2/internal/github/actionslock/actionslocktest"
 )
 
 const sha = "11bd71901bbe5b1630ceea73d27597364c9af683"
@@ -195,4 +197,82 @@ func TestPinnedTags(t *testing.T) {
 
 	_, err = PinnedTags([]byte("jobs: [\n"))
 	assert.Error(t, err)
+}
+
+func TestPlanLeavesTheFilesThatTheActionsLockLists(t *testing.T) {
+	write := func(t *testing.T, root, rel, content string) {
+		t.Helper()
+		full := filepath.Join(root, filepath.FromSlash(rel))
+		require.NoError(t, os.MkdirAll(filepath.Dir(full), 0o755))
+		require.NoError(t, os.WriteFile(full, []byte(content), 0o644))
+	}
+	listed := actionslocktest.Lock{Workflows: map[string][]string{
+		".github/workflows/ci.yml":     {"actions/checkout@v4"},
+		".github/workflows/calls.yml":  {"actions/checkout@v4"},
+		".github/workflows/pinned.yml": {"actions/checkout@" + sha},
+		".github/workflows/own.yml":    {"my-org/app@v1"},
+		".github/workflows/action.yml": {"actions/checkout@v4"},
+	}}.String()
+	cases := []struct {
+		name        string
+		lock        string
+		actionsLock bool
+		wantFiles   []string
+		wantSkipped []string
+		wantErr     bool
+	}{
+		{
+			name: "listed workflows", lock: listed, actionsLock: true,
+			wantFiles:   []string{".github/workflows/other.yml", ".github/actions/local/action.yml", ".github/actions/unused/action.yml", ".github/workflows/calls.yml", ".github/workflows/action.yml"},
+			wantSkipped: []string{".github/workflows/ci.yml", ".github/workflows/calls.yml"},
+		},
+		{
+			name: "lockfile that GitHub does not enforce", lock: listed, actionsLock: false,
+			wantFiles:   []string{".github/workflows/ci.yml", ".github/workflows/other.yml", ".github/actions/local/action.yml", ".github/actions/unused/action.yml", ".github/workflows/calls.yml", ".github/workflows/action.yml"},
+			wantSkipped: []string{},
+		},
+		{
+			name: "lockfile that lists no workflow", lock: actionslocktest.Lock{}.String(), actionsLock: true,
+			wantFiles:   []string{".github/workflows/ci.yml", ".github/workflows/other.yml", ".github/actions/local/action.yml", ".github/actions/unused/action.yml", ".github/workflows/calls.yml", ".github/workflows/action.yml"},
+			wantSkipped: []string{},
+		},
+		{name: "lockfile that vet cannot read", lock: listed + "extra: true\n", actionsLock: true, wantErr: true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			root := project(t)
+			write(t, root, ".github/workflows/other.yml", "jobs:\n  b:\n    steps:\n      - uses: actions/checkout@v4\n")
+			write(t, root, ".github/actions/unused/action.yml", "runs:\n  using: composite\n  steps:\n    - uses: actions/checkout@v4\n")
+			// A reusable workflow needs no lockfile entry, so the fix pins it
+			// in a listed workflow too. A listed workflow with no tag is not
+			// skipped.
+			write(t, root, ".github/workflows/pinned.yml", "jobs:\n  b:\n    steps:\n      - uses: actions/checkout@"+sha+"\n")
+			write(t, root, ".github/workflows/calls.yml", "jobs:\n  call:\n    uses: acme/shared/.github/workflows/x.yml@v1\n  b:\n    steps:\n      - uses: actions/checkout@v4\n")
+			// The fix leaves an action of the same repository anyway, so the
+			// lockfile does not skip it.
+			write(t, root, ".github/workflows/own.yml", "jobs:\n  b:\n    steps:\n      - uses: my-org/app/tools@v1\n")
+			// A file with runs: is an action. GitHub does not run it as a
+			// workflow, so the fix pins it although the lockfile lists it.
+			write(t, root, ".github/workflows/action.yml", "runs:\n  using: composite\n  steps:\n    - uses: actions/checkout@v4\n")
+			write(t, root, ".github/workflows/actions.lock", tc.lock)
+			p, err := PlanPins(context.Background(), PinOptions{Root: root, Resolver: &fakeResolver{}, SameRepo: "my-org/app", ActionsLock: tc.actionsLock})
+			if tc.wantErr {
+				assert.ErrorIs(t, err, ErrActionsLock)
+				return
+			}
+			require.NoError(t, err)
+			var files []string
+			for _, f := range p.Files {
+				files = append(files, f.Path)
+			}
+			assert.ElementsMatch(t, tc.wantFiles, files)
+			assert.ElementsMatch(t, tc.wantSkipped, p.Skipped)
+			for _, f := range p.Files {
+				if f.Path == ".github/workflows/calls.yml" && tc.name == "listed workflows" {
+					require.Len(t, f.Edits, 1, "only the reusable workflow call")
+					assert.Equal(t, "acme/shared/.github/workflows/x.yml", f.Edits[0].Action)
+				}
+			}
+		})
+	}
 }
