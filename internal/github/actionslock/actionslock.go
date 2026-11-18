@@ -13,6 +13,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"maps"
 	"net/url"
@@ -114,15 +115,15 @@ func (c *Cache) Read(fsys fs.FS, root string) (*Lock, error) {
 	p, ok := c.locks[sum]
 	if !ok {
 		p.lock, p.err = Parse(data)
-		if p.err != nil {
-			p.err = fmt.Errorf("%s: %w", file, p.err)
-		}
 		if c.locks == nil {
 			c.locks = map[[sha256.Size]byte]parsed{}
 		}
 		c.locks[sum] = p
 	}
-	return p.lock, p.err
+	if p.err != nil {
+		return nil, fmt.Errorf("%s: %w", file, p.err)
+	}
+	return p.lock, nil
 }
 
 // readFile returns the path and the content of the lockfile of the
@@ -130,34 +131,36 @@ func (c *Cache) Read(fsys fs.FS, root string) (*Lock, error) {
 // the file from git, so a link, or a name in another case, is not the
 // lockfile.
 func readFile(fsys fs.FS, root string) (string, []byte, error) {
-	dir := path.Join(root, workflowsDir)
-	entries, err := fs.ReadDir(fsys, dir)
-	if errors.Is(err, fs.ErrNotExist) {
-		return "", nil, nil
+	dir := root
+	for _, part := range []string{".github", "workflows", name} {
+		entries, err := fs.ReadDir(fsys, dir)
+		if errors.Is(err, fs.ErrNotExist) {
+			return "", nil, nil
+		}
+		if err != nil {
+			return "", nil, err
+		}
+		i := slices.IndexFunc(entries, func(e fs.DirEntry) bool { return e.Name() == part })
+		// A link can point out of the repository, so a link is not the
+		// folder or the file.
+		if i < 0 || entries[i].Type()&fs.ModeSymlink != 0 || (part == name) != entries[i].Type().IsRegular() {
+			return "", nil, nil
+		}
+		dir = path.Join(dir, part)
 	}
+	f, err := fsys.Open(dir)
 	if err != nil {
 		return "", nil, err
 	}
-	i := slices.IndexFunc(entries, func(e fs.DirEntry) bool { return e.Name() == name })
-	if i < 0 || !entries[i].Type().IsRegular() {
-		return "", nil, nil
-	}
-	file := path.Join(dir, name)
-	info, err := entries[i].Info()
+	defer func() { _ = f.Close() }()
+	data, err := io.ReadAll(io.LimitReader(f, MaxSize+1))
 	if err != nil {
 		return "", nil, err
 	}
-	if info.Size() > MaxSize {
-		return "", nil, fmt.Errorf("%s: the file has more than %d bytes", file, MaxSize)
+	if len(data) > MaxSize {
+		return "", nil, fmt.Errorf("%s: the file has more than %d bytes", dir, MaxSize)
 	}
-	data, err := fs.ReadFile(fsys, file)
-	if err != nil {
-		return "", nil, err
-	}
-	if data == nil {
-		data = []byte{}
-	}
-	return file, data, nil
+	return dir, data, nil
 }
 
 // LockfileRoot reports a repository path that is a lockfile, and returns
@@ -229,8 +232,16 @@ func (l *Lock) Workflow(key string) WorkflowLock {
 	if l == nil {
 		return WorkflowLock{}
 	}
-	_, listed := l.f.LookupWorkflow(key)
-	return WorkflowLock{listed: listed, keys: l.locked(key)}
+	return WorkflowLock{listed: l.Lists(key), keys: l.locked(key)}
+}
+
+// Lists reports whether the lockfile lists the workflow key.
+func (l *Lock) Lists(key string) bool {
+	if l == nil {
+		return false
+	}
+	_, ok := l.f.LookupWorkflow(key)
+	return ok
 }
 
 // ListsAny reports whether the lockfile lists a workflow.
@@ -289,7 +300,11 @@ func (l *Lock) Coverage() Coverage {
 func (c Coverage) Lost(head Coverage) []string {
 	var out []string
 	for w, keys := range c {
-		if slices.ContainsFunc(keys, func(k string) bool { return !slices.Contains(head[w], k) }) {
+		kept := map[string]bool{}
+		for _, k := range head[w] {
+			kept[k] = true
+		}
+		if slices.ContainsFunc(keys, func(k string) bool { return !kept[k] }) {
 			out = append(out, w)
 		}
 	}

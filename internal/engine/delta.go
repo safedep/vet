@@ -114,12 +114,13 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 
 	b := &base{manifests: map[string]*model.Manifest{}, hashes: map[string]plumbing.Hash{}, links: map[string]bool{}, locks: map[string]actionslock.Coverage{}}
 	var files []string
+	lockFailed := false
 	err = tree.Walk(ctx, func(rel string, f *object.File) error {
 		if r.skipped(rel) {
 			return nil
 		}
-		if root, ok := actionslock.LockfileRoot(rel); ok {
-			b.addLock(root, f)
+		if root, ok := actionslock.LockfileRoot(rel); ok && !b.addLock(root, f) {
+			lockFailed = true
 		}
 		hash := f.Hash
 		isLink := f.Mode == filemode.Symlink
@@ -150,7 +151,7 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 	if err != nil {
 		return nil, err
 	}
-	failed := false
+	failed := lockFailed
 	for _, rel := range files {
 		ms, errs := scalibr.ExtractFile(ctx, scalibr.File{Root: tmp, Path: rel}, exs)
 		for _, err := range errs {
@@ -184,18 +185,20 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 
 // addLock records the coverage of a base lockfile. GitHub reads the
 // lockfile as a regular file of the commit. A base lockfile that vet
-// cannot read locked nothing, so the change can reduce nothing.
-func (b *base) addLock(root string, f *object.File) {
-	if !f.Mode.IsRegular() || f.Size > actionslock.MaxSize {
-		return
+// cannot parse locked nothing, so the change can reduce nothing. addLock
+// is false when git cannot give the content, so vet does not keep the base.
+func (b *base) addLock(root string, f *object.File) bool {
+	if (f.Mode != filemode.Regular && f.Mode != filemode.Executable) || f.Size > actionslock.MaxSize {
+		return true
 	}
 	data, err := f.Contents()
 	if err != nil {
-		return
+		return false
 	}
 	if l, err := actionslock.Parse([]byte(data)); err == nil {
 		b.locks[root] = l.Coverage()
 	}
+	return true
 }
 
 // unlocked returns the workflow paths that the base lockfile locks a key for

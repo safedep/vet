@@ -480,7 +480,7 @@
   title: "pr mode: a change that unlocks a workflow"
   category: scan
   tier: P1
-  guarantee: "A change that removes the GitHub Actions lockfile modifies each workflow that it locked, so pull request mode reports the unpinned actions of that workflow. A workflow that the lockfile did not lock stays unchanged."
+  guarantee: "When vet trusts the GitHub Actions lockfile, a change that removes it modifies each workflow that it locked, so pull request mode reports the unpinned actions of that workflow. A workflow that the lockfile did not lock stays unchanged."
   labels: [scan, pr-mode, workflow]
 - id: scan/sources/directory
   title: "sources: directory"

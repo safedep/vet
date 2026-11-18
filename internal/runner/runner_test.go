@@ -279,6 +279,7 @@ func TestTrustsActionsLock(t *testing.T) {
 		{name: "option off on GitHub.com", config: option("false"), want: false, wantLeave: true},
 		{name: "option with no value", config: ghes + option("")},
 		{name: "option that is not a bool", config: option(`"yes"`), wantErr: true},
+		{name: "other workflow option that is not valid", config: "plugins:\n  workflow:\n    enabled: false\n    options:\n      allow_unpinned: ['[']\n", want: true, wantLeave: true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

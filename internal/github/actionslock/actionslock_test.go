@@ -82,6 +82,11 @@ func TestCoverage(t *testing.T) {
 	}
 }
 
+func TestParseRefusesALargeFileBeforeTheParser(t *testing.T) {
+	_, err := Parse([]byte(strings.Repeat(" ", MaxSize+1)))
+	assert.ErrorContains(t, err, "the file has more than")
+}
+
 func TestParseRejects(t *testing.T) {
 	// A hostname needs schema v0.0.3, so the version cases use a file with
 	// none. vet then refuses the file only for its version.
@@ -126,6 +131,8 @@ func TestRead(t *testing.T) {
 		{"no lockfile", fstest.MapFS{".github/workflows/ci.yml": {}}, ".", false, false},
 		{"name in another case", fstest.MapFS{".github/workflows/Actions.lock": {Data: text}}, ".", false, false},
 		{"link", fstest.MapFS{".github/workflows/actions.lock": {Data: text, Mode: fs.ModeSymlink}}, ".", false, false},
+		{"linked workflows folder", fstest.MapFS{".github/workflows": {Mode: fs.ModeSymlink}, ".github/workflows/actions.lock": {Data: text}}, ".", false, false},
+		{"linked .github folder", fstest.MapFS{".github": {Mode: fs.ModeSymlink}, ".github/workflows/actions.lock": {Data: text}}, ".", false, false},
 		{"file that is not valid", fstest.MapFS{".github/workflows/actions.lock": {Data: []byte("version: v0.0.3\nextra: 1\n")}}, ".", false, true},
 		{"file that is too large", fstest.MapFS{".github/workflows/actions.lock": {Data: make([]byte, MaxSize+1)}}, ".", false, true},
 	}
@@ -225,4 +232,13 @@ func TestCacheParsesEachContentOnce(t *testing.T) {
 	require.NoError(t, err)
 	assert.Same(t, a, b, "the same content gives the kept parse")
 	assert.NotSame(t, a, other)
+
+	bad := fstest.MapFS{
+		"a/.github/workflows/actions.lock": {Data: []byte("version: v0.0.3\nextra: 1\n")},
+		"b/.github/workflows/actions.lock": {Data: []byte("version: v0.0.3\nextra: 1\n")},
+	}
+	_, errA := c.Read(bad, "a")
+	_, errB := c.Read(bad, "b")
+	assert.ErrorContains(t, errA, "a/.github/workflows/actions.lock")
+	assert.ErrorContains(t, errB, "b/.github/workflows/actions.lock", "a kept error names the file of each read")
 }

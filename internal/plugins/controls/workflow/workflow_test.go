@@ -342,6 +342,17 @@ jobs:
 			lockPath: ".github/workflows/actions.lock", lock: lock + "extra: true\n", want: all, wantFix: allFix, wantDiag: true,
 		},
 		{
+			// A file with runs: is an action, also in .github/workflows, and a
+			// listed key does not lock it.
+			name: "action file in the workflows folder", path: ".github/workflows/ci.yml", data: composite,
+			lockPath: ".github/workflows/actions.lock", lock: lock,
+			want: []hit{
+				{IDUnpinnedAction, 4, "acme/build@v1.2.0 is not pinned to a commit SHA"},
+				{IDUnpinnedAction, 5, "acme/other@v1 is not pinned to a commit SHA"},
+			},
+			wantFix: []string{fixCommand, fixCommand},
+		},
+		{
 			// A workflow that the lockfile does not list can use the action
 			// too, and GitHub then runs its tags unlocked.
 			name: "composite action that a listed workflow uses", path: ".github/actions/build/action.yml", data: composite,

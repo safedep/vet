@@ -712,14 +712,15 @@ func FixLeavesActionsLock(rt *config.Runtime, getenv func(string) string) (bool,
 // plugins.workflow.options.trust_actions_lock decides. With no value, vet
 // trusts the lockfile where GitHub enforces it.
 func TrustsActionsLock(rt *config.Runtime, getenv func(string) string) (bool, error) {
-	o, err := workflow.Decode(plugin.MapConfig(rt.Config.PluginOptions(workflow.Name)))
-	if err != nil {
-		return false, app.UsageError(fmt.Sprintf("plugins.%s.options: %v", workflow.Name, err), "Fix the option in the config file. vet config validate checks it.")
+	switch v := rt.Config.PluginOptions(workflow.Name)[workflow.OptionTrustActionsLock].(type) {
+	case nil:
+		return ActionsLockEnforced(rt, getenv), nil
+	case bool:
+		return v, nil
+	default:
+		return false, app.UsageError(fmt.Sprintf("plugins.%s.options.%s: %v is not true or false", workflow.Name, workflow.OptionTrustActionsLock, v),
+			"Fix the option in the config file. vet config validate checks it.")
 	}
-	if o.TrustActionsLock != nil {
-		return *o.TrustActionsLock, nil
-	}
-	return ActionsLockEnforced(rt, getenv), nil
 }
 
 // PluginOrigin names the flag or the config layer that sets an option.

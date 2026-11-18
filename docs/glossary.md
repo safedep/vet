@@ -252,7 +252,7 @@ _Avoid_: fork commit, orphan commit, dangling commit
 The GitHub Actions lockfile, `.github/workflows/actions.lock`, that `gh actions-lock` writes. For each
 workflow that it lists, GitHub runs each step action at the commit that it records, and fails the run
 when a step action has no entry. `internal/github/actionslock` reads it with the parser of GitHub.
-`unpinned-action` accepts a tag that it locks.
+When vet trusts it, `unpinned-action` accepts a tag that it locks for a listed workflow.
 _Avoid_: workflow lockfile, lockfile (a manifest kind)
 
 **Code usage**:

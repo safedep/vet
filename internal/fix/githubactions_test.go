@@ -210,6 +210,7 @@ func TestPlanLeavesTheFilesThatTheActionsLockLists(t *testing.T) {
 		".github/workflows/ci.yml":     {"actions/checkout@v4"},
 		".github/workflows/calls.yml":  {"actions/checkout@v4"},
 		".github/workflows/pinned.yml": {"actions/checkout@" + sha},
+		".github/workflows/own.yml":    {"my-org/app@v1"},
 	}}.String()
 	cases := []struct {
 		name        string
@@ -246,6 +247,9 @@ func TestPlanLeavesTheFilesThatTheActionsLockLists(t *testing.T) {
 			// skipped.
 			write(t, root, ".github/workflows/pinned.yml", "jobs:\n  b:\n    steps:\n      - uses: actions/checkout@"+sha+"\n")
 			write(t, root, ".github/workflows/calls.yml", "jobs:\n  call:\n    uses: acme/shared/.github/workflows/x.yml@v1\n  b:\n    steps:\n      - uses: actions/checkout@v4\n")
+			// The fix leaves an action of the same repository anyway, so the
+			// lockfile does not skip it.
+			write(t, root, ".github/workflows/own.yml", "jobs:\n  b:\n    steps:\n      - uses: my-org/app/tools@v1\n")
 			write(t, root, ".github/workflows/actions.lock", tc.lock)
 			p, err := PlanPins(context.Background(), PinOptions{Root: root, Resolver: &fakeResolver{}, SameRepo: "my-org/app", ActionsLock: tc.actionsLock})
 			if tc.wantErr {
@@ -259,6 +263,12 @@ func TestPlanLeavesTheFilesThatTheActionsLockLists(t *testing.T) {
 			}
 			assert.ElementsMatch(t, tc.wantFiles, files)
 			assert.ElementsMatch(t, tc.wantSkipped, p.Skipped)
+			for _, f := range p.Files {
+				if f.Path == ".github/workflows/calls.yml" && tc.name == "listed workflows" {
+					require.Len(t, f.Edits, 1, "only the reusable workflow call")
+					assert.Equal(t, "acme/shared/.github/workflows/x.yml", f.Edits[0].Action)
+				}
+			}
 		})
 	}
 }

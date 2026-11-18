@@ -104,9 +104,7 @@ repository. The default is the current directory.`,
 			}
 			summary(plan, dryRun)
 			if leave && plan.Edits() > 0 {
-				if err := lockAdvice(root); err != nil {
-					return err
-				}
+				lockAdvice(root)
 			}
 			if len(plan.Failures) > 0 {
 				msg := "vet could not pin " + humanize.Count(len(plan.Failures), "action")
@@ -164,15 +162,17 @@ func summary(plan *vfix.Plan, dryRun bool) {
 
 // lockAdvice names gh actions-lock when the repository has a GitHub Actions
 // lockfile that lists a workflow. A new pin in a composite action that a
-// listed workflow uses needs a lockfile entry, or GitHub fails the run.
-func lockAdvice(root string) error {
+// listed workflow uses needs a lockfile entry, or GitHub fails the run. The
+// fix has written its pins, so a lockfile that vet cannot read now gives a
+// warning.
+func lockAdvice(root string) {
 	lock, err := actionslock.Read(os.DirFS(root), ".")
 	if err != nil {
-		return err
+		tui.Warning("vet cannot read the GitHub Actions lockfile: %s", escape.Line(err.Error()))
+		return
 	}
 	if lock.ListsAny() {
 		tui.Info("The repository has a GitHub Actions lockfile. To add the new pins to it, run gh actions-lock")
 		tui.Info("For a composite action that a workflow uses as ./path, run gh actions-lock --migrate-local-actions")
 	}
-	return nil
 }

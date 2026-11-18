@@ -108,7 +108,7 @@ func actionsLockLeaves(root string) (func(rel, uses string) bool, error) {
 	}
 	return func(rel, uses string) bool {
 		_, key, ok := actionslock.WorkflowKey(rel)
-		return ok && actionslock.IsAction(uses) && lock.Workflow(key).Listed()
+		return ok && actionslock.IsAction(uses) && lock.Lists(key)
 	}, nil
 }
 
@@ -126,8 +126,16 @@ func PlanPins(ctx context.Context, o PinOptions) (*Plan, error) {
 	}
 	var leave func(rel, uses string) bool
 	if o.ActionsLock {
-		if leave, err = actionsLockLeaves(o.Root); err != nil {
+		listed, err := actionsLockLeaves(o.Root)
+		if err != nil {
 			return nil, err
+		}
+		// The fix leaves an action of the same repository anyway, so the
+		// lockfile does not skip it.
+		leave = func(rel, uses string) bool {
+			action, _, _ := strings.Cut(uses, "@")
+			parts := strings.SplitN(action, "/", 3)
+			return len(parts) >= 2 && !strings.EqualFold(parts[0]+"/"+parts[1], o.SameRepo) && listed(rel, uses)
 		}
 	}
 	cache := map[string]string{}

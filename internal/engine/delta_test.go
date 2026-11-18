@@ -604,8 +604,9 @@ const (
 )
 
 // lockProject commits a workflow and the base lockfile, and then writes the
-// head lockfile. An empty lockfile text means no lockfile.
-func lockProject(t *testing.T, base, head string) string {
+// head lockfile. An empty lockfile text means no lockfile. exec commits the
+// base lockfile with the executable mode.
+func lockProject(t *testing.T, base, head string, exec bool) string {
 	t.Helper()
 	dir := t.TempDir()
 	repo, err := gogit.PlainInit(dir, false)
@@ -613,6 +614,9 @@ func lockProject(t *testing.T, base, head string) string {
 	write(t, dir, lockedWorkflow, "on: push\njobs:\n  b:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: acme/build@v1\n      - uses: acme/test@v1\n")
 	if base != "" {
 		write(t, dir, actionsLock, base)
+		if exec {
+			require.NoError(t, os.Chmod(filepath.Join(dir, filepath.FromSlash(actionsLock)), 0o700))
+		}
 	}
 	wt, err := repo.Worktree()
 	require.NoError(t, err)
@@ -647,10 +651,12 @@ func TestPullRequestModeReportsAWorkflowThatTheActionsLockNoLongerLocks(t *testi
 		base  string
 		head  string
 		trust bool
+		exec  bool
 		want  model.Change
 	}{
 		{name: "lockfile kept", base: locked.String(), head: locked.String(), trust: true, want: model.ChangeUnchanged},
 		{name: "lockfile removed", base: locked.String(), trust: true, want: model.ChangeModified},
+		{name: "executable lockfile removed", base: locked.String(), trust: true, exec: true, want: model.ChangeModified},
 		{name: "entry removed", base: locked.String(), head: actionslocktest.Lock{Workflows: map[string][]string{lockedWorkflow: keys[1:]}}.String(), trust: true, want: model.ChangeModified},
 		{name: "workflow removed from the lockfile", base: locked.String(), head: actionslocktest.Lock{Workflows: map[string][]string{".github/workflows/other.yml": keys}}.String(), trust: true, want: model.ChangeModified},
 		{name: "commit moved", base: locked.String(), head: moved.String(), trust: true, want: model.ChangeUnchanged},
@@ -661,7 +667,7 @@ func TestPullRequestModeReportsAWorkflowThatTheActionsLockNoLongerLocks(t *testi
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			f := newFixture(t)
-			o := f.options(t, lockProject(t, tc.base, tc.head), &fakeEnricher{})
+			o := f.options(t, lockProject(t, tc.base, tc.head, tc.exec), &fakeEnricher{})
 			o.BaseRef = "HEAD"
 			o.TrustActionsLock = tc.trust
 			for run := range 2 {
@@ -673,7 +679,7 @@ func TestPullRequestModeReportsAWorkflowThatTheActionsLockNoLongerLocks(t *testi
 
 func TestPullRequestModeContinuesWithTheHeadActionsLock(t *testing.T) {
 	locked := actionslocktest.Lock{Workflows: map[string][]string{lockedWorkflow: {"acme/build@v1", "acme/test@v1"}}}.String()
-	dir := lockProject(t, locked, locked)
+	dir := lockProject(t, locked, locked, false)
 	f := newFixture(t)
 	o := f.options(t, dir, &fakeEnricher{})
 	o.BaseRef = "HEAD"

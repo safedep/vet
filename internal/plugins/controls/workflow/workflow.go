@@ -56,8 +56,8 @@ type Options struct {
 	TrustActionsLock *bool `json:"trust_actions_lock"`
 }
 
-// Decode decodes and checks the options.
-func Decode(cfg plugin.Config) (Options, error) {
+// decode decodes and checks the options.
+func decode(cfg plugin.Config) (Options, error) {
 	var o Options
 	if err := cfg.Decode(&o); err != nil {
 		return Options{}, err
@@ -90,7 +90,7 @@ type Control struct {
 
 // New builds the control from its options.
 func New(cfg plugin.Config) (plugin.Control, error) {
-	o, err := Decode(cfg)
+	o, err := decode(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 	e := &emitter{path: m.Path, doc: d, seen: map[string]int{}}
 	c.dangerousTrigger(e)
 	c.templateInjection(e)
-	c.unpinned(e, c.lock(m))
+	c.unpinned(e, c.lock(m, d))
 	c.pins(e, m)
 	c.hardening(e)
 	return e.out, nil
@@ -246,9 +246,11 @@ func scripts(s step) []*yaml.Node {
 // A composite action gets none: it can run under a workflow that the
 // lockfile does not list, so each of its tags gives a finding. A lockfile
 // that vet cannot read locks nothing.
-func (c *Control) lock(m *model.Manifest) actionslock.WorkflowLock {
+func (c *Control) lock(m *model.Manifest, d *document) actionslock.WorkflowLock {
 	root, key, ok := actionslock.WorkflowKey(m.Path)
-	if !c.trustLock || !ok {
+	// A file with runs: is an action, also in .github/workflows. GitHub does
+	// not run it as a listed workflow.
+	if !c.trustLock || !ok || get(d.root, "runs") != nil {
 		return actionslock.WorkflowLock{}
 	}
 	l, err := c.locks.Read(m.Root, root)
