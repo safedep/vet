@@ -977,6 +977,12 @@
   tier: P1
   guarantee: "A scan of a directory sets the reach of each vulnerability finding at the import level by default. A package that a source file imports is imported, with its import lines. A package that an imported package depends on is imported, with the dependency path. A package that no file imports and no imported package depends on is unused. --reach off removes the reach, and a lockfile target has no source code, so its report header says no-source, the table has no REACH column, and the view says that vet computed no reach. A bad --reach value exits 2."
   labels: [reach, enrichers]
+- id: reach/import/budget-stop
+  title: "a code analysis that stops at its budget says how to give it more time"
+  category: reach
+  tier: P2
+  guarantee: "When the code analysis stops at plugins.codeusage.options.budget, the scan warns that it stopped, and the warning names plugins.codeusage.options.budget as the fix. The warning comes before the warnings that the scan reports earlier, such as an extract warning."
+  labels: [reach, enrichers]
 - id: reach/import/go-module-graph
   title: "vet reads the Go module graph from the code on the disk"
   category: reach

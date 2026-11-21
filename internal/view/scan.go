@@ -17,7 +17,6 @@ import (
 	"github.com/safedep/vet/v2/internal/tui/escape"
 	"github.com/safedep/vet/v2/internal/tui/humanize"
 	"github.com/safedep/vet/v2/internal/tui/output"
-	"github.com/safedep/vet/v2/internal/tui/progress"
 	"github.com/safedep/vet/v2/internal/tui/section"
 	"github.com/safedep/vet/v2/internal/tui/style"
 	"github.com/safedep/vet/v2/plugin"
@@ -52,15 +51,18 @@ type Scan struct {
 	total   int
 	started time.Time
 	dir     string
-	work    plugin.Work
+	works   []plugin.Work
 	files   []string
 
-	bar      *progress.Bar
-	lineKind string
-	shown    shown
+	bar       liveLine
+	lineKind  string
+	shown     shown
+	startLine func(kind string, total int, status func() string) liveLine
 
+	ticker    func() (<-chan time.Time, func())
 	beatStop  chan struct{}
 	beatEnded bool
+	lastBeat  time.Time
 }
 
 // shownElapsed is the shortest stage that a step line gives the run time of.
@@ -68,7 +70,7 @@ const shownElapsed = time.Second
 
 // NewScan returns the view and prints the start line.
 func NewScan(o Options) *Scan {
-	v := &Scan{o: o, mode: output.CurrentMode(), now: time.Now}
+	v := &Scan{o: o, mode: output.CurrentMode(), now: time.Now, startLine: startLine, ticker: newTicker}
 	mode := "full"
 	if o.BaseRef != "" {
 		mode = "delta"

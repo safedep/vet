@@ -3,6 +3,7 @@ package view
 import (
 	"fmt"
 	"path"
+	"slices"
 	"sync"
 	"time"
 
@@ -17,14 +18,41 @@ import (
 )
 
 // beatEvery is how often a view with no live line prints the progress of a
-// long stage. A CI log then shows that the scan runs.
-const beatEvery = 15 * time.Second
+// long stage. A CI log then shows that the scan runs. The heartbeat checks
+// the time each beatTick, so the first line comes beatEvery after the stage
+// starts.
+const (
+	beatEvery = 15 * time.Second
+	beatTick  = time.Second
+)
 
 // The kinds of live line.
 const (
 	lineStatus = "status"
 	lineBar    = "bar"
 )
+
+// liveLine is the line that redraws in place on a terminal.
+type liveLine interface {
+	Set(done int)
+	Stop()
+}
+
+// startLine draws a live line of a kind. A bar counts the packages of the
+// enrich stage. A status line reads its text on each frame.
+func startLine(kind string, total int, status func() string) liveLine {
+	if kind == lineBar {
+		return progress.Start("Checking "+plural(total, "package"), total)
+	}
+	return progress.StartStatus(status)
+}
+
+// newTicker returns the ticks of the heartbeat and the function that stops
+// them.
+func newTicker() (<-chan time.Time, func()) {
+	t := time.NewTicker(beatTick)
+	return t.C, t.Stop
+}
 
 // snapshot is what a stage does now.
 type snapshot struct {
@@ -40,38 +68,53 @@ type snapshot struct {
 // waits reports an enrich stage that waits for the long work of an
 // enricher. The count of the stage does not move then.
 func (s snapshot) waits() bool {
-	return s.stage == engine.StageEnrich && s.work.Name != "" && !s.work.Done
+	return s.stage == engine.StageEnrich && s.work.Name != ""
 }
 
 // text says what the stage does now, for the live line and the heartbeat.
 // It is empty for a stage with nothing to say.
 func (s snapshot) text(now time.Time) string {
+	elapsed := humanize.Elapsed(now.Sub(s.started))
 	switch {
 	case s.waits():
 		t := s.work.Label + ": " + humanize.Elapsed(now.Sub(s.work.Started))
 		if s.work.Budget > 0 {
-			t += " of the " + humanize.Elapsed(s.work.Budget) + " budget"
+			t += " of the " + budgetText(s.work.Budget) + " budget"
 		}
 		if s.total > 0 {
 			t += fmt.Sprintf(" · %d of %s checked", s.done, plural(s.total, "package"))
 		}
 		return t
 	case s.stage == engine.StageExtract:
-		what := "Reading the manifests"
+		t := "Reading the manifests"
 		if s.kind == report.ScanKindEndpoint {
-			what = "Reading the tools on this machine"
+			t = "Reading the tools on this machine"
 		}
-		t := fmt.Sprintf("%s: %s in %s", what, plural(s.done, "file"), humanize.Elapsed(now.Sub(s.started)))
+		// A pull request scan reads its base, and an endpoint audit lists
+		// its tools, before the first file counts.
+		if s.done > 0 {
+			t += ": " + plural(s.done, "file")
+		}
+		t += " in " + elapsed
 		if s.dir != "" {
 			t += " · " + escape.Line(s.dir)
 		}
 		return t
 	case s.stage == engine.StageEnrich && s.total > 0:
-		return fmt.Sprintf("Checking %s: %d done in %s", plural(s.total, "package"), s.done, humanize.Elapsed(now.Sub(s.started)))
+		return fmt.Sprintf("Checking %s: %d done in %s", plural(s.total, "package"), s.done, elapsed)
 	case s.stage == engine.StageEvaluate && s.total > 0:
-		return fmt.Sprintf("Evaluating the controls: %d of %s in %s", s.done, plural(s.total, "manifest"), humanize.Elapsed(now.Sub(s.started)))
+		return fmt.Sprintf("Evaluating the controls: %d of %s in %s", s.done, plural(s.total, "manifest"), elapsed)
 	}
 	return ""
+}
+
+// budgetText gives a budget of whole minutes as "5m", and any other budget
+// as a run time.
+func budgetText(d time.Duration) string {
+	if d >= time.Minute && d%time.Minute == 0 {
+		return fmt.Sprintf("%dm", int(d.Minutes()))
+	}
+	return humanize.Elapsed(d)
 }
 
 // lineKind is the live line for the snapshot: a status line while the walk
@@ -124,24 +167,31 @@ func (v *Scan) Walk(rel string) {
 	v.update()
 }
 
-// Work records the long work of an enricher. A report that ends other work
-// than the current work changes nothing.
+// Work records the long work of an enricher. Two enrichers can work at the
+// same time. The view shows the work that started first.
 func (v *Scan) Work(w plugin.Work) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
+	i := slices.IndexFunc(v.works, func(o plugin.Work) bool { return o.Name == w.Name })
 	switch {
-	case !w.Done:
-		v.work = w
-	case w.Name == v.work.Name:
-		v.work = plugin.Work{}
-	default:
+	case w.Done && i < 0:
 		return
+	case w.Done:
+		v.works = slices.Delete(v.works, i, i+1)
+	case i < 0:
+		v.works = append(v.works, w)
+	default:
+		v.works[i] = w
 	}
 	v.update()
 }
 
 func (v *Scan) snapshot() snapshot {
-	return snapshot{kind: v.o.Kind, stage: v.stage, started: v.started, done: v.done, total: v.total, dir: v.dir, work: v.work}
+	s := snapshot{kind: v.o.Kind, stage: v.stage, started: v.started, done: v.done, total: v.total, dir: v.dir}
+	if len(v.works) > 0 {
+		s.work = slices.MinFunc(v.works, func(a, b plugin.Work) int { return a.Started.Compare(b.Started) })
+	}
+	return s
 }
 
 // update publishes the state of the stage and draws the live line that it
@@ -155,11 +205,8 @@ func (v *Scan) update() {
 	kind := s.lineKind()
 	if kind != v.lineKind {
 		v.stopBar()
-		switch kind {
-		case lineStatus:
-			v.bar = progress.StartStatus(func() string { return v.shown.text(v.now()) })
-		case lineBar:
-			v.bar = progress.Start("Checking "+plural(s.total, "package"), s.total)
+		if kind != "" {
+			v.bar = v.startLine(kind, s.total, func() string { return v.shown.text(v.now()) })
 		}
 		v.lineKind = kind
 	}
@@ -176,14 +223,14 @@ func (v *Scan) startBeat() {
 	}
 	stop := make(chan struct{})
 	v.beatStop = stop
+	ticks, stopTicks := v.ticker()
 	go func() {
-		t := time.NewTicker(beatEvery)
-		defer t.Stop()
+		defer stopTicks()
 		for {
 			select {
 			case <-stop:
 				return
-			case <-t.C:
+			case <-ticks:
 				v.beat()
 			}
 		}
@@ -192,7 +239,7 @@ func (v *Scan) startBeat() {
 
 // stopBeat ends the heartbeat for good. The caller holds mu. It does not
 // wait for the goroutine, which needs mu to print: beat prints nothing once
-// the view has no stage.
+// the heartbeat ended.
 func (v *Scan) stopBeat() {
 	if v.beatStop != nil {
 		close(v.beatStop)
@@ -201,13 +248,18 @@ func (v *Scan) stopBeat() {
 	v.beatEnded = true
 }
 
-// beat prints the progress of a stage that has run for beatEvery or more.
-// A tick that fires just before Stop prints nothing.
+// beat prints the progress of a stage beatEvery after the stage started,
+// then beatEvery after the last line. A tick that fires just before Stop
+// prints nothing.
 func (v *Scan) beat() {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	now := v.now()
-	if v.beatEnded || v.stage == "" || now.Sub(v.started) < beatEvery {
+	since := v.started
+	if v.lastBeat.After(since) {
+		since = v.lastBeat
+	}
+	if v.beatEnded || v.stage == "" || now.Sub(since) < beatEvery {
 		return
 	}
 	s := v.snapshot()
@@ -215,9 +267,11 @@ func (v *Scan) beat() {
 	if text == "" {
 		return
 	}
+	v.lastBeat = now
 	switch v.mode {
 	case output.Agent:
-		line := fmt.Sprintf("progress: %s %d", v.stage, v.done)
+		// The elapsed field tells a running stage from the line that ends it.
+		line := fmt.Sprintf("progress: %s %d elapsed=%s", v.stage, v.done, humanize.Elapsed(now.Sub(v.started)))
 		if s.waits() {
 			line += " work=" + field(s.work.Name)
 		}

@@ -1,0 +1,24 @@
+# A code analysis that stops at its budget gives a warning that tells how
+# to give it more time. The warning comes right after the errors, before the
+# warnings that a scan reports earlier, so a person sees it.
+[!cgo] skip 'code analysis needs a vet built with CGO'
+env VET_PLUGINS_CODEUSAGE_OPTIONS_BUDGET=1ns
+exec vet scan . --mode plain -o table
+stderr '\[WARN\] codeusage: vet stopped the code analysis after 1ns'
+stderr 'To give it more time, raise plugins\.codeusage\.options\.budget'
+stderr '(?s)\[WARN\] codeusage: vet stopped the code analysis.*\[WARN\] extract:'
+
+-- index.js --
+const pad = require('left-pad');
+pad('x', 3);
+-- package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0"}
+  }
+}
+-- broken/package-lock.json --
+{"lockfileVersion": 3, "packages": {

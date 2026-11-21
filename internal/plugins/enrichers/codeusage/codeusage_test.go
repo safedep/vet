@@ -234,12 +234,19 @@ func TestUnreadAndMissingLanguages(t *testing.T) {
 
 // symbolSource answers every query with one record.
 type symbolSource struct {
-	prepared int
-	verified bool
-	edit     func(*model.SymbolRecord)
+	prepared  int
+	verified  bool
+	edit      func(*model.SymbolRecord)
+	onPrepare func()
 }
 
-func (s *symbolSource) Prepare(context.Context) { s.prepared++ }
+func (s *symbolSource) Prepare(context.Context) {
+	s.prepared++
+	if s.onPrepare != nil {
+		s.onPrepare()
+	}
+}
+
 func (s *symbolSource) Lookup(qs []symbols.Query) [][]model.SymbolRecord {
 	out := make([][]model.SymbolRecord, len(qs))
 	for i, q := range qs {
@@ -380,11 +387,12 @@ func TestFunctionReachOfARecord(t *testing.T) {
 			e := NewWith(dir, Options{Symbols: src}, func(context.Context, string) (Analysis, error) { return analysis, nil })
 			var work []string
 			e.ReportWork(func(w plugin.Work) { work = append(work, fmt.Sprintf("%s done=%t", w.Name, w.Done)) })
+			src.onPrepare = func() { work = append(work, "symbol data") }
 			vuln := &model.Insight{Vulnerabilities: []model.Vulnerability{{ID: "GHSA-aaaa"}}}
 			net := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, "golang.org/x/net", "v0.20.0"), Enrichment: model.Enrichment{Insight: vuln}}
 			require.NoError(t, e.Enrich(context.Background(), []*model.Package{net}))
-			assert.Equal(t, []string{WorkIndex + " done=false", WorkIndex + " done=true", WorkSearch + " done=false", WorkSearch + " done=true"}, work,
-				"each long phase reports its start and its end")
+			assert.Equal(t, []string{WorkIndex + " done=false", WorkIndex + " done=true", "symbol data", WorkSearch + " done=false", WorkSearch + " done=true"}, work,
+				"each long work reports its start and its end, and the index ends before the symbol data loads")
 			require.Len(t, net.Usage.Symbols, 1)
 			assert.Equal(t, c.want, net.Usage.Symbols[0].Reach)
 			var codes []string

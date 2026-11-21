@@ -431,7 +431,8 @@ const CodeReachFailed = "reach_failed"
 
 // budgetFix tells a person how to give the code analysis the time that it
 // needs. It ends a message, so it has no full stop after the config key.
-const budgetFix = "Skip folders with --exclude, or raise plugins.codeusage.options.budget"
+// --exclude does not help: the code index does not read the exclude list.
+const budgetFix = "To give it more time, raise plugins.codeusage.options.budget"
 
 // CodeSourceMissing is the diagnostic code of imported packages with a
 // vulnerability record whose code is not on the disk.
@@ -989,14 +990,17 @@ func (e *Enricher) load(ctx context.Context) error {
 }
 
 func (e *Enricher) index(ctx context.Context) error {
-	defer e.startWork(WorkIndex, "Indexing the source code")()
 	actx := ctx
 	if e.o.Budget > 0 {
 		var cancel context.CancelFunc
 		actx, cancel = context.WithTimeout(ctx, e.o.Budget)
 		defer cancel()
 	}
+	// The work ends with the analysis, which the budget bounds. The steps
+	// after it do not count against the budget.
+	end := e.startWork(WorkIndex, "Indexing the source code")
 	a, err := e.analyze(actx, e.dir)
+	end()
 	if err != nil && (ctx.Err() != nil || !errors.Is(err, context.DeadlineExceeded)) {
 		return err
 	}
