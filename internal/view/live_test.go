@@ -153,6 +153,23 @@ func TestBeatPrintsTheProgressOfALongStage(t *testing.T) {
 	}
 }
 
+func TestBeatPrintsNothingWithQuiet(t *testing.T) {
+	prev := output.CurrentVerbosity()
+	output.SetVerbosity(output.Silent)
+	t.Cleanup(func() { output.SetVerbosity(prev) })
+	got := capture(t, output.Plain, func() {
+		now, set := beatClock()
+		v := NewScan(Options{})
+		v.now = now
+		defer v.Stop()
+		v.Stage(engine.StageEnrich, 2, 4)
+		v.Progress(engine.StageEnrich, 3, 9)
+		set(time.Minute)
+		v.beat()
+	})
+	assert.Empty(t, got)
+}
+
 func TestBeatStopsWithTheView(t *testing.T) {
 	got := capture(t, output.Plain, func() {
 		now, set := beatClock()

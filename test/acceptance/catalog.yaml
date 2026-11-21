@@ -596,6 +596,12 @@
   tier: P2
   guarantee: "A VET_PLUGINS_<NAME>_OPTIONS_<OPTION> variable sets the plugin option, the scan uses it, and vet config get names the variable as the origin."
   labels: [config]
+- id: scan/output/heartbeat
+  title: "a long stage prints its progress when stderr is not a terminal"
+  category: scan
+  tier: P2
+  guarantee: "In plain mode, a stage that runs for 15 seconds or more prints a progress line, such as the count of the packages that vet checked and the run time, so a CI log shows that the scan runs. -q prints no such line."
+  labels: [output]
 - id: scan/output/diagnostics-grouped
   title: "a person sees one line for each kind of diagnostic"
   category: scan
