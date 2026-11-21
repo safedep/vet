@@ -1,14 +1,16 @@
 # With no terminal, vet prints the progress of a stage that runs for 15
 # seconds or more, so a CI log shows that the scan runs. The stub holds the
 # package checks open, and a signal stops the scan once the line is due.
+# The enrich stage can start some seconds after vet starts. The sleep gives
+# it 10 seconds for that. The elapsed time can also show a scheduler delay.
 [!unix] skip 'signals are unix only'
 cd proj
 stub delay 60s
 ! exec vet scan . --mode plain -o plain --fresh --no-cache &scan&
-sleep 17s
+sleep 25s
 kill -INT scan
 wait scan
-stderr '\[INFO\] Checking 1 package: 0 done in 1[5-7]s'
+stderr '\[INFO\] Checking 1 package: 0 done in 1[5-9]s'
 stderr 'Saved the progress of scan'
 
 -- proj/package-lock.json --

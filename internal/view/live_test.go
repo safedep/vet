@@ -39,6 +39,7 @@ func TestSnapshotTextSaysWhatTheStageDoes(t *testing.T) {
 		{"wait with no budget", snapshot{stage: engine.StageEnrich, started: start, work: plugin.Work{Name: "x", Label: "Working", Started: start}}, "Working: 2m10s"},
 		{"work in the walk", snapshot{stage: engine.StageExtract, started: start, done: 5, work: index}, "Reading the manifests: 5 files in 2m10s"},
 		{"checks", snapshot{stage: engine.StageEnrich, started: start, done: 3, total: 9}, "Checking 9 packages: 3 done in 2m10s"},
+		{"enrich before the count", snapshot{stage: engine.StageEnrich, started: start}, "Checking the packages in 2m10s"},
 		{"evaluation", snapshot{stage: engine.StageEvaluate, started: start, done: 10, total: 2472}, "Evaluating the controls: 10 of 2472 manifests in 2m10s"},
 		{"report", snapshot{stage: engine.StageReport, started: start}, ""},
 	}
@@ -125,6 +126,7 @@ func TestBeatPrintsTheProgressOfALongStage(t *testing.T) {
 				now, set := beatClock()
 				v := NewScan(Options{})
 				v.now = now
+				v.ticker = noTicks
 				defer v.Stop()
 				v.Stage(engine.StageEnrich, 2, 4)
 				v.Progress(engine.StageEnrich, 3, 9)
@@ -161,6 +163,7 @@ func TestBeatPrintsNothingWithQuiet(t *testing.T) {
 		now, set := beatClock()
 		v := NewScan(Options{})
 		v.now = now
+		v.ticker = noTicks
 		defer v.Stop()
 		v.Stage(engine.StageEnrich, 2, 4)
 		v.Progress(engine.StageEnrich, 3, 9)
@@ -175,6 +178,7 @@ func TestBeatStopsWithTheView(t *testing.T) {
 		now, set := beatClock()
 		v := NewScan(Options{})
 		v.now = now
+		v.ticker = noTicks
 		v.Stage(engine.StageExtract, 1, 4)
 		v.Stop()
 		set(time.Minute)

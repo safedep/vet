@@ -102,6 +102,9 @@ func (s snapshot) text(now time.Time) string {
 		return t
 	case s.stage == engine.StageEnrich && s.total > 0:
 		return fmt.Sprintf("Checking %s: %d done in %s", plural(s.total, "package"), s.done, elapsed)
+	case s.stage == engine.StageEnrich:
+		// The enrichers prepare before the first package counts.
+		return "Checking the packages in " + elapsed
 	case s.stage == engine.StageEvaluate && s.total > 0:
 		return fmt.Sprintf("Evaluating the controls: %d of %s in %s", s.done, plural(s.total, "manifest"), elapsed)
 	}
