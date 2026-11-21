@@ -51,8 +51,13 @@ func stepClock() func() time.Time {
 func newScan(o Options) *Scan {
 	v := NewScan(o)
 	v.now = stepClock()
+	v.ticker = noTicks
 	return v
 }
+
+// noTicks gives a heartbeat that never fires, so a test that never stops its
+// view leaves no timer behind.
+func noTicks() (<-chan time.Time, func()) { return nil, func() {} }
 
 func run(v *Scan) {
 	v.Stage(engine.StageExtract, 1, 4)

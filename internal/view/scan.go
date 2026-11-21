@@ -17,9 +17,9 @@ import (
 	"github.com/safedep/vet/v2/internal/tui/escape"
 	"github.com/safedep/vet/v2/internal/tui/humanize"
 	"github.com/safedep/vet/v2/internal/tui/output"
-	"github.com/safedep/vet/v2/internal/tui/progress"
 	"github.com/safedep/vet/v2/internal/tui/section"
 	"github.com/safedep/vet/v2/internal/tui/style"
+	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
 )
 
@@ -50,8 +50,19 @@ type Scan struct {
 	done    int
 	total   int
 	started time.Time
-	bar     *progress.Bar
+	dir     string
+	works   []plugin.Work
 	files   []string
+
+	bar       liveLine
+	lineKind  string
+	shown     shown
+	startLine func(kind string, total int, status func() string) liveLine
+
+	ticker    func() (<-chan time.Time, func())
+	beatStop  chan struct{}
+	beatEnded bool
+	lastBeat  time.Time
 }
 
 // shownElapsed is the shortest stage that a step line gives the run time of.
@@ -59,7 +70,7 @@ const shownElapsed = time.Second
 
 // NewScan returns the view and prints the start line.
 func NewScan(o Options) *Scan {
-	v := &Scan{o: o, mode: output.CurrentMode(), now: time.Now}
+	v := &Scan{o: o, mode: output.CurrentMode(), now: time.Now, startLine: startLine, ticker: newTicker}
 	mode := "full"
 	if o.BaseRef != "" {
 		mode = "delta"
@@ -79,11 +90,12 @@ func (v *Scan) Stage(name string, index, steps int) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	v.endStage()
-	v.stage, v.index, v.steps, v.done, v.total, v.started = name, index, steps, 0, 0, v.now()
+	v.stage, v.index, v.steps, v.done, v.total, v.started, v.dir = name, index, steps, 0, 0, v.now(), ""
+	v.startBeat()
+	v.update()
 }
 
-// Progress records the units done in the stage. The enrich stage shows a
-// live bar once it knows the number of packages.
+// Progress records the units done in the stage.
 func (v *Scan) Progress(stage string, done, total int) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
@@ -91,27 +103,22 @@ func (v *Scan) Progress(stage string, done, total int) {
 		return
 	}
 	v.done, v.total = done, total
-	if stage != engine.StageEnrich || total == 0 || !v.live() {
-		return
-	}
-	if v.bar == nil {
-		v.bar = progress.Start("Checking "+plural(total, "package"), total)
-	}
-	v.bar.Set(done)
+	v.update()
 }
 
-// live reports whether the view draws a live bar: on a terminal, in rich
+// live reports whether the view draws a live line: on a terminal, in rich
 // mode, and not with -q.
 func (v *Scan) live() bool {
 	return v.mode == output.Rich && v.o.Animate && output.CurrentVerbosity() > output.Silent
 }
 
-// Stop removes the live bar of a scan that ends before Finish, for
-// example on a signal.
+// Stop removes the live line of a scan that ends before Finish, for
+// example on a signal, and ends the heartbeat.
 func (v *Scan) Stop() {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	v.stopBar()
+	v.stopBeat()
 }
 
 func (v *Scan) stopBar() {
@@ -119,6 +126,7 @@ func (v *Scan) stopBar() {
 		v.bar.Stop()
 		v.bar = nil
 	}
+	v.lineKind = ""
 }
 
 // Report ends the report stage before the report goes out, so that its
@@ -184,6 +192,7 @@ func (v *Scan) Finish(h *report.Header, t *report.Trailer, s overview.Overview) 
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	v.endStage()
+	v.stopBeat()
 	if h.Scan.Mode == report.ScanModeDelta && v.mode != output.Agent {
 		v.line(section.Hint(fmt.Sprintf("%s changed, %s changed. %s not shown.",
 			plural(s.Changes.Packages, "package"), plural(s.Changes.Workflows, "workflow"), plural(s.Changes.Unchanged, "unchanged package"))))

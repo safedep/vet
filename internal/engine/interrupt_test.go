@@ -13,12 +13,11 @@ import (
 
 // stopAfter cancels the scan when a stage reports done units.
 type stopAfter struct {
+	NopObserver
 	stage  string
 	done   int
 	cancel context.CancelCauseFunc
 }
-
-func (stopAfter) Stage(string, int, int) {}
 
 func (s stopAfter) Progress(stage string, done, _ int) {
 	if stage == s.stage && done >= s.done {

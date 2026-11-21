@@ -531,6 +531,11 @@ const (
 	// CodeBasePolicyInvalid is a pull request scan whose base policy does
 	// not load while the change edits it. The gate applies no policy file.
 	CodeBasePolicyInvalid = "base_policy_invalid"
+	// CodeSourceFileMissing and CodeReachStopped are a code analysis that
+	// stopped at its time budget. The report then misses the imports and
+	// calls of some source files, or the function reach of some findings.
+	CodeSourceFileMissing = "source_file_missing"
+	CodeReachStopped      = "reach_stopped"
 )
 
 // Diagnostic records an error or a limit that did not stop the scan, for
