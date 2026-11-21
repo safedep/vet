@@ -377,7 +377,16 @@ type Enricher struct {
 	pyMu     sync.Mutex
 	pyEnvs   map[string]*pythonEnvironment
 	pyGraphs map[string]any
+	// onWork takes the reports of the code index and of the call graph
+	// search, or is nil.
+	onWork func(plugin.Work)
 }
+
+// The names of the long work of the code analysis.
+const (
+	WorkIndex  = "code_index"
+	WorkSearch = "call_graph_search"
+)
 
 var (
 	_ plugin.CapabilityFinder = (*Enricher)(nil)
@@ -385,7 +394,27 @@ var (
 	_ plugin.Preparer         = (*Enricher)(nil)
 	_ plugin.SourceEnricher   = (*Enricher)(nil)
 	_ plugin.ReachReporter    = (*Enricher)(nil)
+	_ plugin.WorkReporter     = (*Enricher)(nil)
 )
+
+// ReportWork keeps the function that takes the reports of the code index
+// and of the call graph search. On a large target each one can take its
+// whole budget.
+func (e *Enricher) ReportWork(report func(plugin.Work)) { e.onWork = report }
+
+// startWork reports the start of long work and returns the function that
+// reports its end.
+func (e *Enricher) startWork(name, label string) (end func()) {
+	if e.onWork == nil {
+		return func() {}
+	}
+	w := plugin.Work{Name: name, Label: label, Started: time.Now(), Budget: e.o.Budget}
+	e.onWork(w)
+	return func() {
+		w.Done = true
+		e.onWork(w)
+	}
+}
 
 // UseSource sets the directory of the source code. A target with no
 // source code gets no usage and no capabilities.
@@ -395,16 +424,14 @@ func (e *Enricher) UseSource(dir string) { e.dir = dir }
 // could not read or parse. The scan goes on without them.
 const CodeFileFailed = "source_file_failed"
 
-// CodeFileMissing is the diagnostic code of source files that the analysis
-// did not reach in its time budget.
-const CodeFileMissing = "source_file_missing"
+// CodeReachFailed is the diagnostic code of a call graph search that
+// failed. The function reach of each vulnerability is then unknown. A
+// search that stops at its budget gives report.CodeReachStopped.
+const CodeReachFailed = "reach_failed"
 
-// The diagnostic codes of a call graph search that did not finish. The
-// function reach of each vulnerability is then unknown.
-const (
-	CodeReachStopped = "reach_stopped"
-	CodeReachFailed  = "reach_failed"
-)
+// budgetFix tells a person how to give the code analysis the time that it
+// needs. It ends a message, so it has no full stop after the config key.
+const budgetFix = "Skip folders with --exclude, or raise plugins.codeusage.options.budget"
 
 // CodeSourceMissing is the diagnostic code of imported packages with a
 // vulnerability record whose code is not on the disk.
@@ -422,18 +449,18 @@ func (e *Enricher) Diagnostics() []report.Diagnostic {
 		out = append(out, e.symbols.Diagnostics()...)
 	}
 	if e.stopped {
-		msg := fmt.Sprintf("vet stopped the code analysis after %s, before it read the source files", e.o.Budget)
+		msg := fmt.Sprintf("vet stopped the code analysis after %s, before it read the source files. %s", e.o.Budget, budgetFix)
 		if e.missing > 0 {
-			msg = fmt.Sprintf("vet stopped the code analysis after %s, so the imports and calls of %d source files are not in the report", e.o.Budget, e.missing)
+			msg = fmt.Sprintf("vet stopped the code analysis after %s, so the imports and calls of %d source files are not in the report. %s", e.o.Budget, e.missing, budgetFix)
 		}
-		out = append(out, report.Diagnostic{Level: report.DiagnosticWarning, Code: CodeFileMissing, Component: Name, Message: msg})
+		out = append(out, report.Diagnostic{Level: report.DiagnosticWarning, Code: report.CodeSourceFileMissing, Component: Name, Message: msg})
 	}
 	out = append(out, e.missingDiagnostics()...)
 	out = append(out, e.graphDiagnostics()...)
 	if e.reachStopped {
 		out = append(out, report.Diagnostic{
-			Level: report.DiagnosticWarning, Code: CodeReachStopped, Component: Name,
-			Message: fmt.Sprintf("vet stopped the call graph search after %s, so it does not know which vulnerable functions the code calls", e.o.Budget),
+			Level: report.DiagnosticWarning, Code: report.CodeReachStopped, Component: Name,
+			Message: fmt.Sprintf("vet stopped the call graph search after %s, so it does not know which vulnerable functions the code calls. %s", e.o.Budget, budgetFix),
 		})
 	}
 	if e.reachErr != nil {
@@ -684,6 +711,7 @@ func (e *Enricher) pythonEnvAt(dir string) *pythonEnvironment {
 // the cause of each record. Only a usage error or a stopped scan is an
 // error.
 func (e *Enricher) search(ctx context.Context, q ReachQuery) (ReachResult, finding.ReachCause, error) {
+	defer e.startWork(WorkSearch, "Searching the call graph")()
 	e.searched = true
 	rctx := ctx
 	if e.o.Budget > 0 {
@@ -961,6 +989,7 @@ func (e *Enricher) load(ctx context.Context) error {
 }
 
 func (e *Enricher) index(ctx context.Context) error {
+	defer e.startWork(WorkIndex, "Indexing the source code")()
 	actx := ctx
 	if e.o.Budget > 0 {
 		var cancel context.CancelFunc

@@ -19,11 +19,12 @@ const interval = 100 * time.Millisecond
 
 var frames = []rune{'⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'}
 
-// Bar is a live line with a label, a bar and a done/total count. The
-// caller starts it only for a terminal in rich mode.
+// Bar is a live line with a label, a bar and a done/total count, or with
+// a status text. The caller starts it only for a terminal in rich mode.
 type Bar struct {
-	w     io.Writer
-	width int
+	w      io.Writer
+	width  int
+	status func() string
 
 	mu    sync.Mutex
 	label string
@@ -39,6 +40,19 @@ type Bar struct {
 func Start(label string, total int) *Bar {
 	b := &Bar{
 		w: output.Stderr(), width: output.Width(), label: label, total: total,
+		stop: make(chan struct{}), exited: make(chan struct{}),
+	}
+	go b.animate()
+	return b
+}
+
+// StartStatus draws a spinner and the text of status until Stop. The line
+// reads status again on each frame, so the text can hold a clock. status
+// must return fast, and it must not wait for a lock that the caller holds
+// when it calls Stop.
+func StartStatus(status func() string) *Bar {
+	b := &Bar{
+		w: output.Stderr(), width: output.Width(), status: status,
 		stop: make(chan struct{}), exited: make(chan struct{}),
 	}
 	go b.animate()
@@ -78,6 +92,9 @@ func (b *Bar) animate() {
 // line renders one frame. A line that does not fit the terminal drops the
 // bar, because a wrapped line breaks the redraw.
 func (b *Bar) line(frame rune) string {
+	if b.status != nil {
+		return ansi.Truncate(string(frame)+" "+b.status(), b.width-1, "")
+	}
 	b.mu.Lock()
 	label, done, total := b.label, b.done, b.total
 	b.mu.Unlock()

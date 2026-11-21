@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/fs"
 	"iter"
+	"time"
 
 	"github.com/google/osv-scalibr/extractor/filesystem"
 
@@ -160,6 +161,29 @@ type ReachReporter interface {
 // Diagnostics must report it.
 type Preparer interface {
 	Prepare(ctx context.Context) error
+}
+
+// Work is long work of an enricher that a person waits for, such as the
+// code index. A view shows its label and its run time, so a long wait does
+// not look like a stopped scan.
+type Work struct {
+	// Name identifies the work for a machine, as code_index.
+	Name string
+	// Label names the work for a person, as "Indexing the source code".
+	Label string
+	// Started is when the work started.
+	Started time.Time
+	// Budget is the most time that the work takes. Zero has no limit.
+	Budget time.Duration
+	// Done ends the work.
+	Done bool
+}
+
+// WorkReporter is an enricher that reports its long work. The engine calls
+// ReportWork once, before Prepare, with the function that takes each
+// report. The function does not block, and it is safe for concurrent use.
+type WorkReporter interface {
+	ReportWork(report func(Work))
 }
 
 // Control evaluates one manifest, loaded with its packages, and returns

@@ -88,10 +88,12 @@ func TestResumeWithNothingToResume(t *testing.T) {
 }
 
 // orderLog records the calls of Opened and of the stages in order.
-type orderLog struct{ calls []string }
+type orderLog struct {
+	NopObserver
+	calls []string
+}
 
 func (l *orderLog) Stage(name string, _, _ int) { l.calls = append(l.calls, name) }
-func (*orderLog) Progress(string, int, int)     {}
 
 func TestOpenedRunsBeforeTheFirstStage(t *testing.T) {
 	f := newFixture(t)

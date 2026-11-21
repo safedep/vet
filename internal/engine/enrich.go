@@ -47,6 +47,9 @@ func (r *run) enrich(ctx context.Context) error {
 func (r *run) prepare(ctx context.Context) (stop func()) {
 	ctx, cancel := context.WithCancel(ctx)
 	for _, e := range r.o.Enrichers {
+		if w, ok := e.Plugin.(plugin.WorkReporter); ok {
+			w.ReportWork(r.o.Observer.Work)
+		}
 		p, ok := e.Plugin.(plugin.Preparer)
 		if !ok {
 			continue
