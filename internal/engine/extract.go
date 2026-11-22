@@ -165,7 +165,7 @@ func (r *run) walk(fsys fs.FS, a plugin.Artifact, readsInstalled bool, visit fun
 	walkFn = func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			// An unreadable directory does not stop the scan.
-			r.diags.add(report.DiagnosticWarning, report.CodeExtractFailed, "walk", readError(err))
+			r.diags.addIn(stageRun, report.DiagnosticWarning, report.CodeExtractFailed, "walk", readError(err))
 			if d != nil && d.IsDir() {
 				return fs.SkipDir
 			}
@@ -204,7 +204,7 @@ func (r *run) walk(fsys fs.FS, a plugin.Artifact, readsInstalled bool, visit fun
 			}
 			err := links.Follow(from, target, func() error { return fs.WalkDir(fsys, p, walkFn) })
 			if errors.Is(err, extractors.ErrTooManyLinks) {
-				r.diags.add(report.DiagnosticWarning, report.CodeExtractFailed, "walk", p+": "+err.Error())
+				r.diags.addIn(stageRun, report.DiagnosticWarning, report.CodeExtractFailed, "walk", p+": "+err.Error())
 				return nil
 			}
 			return err

@@ -24,8 +24,9 @@ import (
 // again. The tables key packages by model.PackageKey, which holds the
 // identity rule version of dry. A new rule version in dry is a format
 // change, because the keys of an older file then name no package. Format 6
-// follows the NuGet rule 1 of dry.
-const scanFormat = 6
+// follows the NuGet rule 1 of dry. Format 7 records the stage that wrote
+// each diagnostic.
+const scanFormat = 7
 
 // CodeScanFormat is the error code of a scan file of another format.
 const CodeScanFormat = "state_scan_format"
@@ -113,6 +114,7 @@ var scanMigrations = []string{
 	)`,
 	`CREATE TABLE vet_scan_diagnostics (
 		seq       INTEGER PRIMARY KEY,
+		stage     TEXT NOT NULL,
 		code      TEXT NOT NULL,
 		component TEXT NOT NULL,
 		data      BLOB NOT NULL
@@ -712,17 +714,31 @@ func replaceRows[T any](ctx context.Context, s *Scan, del, insert string, items 
 	})
 }
 
-// AddDiagnostic writes a diagnostic.
+// AddDiagnostic writes a diagnostic that no later run replaces.
 func (s *Scan) AddDiagnostic(ctx context.Context, d *report.Diagnostic) error {
+	return s.AddStageDiagnostic(ctx, "", d)
+}
+
+// AddStageDiagnostic writes a diagnostic of a stage. ClearDiagnostics of the
+// stage deletes it.
+func (s *Scan) AddStageDiagnostic(ctx context.Context, stage string, d *report.Diagnostic) error {
 	b, err := json.Marshal(d)
 	if err != nil {
 		return err
 	}
-	if _, err := s.db.ExecContext(ctx, `INSERT INTO vet_scan_diagnostics (code, component, data) VALUES (?, ?, ?)`,
-		d.Code, d.Component, b); err != nil {
+	if _, err := s.db.ExecContext(ctx, `INSERT INTO vet_scan_diagnostics (stage, code, component, data) VALUES (?, ?, ?, ?)`,
+		stage, d.Code, d.Component, b); err != nil {
 		return fmt.Errorf("write diagnostic: %w", err)
 	}
 	return nil
+}
+
+// ClearDiagnostics deletes the diagnostics of a stage. A continued scan that
+// does the work of the stage again writes them again, so the old rows would
+// repeat them, or keep a problem that the scan no longer has.
+func (s *Scan) ClearDiagnostics(ctx context.Context, stage string) error {
+	_, err := s.db.ExecContext(ctx, `DELETE FROM vet_scan_diagnostics WHERE stage = ?`, stage)
+	return err
 }
 
 func (s *Scan) tx(ctx context.Context, fn func(*sql.Tx) error) error {
