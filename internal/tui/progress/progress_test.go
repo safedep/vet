@@ -60,3 +60,26 @@ func TestBarShowsTheCountAndClearsItsLine(t *testing.T) {
 		})
 	}
 }
+
+func TestStatusLineReadsItsTextOnEachFrameAndFitsTheTerminal(t *testing.T) {
+	var w syncBuffer
+	var mu sync.Mutex
+	n := 0
+	status := func() string {
+		mu.Lock()
+		defer mu.Unlock()
+		n++
+		return strings.Repeat("x", 40) + " frame"
+	}
+	b := &Bar{w: &w, width: 30, status: status, stop: make(chan struct{}), exited: make(chan struct{})}
+	go b.animate()
+	assert.Eventually(t, func() bool {
+		mu.Lock()
+		defer mu.Unlock()
+		return n >= 3
+	}, time.Second, 10*time.Millisecond, "the line reads the text again on each frame")
+	b.Stop()
+	for _, frame := range strings.Split(w.String(), "\r\033[K") {
+		assert.Less(t, ansi.StringWidth(frame), 30, "a frame fits the terminal")
+	}
+}

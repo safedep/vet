@@ -170,6 +170,12 @@ state of each stage. **Finalize** is not a stage. It is the hook (`engine.Finali
 policy after the stages.
 _Avoid_: phase (the plan uses phase for its work items), step (the view's line for a stage)
 
+**Work**:
+Long work of an enricher that a scan waits for, such as the code index and the call graph search.
+`plugin.Work`. An enricher reports it through `plugin.WorkReporter`, and the view shows its run time
+against its budget, so a long wait does not look like a stopped scan.
+_Avoid_: activity, task, phase
+
 **Batch**:
 The packages that one enricher call gets: at most `BatchSize`, default 100, in package key order. Each
 batch commits in its own transaction, so an interrupted scan keeps the batches that finished.

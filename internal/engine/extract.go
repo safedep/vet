@@ -121,6 +121,7 @@ func (r *run) extractFiles(ctx context.Context, a plugin.Artifact, done *int) er
 			return err
 		}
 		*done++
+		r.o.Observer.Walk(rel)
 		r.o.Observer.Progress(StageExtract, *done, 0)
 		return nil
 	}

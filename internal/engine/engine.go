@@ -37,6 +37,12 @@ type Observer interface {
 	Stage(name string, index, total int)
 	// Progress reports the units done in the current stage.
 	Progress(stage string, done, total int)
+	// Walk reports the file that the extract stage reads, as a slash path
+	// in the artifact. The path comes from the target.
+	Walk(rel string)
+	// Work reports the long work of an enricher. It can come from another
+	// goroutine, and in any stage: the code index starts with the scan.
+	Work(w plugin.Work)
 }
 
 // NopObserver drops the progress.
@@ -44,6 +50,8 @@ type NopObserver struct{}
 
 func (NopObserver) Stage(string, int, int)    {}
 func (NopObserver) Progress(string, int, int) {}
+func (NopObserver) Walk(string)               {}
+func (NopObserver) Work(plugin.Work)          {}
 
 // Enricher is one enricher of a scan.
 type Enricher struct {

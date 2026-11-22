@@ -47,8 +47,11 @@ know exits with code 2 and leaves no scan in the index.
 
 stdout gets the report in the `-o` format. With no `-o`, the format follows the mode: `table` in a
 terminal, `plain` in CI and `json` under an agent. stderr gets the progress, the diagnostics and the
-gate line. In a terminal, vet first prints its banner and shows the first five diagnostics, errors
-first. `-v` and the agent mode show all of them, and `vet report show SCAN_ID -v` lists them again.
+gate line. In a terminal, vet first prints its banner. A live line then shows the folder that vet
+reads, and the run time of the code index and of the call graph search against their budget. With no
+terminal, vet prints the progress of a stage every 15 seconds once the stage runs that long. vet
+shows the first five diagnostics: errors first, then a code analysis that stopped at its budget.
+`-v` and the agent mode show all of them, and `vet report show SCAN_ID -v` lists them again.
 The log lines of the parser libraries print only with `-v`. `--report FORMAT=PATH` also writes the report to a file. vet writes a temporary file and
 renames it into place, so a failed write leaves no partial file.
 
@@ -82,8 +85,8 @@ code imports, and the AI and crypto capabilities that the code calls. The `cyclo
 the capabilities as an xBOM and a CBOM. `cache.db` keeps the index of each file, so the next scan
 parses only the files that changed. vet parses the code while it waits for SafeDep Insights.
 `plugins.codeusage.options.budget` bounds the time, 5m by default. A file that the budget stops is
-not in the report, and a diagnostic counts these files. `plugins.codeusage.enabled: false` turns off
-all code analysis. The code analysis needs a vet build with CGO. A static build scans with no code
+not in the report, and a diagnostic counts these files and tells how to give the analysis more time.
+`plugins.codeusage.enabled: false` turns off all code analysis. The code analysis needs a vet build with CGO. A static build scans with no code
 analysis.
 
 Each vulnerability finding gets a reach. It says how far the code of the project reaches the

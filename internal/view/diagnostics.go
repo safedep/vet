@@ -59,7 +59,8 @@ func (v *Scan) diagnostics(h *report.Header, diags []*report.Diagnostic) {
 }
 
 // groupDiagnostics groups the diagnostics by level, component and code.
-// The groups of errors come first, then the groups in report order.
+// The groups of errors come first, then the budget stops, then the groups
+// in report order.
 func groupDiagnostics(diags []*report.Diagnostic) []*diagGroup {
 	var groups []*diagGroup
 	byKey := map[[3]string]*diagGroup{}
@@ -75,7 +76,7 @@ func groupDiagnostics(diags []*report.Diagnostic) []*diagGroup {
 		g.times += max(d.Count, 1)
 	}
 	slices.SortStableFunc(groups, func(a, b *diagGroup) int {
-		return cmp.Compare(levelRank(a.first.Level), levelRank(b.first.Level))
+		return cmp.Compare(diagRank(a.first), diagRank(b.first))
 	})
 	return groups
 }
@@ -87,11 +88,17 @@ func (g *diagGroup) text() string {
 	return fmt.Sprintf("%s (and %d more like it)", cleanMessage(g.first.Message), g.times-1)
 }
 
-func levelRank(l report.DiagnosticLevel) int {
-	if l == report.DiagnosticError {
+// diagRank orders the groups. A code analysis that stopped at its budget
+// comes right after the errors: the scan spent that time, the report
+// misses part of the reach, and the message tells how to fix it.
+func diagRank(d *report.Diagnostic) int {
+	switch {
+	case d.Level == report.DiagnosticError:
 		return 0
+	case d.Code == report.CodeSourceFileMissing, d.Code == report.CodeReachStopped:
+		return 1
 	}
-	return 1
+	return 2
 }
 
 func diagText(d *report.Diagnostic) string {

@@ -148,11 +148,10 @@ func TestRefreshDropsTheEntryOfAResultThatTheEnricherDoesNotKeep(t *testing.T) {
 
 // progressLog records the progress of the enrich stage.
 type progressLog struct {
+	NopObserver
 	mu     sync.Mutex
 	events [][2]int
 }
-
-func (*progressLog) Stage(string, int, int) {}
 
 func (l *progressLog) Progress(stage string, done, total int) {
 	if stage != StageEnrich {
@@ -227,4 +226,49 @@ func TestUsageErrorStopsTheScan(t *testing.T) {
 	_, err := Run(context.Background(), o)
 	require.Error(t, err)
 	assert.Equal(t, app.ExitUsage, app.ExitCode(err))
+}
+
+// workEnricher reports long work from Prepare, as the code index does.
+type workEnricher struct {
+	fakeEnricher
+	report func(plugin.Work)
+}
+
+func (w *workEnricher) ReportWork(report func(plugin.Work)) { w.report = report }
+
+func (w *workEnricher) Prepare(context.Context) error {
+	w.report(plugin.Work{Name: "index", Label: "Indexing"})
+	w.report(plugin.Work{Name: "index", Label: "Indexing", Done: true})
+	return nil
+}
+
+// walkLog records the files and the work that a scan reports.
+type walkLog struct {
+	NopObserver
+	mu    sync.Mutex
+	files []string
+	work  []plugin.Work
+}
+
+func (l *walkLog) Walk(rel string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.files = append(l.files, rel)
+}
+
+func (l *walkLog) Work(w plugin.Work) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.work = append(l.work, w)
+}
+
+func TestObserverGetsEachFileAndTheLongWork(t *testing.T) {
+	f := newFixture(t)
+	o := f.options(t, project(t), nil)
+	o.Enrichers = []Enricher{{Name: "work", Version: "1", TTL: time.Hour, Plugin: &workEnricher{}}}
+	log := &walkLog{}
+	o.Observer = log
+	runScan(t, o)
+	assert.ElementsMatch(t, []string{"package-lock.json", "requirements.txt", "vendor/requirements.txt"}, log.files)
+	assert.Equal(t, []plugin.Work{{Name: "index", Label: "Indexing"}, {Name: "index", Label: "Indexing", Done: true}}, log.work)
 }

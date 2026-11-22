@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -79,8 +80,9 @@ func TestBudgetKeepsThePartialAnalysis(t *testing.T) {
 	assert.Equal(t, &model.Usage{Incomplete: true}, pkgs[1].Usage, "a missing file can import b")
 	diags := e.Diagnostics()
 	require.Len(t, diags, 1)
-	assert.Equal(t, CodeFileMissing, diags[0].Code)
+	assert.Equal(t, report.CodeSourceFileMissing, diags[0].Code)
 	assert.Contains(t, diags[0].Message, "2 source files")
+	assert.True(t, strings.HasSuffix(diags[0].Message, "raise plugins.codeusage.options.budget"), "the message ends with the fix")
 }
 
 func TestScanDeadlineStopsTheAnalysis(t *testing.T) {
@@ -232,12 +234,19 @@ func TestUnreadAndMissingLanguages(t *testing.T) {
 
 // symbolSource answers every query with one record.
 type symbolSource struct {
-	prepared int
-	verified bool
-	edit     func(*model.SymbolRecord)
+	prepared  int
+	verified  bool
+	edit      func(*model.SymbolRecord)
+	onPrepare func()
 }
 
-func (s *symbolSource) Prepare(context.Context) { s.prepared++ }
+func (s *symbolSource) Prepare(context.Context) {
+	s.prepared++
+	if s.onPrepare != nil {
+		s.onPrepare()
+	}
+}
+
 func (s *symbolSource) Lookup(qs []symbols.Query) [][]model.SymbolRecord {
 	out := make([][]model.SymbolRecord, len(qs))
 	for i, q := range qs {
@@ -352,7 +361,7 @@ func TestFunctionReachOfARecord(t *testing.T) {
 		},
 		{
 			name: "a search past its budget", vendored: true, err: context.DeadlineExceeded,
-			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachBudget)}, diag: CodeReachStopped,
+			want: &model.FunctionReach{Status: model.FunctionUnknown, Cause: string(finding.ReachBudget)}, diag: report.CodeReachStopped,
 		},
 	}
 	for _, c := range cases {
@@ -376,9 +385,14 @@ func TestFunctionReachOfARecord(t *testing.T) {
 				analysis.Usage = []Evidence{{Language: "go", PackageHint: "golang.org/x/net", ModuleName: "golang.org/x/net/html", FilePath: "main.go", Line: 3}}
 			}
 			e := NewWith(dir, Options{Symbols: src}, func(context.Context, string) (Analysis, error) { return analysis, nil })
+			var work []string
+			e.ReportWork(func(w plugin.Work) { work = append(work, fmt.Sprintf("%s done=%t", w.Name, w.Done)) })
+			src.onPrepare = func() { work = append(work, "symbol data") }
 			vuln := &model.Insight{Vulnerabilities: []model.Vulnerability{{ID: "GHSA-aaaa"}}}
 			net := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, "golang.org/x/net", "v0.20.0"), Enrichment: model.Enrichment{Insight: vuln}}
 			require.NoError(t, e.Enrich(context.Background(), []*model.Package{net}))
+			assert.Equal(t, []string{WorkIndex + " done=false", WorkIndex + " done=true", "symbol data", WorkSearch + " done=false", WorkSearch + " done=true"}, work,
+				"each long work reports its start and its end, and the index ends before the symbol data loads")
 			require.Len(t, net.Usage.Symbols, 1)
 			assert.Equal(t, c.want, net.Usage.Symbols[0].Reach)
 			var codes []string
