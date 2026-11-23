@@ -224,6 +224,45 @@ token of the run.
 For a private repository, vet posts no comment from a fork run. The step summary and the job log have
 the report. `comment-proxy: false` turns off the proxy for a public repository.
 
+## SafeDep Cloud
+
+With no credentials, vet uses the community endpoints of SafeDep, which have a rate limit. To use the
+API endpoints of your SafeDep Cloud tenant, give the job the permission `id-token: write` and set
+`SAFEDEP_TENANT_ID`. The job needs no API key:
+
+```yaml
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: safedep/vet@<commit SHA> # <release tag>
+        env:
+          SAFEDEP_TENANT_ID: acme.safedep.io
+```
+
+vet gets an OIDC ID token for the job from GitHub, and exchanges it with SafeDep Cloud for a
+short-lived workload credential. vet revokes the credential when the scan ends. A tenant admin must
+first link the GitHub organization to the tenant and add a workload trust rule for the repository.
+
+When SafeDep Cloud refuses the exchange, the scan continues with no SafeDep Cloud data, and a
+`workload_exchange_failed` diagnostic gives the reason. `--strict` turns the diagnostic into exit 3.
+
+`SAFEDEP_API_KEY` takes precedence over the workload identity. Do not map a secret that is missing to
+`SAFEDEP_API_KEY`: an empty `SAFEDEP_API_KEY` is a half credential, and vet exits 2.
+
+A pull request from a fork gets no ID token. Its job has `SAFEDEP_TENANT_ID` and no workload identity,
+which is also a half credential. Set `SAFEDEP_TENANT_ID` to an empty value for a fork pull request,
+and vet uses the community endpoints:
+
+```yaml
+        env:
+          SAFEDEP_TENANT_ID: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && 'acme.safedep.io' || '' }}
+```
+
 ## How the action picks vet
 
 The action code stays at the commit that you pin. The vet binary moves to the newest v2 release:

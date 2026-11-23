@@ -239,6 +239,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	if creds.Warning != "" {
 		tui.Warning("%s", creds.Warning)
 	}
+	defer RevokeWorkload(ctx, creds)
 	src := o.Source
 	if src == nil {
 		if src, err = sources.New(o.Target, sources.Options{Tokens: github.DefaultProvider()}); err != nil {
@@ -289,6 +290,10 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		if err != nil {
 			return app.UsageError("cache.ttl: "+err.Error(), "Set a duration such as 24h or 7d.")
 		}
+		credDiags, err := exchangeDiagnostics(ctx, creds)
+		if err != nil {
+			return err
+		}
 		set, err := enrichers.Build(enrichers.Options{
 			APIURL: cfg.Cloud.Endpoints.API, CommunityURL: cfg.Cloud.Endpoints.Community,
 			Credentials: creds, Workers: cfg.Scan.Concurrency, TTL: ttl,
@@ -331,7 +336,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			Enrichers: enricherSpecs(set), Controls: engineControls(ctrls), Exclude: exclude,
 			Kind: kind, Mode: mode, BaseRef: o.BaseRef, OptionsHash: hash, VetVersion: version.Version(), TrustActionsLock: trustLock,
 			Resume: o.Resume, Fresh: o.Fresh, ContinueWithin: within, Strict: o.Strict || cfg.Scan.Strict,
-			Diagnostics: pol.diagnostics(),
+			Diagnostics: append(pol.diagnostics(), credDiags...),
 			BatchSize:   100, Observer: v, Opened: notContinued, Reach: code.reach,
 			Finalize: func(ctx context.Context, s *state.Scan) (report.Gate, error) {
 				if err := syncInventory(ctx, cfg, creds, store, s); err != nil {
@@ -565,6 +570,10 @@ func syncInventory(ctx context.Context, cfg *config.Config, creds *credentials.R
 	}
 	if creds.Anonymous() {
 		tui.Info("vet keeps the inventory in the local report. Run vet auth login to send it to SafeDep Cloud.")
+		return nil
+	}
+	// The diagnostic of the failed exchange already tells the user.
+	if creds.Refused() {
 		return nil
 	}
 	audit := inventory.Audit{ScanID: h.Scan.ID}

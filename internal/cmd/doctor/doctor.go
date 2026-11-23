@@ -123,6 +123,7 @@ func run(ctx context.Context, a *app.App, f state.Flags, fix bool) []Check {
 	checks = append(checks, credCheck)
 	if creds != nil {
 		checks = append(checks, endpointChecks(ctx, rt.Config, creds)...)
+		runner.RevokeWorkload(ctx, creds)
 	}
 	return checks
 }
@@ -302,7 +303,7 @@ func githubTokenCheck(ctx context.Context, tp github.TokenProvider) Check {
 func credentialCheck(cfg *config.Config) (*credentials.Result, Check) {
 	res, err := credentials.Resolve(credentials.FromConfig(cfg.Cloud.Profile, cfg.Cloud.InsecureKeychainFallback, cfg.Cloud.KeychainFile))
 	if err != nil {
-		return nil, Check{ID: "credentials", Status: Fail, Message: err.Error(), Fix: "Set both SAFEDEP_API_KEY and SAFEDEP_TENANT_ID, or neither, or run vet auth login."}
+		return nil, Check{ID: "credentials", Status: Fail, Message: err.Error(), Fix: credentials.HelpIncomplete}
 	}
 	c := Check{ID: "credentials", Status: Pass}
 	switch {

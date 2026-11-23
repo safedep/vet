@@ -1,6 +1,8 @@
 // Package stub is the stub SafeDep server of the acceptance suite. It
 // answers Insights v2, Malysis and the GitHub API from fixture files,
-// records the events of the endpoint sync, and it never calls the network (acceptance suite design, section 3.3).
+// records the events of the endpoint sync, exchanges the GitHub Actions ID
+// tokens that it issues for workload credentials, and it never calls the
+// network (acceptance suite design, section 3.3).
 package stub
 
 import (
@@ -62,6 +64,10 @@ type Server struct {
 	readOnly bool
 	comments []Comment
 	events   []SyncedEvent
+	// idTokens are the ID tokens that no exchange used yet. issued are
+	// the workload credentials that the stub did not revoke.
+	idTokens map[string]bool
+	issued   map[string]bool
 }
 
 // Start serves the fixtures under dir on a free local port. gRPC and the
@@ -72,7 +78,10 @@ func Start(dir string) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := &Server{dir: dir, ln: ln, fail: map[string]codes.Code{}, calls: map[string]int{}}
+	s := &Server{
+		dir: dir, ln: ln, fail: map[string]codes.Code{}, calls: map[string]int{},
+		idTokens: map[string]bool{}, issued: map[string]bool{},
+	}
 	s.grpc = grpc.NewServer(grpc.UnknownServiceHandler(func(any, grpc.ServerStream) error {
 		s.count(Other)
 		return status.Error(codes.Unimplemented, "stub: no such service")
@@ -81,6 +90,7 @@ func Start(dir string) (*Server, error) {
 	malysisv1grpc.RegisterMalwareAnalysisServiceServer(s.grpc, &malysisService{s: s})
 	ghcpv1grpc.RegisterGitHubCommentsProxyServiceServer(s.grpc, &ghcpService{s: s})
 	controltowerv1grpc.RegisterEndpointServiceServer(s.grpc, &endpointService{s: s})
+	controltowerv1grpc.RegisterWorkloadIdentityServiceServer(s.grpc, &workloadService{s: s})
 
 	var protocols http.Protocols
 	protocols.SetHTTP1(true)
@@ -160,9 +170,22 @@ func (s *Server) begin(ctx context.Context, service string) error {
 	return nil
 }
 
+// Addr returns the host and port of the server, for example
+// 127.0.0.1:4711.
+func (s *Server) Addr() string { return s.ln.Addr().String() }
+
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// The request token of the ID token request is not a SafeDep
+	// credential, so Authenticated does not count it.
+	if r.URL.Path == IDTokenPath {
+		s.serveIDToken(w, r)
+		return
+	}
 	if r.Header.Get("Authorization") != "" {
 		s.count(Authenticated)
+	}
+	if s.workloadSent(r) {
+		s.count(Workload)
 	}
 	if r.ProtoMajor == 2 && strings.HasPrefix(r.Header.Get("Content-Type"), "application/grpc") {
 		s.grpc.ServeHTTP(w, r)

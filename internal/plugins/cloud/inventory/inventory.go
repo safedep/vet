@@ -91,7 +91,7 @@ func New(client Client) *Syncer { return &Syncer{client: client, close: client.C
 // Open connects to the SafeDep Cloud API at apiURL with the credentials of
 // the run and opens the event log in stateDir.
 func Open(o Options, apiURL string, creds *credentials.Result, stateDir, version string) (*Syncer, error) {
-	key, err := creds.Credentials.GetAPIKey()
+	ep, err := grpcdial.Cloud(apiURL, creds)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func Open(o Options, apiURL string, creds *credentials.Result, stateDir, version
 	if err := os.Remove(filepath.Join(stateDir, oldLogFile)); err != nil && !errors.Is(err, os.ErrNotExist) {
 		log.Warnf("inventory sync: remove %s: %v", oldLogFile, err)
 	}
-	conn, err := grpcdial.Dial("vet-endpointsync", grpcdial.Endpoint{URL: apiURL, APIKey: key, Tenant: creds.TenantDomain()})
+	conn, err := grpcdial.Dial("vet-endpointsync", ep)
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,7 @@
 package credentials
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -16,6 +17,10 @@ import (
 // with code 2.
 const CodeIncomplete = "credentials_incomplete"
 
+// HelpIncomplete tells the user how to fix a half credential.
+const HelpIncomplete = "Set both SAFEDEP_API_KEY and SAFEDEP_TENANT_ID, or neither, or run vet auth login. " +
+	"In GitHub Actions, SAFEDEP_TENANT_ID with the job permission id-token: write needs no API key."
+
 // Result is the outcome of Resolve.
 type Result struct {
 	// Credentials is nil for an anonymous run.
@@ -24,13 +29,16 @@ type Result struct {
 	Profile string
 	// Warning explains why vet runs anonymously when a keychain failed.
 	Warning string
+
+	// refused is true when the workload identity exchange failed.
+	refused bool
 }
 
 // Anonymous reports whether the run has no credentials.
 func (r *Result) Anonymous() bool { return r.Credentials == nil }
 
-// Source names where the credentials came from: environment, keychain, or
-// anonymous.
+// Source names where the credentials came from: environment, keychain,
+// workload identity, or anonymous.
 func (r *Result) Source() string {
 	if r.Anonymous() {
 		return "anonymous"
@@ -48,6 +56,48 @@ func (r *Result) TenantDomain() string {
 		return ""
 	}
 	return d
+}
+
+// Workload returns the workload credential of a run that exchanges the
+// workload identity of its CI job. It has no fixed API key. It sends its
+// credential on each gRPC call and refreshes it before it expires.
+func (r *Result) Workload() (*cloud.RefreshingWorkloadCredential, bool) {
+	if r.Anonymous() {
+		return nil, false
+	}
+	return r.Credentials.Workload()
+}
+
+// Exchange runs the first workload identity exchange of the run, before
+// the scan calls SafeDep Cloud. When the exchange fails, Refused is true
+// and the run makes no more calls with the credentials. Without this, each
+// call of the scan fails with the same error and starts a new exchange
+// when the previous error expires. A run with other credentials makes no
+// call.
+func (r *Result) Exchange(ctx context.Context) error {
+	w, ok := r.Workload()
+	if !ok {
+		return nil
+	}
+	if _, err := w.AccessToken(ctx); err != nil {
+		r.refused = true
+		return err
+	}
+	return nil
+}
+
+// Refused reports whether the workload identity exchange of the run failed.
+func (r *Result) Refused() bool { return r.refused }
+
+// Revoke revokes the workload credential of the run, so that the
+// credential does not outlive the run. A run with other credentials makes
+// no call.
+func (r *Result) Revoke(ctx context.Context) error {
+	w, ok := r.Workload()
+	if !ok {
+		return nil
+	}
+	return w.Revoke(ctx)
 }
 
 // Options are the inputs of Resolve.
@@ -83,7 +133,9 @@ func (o Options) keychainOptions(profile string) []cloud.KeychainOption {
 }
 
 // Resolve reads the API key credentials from the environment, then from the
-// keychain profile. No credentials is not an error: the run is anonymous.
+// keychain profile. SAFEDEP_TENANT_ID with no SAFEDEP_API_KEY in a CI job
+// with a workload identity selects the workload identity exchange. No
+// credentials is not an error: the run is anonymous.
 func Resolve(opts Options) (*Result, error) {
 	profile := cloud.ResolveProfile(opts.Profile)
 	res := &Result{Profile: profile}
@@ -111,7 +163,7 @@ func Resolve(opts Options) (*Result, error) {
 		return nil, usefulerror.NewUsefulError().
 			WithCode(CodeIncomplete).
 			WithHumanError(err.Error()).
-			WithHelp("Set both SAFEDEP_API_KEY and SAFEDEP_TENANT_ID, or neither, or run vet auth login.").
+			WithHelp(HelpIncomplete).
 			WithMsg(err.Error())
 	case errors.Is(err, cloud.ErrMissingCredentials):
 		return res, nil

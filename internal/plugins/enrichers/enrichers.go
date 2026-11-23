@@ -1,8 +1,8 @@
 // Package enrichers builds the enrichers of a scan: Insights v2 and
 // Malysis, and the codeusage and actionrefs enrichers when they are on.
 // With no credentials, Insights and Malysis call the community service.
-// With an API key, they call the API service of the tenant. actionrefs
-// calls the GitHub API.
+// With an API key or a workload credential, they call the API service of
+// the tenant. actionrefs calls the GitHub API.
 package enrichers
 
 import (
@@ -73,29 +73,30 @@ func (s *Set) Close() error {
 }
 
 // Build connects to the services and returns the enrichers. It does not
-// call the network: gRPC connects on the first call.
+// call the network: gRPC connects on the first call. When the workload
+// identity exchange of the run failed, the set has no SafeDep enricher.
 func Build(o Options) (*Set, error) {
-	ep := grpcdial.Endpoint{URL: o.CommunityURL}
-	if o.Credentials != nil && !o.Credentials.Anonymous() {
-		key, err := o.Credentials.Credentials.GetAPIKey()
+	set := &Set{}
+	if o.Credentials == nil || !o.Credentials.Refused() {
+		ep := grpcdial.Endpoint{URL: o.CommunityURL}
+		if o.Credentials != nil && !o.Credentials.Anonymous() {
+			var err error
+			if ep, err = grpcdial.Cloud(o.APIURL, o.Credentials); err != nil {
+				return nil, err
+			}
+		}
+		conn, err := grpcdial.Dial("vet-enrichers", ep)
 		if err != nil {
 			return nil, err
 		}
-		ep = grpcdial.Endpoint{URL: o.APIURL, APIKey: key, Tenant: o.Credentials.TenantDomain()}
-	}
-	conn, err := grpcdial.Dial("vet-enrichers", ep)
-	if err != nil {
-		return nil, err
-	}
-	set := &Set{
-		Specs: []Spec{
-			{Name: insights.Name, Version: insights.Version, TTL: o.TTL, Keep: insights.Keep, Plugin: insights.New(insightsv2grpc.NewInsightServiceClient(conn), o.Workers)},
-			{
+		set.conns = append(set.conns, conn)
+		set.Specs = append(set.Specs,
+			Spec{Name: insights.Name, Version: insights.Version, TTL: o.TTL, Keep: insights.Keep, Plugin: insights.New(insightsv2grpc.NewInsightServiceClient(conn), o.Workers)},
+			Spec{
 				Name: malysis.Name, Version: malysis.Version, TTL: min(o.TTL, malysis.MaxTTL), Keep: nonEmpty,
 				Plugin: malysis.New(malysisv1grpc.NewMalwareAnalysisServiceClient(conn), o.Workers),
 			},
-		},
-		conns: []*grpc.ClientConn{conn},
+		)
 	}
 	if o.ActionRefs != nil {
 		// A pin with no data is not cached, so a later scan checks it again.

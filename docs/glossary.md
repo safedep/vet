@@ -555,6 +555,16 @@ vet release. `scan.sh` runs `vet scan` and maps the report to the outputs. Each 
 comment and the state is in Go. `vet ci init` writes the workflow that uses it.
 _Avoid_: vet-action (the v1 action)
 
+**Workload identity**:
+The identity that a CI platform signs for a job, such as the OIDC ID token of a GitHub Actions job
+with the permission `id-token: write`. When `SAFEDEP_TENANT_ID` is set and `SAFEDEP_API_KEY` is not,
+vet exchanges it with SafeDep Cloud for a short-lived **workload credential**, and revokes the
+credential when the run ends. The workload credential has no fixed API key: it refreshes itself and
+goes on each gRPC call. A failed exchange is the `workload_exchange_failed` diagnostic, and the scan
+makes no call to SafeDep Cloud. `dry/cloud` owns the exchange. `credentials.Result.Workload` in
+`internal/credentials` and `grpcdial.Cloud` use it.
+_Avoid_: OIDC login, keyless API key
+
 **Release channel**:
 The set of releases that the action takes with `version: auto`: `prerelease` or `stable`.
 `action/channel.json` on the default branch selects it. It never shortens the release cooldown.

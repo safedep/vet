@@ -176,6 +176,18 @@
   tier: P0
   guarantee: "SAFEDEP_API_KEY without SAFEDEP_TENANT_ID exits 2 and names the missing variable."
   labels: [credentials]
+- id: auth/workload-identity/exchange
+  title: "workload identity: exchange"
+  category: auth
+  tier: P0
+  guarantee: "In a CI job with a workload identity, SAFEDEP_TENANT_ID with no SAFEDEP_API_KEY makes vet exchange one ID token, enrich with the workload credential and revoke it at the end. An explicit SAFEDEP_API_KEY takes precedence."
+  labels: [credentials, ci]
+- id: auth/workload-identity/refused
+  title: "workload identity: refused exchange"
+  category: auth
+  tier: P0
+  guarantee: "A refused workload identity exchange is a diagnostic that gives the reason. The scan completes and makes no other call to SafeDep Cloud."
+  labels: [credentials, ci]
 - id: auth/status/no-secrets
   title: "auth status prints no secret"
   category: auth

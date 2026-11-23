@@ -31,6 +31,9 @@ func StartStub(env *testscript.Env, fixtures string) error {
 	env.Setenv("VET_CLOUD_ENDPOINTS_COMMUNITY", s.URL())
 	env.Setenv("VET_GITHUB_API_URL", s.URL())
 	env.Setenv("STUB_URL", s.URL())
+	env.Setenv("STUB_ADDR", s.Addr())
+	env.Setenv("STUB_ID_TOKEN_URL", s.URL()+stub.IDTokenPath)
+	env.Setenv("STUB_ID_TOKEN_REQUEST_TOKEN", stub.IDTokenRequestToken)
 	return nil
 }
 
