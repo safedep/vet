@@ -100,6 +100,18 @@ func (r *Result) Revoke(ctx context.Context) error {
 	return w.Revoke(ctx)
 }
 
+// WorkloadEndpointID returns the endpoint id that SafeDep Cloud gives the
+// workload credential of a GitHub Actions job: "gh:" and the repository.
+// SafeDep Cloud refuses an endpoint with another machine id under a
+// workload credential, so a configured endpoint id does not apply.
+func WorkloadEndpointID(getenv func(string) string) (string, error) {
+	repo := getenv("GITHUB_REPOSITORY")
+	if repo == "" {
+		return "", errors.New("vet could not name the endpoint of the workload credential, because GITHUB_REPOSITORY is not set")
+	}
+	return "gh:" + repo, nil
+}
+
 // Options are the inputs of Resolve.
 type Options struct {
 	// Profile is the --profile flag or the cloud.profile key. Empty means

@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 
+	"github.com/safedep/vet/v2/internal/credentials"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/actionrefs"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/insights"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/malysis"
@@ -201,4 +202,45 @@ func TestActionRefsCachesOnlyAPinWithData(t *testing.T) {
 		return
 	}
 	t.Fatal("no actionrefs spec")
+}
+
+// TestBuildWithAWorkloadCredential guards the two outcomes of the workload
+// identity exchange. After an exchange, the SafeDep enrichers send the
+// workload credential. After a refused exchange, the set has no SafeDep
+// enricher, so the scan makes no call that fails with the same error.
+func TestBuildWithAWorkloadCredential(t *testing.T) {
+	cases := []struct {
+		name      string
+		refuse    bool
+		wantSpecs []string
+	}{
+		{name: "exchange", wantSpecs: []string{insights.Name, malysis.Name}},
+		{name: "refused exchange", refuse: true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := startStub(t)
+			s.SetWorkloadEnv(t, "acme.safedep.io")
+			if tc.refuse {
+				s.Fail(stub.Exchange, codes.PermissionDenied)
+			}
+			creds, err := credentials.Resolve(credentials.Options{})
+			require.NoError(t, err)
+			assert.Equal(t, tc.refuse, creds.Exchange(context.Background()) != nil)
+
+			set, err := Build(Options{CommunityURL: s.URL(), APIURL: s.URL(), Credentials: creds, Workers: 1, TTL: time.Hour})
+			require.NoError(t, err)
+			t.Cleanup(func() { require.NoError(t, set.Close()) })
+			var names []string
+			for _, sp := range set.Specs {
+				names = append(names, sp.Name)
+			}
+			assert.Equal(t, tc.wantSpecs, names)
+
+			for name, err := range set.Probe(context.Background()) {
+				assert.NoError(t, err, name)
+			}
+			assert.Equal(t, len(tc.wantSpecs), s.Calls(stub.Workload))
+		})
+	}
 }

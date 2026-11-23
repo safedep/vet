@@ -64,10 +64,10 @@ type Server struct {
 	readOnly bool
 	comments []Comment
 	events   []SyncedEvent
-	// idTokens are the ID tokens that no exchange used yet. issued are
-	// the workload credentials that the stub did not revoke.
+	// idTokens are the ID tokens that no exchange used yet. issued maps
+	// each workload credential that the stub did not revoke to its tenant.
 	idTokens map[string]bool
-	issued   map[string]bool
+	issued   map[string]string
 }
 
 // Start serves the fixtures under dir on a free local port. gRPC and the
@@ -80,7 +80,7 @@ func Start(dir string) (*Server, error) {
 	}
 	s := &Server{
 		dir: dir, ln: ln, fail: map[string]codes.Code{}, calls: map[string]int{},
-		idTokens: map[string]bool{}, issued: map[string]bool{},
+		idTokens: map[string]bool{}, issued: map[string]string{},
 	}
 	s.grpc = grpc.NewServer(grpc.UnknownServiceHandler(func(any, grpc.ServerStream) error {
 		s.count(Other)
@@ -243,6 +243,9 @@ func (i *insightService) GetPackageVersionInsight(ctx context.Context, req *insi
 	if err := i.s.begin(ctx, Insights); err != nil {
 		return nil, err
 	}
+	if _, err := i.s.checkWorkload(ctx); err != nil {
+		return nil, err
+	}
 	res := &insightsv2.GetPackageVersionInsightResponse{}
 	found, err := readFixture(i.s.fixturePath(Insights, req.GetPackageVersion()), res)
 	if err != nil {
@@ -274,6 +277,9 @@ type malysisService struct {
 // completed analysis that found no malware.
 func (m *malysisService) QueryPackageAnalysis(ctx context.Context, req *malysisv1.QueryPackageAnalysisRequest) (*malysisv1.QueryPackageAnalysisResponse, error) {
 	if err := m.s.begin(ctx, Malysis); err != nil {
+		return nil, err
+	}
+	if _, err := m.s.checkWorkload(ctx); err != nil {
 		return nil, err
 	}
 	pv := req.GetTarget().GetPackageVersion()

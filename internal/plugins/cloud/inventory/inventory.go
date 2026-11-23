@@ -95,7 +95,11 @@ func Open(o Options, apiURL string, creds *credentials.Result, stateDir, version
 	if err != nil {
 		return nil, err
 	}
-	id, err := endpointsync.NewEndpointIdentityResolver(endpointsync.WithEndpointID(o.EndpointID)).Resolve()
+	endpointID, err := endpointIDOf(o, creds)
+	if err != nil {
+		return nil, err
+	}
+	id, err := endpointsync.NewEndpointIdentityResolver(endpointsync.WithEndpointID(endpointID)).Resolve()
 	if err != nil {
 		// A container or a CI runner can have no machine id. The events of
 		// the audit then never reach the log, so a retry cannot help.
@@ -118,6 +122,24 @@ func Open(o Options, apiURL string, creds *credentials.Result, stateDir, version
 		return nil, errors.Join(fmt.Errorf("vet could not open the inventory sync log: %w", err), conn.Close())
 	}
 	return &Syncer{client: client, close: func() error { return errors.Join(client.Close(), conn.Close()) }}, nil
+}
+
+// endpointIDOf returns the endpoint id of the sync. Under a workload
+// credential, SafeDep Cloud accepts only the machine id of the endpoint id
+// that it derives from the job, and endpointsync derives the machine id
+// from the endpoint id.
+func endpointIDOf(o Options, creds *credentials.Result) (string, error) {
+	if _, ok := creds.Workload(); !ok {
+		return o.EndpointID, nil
+	}
+	id, err := credentials.WorkloadEndpointID(os.Getenv)
+	if err != nil {
+		return "", err
+	}
+	if o.EndpointID != "" && o.EndpointID != id {
+		log.Warnf("inventory sync: the workload credential names the endpoint %s, so vet does not use plugins.cloud-inventory.options.endpoint_id", id)
+	}
+	return id, nil
 }
 
 // resolved gives the identity that Open resolved, so the client does not
@@ -207,7 +229,7 @@ func unavailable(err error) string {
 	st, ok := status.FromError(err)
 	if ok && (st.Code() == codes.Unauthenticated || st.Code() == codes.PermissionDenied ||
 		st.Code() == codes.Internal && strings.Contains(st.Message(), "without sending trailers")) {
-		return base + ". SafeDep Cloud refused the API key. Make sure that the key can sync endpoints and that it belongs to the tenant"
+		return base + ". SafeDep Cloud refused the credential. Make sure that it can sync endpoints and that it belongs to the tenant"
 	}
 	return fmt.Sprintf("%s (%v)", base, err)
 }

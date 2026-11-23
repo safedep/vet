@@ -752,6 +752,12 @@
   tier: P2
   guarantee: "vet doctor exits 0 on a fresh sandbox, and -o json lists each check with an id. The text output has one line for each check, and a fix line under a check that failed."
   labels: [doctor]
+- id: health/doctor/workload-identity
+  title: "doctor: workload identity exchange"
+  category: health
+  tier: P1
+  guarantee: "In a CI job with a workload identity, vet doctor runs the exchange and names the tenant. A refused exchange fails one check that names the tenant and the reason, and doctor skips the endpoint checks."
+  labels: [doctor, credentials]
 - id: health/doctor/release-same-major
   title: "doctor: release of the same major version"
   category: health
@@ -868,6 +874,12 @@
   tier: P1
   guarantee: "With credentials, vet endpoint audit sends its inventory to SafeDep Cloud, with the user of each item and the names, not the values, of MCP server variables. Without credentials it prints one hint and sends nothing. When SafeDep Cloud is down, the audit completes with inventory_sync_unavailable, and the next audit sends the events that wait in the log. plugins.cloud-inventory.enabled false turns the sync off."
   labels: [endpoint, cloud, stub]
+- id: endpoint/inventory-sync/workload-identity
+  title: "inventory sync: workload identity endpoint"
+  category: endpoint
+  tier: P1
+  guarantee: "Under a workload credential, the inventory sync names the endpoint gh:<repository> with the machine id of that endpoint id, which SafeDep Cloud requires, in place of the configured endpoint_id."
+  labels: [endpoint, cloud, stub, credentials]
 # --- 4.9 Live rows. They call production and run with ACCEPTANCE_LIVE=1 only. ---
 - id: live/malware/known-malicious
   title: "live: known malicious package"

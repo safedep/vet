@@ -84,7 +84,7 @@ func cmdStub(ts *testscript.TestScript, neg bool, args []string) {
 		}
 	case args[0] == "events" && len(args) == 1:
 		for _, e := range s.Events() {
-			_, err := fmt.Fprintf(ts.Stdout(), "tenant=%s endpoint=%s %s\n", e.Tenant, e.Endpoint, e.JSON)
+			_, err := fmt.Fprintf(ts.Stdout(), "tenant=%s endpoint=%s machine=%s %s\n", e.Tenant, e.Endpoint, e.MachineID, e.JSON)
 			ts.Check(err)
 		}
 	case args[0] == "stop" && len(args) == 1:

@@ -18,17 +18,24 @@ type endpointService struct {
 	s *Server
 }
 
-// SyncEvents records the events of a batch and confirms each one.
+// SyncEvents records the events of a batch and confirms each one. Under a
+// workload credential it refuses an endpoint that is not the endpoint of
+// the credential.
 func (e *endpointService) SyncEvents(ctx context.Context, req *controltowerv1.SyncEventsRequest) (*controltowerv1.SyncEventsResponse, error) {
 	if err := e.s.begin(ctx, EndpointSync); err != nil {
 		return nil, err
 	}
-	tenant := ""
-	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		if v := md.Get("x-tenant-id"); len(v) > 0 {
-			tenant = v[0]
+	workload, err := e.s.checkWorkload(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if workload != "" {
+		if err := checkWorkloadEndpoint(req.GetEndpoint()); err != nil {
+			return nil, err
 		}
 	}
+	md, _ := metadata.FromIncomingContext(ctx)
+	tenant := first(md, "x-tenant-id")
 	e.s.mu.Lock()
 	defer e.s.mu.Unlock()
 	ids := make([]string, 0, len(req.GetEvents()))
@@ -38,15 +45,18 @@ func (e *endpointService) SyncEvents(ctx context.Context, req *controltowerv1.Sy
 		if err != nil {
 			return nil, err
 		}
-		e.s.events = append(e.s.events, SyncedEvent{Tenant: tenant, Endpoint: req.GetEndpoint().GetIdentifier(), JSON: string(b)})
+		e.s.events = append(e.s.events, SyncedEvent{
+			Tenant: tenant, Endpoint: req.GetEndpoint().GetIdentifier(), MachineID: req.GetEndpoint().GetMachineId(), JSON: string(b),
+		})
 	}
 	return controltowerv1.SyncEventsResponse_builder{ConfirmedEventIds: ids}.Build(), nil
 }
 
 // SyncedEvent is one event that the stub received.
 type SyncedEvent struct {
-	Tenant   string
-	Endpoint string
+	Tenant    string
+	Endpoint  string
+	MachineID string
 	// JSON is the event in compact protojson with the proto field names.
 	JSON string
 }

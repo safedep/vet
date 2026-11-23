@@ -143,8 +143,8 @@ func TestSyncFailure(t *testing.T) {
 		err  error
 		want string
 	}{
-		{"refused key", status.Error(codes.Unauthenticated, "no"), "SafeDep Cloud refused the API key"},
-		{"gateway answer without trailers", status.Error(codes.Internal, "server closed the stream without sending trailers"), "SafeDep Cloud refused the API key"},
+		{"refused key", status.Error(codes.Unauthenticated, "no"), "SafeDep Cloud refused the credential"},
+		{"gateway answer without trailers", status.Error(codes.Internal, "server closed the stream without sending trailers"), "SafeDep Cloud refused the credential"},
 		{"network", errors.New("connection refused"), "connection refused"},
 	}
 	for _, tc := range cases {

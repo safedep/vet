@@ -25,6 +25,9 @@ func TestEachGivesAShortTextForAGRPCError(t *testing.T) {
 			"The backend did not answer for npm/left-pad@1.3.0 (internal error).",
 		},
 		{"permission", status.Error(codes.PermissionDenied, "no"), "The backend did not answer for npm/left-pad@1.3.0 (permission denied)."},
+		// The run can send an API key or a workload credential, so the text
+		// names neither.
+		{"unauthenticated", status.Error(codes.Unauthenticated, "no"), "The backend did not answer for npm/left-pad@1.3.0 (credential not accepted)."},
 		{"other error", errors.New("bad data"), "npm/left-pad@1.3.0: bad data"},
 	}
 	pkgs := []*model.Package{{ID: model.MustPackageVersion(model.EcosystemNpm, "left-pad", "1.3.0")}}

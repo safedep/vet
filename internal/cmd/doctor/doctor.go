@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/safedep/dry/cloud"
 	"github.com/safedep/dry/localdb"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/module"
@@ -122,7 +123,13 @@ func run(ctx context.Context, a *app.App, f state.Flags, fix bool) []Check {
 	creds, credCheck := credentialCheck(rt.Config)
 	checks = append(checks, credCheck)
 	if creds != nil {
-		checks = append(checks, endpointChecks(ctx, rt.Config, creds)...)
+		if c, ok := exchangeCheck(ctx, creds); ok {
+			checks = append(checks, c)
+		}
+		// After a failed exchange the probes only repeat its error.
+		if !creds.Refused() {
+			checks = append(checks, endpointChecks(ctx, rt.Config, creds)...)
+		}
 		runner.RevokeWorkload(ctx, creds)
 	}
 	return checks
@@ -309,6 +316,8 @@ func credentialCheck(cfg *config.Config) (*credentials.Result, Check) {
 	switch {
 	case res.Anonymous():
 		c.Message = "no credentials: vet uses the community endpoints"
+	case res.Credentials.Source() == cloud.CredentialSourceWorkloadIdentity:
+		c.Message = fmt.Sprintf("tenant %s from the %s of the job", res.TenantDomain(), res.Source())
 	default:
 		c.Message = fmt.Sprintf("tenant %s from the %s, profile %s", res.TenantDomain(), res.Source(), res.Profile)
 	}
@@ -316,6 +325,23 @@ func credentialCheck(cfg *config.Config) (*credentials.Result, Check) {
 		c.Status, c.Message = Warn, res.Warning
 	}
 	return res, c
+}
+
+// exchangeCheck runs the workload identity exchange of a run that has a
+// workload credential. ok is false for other credentials.
+func exchangeCheck(ctx context.Context, creds *credentials.Result) (Check, bool) {
+	if _, ok := creds.Workload(); !ok {
+		return Check{}, false
+	}
+	// dry bounds the exchange, so the check sets no timeout of its own.
+	if err := creds.Exchange(ctx); err != nil {
+		return Check{
+			ID: "credentials.exchange", Status: Fail,
+			Message: fmt.Sprintf("vet did not get a SafeDep Cloud credential of tenant %s for the workload identity of the job. The error is: %v", creds.TenantDomain(), err),
+			Fix:     "Ask a tenant admin for a workload trust rule that covers the repository, or set SAFEDEP_API_KEY.",
+		}, true
+	}
+	return Check{ID: "credentials.exchange", Status: Pass, Message: "SafeDep Cloud gave a workload credential of tenant " + creds.TenantDomain()}, true
 }
 
 func endpointChecks(ctx context.Context, cfg *config.Config, creds *credentials.Result) []Check {

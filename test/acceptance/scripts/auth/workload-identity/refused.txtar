@@ -1,6 +1,7 @@
 # When SafeDep Cloud refuses the workload identity exchange, the scan
-# completes with a diagnostic that gives the reason. The scan makes no
-# other call to SafeDep Cloud, so the malware control has no data.
+# completes with one diagnostic that gives the reason. The scan makes no
+# other call to SafeDep Cloud, so the malware control has no data, and no
+# enrichment call fails with the same error.
 cd proj
 env SAFEDEP_TENANT_ID=acme.safedep.io
 env ACTIONS_ID_TOKEN_REQUEST_URL=$STUB_ID_TOKEN_URL
@@ -10,6 +11,7 @@ env INSECURE_GRPC_CLIENT_USE_INSECURE_TRANSPORT=true
 stub fail exchange PermissionDenied
 exec vet scan . --mode plain -o json
 jsonq stdout trailer.gate.outcome NONE
+jsonq stdout trailer.summary.diagnostics 1
 stdout '"code":"workload_exchange_failed"'
 stdout 'acme.safedep.io'
 stdout 'PermissionDenied'
