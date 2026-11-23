@@ -646,9 +646,9 @@ _Avoid_: asset, tool (as a type name), AI tool (as a type; the report kind is `a
 The `cloud-inventory` plugin sends the inventory items of an audit to SafeDep Cloud as
 `VetInventoryEvent` messages, with the `dry/cloud/endpointsync` client. It runs when the run has
 credentials. The client keeps the events in an `inventory-sync-<key>.db` log in the state directory
-until SafeDep Cloud confirms them. Each API URL, tenant and endpoint has its own log, so a switch of
-the tenant or the endpoint does not send the events of one to another.
-`internal/plugins/cloud/inventory`.
+until SafeDep Cloud confirms them. Each API URL and tenant has its own log, so a switch of the tenant
+does not send the events of one tenant to another. Under a workload credential, each endpoint also has
+its own log. `internal/plugins/cloud/inventory`.
 
 **Install evidence**:
 What shows that a coding agent is on an endpoint, other than its config. A config file can stay

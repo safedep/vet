@@ -33,13 +33,22 @@ import (
 const Name = "cloud-inventory"
 
 // LogFile returns the name of the event log in the state directory for
-// one SafeDep Cloud API, tenant and endpoint machine id. A switch of the
-// tenant, as with --profile, must not send the waiting events of one tenant
-// to another. The client sends the waiting events with the endpoint of the
-// run, so a switch of the endpoint, as with the workload credential of
-// another repository on a shared runner, must not send them either.
-func LogFile(apiURL, tenant, machineID string) string {
-	sum := sha256.Sum256([]byte(apiURL + "\n" + tenant + "\n" + machineID))
+// one SafeDep Cloud API and tenant. A switch of the tenant, as with
+// --profile, must not send the waiting events of one tenant to another.
+//
+// workloadMachineID is the endpoint machine id under a workload
+// credential, and empty for other credentials. The client sends the
+// waiting events with the endpoint of the run, and under a workload
+// credential the endpoint follows the repository. So a self-hosted runner
+// that scans two repositories with one state directory needs a log for
+// each endpoint. Other credentials keep the name without the machine id,
+// so that a later run still sends the events that wait in the log.
+func LogFile(apiURL, tenant, workloadMachineID string) string {
+	key := apiURL + "\n" + tenant
+	if workloadMachineID != "" {
+		key += "\n" + workloadMachineID
+	}
+	sum := sha256.Sum256([]byte(key))
 	return "inventory-sync-" + hex.EncodeToString(sum[:6]) + ".db"
 }
 
@@ -115,7 +124,11 @@ func Open(o Options, apiURL string, creds *credentials.Result, stateDir, version
 	if err != nil {
 		return nil, err
 	}
-	logPath := filepath.Join(stateDir, LogFile(apiURL, creds.TenantDomain(), id.GetMachineId()))
+	workloadMachineID := ""
+	if _, ok := creds.Workload(); ok {
+		workloadMachineID = id.GetMachineId()
+	}
+	logPath := filepath.Join(stateDir, LogFile(apiURL, creds.TenantDomain(), workloadMachineID))
 	if err := privateFile(logPath); err != nil {
 		return nil, errors.Join(fmt.Errorf("vet could not open the inventory sync log: %w", err), conn.Close())
 	}

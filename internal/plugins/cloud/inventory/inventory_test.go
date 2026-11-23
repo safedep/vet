@@ -32,6 +32,7 @@ import (
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
+	"github.com/safedep/vet/v2/test/acceptance/stub"
 )
 
 type fakeClient struct {
@@ -254,7 +255,9 @@ func TestOpenSendsThroughTheRealClient(t *testing.T) {
 	s, err := inventory.Open(inventory.Options{EndpointID: "ci-runner-1"}, apiURL, &credentials.Result{Credentials: cred}, state, "test")
 	require.NoError(t, err)
 	require.NoError(t, s.Sync(context.Background(), inventory.Audit{ScanID: "s-1", Items: audit.Items[:1]}))
-	logPath := filepath.Join(state, inventory.LogFile(apiURL, "acme.safedep.io", endpointidentity.MachineID("ci-runner-1")))
+	// An API key run keeps the log name of an older vet, so the events
+	// that wait in that log still go out.
+	logPath := filepath.Join(state, inventory.LogFile(apiURL, "acme.safedep.io", ""))
 	if runtime.GOOS != "windows" {
 		// The endpointsync log runs in WAL mode. SQLite removes the journal
 		// files on a clean close, so the check runs while the log is open.
@@ -281,10 +284,19 @@ func TestOpenSendsThroughTheRealClient(t *testing.T) {
 		"each tenant has its own log")
 }
 
+// TestLogNameOfOtherCredentials guards the events that an older vet left
+// in its log. A run with an API key or a keychain profile must find the log
+// under the same name.
+func TestLogNameOfOtherCredentials(t *testing.T) {
+	assert.Equal(t, "inventory-sync-fa3223bb95ce.db", inventory.LogFile("http://api.example", "acme.safedep.io", ""))
+	assert.NotEqual(t, inventory.LogFile("http://api.example", "acme.safedep.io", ""),
+		inventory.LogFile("http://api.example", "acme.safedep.io", endpointidentity.MachineID("gh:acme/web")))
+}
+
 // TestWaitingEventsKeepTheirEndpoint guards a shared state directory, as on
-// a self-hosted runner that scans two repositories. The events that wait
-// for the endpoint of one repository must not go out with the endpoint of
-// the other.
+// a self-hosted runner that scans two repositories. Under a workload
+// credential, the events that wait for the endpoint of one repository must
+// not go out with the endpoint of the other.
 func TestWaitingEventsKeepTheirEndpoint(t *testing.T) {
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
@@ -299,11 +311,18 @@ func TestWaitingEventsKeepTheirEndpoint(t *testing.T) {
 	t.Cleanup(srv.Stop)
 	apiURL := "http://" + ln.Addr().String()
 	state := t.TempDir()
-	cred, err := cloud.NewAPIKeyCredential("sk_test", "acme.safedep.io")
-	require.NoError(t, err)
-	creds := &credentials.Result{Credentials: cred}
 
-	a, err := inventory.Open(inventory.Options{EndpointID: "gh:acme/a"}, apiURL, creds, state, "test")
+	// The stub gives the workload credentials. The sync goes to the
+	// server of the test.
+	exchange, err := stub.Start(t.TempDir())
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, exchange.Close()) })
+	exchange.SetWorkloadEnv(t, "acme.safedep.io")
+	creds, err := credentials.Resolve(credentials.Options{})
+	require.NoError(t, err)
+
+	t.Setenv("GITHUB_REPOSITORY", "acme/a")
+	a, err := inventory.Open(inventory.Options{}, apiURL, creds, state, "test")
 	require.NoError(t, err)
 	require.Error(t, a.Sync(context.Background(), inventory.Audit{ScanID: "scan-a", Items: audit.Items[:1]}))
 	require.NoError(t, a.Close())
@@ -311,7 +330,8 @@ func TestWaitingEventsKeepTheirEndpoint(t *testing.T) {
 	es.mu.Lock()
 	es.fail = false
 	es.mu.Unlock()
-	b, err := inventory.Open(inventory.Options{EndpointID: "gh:acme/b"}, apiURL, creds, state, "test")
+	t.Setenv("GITHUB_REPOSITORY", "acme/b")
+	b, err := inventory.Open(inventory.Options{}, apiURL, creds, state, "test")
 	require.NoError(t, err)
 	require.NoError(t, b.Sync(context.Background(), inventory.Audit{ScanID: "scan-b", Items: audit.Items[:1]}))
 	require.NoError(t, b.Close())
