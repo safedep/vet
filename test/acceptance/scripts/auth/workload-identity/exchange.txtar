@@ -18,6 +18,10 @@ stub calls idtoken 1
 stub calls exchange 1
 ! stub calls workload 0
 stub calls revoke 1
+stub auth
+stdout '^insights authorization=stub-workload-1 tenant=acme\.safedep\.io$'
+stdout '^malysis authorization=stub-workload-1 tenant=acme\.safedep\.io$'
+! stdout 'authorization=sk_test'
 
 # An explicit SAFEDEP_API_KEY takes precedence. vet makes no exchange and
 # revokes nothing.
@@ -27,6 +31,10 @@ jsonq stdout trailer.summary.diagnostics 0
 stub calls idtoken 1
 stub calls exchange 1
 stub calls revoke 1
+stub auth
+stdout '^insights authorization=sk_test tenant=acme\.safedep\.io$'
+stdout '^malysis authorization=sk_test tenant=acme\.safedep\.io$'
+! stdout stub-workload
 
 -- proj/package-lock.json --
 {"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}

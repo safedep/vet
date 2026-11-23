@@ -3,8 +3,10 @@ package stub
 import (
 	"context"
 	"fmt"
+	"maps"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -83,7 +85,8 @@ func (s *Server) serveIDToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.mu.Lock()
-	token := fmt.Sprintf("stub-id-token-%d", s.calls[IDToken])
+	s.idTokenSeq++
+	token := fmt.Sprintf("stub-id-token-%d", s.idTokenSeq)
 	s.idTokens[token] = true
 	s.mu.Unlock()
 	writeJSON(w, map[string]string{"value": token})
@@ -117,6 +120,27 @@ func (s *Server) checkWorkload(ctx context.Context) (string, error) {
 		return "", status.Errorf(codes.PermissionDenied, "stub: the workload credential is for the tenant %s", tenant)
 	}
 	return auth, nil
+}
+
+// recordAuth keeps the authorization and the tenant of an enrichment call,
+// so that a script can check the credential that vet sends.
+func (s *Server) recordAuth(ctx context.Context, service string) {
+	md, _ := metadata.FromIncomingContext(ctx)
+	line := fmt.Sprintf("%s authorization=%s tenant=%s", service, first(md, "authorization"), first(md, "x-tenant-id"))
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.auths[line] = true
+}
+
+// TakeAuths returns each distinct authorization and tenant of the
+// enrichment calls since the last call of TakeAuths, in order, and clears
+// them.
+func (s *Server) TakeAuths() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	out := slices.Sorted(maps.Keys(s.auths))
+	s.auths = map[string]bool{}
+	return out
 }
 
 // checkWorkloadEndpoint refuses an endpoint whose machine id is not the
@@ -162,7 +186,8 @@ func (ws *workloadService) ExchangeToken(ctx context.Context, req *controltowerv
 		return nil, status.Error(codes.Unauthenticated, "stub: unknown or used ID token")
 	}
 	delete(ws.s.idTokens, req.GetSubjectToken())
-	n := ws.s.calls[Exchange]
+	ws.s.exchangeSeq++
+	n := ws.s.exchangeSeq
 	token := fmt.Sprintf("%s%d", workloadPrefix, n)
 	ws.s.issued[token] = req.GetTenantDomain()
 	return &controltowerv1.ExchangeTokenResponse{

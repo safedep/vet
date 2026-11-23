@@ -68,6 +68,14 @@ type Server struct {
 	// each workload credential that the stub did not revoke to its tenant.
 	idTokens map[string]bool
 	issued   map[string]string
+	// idTokenSeq and exchangeSeq number the ID tokens and the workload
+	// credentials. calls counts a request before its delay, so two
+	// requests in flight can read the same count.
+	idTokenSeq  int
+	exchangeSeq int
+	// auths holds the authorization and the tenant of each enrichment call
+	// since the last TakeAuths.
+	auths map[string]bool
 }
 
 // Start serves the fixtures under dir on a free local port. gRPC and the
@@ -80,7 +88,7 @@ func Start(dir string) (*Server, error) {
 	}
 	s := &Server{
 		dir: dir, ln: ln, fail: map[string]codes.Code{}, calls: map[string]int{},
-		idTokens: map[string]bool{}, issued: map[string]string{},
+		idTokens: map[string]bool{}, issued: map[string]string{}, auths: map[string]bool{},
 	}
 	s.grpc = grpc.NewServer(grpc.UnknownServiceHandler(func(any, grpc.ServerStream) error {
 		s.count(Other)
@@ -243,6 +251,7 @@ func (i *insightService) GetPackageVersionInsight(ctx context.Context, req *insi
 	if err := i.s.begin(ctx, Insights); err != nil {
 		return nil, err
 	}
+	i.s.recordAuth(ctx, Insights)
 	if _, err := i.s.checkWorkload(ctx); err != nil {
 		return nil, err
 	}
@@ -279,6 +288,7 @@ func (m *malysisService) QueryPackageAnalysis(ctx context.Context, req *malysisv
 	if err := m.s.begin(ctx, Malysis); err != nil {
 		return nil, err
 	}
+	m.s.recordAuth(ctx, Malysis)
 	if _, err := m.s.checkWorkload(ctx); err != nil {
 		return nil, err
 	}
