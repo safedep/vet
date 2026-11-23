@@ -61,6 +61,9 @@ variables and headers, never their values.
 - Set `plugins.cloud-inventory.options.endpoint_id` on a machine that changes on each run, such
   as a CI runner. vet otherwise names the endpoint with the host name and the machine id, as pmg
   does.
+- Under the workload credential of a GitHub Actions job, vet names the endpoint `gh:` and the
+  repository, because SafeDep Cloud accepts no other endpoint for the credential. vet then does
+  not use `endpoint_id`.
 - When vet cannot reach SafeDep Cloud, the audit completes, and the report gets an
   `inventory_sync_unavailable` diagnostic. vet keeps the events that SafeDep Cloud did not
   confirm in a log in the state directory, and the next audit sends them. Each tenant has its

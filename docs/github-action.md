@@ -228,7 +228,7 @@ the report. `comment-proxy: false` turns off the proxy for a public repository.
 
 With no credentials, vet uses the community endpoints of SafeDep, which have a rate limit. To use the
 API endpoints of your SafeDep Cloud tenant, give the job the permission `id-token: write` and set
-`SAFEDEP_TENANT_ID`. The job needs no API key:
+`SAFEDEP_TENANT_ID`. The job needs no API key.
 
 ```yaml
     permissions:
@@ -241,27 +241,31 @@ API endpoints of your SafeDep Cloud tenant, give the job the permission `id-toke
           persist-credentials: false
       - uses: safedep/vet@<commit SHA> # <release tag>
         env:
-          SAFEDEP_TENANT_ID: acme.safedep.io
+          # A pull request from a fork gets no ID token, so it uses the community endpoints.
+          SAFEDEP_TENANT_ID: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && 'acme.safedep.io' || '' }}
 ```
 
 vet gets an OIDC ID token for the job from GitHub, and exchanges it with SafeDep Cloud for a
 short-lived workload credential. vet revokes the credential when the scan ends. A tenant admin must
 first link the GitHub organization to the tenant and add a workload trust rule for the repository.
 
-When SafeDep Cloud refuses the exchange, the scan continues with no SafeDep Cloud data, and a
+When SafeDep Cloud refuses the exchange, the scan continues with no SafeDep Cloud data. A
 `workload_exchange_failed` diagnostic gives the reason. `--strict` turns the diagnostic into exit 3.
+`vet doctor` runs the exchange too, and its `credentials.exchange` check gives the reason.
 
-`SAFEDEP_API_KEY` takes precedence over the workload identity. Do not map a secret that is missing to
-`SAFEDEP_API_KEY`: an empty `SAFEDEP_API_KEY` is a half credential, and vet exits 2.
+`SAFEDEP_TENANT_ID` with no workload identity is a half credential, and vet exits 2. A pull request
+from a fork has no workload identity, so the example sets `SAFEDEP_TENANT_ID` to an empty value for
+it. vet then uses the community endpoints.
 
-A pull request from a fork gets no ID token. Its job has `SAFEDEP_TENANT_ID` and no workload identity,
-which is also a half credential. Set `SAFEDEP_TENANT_ID` to an empty value for a fork pull request,
-and vet uses the community endpoints:
+`SAFEDEP_API_KEY` takes precedence over the workload identity. An empty `SAFEDEP_API_KEY` is a half
+credential, and vet exits 2. Do not set `SAFEDEP_API_KEY` from a secret that can be missing.
 
-```yaml
-        env:
-          SAFEDEP_TENANT_ID: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && 'acme.safedep.io' || '' }}
-```
+Under a workload credential, `vet endpoint audit` names the endpoint `gh:` and the repository, as
+SafeDep Cloud requires. vet does not use `plugins.cloud-inventory.options.endpoint_id` then.
+
+vet sends the exchange to `api.safedep.io`, also when `cloud.endpoints.api` names another service
+URL. For another service URL, also set `SAFEDEP_CLOUD_DATA_ADDR` to its host and port, for example
+`api.example.com:443`.
 
 ## How the action picks vet
 

@@ -561,7 +561,8 @@ with the permission `id-token: write`. When `SAFEDEP_TENANT_ID` is set and `SAFE
 vet exchanges it with SafeDep Cloud for a short-lived **workload credential**, and revokes the
 credential when the run ends. The workload credential has no fixed API key: it refreshes itself and
 goes on each gRPC call. A failed exchange is the `workload_exchange_failed` diagnostic, and the scan
-makes no call to SafeDep Cloud. `dry/cloud` owns the exchange. `credentials.Result.Workload` in
+makes no call to SafeDep Cloud. The inventory sync names the endpoint `gh:` and the repository,
+because SafeDep Cloud accepts no other endpoint for the credential. `dry/cloud` owns the exchange. `credentials.Result.Workload` in
 `internal/credentials` and `grpcdial.Cloud` use it.
 _Avoid_: OIDC login, keyless API key
 
