@@ -983,6 +983,12 @@
   tier: P0
   guarantee: "action/scan.sh runs this vet in a pull request. It posts the comment with the command that downloads the report artifact, writes an error annotation for each blocking cause, writes the step summary and the SARIF file, sets the gate, findings, report and comment-url outputs, and fails the step on a failed gate."
   labels: [action, pr-comment, pr-mode]
+- id: ci/action/tenant-id
+  title: "action: tenant-id selects the workload identity"
+  category: ci
+  tier: P0
+  guarantee: "With the tenant-id input and no api-key, action/scan.sh runs this vet with SAFEDEP_TENANT_ID and SAFEDEP_API_KEY unset, also when the job sets SAFEDEP_API_KEY to an empty value. vet exchanges the ID token of the job, enriches with the workload credential and revokes it. The action writes no credential to GITHUB_ENV."
+  labels: [action, credentials]
 - id: ci/setup/init
   title: "vet ci init adds the vet workflow"
   category: ci

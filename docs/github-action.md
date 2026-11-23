@@ -77,6 +77,8 @@ Then, in the settings of the repository:
 | `args` | empty | More arguments for `vet scan`. The action splits them on white space |
 | `github-token` | `${{ github.token }}` | The token for the releases, the comment and the GitHub checks of vet |
 | `report-artifact` | `vet-report` | The name of the workflow artifact with the JSON report. The comment prints the command that downloads it. Give each vet step of one run its own name, such as `vet-report-${{ matrix.os }}` for a matrix job. A second artifact with the same name fails to upload, and the comment then points to the first one. Empty uploads no artifact |
+| `tenant-id` | empty | The domain of your SafeDep Cloud tenant, such as `acme.safedep.io`. With no `api-key`, vet exchanges the ID token of the job. See [SafeDep Cloud](#safedep-cloud) |
+| `api-key` | empty | A SafeDep Cloud API key of the tenant. It needs `tenant-id`, and it takes precedence over the ID token |
 | `cache` | `true` | Keep the vet cache directory between runs with `actions/cache`. A scan then reads the unchanged source files and package data from the cache |
 
 The action has two cooldowns for two different things:
@@ -227,8 +229,8 @@ the report. `comment-proxy: false` turns off the proxy for a public repository.
 ## SafeDep Cloud
 
 With no credentials, vet uses the community endpoints of SafeDep, which have a rate limit. To use the
-API endpoints of your SafeDep Cloud tenant, give the job the permission `id-token: write` and set
-`SAFEDEP_TENANT_ID`. The job needs no API key.
+API endpoints of your SafeDep Cloud tenant, set the `tenant-id` input and give the job the permission
+`id-token: write`. The job needs no API key.
 
 ```yaml
     permissions:
@@ -240,32 +242,40 @@ API endpoints of your SafeDep Cloud tenant, give the job the permission `id-toke
         with:
           persist-credentials: false
       - uses: safedep/vet@<commit SHA> # <release tag>
-        env:
-          # A pull request from a fork gets no ID token, so it uses the community endpoints.
-          SAFEDEP_TENANT_ID: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && 'acme.safedep.io' || '' }}
+        with:
+          tenant-id: acme.safedep.io
 ```
 
 vet gets an OIDC ID token for the job from GitHub, and exchanges it with SafeDep Cloud for a
 short-lived workload credential. vet revokes the credential when the scan ends. A tenant admin must
 first link the GitHub organization to the tenant and add a workload trust rule for the repository.
 
+GitHub gives no ID token to a pull request from a fork. The action then warns, and vet uses the
+community endpoints. A job with no `id-token: write` permission that is not a fork pull request
+fails, and the message names the permission.
+
 When SafeDep Cloud refuses the exchange, the scan continues with no SafeDep Cloud data. A
 `workload_exchange_failed` diagnostic gives the reason. `--strict` turns the diagnostic into exit 3.
 `vet doctor` runs the exchange too, and its `credentials.exchange` check gives the reason.
 
-`SAFEDEP_TENANT_ID` with no workload identity is a half credential, and vet exits 2. A pull request
-from a fork has no workload identity, so the example sets `SAFEDEP_TENANT_ID` to an empty value for
-it. vet then uses the community endpoints.
+To use an API key, set `api-key` with `tenant-id`. The API key takes precedence over the ID token.
+The action hides the key in the log. `api-key` with no `tenant-id` fails the step.
 
-`SAFEDEP_API_KEY` takes precedence over the workload identity. An empty `SAFEDEP_API_KEY` is a half
-credential, and vet exits 2. Do not set `SAFEDEP_API_KEY` from a secret that can be missing.
+```yaml
+      - uses: safedep/vet@<commit SHA> # <release tag>
+        with:
+          tenant-id: acme.safedep.io
+          api-key: ${{ secrets.SAFEDEP_API_KEY }}
+```
+
+The action gives the credentials to vet only. Later steps of the job do not get them.
 
 Under a workload credential, `vet endpoint audit` names the endpoint `gh:` and the repository, as
 SafeDep Cloud requires. vet does not use `plugins.cloud-inventory.options.endpoint_id` then.
 
-vet sends the exchange to `api.safedep.io`, also when `cloud.endpoints.api` names another service
-URL. For another service URL, also set `SAFEDEP_CLOUD_DATA_ADDR` to its host and port, for example
-`api.example.com:443`.
+vet sends the exchange to `api.safedep.io`, also when the config key `cloud.endpoints.api` names
+another service URL. See [vet auth status](cmd/auth-status.md) for the variable that moves the
+exchange.
 
 ## How the action picks vet
 

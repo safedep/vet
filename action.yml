@@ -44,6 +44,12 @@ inputs:
   report-artifact:
     description: The name of the workflow artifact that holds the JSON report. The comment prints the command that downloads it. Set a name for each vet step of one run. Empty uploads no artifact.
     default: vet-report
+  tenant-id:
+    description: The domain of your SafeDep Cloud tenant, such as acme.safedep.io. With no api-key, vet exchanges the GitHub ID token of the job for a short-lived credential. The job needs the permission id-token write.
+    default: ""
+  api-key:
+    description: A SafeDep Cloud API key of the tenant of tenant-id. It takes precedence over the ID token of the job.
+    default: ""
   cache:
     description: Keep the vet cache directory between runs with actions/cache, so a scan reads unchanged source files and package data from the cache
     default: "true"
@@ -106,6 +112,8 @@ runs:
         ACTION_SARIF: ${{ inputs.sarif }}
         ACTION_ARGS: ${{ inputs.args }}
         ACTION_REPORT_ARTIFACT: ${{ inputs.report-artifact }}
+        ACTION_TENANT_ID: ${{ inputs.tenant-id }}
+        ACTION_API_KEY: ${{ inputs.api-key }}
         GH_TOKEN: ${{ inputs.github-token }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: bash "$GITHUB_ACTION_PATH/action/scan.sh"
