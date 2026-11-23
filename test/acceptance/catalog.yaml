@@ -987,7 +987,13 @@
   title: "action: tenant-id selects the workload identity"
   category: ci
   tier: P0
-  guarantee: "With the tenant-id input and no api-key, action/scan.sh runs this vet with SAFEDEP_TENANT_ID and SAFEDEP_API_KEY unset, also when the job sets SAFEDEP_API_KEY to an empty value. vet exchanges the ID token of the job, enriches with the workload credential and revokes it. The action writes no credential to GITHUB_ENV."
+  guarantee: "With the tenant-id input and no api-key, action/scan.sh runs this vet with SAFEDEP_TENANT_ID set to the tenant-id input and SAFEDEP_API_KEY unset, also when the job sets SAFEDEP_API_KEY to an empty value. vet exchanges the ID token of the job, enriches with the workload credential and revokes it. The action writes no credential to GITHUB_ENV."
+  labels: [action, credentials]
+- id: ci/action/fork-no-credentials
+  title: "action: a fork pull request runs with no credential"
+  category: ci
+  tier: P0
+  guarantee: "A pull request from a fork with the tenant-id input and no ID token warns, and vet runs with no SafeDep Cloud credential. vet reads no keychain login of the job user, so no request carries a credential."
   labels: [action, credentials]
 - id: ci/setup/init
   title: "vet ci init adds the vet workflow"

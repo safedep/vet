@@ -191,7 +191,13 @@ code=0
       unset SAFEDEP_API_KEY
       export SAFEDEP_TENANT_ID=$tenant
       ;;
-    none) unset SAFEDEP_API_KEY SAFEDEP_TENANT_ID ;;
+    # The fork run reads no credential at all. cloud.keychain_file points
+    # vet at a keychain file that does not exist, so vet does not read a
+    # login of the job user.
+    none)
+      unset SAFEDEP_API_KEY SAFEDEP_TENANT_ID
+      export VET_CLOUD_KEYCHAIN_FILE=$tmp/no-credentials.json
+      ;;
   esac
   exec vet ${global[@]+"${global[@]}"} "${args[@]}" ${extra[@]+"${extra[@]}"}
 ) >"$report" || code=$?

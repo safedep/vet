@@ -11,9 +11,9 @@ vet auth status [--insecure-keychain-fallback] [--profile NAME] [-o table|plain|
 ## Description
 
 `vet auth status` shows the profile and where vet found it, the API key and its tenant, and the
-cloud access (the control plane token), with the source of each one. With no API key, vet uses the
-community endpoints, which have a rate limit. vet reads `SAFEDEP_API_KEY` and `SAFEDEP_TENANT_ID`
-first, then the keychain profile.
+cloud access (the control plane token), with the source of each one. With no API key and no workload
+identity, vet uses the community endpoints, which have a rate limit. vet reads `SAFEDEP_API_KEY` and
+`SAFEDEP_TENANT_ID` first, then the keychain profile.
 
 In a CI job with a workload identity, such as a GitHub Actions job with the permission
 `id-token: write`, `SAFEDEP_TENANT_ID` with no `SAFEDEP_API_KEY` selects the workload identity. The
