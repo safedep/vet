@@ -66,8 +66,9 @@ variables and headers, never their values.
   not use `endpoint_id`.
 - When vet cannot reach SafeDep Cloud, the audit completes, and the report gets an
   `inventory_sync_unavailable` diagnostic. vet keeps the events that SafeDep Cloud did not
-  confirm in a log in the state directory, and the next audit sends them. Each tenant has its
-  own log, so vet never sends the events of one tenant with the credentials of another.
+  confirm in a log in the state directory, and the next audit sends them. Each tenant and each
+  endpoint has its own log. So vet never sends the events of one tenant with the credentials of
+  another, or the events of one endpoint as the events of another.
 
 ## Examples
 

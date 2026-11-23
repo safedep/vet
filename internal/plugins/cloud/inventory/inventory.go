@@ -33,10 +33,13 @@ import (
 const Name = "cloud-inventory"
 
 // LogFile returns the name of the event log in the state directory for
-// one SafeDep Cloud API and tenant. A switch of the tenant, as with
-// --profile, must not send the waiting events of one tenant to another.
-func LogFile(apiURL, tenant string) string {
-	sum := sha256.Sum256([]byte(apiURL + "\n" + tenant))
+// one SafeDep Cloud API, tenant and endpoint machine id. A switch of the
+// tenant, as with --profile, must not send the waiting events of one tenant
+// to another. The client sends the waiting events with the endpoint of the
+// run, so a switch of the endpoint, as with the workload credential of
+// another repository on a shared runner, must not send them either.
+func LogFile(apiURL, tenant, machineID string) string {
+	sum := sha256.Sum256([]byte(apiURL + "\n" + tenant + "\n" + machineID))
 	return "inventory-sync-" + hex.EncodeToString(sum[:6]) + ".db"
 }
 
@@ -112,7 +115,7 @@ func Open(o Options, apiURL string, creds *credentials.Result, stateDir, version
 	if err != nil {
 		return nil, err
 	}
-	logPath := filepath.Join(stateDir, LogFile(apiURL, creds.TenantDomain()))
+	logPath := filepath.Join(stateDir, LogFile(apiURL, creds.TenantDomain(), id.GetMachineId()))
 	if err := privateFile(logPath); err != nil {
 		return nil, errors.Join(fmt.Errorf("vet could not open the inventory sync log: %w", err), conn.Close())
 	}

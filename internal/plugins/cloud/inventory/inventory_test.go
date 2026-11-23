@@ -17,6 +17,7 @@ import (
 	servicev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/controltower/v1"
 	"buf.build/go/protovalidate"
 	"github.com/safedep/dry/cloud"
+	"github.com/safedep/dry/cloud/endpointidentity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -207,16 +208,23 @@ func TestDecode(t *testing.T) {
 type endpointServer struct {
 	controltowerv1grpc.UnimplementedEndpointServiceServer
 	mu     sync.Mutex
+	fail   bool
 	events []*servicev1.ToolEvent
+	// endpoints holds the endpoint identifier of each event.
+	endpoints []string
 }
 
 func (e *endpointServer) SyncEvents(_ context.Context, req *servicev1.SyncEventsRequest) (*servicev1.SyncEventsResponse, error) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
+	if e.fail {
+		return nil, status.Error(codes.Unavailable, "down")
+	}
 	ids := make([]string, 0, len(req.GetEvents()))
 	for _, ev := range req.GetEvents() {
 		ids = append(ids, ev.GetEventId())
 		e.events = append(e.events, ev)
+		e.endpoints = append(e.endpoints, req.GetEndpoint().GetIdentifier())
 	}
 	return servicev1.SyncEventsResponse_builder{ConfirmedEventIds: ids}.Build(), nil
 }
@@ -246,7 +254,7 @@ func TestOpenSendsThroughTheRealClient(t *testing.T) {
 	s, err := inventory.Open(inventory.Options{EndpointID: "ci-runner-1"}, apiURL, &credentials.Result{Credentials: cred}, state, "test")
 	require.NoError(t, err)
 	require.NoError(t, s.Sync(context.Background(), inventory.Audit{ScanID: "s-1", Items: audit.Items[:1]}))
-	logPath := filepath.Join(state, inventory.LogFile(apiURL, "acme.safedep.io"))
+	logPath := filepath.Join(state, inventory.LogFile(apiURL, "acme.safedep.io", endpointidentity.MachineID("ci-runner-1")))
 	if runtime.GOOS != "windows" {
 		// The endpointsync log runs in WAL mode. SQLite removes the journal
 		// files on a clean close, so the check runs while the log is open.
@@ -269,6 +277,50 @@ func TestOpenSendsThroughTheRealClient(t *testing.T) {
 	if runtime.GOOS != "windows" {
 		assert.Equal(t, os.FileMode(0o600), info.Mode().Perm(), "the log holds the inventory of each user")
 	}
-	assert.NotEqual(t, inventory.LogFile(apiURL, "acme.safedep.io"), inventory.LogFile(apiURL, "other.safedep.io"),
+	assert.NotEqual(t, inventory.LogFile(apiURL, "acme.safedep.io", "m"), inventory.LogFile(apiURL, "other.safedep.io", "m"),
 		"each tenant has its own log")
+}
+
+// TestWaitingEventsKeepTheirEndpoint guards a shared state directory, as on
+// a self-hosted runner that scans two repositories. The events that wait
+// for the endpoint of one repository must not go out with the endpoint of
+// the other.
+func TestWaitingEventsKeepTheirEndpoint(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	srv := grpc.NewServer()
+	es := &endpointServer{fail: true}
+	controltowerv1grpc.RegisterEndpointServiceServer(srv, es)
+	go func() {
+		if err := srv.Serve(ln); err != nil && !errors.Is(err, grpc.ErrServerStopped) {
+			t.Log("serve:", err)
+		}
+	}()
+	t.Cleanup(srv.Stop)
+	apiURL := "http://" + ln.Addr().String()
+	state := t.TempDir()
+	cred, err := cloud.NewAPIKeyCredential("sk_test", "acme.safedep.io")
+	require.NoError(t, err)
+	creds := &credentials.Result{Credentials: cred}
+
+	a, err := inventory.Open(inventory.Options{EndpointID: "gh:acme/a"}, apiURL, creds, state, "test")
+	require.NoError(t, err)
+	require.Error(t, a.Sync(context.Background(), inventory.Audit{ScanID: "scan-a", Items: audit.Items[:1]}))
+	require.NoError(t, a.Close())
+
+	es.mu.Lock()
+	es.fail = false
+	es.mu.Unlock()
+	b, err := inventory.Open(inventory.Options{EndpointID: "gh:acme/b"}, apiURL, creds, state, "test")
+	require.NoError(t, err)
+	require.NoError(t, b.Sync(context.Background(), inventory.Audit{ScanID: "scan-b", Items: audit.Items[:1]}))
+	require.NoError(t, b.Close())
+
+	es.mu.Lock()
+	defer es.mu.Unlock()
+	require.NotEmpty(t, es.events)
+	for i, ev := range es.events {
+		assert.Equal(t, "scan-b", ev.GetInvocationId())
+		assert.Equal(t, "gh:acme/b", es.endpoints[i])
+	}
 }
