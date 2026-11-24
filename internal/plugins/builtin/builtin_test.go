@@ -8,12 +8,16 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/safedep/vet/v2/internal/config"
+	"github.com/safedep/vet/v2/internal/plugins/enrichers/codeusage"
 	"github.com/safedep/vet/v2/internal/plugins/sinks"
 	"github.com/safedep/vet/v2/plugin"
 )
 
 func TestPluginsHaveUniqueSortedNames(t *testing.T) {
-	names := Names()
+	var names []string
+	for _, p := range Plugins() {
+		names = append(names, p.Name)
+	}
 	assert.True(t, slices.IsSorted(names))
 	assert.Len(t, slices.Compact(slices.Clone(names)), len(names), "no two plugins share a name")
 	for _, want := range []string{"dependency-cooldown", "lockfile", "codeusage", "cloud-inventory", "tenant-policy", "cyclonedx"} {
@@ -54,11 +58,12 @@ func TestEnabledUsesTheBuiltInStateWhenNoLayerSetsIt(t *testing.T) {
 	cfg.Plugins = map[string]config.PluginConfig{"vulnerability": {Enabled: &off}}
 	cases := map[string]bool{
 		"vulnerability": false,
-		"codeusage":     true,
+		"workflow":      true,
+		"codeusage":     codeusage.Available(),
 		"tenant-policy": false,
-		"nosuch":        false,
 	}
 	for name, want := range cases {
 		assert.Equal(t, want, Enabled(&cfg, name), name)
 	}
+	assert.Panics(t, func() { Enabled(&cfg, "nosuch") }, "a caller names a built-in plugin")
 }

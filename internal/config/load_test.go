@@ -232,11 +232,14 @@ func TestPluginKeys(t *testing.T) {
 		{key: "plugins.codeusage.enabled", known: true},
 		{key: "plugins.codeusage.options.budget", known: true},
 		{key: "plugins.table.options.top", known: true},
-		{key: "plugins.table.enabled", advice: "table is a report format with no enabled key. -o and --report select it."},
+		{key: "plugins.table.enabled", advice: "table is a report format with no enabled key. The flags -o and --report select it."},
 		{key: "plugins.codeusag.enabled", advice: "Did you mean plugins.codeusage.enabled?"},
 		{key: "plugins.tabel.options.top", advice: "Did you mean plugins.table.options.top?"},
 		{key: "plugins.tabel.enabled", advice: "vet config schema get lists the plugins.", known: false},
 		{key: "plugins.nosuch.enabled", advice: "vet config schema get lists the plugins."},
+		{key: "plugins.codeusage.enabld", advice: "Did you mean plugins.codeusage.enabled?"},
+		{key: "plugins.table.optons.top", advice: "Did you mean plugins.table.options.top?"},
+		{key: "plugins.table.enabld", advice: ""},
 		{key: "plugins.codeusage", advice: ""},
 		{key: "plugins.codeusage.other", advice: ""},
 	}
@@ -267,10 +270,10 @@ func TestLoadWarnsAboutAPluginKeyThatVetDoesNotRead(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, []string{
 		user + ": unknown key plugins.codeusag.enabled. Did you mean plugins.codeusage.enabled?",
-		user + ": unknown key plugins.table.enabled. table is a report format with no enabled key. -o and --report select it.",
+		user + ": unknown key plugins.table.enabled. table is a report format with no enabled key. The flags -o and --report select it.",
 		"VET_PLUGINS_CODEUSAGE_COLOR names no plugin key, so vet ignores it. A plugin variable ends with _ENABLED, or with _OPTIONS_ and the option name.",
 		"VET_PLUGINS_DEPENDENCY_COOLDWN_ENABLED names no plugin key, so vet ignores it. Did you mean VET_PLUGINS_DEPENDENCY_COOLDOWN_ENABLED?",
-		"VET_PLUGINS_TABLE_ENABLED names no plugin key, so vet ignores it. table is a report format with no enabled key. -o and --report select it.",
+		"VET_PLUGINS_TABLE_ENABLED names no plugin key, so vet ignores it. table is a report format with no enabled key. The flags -o and --report select it.",
 	}, l.Warnings)
 	assert.Equal(t, []string{"plugins.codeusag.enabled", "plugins.table.enabled"}, l.UnknownKeys)
 	assert.False(t, l.Config.PluginEnabled("codeusage", true), "a valid variable still applies")

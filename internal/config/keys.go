@@ -75,9 +75,13 @@ func EnvName(key string) string {
 	return "VET_" + strings.ToUpper(r.Replace(key))
 }
 
+// hintDistance is the edit distance under which vet suggests a name for a
+// misspelled one.
+const hintDistance = 4
+
 // suggestKey returns the known key closest to an unknown key, or "".
 func suggestKey(key string) string {
-	best, bestDist := "", 4
+	best, bestDist := "", hintDistance
 	for k := range knownKeys {
 		if d := levenshtein(key, k); d < bestDist {
 			best, bestDist = k, d

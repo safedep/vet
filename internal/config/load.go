@@ -162,6 +162,9 @@ func Load(opts LoadOptions) (*Loaded, error) {
 				}
 				l.Warnings = append(l.Warnings, msg)
 				l.UnknownKeys = append(l.UnknownKeys, key)
+				// vet does not read the key, so the effective config does not
+				// hold it. Else vet config show would list it as a default.
+				dropKey(fileTree, key)
 				continue
 			}
 			origin := Origin{Layer: layer, Source: path}
@@ -373,6 +376,24 @@ func merge(dst, src map[string]any) {
 	}
 }
 
+// dropKey removes a dotted key from a tree, and each section that it
+// leaves empty.
+func dropKey(tree map[string]any, key string) {
+	head, rest, nested := strings.Cut(key, ".")
+	if !nested {
+		delete(tree, head)
+		return
+	}
+	sub, ok := tree[head].(map[string]any)
+	if !ok {
+		return
+	}
+	dropKey(sub, rest)
+	if len(sub) == 0 {
+		delete(tree, head)
+	}
+}
+
 // setKey parses a raw value for a key and sets it in the tree.
 func setKey(tree map[string]any, key, raw string) error {
 	v, err := parseValue(key, raw)
@@ -483,15 +504,14 @@ func pluginEnvKey(name string, plugins []string) (string, bool) {
 	}
 	best := ""
 	for _, p := range plugins {
-		prefix := strings.TrimPrefix(EnvName("plugins."+p), "VET_PLUGINS_") + "_"
-		if strings.HasPrefix(rest, prefix) && len(p) > len(best) {
+		if strings.HasPrefix(rest, envPart(p)+"_") && len(p) > len(best) {
 			best = p
 		}
 	}
 	if best == "" {
 		return "", false
 	}
-	field := strings.TrimPrefix(rest, strings.TrimPrefix(EnvName("plugins."+best), "VET_PLUGINS_")+"_")
+	field := strings.TrimPrefix(rest, envPart(best)+"_")
 	switch {
 	case field == "ENABLED":
 		return "plugins." + best + ".enabled", true

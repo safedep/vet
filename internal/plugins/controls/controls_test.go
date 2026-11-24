@@ -12,11 +12,11 @@ type settings struct {
 	options map[string]map[string]any
 }
 
-func (s settings) PluginEnabled(name string, def bool) bool {
+func (s settings) PluginEnabled(name string) bool {
 	if v, ok := s.enabled[name]; ok {
 		return v
 	}
-	return def
+	return true
 }
 
 func (s settings) PluginOrigin(string, string) string { return "" }

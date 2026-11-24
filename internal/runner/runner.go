@@ -507,14 +507,15 @@ func codeAnalysisOf(cfg *config.Config, o Options) (codeAnalysis, error) {
 			"Add --reach function, or set plugins.codeusage.options.reach to function.")
 	}
 	c := codeAnalysis{on: o.Source == nil && builtin.Enabled(cfg, codeusage.Name), budget: set.Budget, reach: report.ReachInfo{Level: set.Reach}, config: set}
-	p, ok := cfg.Plugins[codeusage.Name]
-	explicit := ok && p.Enabled != nil
+	// A build with no CGO has codeusage off by default. The report says that
+	// the build cannot analyze code, not that the user turned it off. An
+	// explicit enabled: true runs it and records a diagnostic.
+	_, explicit := cfg.PluginSwitch(codeusage.Name)
 	switch {
+	case o.Source == nil && !explicit && !codeusage.Available():
+		c.reach.Status = report.ReachUnavailable
 	case !c.on:
 		c.reach = report.ReachInfo{Level: report.ReachOff}
-	case !codeusage.Available() && !explicit:
-		c.on = false
-		c.reach.Status = report.ReachUnavailable
 	}
 	return c, nil
 }
@@ -741,8 +742,8 @@ func (s pluginSettings) PluginOrigin(name, key string) string {
 	return s.origins.Of("plugins." + name + ".options." + key).Short()
 }
 
-func (s pluginSettings) PluginEnabled(name string, def bool) bool {
-	return s.cfg.PluginEnabled(name, def)
+func (s pluginSettings) PluginEnabled(name string) bool {
+	return builtin.Enabled(s.cfg, name)
 }
 
 func (s pluginSettings) PluginOptions(name string) map[string]any {

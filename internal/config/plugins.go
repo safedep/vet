@@ -58,8 +58,8 @@ func (s pluginSet) known(key string) bool {
 	return ok && (field == "options" || p.Switch)
 }
 
-// knownKey reports whether vet reads a key: a leaf key of Config, or a
-// key of a built-in plugin.
+// knownKey reports whether vet reads a key. vet reads each leaf key of
+// Config and the keys of the built-in plugins.
 func (s pluginSet) knownKey(key string) bool {
 	_, ok := knownKeys[key]
 	return ok || s.known(key)
@@ -69,38 +69,69 @@ func (s pluginSet) knownKey(key string) bool {
 func (s pluginSet) advice(key string) string {
 	name, field, ok := splitPluginKey(key)
 	if !ok {
+		if k := s.fieldHint(key); k != "" {
+			return fmt.Sprintf("Did you mean %s?", k)
+		}
 		if k := suggestKey(key); k != "" {
 			return fmt.Sprintf("Did you mean %s?", k)
 		}
 		return ""
 	}
 	if p, found := s.byName[name]; found && field == "enabled" && !p.Switch {
-		return fmt.Sprintf("%s is a report format with no enabled key. -o and --report select it.", name)
+		return fmt.Sprintf("%s is a report format with no enabled key. The flags -o and --report select it.", name)
 	}
-	if close := s.closest(name, field); close != "" {
+	if close := s.closest(name, field, identity); close != "" {
 		return fmt.Sprintf("Did you mean %s?", strings.Replace(key, "plugins."+name+".", "plugins."+close+".", 1))
 	}
 	return "vet config schema get lists the plugins."
 }
 
-// closest returns the plugin whose name is nearest to name and that takes
-// the field, or "" when no name is near.
-func (s pluginSet) closest(name, field string) string {
-	best, bestDist := "", 4
+// fieldHint returns the key of a built-in plugin with its field spelled
+// right, as plugins.malware.enabled for plugins.malware.enabld, or "".
+func (s pluginSet) fieldHint(key string) string {
+	parts := strings.Split(key, ".")
+	if len(parts) < 3 || parts[0] != "plugins" {
+		return ""
+	}
+	p, ok := s.byName[parts[1]]
+	if !ok {
+		return ""
+	}
+	switch {
+	case len(parts) == 3 && p.Switch && levenshtein(parts[2], "enabled") < hintDistance:
+		parts[2] = "enabled"
+	case len(parts) >= 4 && levenshtein(parts[2], "options") < hintDistance:
+		parts[2] = "options"
+	default:
+		return ""
+	}
+	return strings.Join(parts, ".")
+}
+
+// closest returns the plugin whose name, in the form that form gives, is
+// nearest to name and that takes the field. It returns "" when no name is
+// near.
+func (s pluginSet) closest(name, field string, form func(string) string) string {
+	best, bestDist := "", hintDistance
 	for _, p := range s.list {
 		if field == "enabled" && !p.Switch {
 			continue
 		}
-		if d := levenshtein(name, p.Name); d < bestDist {
+		if d := levenshtein(name, form(p.Name)); d < bestDist {
 			best, bestDist = p.Name, d
 		}
 	}
 	return best
 }
 
+func identity(s string) string { return s }
+
 // envAdvice tells how to fix a VET_PLUGINS_* variable that names no key
 // that vet reads.
 func (s pluginSet) envAdvice(name string) string {
+	if key, ok := pluginEnvKey(name, s.names()); ok {
+		return s.advice(key)
+	}
 	rest := strings.TrimPrefix(name, "VET_PLUGINS_")
 	plugin, option, ok := strings.Cut(rest, "_OPTIONS_")
 	field := "options." + strings.ToLower(option)
@@ -111,20 +142,7 @@ func (s pluginSet) envAdvice(name string) string {
 	if !ok || plugin == "" || option == "" && field != "enabled" {
 		return "A plugin variable ends with _ENABLED, or with _OPTIONS_ and the option name."
 	}
-	for _, p := range s.list {
-		if envPart(p.Name) == plugin {
-			return s.advice("plugins." + p.Name + "." + field)
-		}
-	}
-	best, bestDist := "", 4
-	for _, p := range s.list {
-		if field == "enabled" && !p.Switch {
-			continue
-		}
-		if d := levenshtein(plugin, envPart(p.Name)); d < bestDist {
-			best, bestDist = p.Name, d
-		}
-	}
+	best := s.closest(plugin, field, envPart)
 	if best == "" {
 		return "vet config schema get lists the plugins."
 	}

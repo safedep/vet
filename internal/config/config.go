@@ -106,14 +106,23 @@ type PluginConfig struct {
 	Options map[string]any `yaml:"options,omitempty" json:"options,omitempty"`
 }
 
-// PluginEnabled reports whether a plugin is on. A plugin with no section
-// keeps its own default.
+// PluginEnabled reports whether a plugin is on. A plugin with no enabled
+// key keeps its own default.
 func (c *Config) PluginEnabled(name string, def bool) bool {
+	if on, set := c.PluginSwitch(name); set {
+		return on
+	}
+	return def
+}
+
+// PluginSwitch returns the enabled key of a plugin, and whether a layer
+// sets it.
+func (c *Config) PluginSwitch(name string) (on, set bool) {
 	p, ok := c.Plugins[name]
 	if !ok || p.Enabled == nil {
-		return def
+		return false, false
 	}
-	return *p.Enabled
+	return *p.Enabled, true
 }
 
 // PluginOptions returns the options of a plugin. It is never nil.

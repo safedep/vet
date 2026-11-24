@@ -76,7 +76,7 @@ func TestSetInFileErrors(t *testing.T) {
 		{key: "policy.fail_on", value: "severe", code: CodeInvalid, text: `policy.fail_on must be attacks, critical, high, medium, low or info, got "severe" (file ` + p + ")"},
 		{key: "plugins.dependency-cooldwn.enabled", value: "false", code: CodeUnknownKey, text: "Did you mean plugins.dependency-cooldown.enabled?"},
 		{key: "plugins.nosuch.enabled", value: "false", code: CodeUnknownKey, text: "vet config schema get lists the plugins."},
-		{key: "plugins.table.enabled", value: "false", code: CodeUnknownKey, text: "table is a report format with no enabled key. -o and --report select it."},
+		{key: "plugins.table.enabled", value: "false", code: CodeUnknownKey, text: "table is a report format with no enabled key. The flags -o and --report select it."},
 	}
 	for _, tc := range cases {
 		t.Run(tc.key+"="+tc.value, func(t *testing.T) {
@@ -168,7 +168,7 @@ func TestGet(t *testing.T) {
 
 func TestValuesListTheSwitchOfEachPlugin(t *testing.T) {
 	dir := t.TempDir()
-	user := writeFile(t, dir, "config.yml", "plugins:\n  codeusage:\n    enabled: false\n")
+	user := writeFile(t, dir, "config.yml", "plugins:\n  codeusage:\n    enabled: false\n  cooldwn:\n    enabled: false\n  table:\n    enabled: true\n")
 	l, err := Load(LoadOptions{UserFile: user, LookupEnv: env(nil), Plugins: testPlugins})
 	require.NoError(t, err)
 	vals, err := l.Values()
@@ -178,6 +178,8 @@ func TestValuesListTheSwitchOfEachPlugin(t *testing.T) {
 	assert.Equal(t, false, vals["plugins.codeusage.enabled"], "a layer wins over the built-in state")
 	assert.Equal(t, Origin{Layer: LayerFile, Source: user}, l.Origins.Of("plugins.codeusage.enabled"))
 	assert.NotContains(t, vals, "plugins.table.enabled", "a report format has no switch")
+	assert.NotContains(t, vals, "plugins.cooldwn.enabled", "the effective config holds no unknown key")
+	assert.Equal(t, []string{"plugins.cooldwn.enabled", "plugins.table.enabled"}, l.UnknownKeys)
 	assert.Contains(t, SortedKeys(vals), "state.retention.per_target")
 }
 

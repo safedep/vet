@@ -287,7 +287,7 @@ func TestTrustsActionsLock(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			file := filepath.Join(t.TempDir(), "config.yml")
 			require.NoError(t, os.WriteFile(file, []byte(tc.config), 0o600))
-			l, err := config.Load(config.LoadOptions{ConfigFile: file, LookupEnv: func(string) (string, bool) { return "", false }})
+			l, err := config.Load(config.LoadOptions{ConfigFile: file, LookupEnv: func(string) (string, bool) { return "", false }, Plugins: builtin.ConfigPlugins()})
 			require.NoError(t, err)
 			rt := &config.Runtime{Loaded: l}
 			getenv := func(k string) string { return tc.env[k] }
@@ -305,4 +305,13 @@ func TestTrustsActionsLock(t *testing.T) {
 			assert.Equal(t, tc.want, settingsOf(rt, 0, got).PluginOptions(workflow.Name)[workflow.OptionTrustActionsLock])
 		})
 	}
+}
+
+func TestControlsTakeTheBuiltInStateOfTheirPlugin(t *testing.T) {
+	off := false
+	cfg := &config.Config{Plugins: map[string]config.PluginConfig{"vulnerability": {Enabled: &off}}}
+	s := pluginSettings{cfg: cfg}
+	assert.False(t, s.PluginEnabled("vulnerability"), "a layer turns a control off")
+	assert.True(t, s.PluginEnabled("malware"), "a control with no key is on, as builtin says")
+	assert.False(t, s.PluginEnabled("tenant-policy"), "a plugin that is off by default stays off")
 }

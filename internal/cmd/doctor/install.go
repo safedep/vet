@@ -72,7 +72,7 @@ func pluginCheck(cfg *config.Config) Check {
 			status = Fail
 		}
 	}
-	if cfg.PluginEnabled(codeusage.Name, false) && !codeusage.Available() {
+	if on, set := cfg.PluginSwitch(codeusage.Name); on && set && !codeusage.Available() {
 		problems = append(problems, "codeusage is on, and this vet build has no code analysis because it has no CGO")
 		if status == Pass {
 			status = Warn

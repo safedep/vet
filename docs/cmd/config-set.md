@@ -14,7 +14,7 @@ vet config set KEY VALUE [--config FILE]
 the value and the whole file before it writes, and writes through a temporary file and a rename
 with mode 0600. It edits the YAML node tree, so the comments and the key order of the file stay. A
 list takes values with commas, for example `vendor,testdata`. A plugin option takes a YAML scalar,
-for example `plugins.dependency-cooldown.options.days 7`. A key must name a built-in plugin. vet
+for example `plugins.dependency-cooldown.options.days 7`. A plugin key must name a built-in plugin. vet
 rejects the enabled key of a report format, because `-o` and `--report` select a report format.
 
 When a managed file is in force, vet sets the key and says that the user file has no effect.

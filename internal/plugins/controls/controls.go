@@ -44,7 +44,9 @@ func Builtin() []Spec {
 
 // Settings are the plugins section of the configuration.
 type Settings interface {
-	PluginEnabled(name string, def bool) bool
+	// PluginEnabled reports whether a plugin is on, with its built-in
+	// state when no layer sets it.
+	PluginEnabled(name string) bool
 	PluginOptions(name string) map[string]any
 	// PluginOrigin names the source of one option of a plugin, or "".
 	PluginOrigin(name, key string) string
@@ -69,7 +71,7 @@ type Control struct {
 func Build(s Settings) ([]Control, error) {
 	var out []Control
 	for _, spec := range Builtin() {
-		if !s.PluginEnabled(spec.Name, true) {
+		if !s.PluginEnabled(spec.Name) {
 			continue
 		}
 		c, err := spec.New(config{MapConfig: s.PluginOptions(spec.Name), name: spec.Name, s: s})

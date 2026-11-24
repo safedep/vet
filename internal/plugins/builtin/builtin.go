@@ -8,6 +8,7 @@ import (
 	"cmp"
 	"fmt"
 	"slices"
+	"sync"
 
 	"github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/inventory"
@@ -36,7 +37,7 @@ func Plugins() []Plugin {
 		out = append(out, fromFactory(config.Plugin{Name: s.Name, Description: s.Description, Switch: true, On: true}, s.New))
 	}
 	for _, s := range sinks.Builtin() {
-		desc := fmt.Sprintf("Report format: %s. -o and --report select it.", s.Description)
+		desc := fmt.Sprintf("A report format. It writes %s. The flags -o and --report select it.", s.Description)
 		out = append(out, fromFactory(config.Plugin{Name: s.Name, Description: desc}, s.New))
 	}
 	out = append(out,
@@ -54,8 +55,8 @@ func Plugins() []Plugin {
 		}, func(c plugin.Config) (*actionrefs.Enricher, error) { return actionrefs.New(c, nil, "") }),
 		Plugin{
 			Plugin: config.Plugin{
-				Name: codeusage.Name, Switch: true, On: true,
-				Description: "Reads the source code for reachability, the call graph and the code capabilities. It needs a vet build with CGO.",
+				Name: codeusage.Name, Switch: true, On: codeusage.Available(),
+				Description: "Reads the source code for reachability, the call graph and the code capabilities. It needs a vet build with CGO, so a build with no CGO has it off.",
 			},
 			Check:  func(c plugin.Config) error { _, err := codeusage.ParseSettings(c); return err },
 			Schema: func() ([]byte, error) { return codeusage.OptionsSchema(), nil },
@@ -76,25 +77,23 @@ func ConfigPlugins() []config.Plugin {
 }
 
 // Enabled reports whether the config turns a plugin on. A plugin with no
-// enabled key has its built-in state.
+// enabled key has its built-in state. A name that is not a built-in plugin
+// is a bug in the caller, so Enabled panics.
 func Enabled(cfg *config.Config, name string) bool {
-	for _, p := range Plugins() {
-		if p.Name == name {
-			return cfg.PluginEnabled(name, p.On)
-		}
+	p, ok := byName()[name]
+	if !ok {
+		panic(fmt.Sprintf("builtin: no plugin named %q", name))
 	}
-	return false
+	return cfg.PluginEnabled(name, p.On)
 }
 
-// Names returns the names of the built-in plugins, sorted.
-func Names() []string {
-	ps := Plugins()
-	names := make([]string, len(ps))
-	for i, p := range ps {
-		names[i] = p.Name
+var byName = sync.OnceValue(func() map[string]config.Plugin {
+	out := map[string]config.Plugin{}
+	for _, p := range Plugins() {
+		out[p.Name] = p.Plugin
 	}
-	return names
-}
+	return out
+})
 
 func fromFactory[T any](p config.Plugin, build func(plugin.Config) (T, error)) Plugin {
 	return Plugin{

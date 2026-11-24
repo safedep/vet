@@ -27,7 +27,7 @@ editor.`,
 			if err != nil {
 				return err
 			}
-			b, err := vconfig.Schema(builtin.ConfigPlugins(), schemas)
+			b, err := vconfig.Schema(a.Plugins(), schemas)
 			if err != nil {
 				return err
 			}
