@@ -20,24 +20,25 @@ import (
 
 // Spec is one built-in control plugin.
 type Spec struct {
-	Name string
-	New  plugin.Factory[plugin.Control]
+	Name        string
+	Description string
+	New         plugin.Factory[plugin.Control]
 }
 
 // Builtin returns the built-in control plugins, sorted by name. Each is on
 // by default.
 func Builtin() []Spec {
 	return []Spec{
-		{Name: agentconfig.Name, New: agentconfig.New},
-		{Name: cooldown.Name, New: cooldown.New},
-		{Name: hiddencode.Name, New: hiddencode.New},
-		{Name: hygiene.Name, New: hygiene.New},
-		{Name: license.Name, New: license.New},
-		{Name: lockfile.Name, New: lockfile.New},
-		{Name: malware.Name, New: malware.New},
-		{Name: reputation.Name, New: reputation.New},
-		{Name: vuln.Name, New: vuln.New},
-		{Name: workflow.Name, New: workflow.New},
+		{Name: agentconfig.Name, Description: "Checks the config files of AI agents and editors: hooks, tasks, MCP servers and commands that they run.", New: agentconfig.New},
+		{Name: cooldown.Name, Description: "Reports a package version that is newer than the cooldown window.", New: cooldown.New},
+		{Name: hiddencode.Name, Description: "Finds code that a package hides: invisible Unicode, padded lines, and scripts in fonts, images and other data files.", New: hiddencode.New},
+		{Name: hygiene.Name, Description: "Reports install scripts, lost provenance, deprecated packages, license changes, non-registry dependencies and a low OpenSSF Scorecard.", New: hygiene.New},
+		{Name: license.Name, Description: "Checks the license of each package against the allow and deny lists.", New: license.New},
+		{Name: lockfile.Name, Description: "Checks lockfile entries: untrusted registries, wrong URLs, changed integrity hashes, and installed packages that the lockfile does not list.", New: lockfile.New},
+		{Name: malware.Name, Description: "Reports a package that SafeDep Threat Intel marks as malicious or suspicious.", New: malware.New},
+		{Name: reputation.Name, Description: "Reports typosquats, new and unpopular packages, version anomalies, starjacking, dependency confusion and new AI capabilities.", New: reputation.New},
+		{Name: vuln.Name, Description: "Reports the known vulnerabilities of each package.", New: vuln.New},
+		{Name: workflow.Name, Description: "Checks GitHub Actions workflows: dangerous triggers, template injection, unpinned actions, permissions and secrets.", New: workflow.New},
 	}
 }
 

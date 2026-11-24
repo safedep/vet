@@ -1,0 +1,54 @@
+# vet config show and vet config get list the switch of each plugin, also
+# when no layer sets it. vet rejects a plugin key that it does not read: a
+# misspelled plugin name, or the enabled key of a report format. A scan
+# warns about a VET_PLUGINS_* variable that names no plugin key.
+exec vet config show --origin -o plain
+stdout '^plugins\.vulnerability\.enabled\ttrue\tdefault$'
+stdout '^plugins\.tenant-policy\.enabled\tfalse\tdefault$'
+! stdout 'plugins\.table\.enabled'
+
+exec vet config get plugins.codeusage.enabled
+stdout '^true$'
+
+execexit 2 vet --config $WORK/config.yml config set plugins.vulnerabilty.enabled false --mode plain
+stderr 'config_unknown_key'
+stderr 'Did you mean plugins\.vulnerability\.enabled\?'
+execexit 2 vet --config $WORK/config.yml config set plugins.table.enabled false --mode plain
+stderr 'table is a report format with no enabled key'
+cmp $WORK/config.yml $WORK/before.yml
+
+execexit 2 vet config validate $WORK/typo.yml --mode plain
+stderr 'plugins\.vulnerabilty\.enabled: unknown key'
+
+exec vet config schema get
+stdout '"description": "Reports the known vulnerabilities of each package\."'
+
+cd proj
+env VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS=100000
+env VET_PLUGINS_DEPENDENCY_COOLDWN_ENABLED=false
+exec vet scan . --mode plain -o plain
+stderr '\[WARN\] VET_PLUGINS_DEPENDENCY_COOLDWN_ENABLED names no plugin key'
+stderr 'Did you mean VET_PLUGINS_DEPENDENCY_COOLDOWN_ENABLED\?'
+stdout 'dependency-cooldown\tpkg:npm/left-pad@1.3.0'
+
+env VET_PLUGINS_DEPENDENCY_COOLDOWN_ENABLED=false
+exec vet scan . --mode plain -o plain
+! stdout 'dependency-cooldown'
+
+-- config.yml --
+# keep me
+-- before.yml --
+# keep me
+-- typo.yml --
+plugins:
+  vulnerabilty:
+    enabled: false
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}

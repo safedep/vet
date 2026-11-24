@@ -51,7 +51,7 @@ then check it. The file keeps every comment. In agent mode or with
 			if err := c.Run(); err != nil {
 				return err
 			}
-			l, err := vconfig.Load(vconfig.LoadOptions{ConfigFile: path, LookupEnv: func(string) (string, bool) { return "", false }})
+			l, err := vconfig.Load(vconfig.LoadOptions{ConfigFile: path, LookupEnv: func(string) (string, bool) { return "", false }, Plugins: a.Plugins()})
 			if err != nil {
 				return err
 			}

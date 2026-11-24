@@ -40,10 +40,10 @@ func badValue(key, want, raw, from string) string {
 	return fmt.Sprintf("%s %s, got %q (%s)", key, want, raw, from)
 }
 
-func unknownKey(key string) error {
-	help := "Run vet config show to list the keys."
-	if s := suggestKey(key); s != "" {
-		help = fmt.Sprintf("Did you mean %s?", s)
+func (s pluginSet) unknownKey(key string) error {
+	help := s.advice(key)
+	if help == "" {
+		help = "Run vet config show to list the keys."
 	}
 	return newError(CodeUnknownKey, fmt.Sprintf("%s: unknown key", key), help)
 }

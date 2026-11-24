@@ -15,6 +15,7 @@ import (
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/internal/engine"
+	"github.com/safedep/vet/v2/internal/plugins/builtin"
 	"github.com/safedep/vet/v2/internal/plugins/controls/cooldown"
 	"github.com/safedep/vet/v2/internal/plugins/controls/workflow"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers"
@@ -202,15 +203,15 @@ func TestPluginOriginNamesTheSource(t *testing.T) {
 		want string
 	}{
 		{"default", config.LoadOptions{}, 0, ""},
-		{"file", config.LoadOptions{ConfigFile: file}, 0, "file config.yml"},
+		{"file", config.LoadOptions{ConfigFile: file, Plugins: builtin.ConfigPlugins()}, 0, "file config.yml"},
 		{
 			"variable", config.LoadOptions{
-				LookupEnv:   func(string) (string, bool) { return "", false },
-				Environ:     func() []string { return []string{"VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS=4"} },
-				PluginNames: []string{cooldown.Name},
+				LookupEnv: func(string) (string, bool) { return "", false },
+				Environ:   func() []string { return []string{"VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS=4"} },
+				Plugins:   builtin.ConfigPlugins(),
 			}, 0, "env VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS",
 		},
-		{"flag over the file", config.LoadOptions{ConfigFile: file}, 7, "flag --cooldown-days"},
+		{"flag over the file", config.LoadOptions{ConfigFile: file, Plugins: builtin.ConfigPlugins()}, 7, "flag --cooldown-days"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

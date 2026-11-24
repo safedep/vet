@@ -15,6 +15,11 @@ the defaults, the managed file, the user file (or `--config`), the `VET_*` varia
 from the lowest layer to the highest. `--origin` adds the source of each value. `-o json` always
 holds the source of each value and the directories of vet with the rule that chose each one.
 
+The list has the key `plugins.<name>.enabled` of each plugin with a switch, also when no layer sets
+it. A key that no layer sets has the built-in state of the plugin and the origin `default`. A report
+format has no enabled key, because `-o` and `--report` select it. `vet config schema get` describes
+each plugin and its options.
+
 ## Examples
 
 ```text

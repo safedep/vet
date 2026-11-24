@@ -22,10 +22,10 @@ type BootstrapOptions struct {
 	Flags map[string]string
 	// LookupEnv reads a variable. It defaults to os.LookupEnv.
 	LookupEnv func(string) (string, bool)
-	// Environ and PluginNames are for the VET_PLUGINS_* variables. See
-	// LoadOptions.
-	Environ     func() []string
-	PluginNames []string
+	// Environ and Plugins are for the plugins section and the VET_PLUGINS_*
+	// variables. See LoadOptions.
+	Environ func() []string
+	Plugins []Plugin
 	// TrustManaged checks the managed file. It defaults to ManagedFileTrusted.
 	TrustManaged func(string) bool
 	// DirOptions change how the directories resolve, for tests.
@@ -59,7 +59,7 @@ func Bootstrap(opts BootstrapOptions) (*Runtime, error) {
 		Flags:        opts.Flags,
 		LookupEnv:    opts.LookupEnv,
 		Environ:      opts.Environ,
-		PluginNames:  opts.PluginNames,
+		Plugins:      opts.Plugins,
 		TrustManaged: opts.TrustManaged,
 	})
 	if err != nil {

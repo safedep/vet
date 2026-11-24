@@ -10,9 +10,10 @@ vet config schema get [-o json]
 
 ## Description
 
-`vet config schema get` prints the JSON Schema of the config file, with the options of each built-in
-plugin. The section of another plugin stays open, because a third-party plugin can register at run
-time. Point a YAML language server at the schema to check `config.yml` in an editor.
+`vet config schema get` prints the JSON Schema of the config file. It describes each built-in plugin
+and its options. A plugin with a switch has the key `enabled`, with its default. A report format has
+no `enabled` key, because `-o` and `--report` select it. The schema has no other plugin. Point a YAML
+language server at the schema to check `config.yml` in an editor.
 
 ## Examples
 

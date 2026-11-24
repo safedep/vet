@@ -33,7 +33,7 @@ The default is the config file of the run. validate changes nothing.`,
 				tui.Info("No config file. The defaults apply.")
 				return nil
 			}
-			l, err := vconfig.Load(vconfig.LoadOptions{ConfigFile: path, LookupEnv: func(string) (string, bool) { return "", false }})
+			l, err := vconfig.Load(vconfig.LoadOptions{ConfigFile: path, LookupEnv: func(string) (string, bool) { return "", false }, Plugins: a.Plugins()})
 			if err != nil {
 				return err
 			}

@@ -112,8 +112,8 @@ func markRunErrors(c *cobra.Command) {
 // to print or nil. A failed gate and a stop on a signal print no error,
 // because the command already reported them.
 func Run(ctx context.Context, args []string, o app.Options) (int, error) {
-	if o.PluginNames == nil {
-		o.PluginNames = builtin.Names()
+	if o.Plugins == nil {
+		o.Plugins = builtin.ConfigPlugins()
 	}
 	extractors.CaptureLogs()
 	a := app.New(o)

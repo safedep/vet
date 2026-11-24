@@ -41,14 +41,16 @@ func newShow(a *app.App) *cobra.Command {
 		Short: "Show the effective config",
 		Long: `Show each key of the effective config with its value. --origin adds the
 source of each value: the default, the managed file, the user file, a
-VET_* variable or a flag. -o json always holds the source.`,
+VET_* variable or a flag. -o json always holds the source. The list has
+plugins.<name>.enabled for each plugin with a switch, also when no layer
+sets it.`,
 		Args: cobra.NoArgs,
 		RunE: func(*cobra.Command, []string) error {
 			rt, err := a.Config(app.ConfigOptions{})
 			if err != nil {
 				return err
 			}
-			vals, err := vconfig.Values(rt.Config)
+			vals, err := rt.Values()
 			if err != nil {
 				return err
 			}

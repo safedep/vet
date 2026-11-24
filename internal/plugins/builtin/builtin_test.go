@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/safedep/vet/v2/internal/config"
+	"github.com/safedep/vet/v2/internal/plugins/sinks"
 	"github.com/safedep/vet/v2/plugin"
 )
 
@@ -29,5 +31,34 @@ func TestPluginsCheckTheDefaultOptionsAndGiveASchema(t *testing.T) {
 			_, err := p.Schema()
 			require.NoError(t, err)
 		})
+	}
+}
+
+func TestEachPluginSaysWhatItDoesAndHowItTurnsOn(t *testing.T) {
+	formats := sinks.Builtin().Formats()
+	for _, p := range Plugins() {
+		t.Run(p.Name, func(t *testing.T) {
+			assert.NotEmpty(t, p.Description)
+			isFormat := slices.Contains(formats, p.Name)
+			assert.Equal(t, !isFormat, p.Switch, "only a report format has no switch, because -o and --report select it")
+			if isFormat {
+				assert.False(t, p.On)
+			}
+		})
+	}
+}
+
+func TestEnabledUsesTheBuiltInStateWhenNoLayerSetsIt(t *testing.T) {
+	off := false
+	cfg := config.Default()
+	cfg.Plugins = map[string]config.PluginConfig{"vulnerability": {Enabled: &off}}
+	cases := map[string]bool{
+		"vulnerability": false,
+		"codeusage":     true,
+		"tenant-policy": false,
+		"nosuch":        false,
+	}
+	for name, want := range cases {
+		assert.Equal(t, want, Enabled(&cfg, name), name)
 	}
 }

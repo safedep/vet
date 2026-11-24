@@ -20,7 +20,7 @@ func newGet(a *app.App) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			v, err := vconfig.Get(rt.Config, args[0])
+			v, err := rt.Get(args[0])
 			if err != nil {
 				return err
 			}
@@ -48,7 +48,7 @@ example "vendor,testdata".`,
 			if err != nil {
 				return err
 			}
-			if err := vconfig.SetInFile(path, args[0], args[1]); err != nil {
+			if err := rt.SetInFile(path, args[0], args[1]); err != nil {
 				return err
 			}
 			managedWarning(rt)
@@ -69,7 +69,7 @@ func newDelete(a *app.App) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := vconfig.DeleteInFile(path, args[0]); err != nil {
+			if err := rt.DeleteInFile(path, args[0]); err != nil {
 				return err
 			}
 			managedWarning(rt)
