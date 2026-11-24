@@ -1,0 +1,28 @@
+# Under a workload credential, SafeDep Cloud accepts only the endpoint
+# that it derives from the job: gh:<repository>, with the machine id of
+# that endpoint id. The sync uses it in place of the configured endpoint_id.
+# The stub refuses another machine id, as SafeDep Cloud does.
+env SAFEDEP_TENANT_ID=acme.safedep.io
+env ACTIONS_ID_TOKEN_REQUEST_URL=$STUB_ID_TOKEN_URL
+env ACTIONS_ID_TOKEN_REQUEST_TOKEN=$STUB_ID_TOKEN_REQUEST_TOKEN
+env SAFEDEP_CLOUD_DATA_ADDR=$STUB_ADDR
+env INSECURE_GRPC_CLIENT_USE_INSECURE_TRANSPORT=true
+env GITHUB_REPOSITORY=acme/web
+exec vet --config $WORK/named.yml endpoint audit --mode plain -o json --state-dir $WORK/state
+! stdout inventory_sync_unavailable
+stub calls endpointsync 1
+stub events
+stdout -count=1 'tenant=acme\.safedep\.io endpoint=gh:acme/web machine=a9de23f27f00956189c20ff431787fba55be4c81178bf084afcd4a529fab9cdc .*VET_INVENTORY_EVENT_TYPE_SCAN_SUMMARY'
+! stdout ci-runner-1
+stub calls revoke 1
+
+-- named.yml --
+plugins:
+  cloud-inventory:
+    options:
+      endpoint_id: ci-runner-1
+-- home/.claude/skills/review/SKILL.md --
+---
+name: review
+description: Reviews code.
+---

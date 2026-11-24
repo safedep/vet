@@ -1,0 +1,40 @@
+# In a GitHub Actions job with the permission id-token: write,
+# SAFEDEP_TENANT_ID with no SAFEDEP_API_KEY selects the workload identity.
+# vet exchanges one ID token for a workload credential, sends the
+# credential and its tenant on each enrichment call, and revokes it when
+# the scan ends. The stub refuses a call with a credential that it did not
+# issue or with another tenant, so a scan with no diagnostic proves both.
+cd proj
+env SAFEDEP_TENANT_ID=acme.safedep.io
+env ACTIONS_ID_TOKEN_REQUEST_URL=$STUB_ID_TOKEN_URL
+env ACTIONS_ID_TOKEN_REQUEST_TOKEN=$STUB_ID_TOKEN_REQUEST_TOKEN
+env SAFEDEP_CLOUD_DATA_ADDR=$STUB_ADDR
+env INSECURE_GRPC_CLIENT_USE_INSECURE_TRANSPORT=true
+exec vet scan . --mode plain -o json
+jsonq stdout trailer.gate.outcome NONE
+jsonq stdout trailer.summary.diagnostics 0
+stdout '"control_id":"malware"'
+stub calls idtoken 1
+stub calls exchange 1
+! stub calls workload 0
+stub calls revoke 1
+stub auth
+stdout '^insights authorization=stub-workload-1 tenant=acme\.safedep\.io$'
+stdout '^malysis authorization=stub-workload-1 tenant=acme\.safedep\.io$'
+! stdout 'authorization=sk_test'
+
+# An explicit SAFEDEP_API_KEY takes precedence. vet makes no exchange and
+# revokes nothing.
+env SAFEDEP_API_KEY=sk_test
+exec vet scan . --mode plain -o json --no-cache
+jsonq stdout trailer.summary.diagnostics 0
+stub calls idtoken 1
+stub calls exchange 1
+stub calls revoke 1
+stub auth
+stdout '^insights authorization=sk_test tenant=acme\.safedep\.io$'
+stdout '^malysis authorization=sk_test tenant=acme\.safedep\.io$'
+! stdout stub-workload
+
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}

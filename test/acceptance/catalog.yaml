@@ -176,6 +176,18 @@
   tier: P0
   guarantee: "SAFEDEP_API_KEY without SAFEDEP_TENANT_ID exits 2 and names the missing variable."
   labels: [credentials]
+- id: auth/workload-identity/exchange
+  title: "workload identity: exchange"
+  category: auth
+  tier: P0
+  guarantee: "In a CI job with a workload identity, SAFEDEP_TENANT_ID with no SAFEDEP_API_KEY makes vet exchange one ID token, enrich with the workload credential and revoke it at the end. An explicit SAFEDEP_API_KEY takes precedence."
+  labels: [credentials, ci]
+- id: auth/workload-identity/refused
+  title: "workload identity: refused exchange"
+  category: auth
+  tier: P0
+  guarantee: "A refused workload identity exchange is a diagnostic that gives the reason. The scan completes and makes no other call to SafeDep Cloud."
+  labels: [credentials, ci]
 - id: auth/status/no-secrets
   title: "auth status prints no secret"
   category: auth
@@ -740,6 +752,12 @@
   tier: P2
   guarantee: "vet doctor exits 0 on a fresh sandbox, and -o json lists each check with an id. The text output has one line for each check, and a fix line under a check that failed."
   labels: [doctor]
+- id: health/doctor/workload-identity
+  title: "doctor: workload identity exchange"
+  category: health
+  tier: P1
+  guarantee: "In a CI job with a workload identity, vet doctor runs the exchange and names the tenant. A refused exchange fails one check that names the tenant and the reason, and doctor skips the endpoint checks."
+  labels: [doctor, credentials]
 - id: health/doctor/release-same-major
   title: "doctor: release of the same major version"
   category: health
@@ -856,6 +874,12 @@
   tier: P1
   guarantee: "With credentials, vet endpoint audit sends its inventory to SafeDep Cloud, with the user of each item and the names, not the values, of MCP server variables. Without credentials it prints one hint and sends nothing. When SafeDep Cloud is down, the audit completes with inventory_sync_unavailable, and the next audit sends the events that wait in the log. plugins.cloud-inventory.enabled false turns the sync off."
   labels: [endpoint, cloud, stub]
+- id: endpoint/inventory-sync/workload-identity
+  title: "inventory sync: workload identity endpoint"
+  category: endpoint
+  tier: P1
+  guarantee: "Under a workload credential, the inventory sync names the endpoint gh:<repository> with the machine id of that endpoint id, which SafeDep Cloud requires, in place of the configured endpoint_id."
+  labels: [endpoint, cloud, stub, credentials]
 # --- 4.9 Live rows. They call production and run with ACCEPTANCE_LIVE=1 only. ---
 - id: live/malware/known-malicious
   title: "live: known malicious package"
@@ -959,6 +983,18 @@
   tier: P0
   guarantee: "action/scan.sh runs this vet in a pull request. It posts the comment with the command that downloads the report artifact, writes an error annotation for each blocking cause, writes the step summary and the SARIF file, sets the gate, findings, report and comment-url outputs, and fails the step on a failed gate."
   labels: [action, pr-comment, pr-mode]
+- id: ci/action/tenant-id
+  title: "action: tenant-id selects the workload identity"
+  category: ci
+  tier: P0
+  guarantee: "With the tenant-id input and no api-key, action/scan.sh runs this vet with SAFEDEP_TENANT_ID set to the tenant-id input and SAFEDEP_API_KEY unset, also when the job sets SAFEDEP_API_KEY to an empty value. vet exchanges the ID token of the job, enriches with the workload credential and revokes it. The action writes no credential to GITHUB_ENV."
+  labels: [action, credentials]
+- id: ci/action/fork-no-credentials
+  title: "action: a fork pull request runs with no credential"
+  category: ci
+  tier: P0
+  guarantee: "A pull request from a fork with the tenant-id input and no ID token warns, and vet runs with no SafeDep Cloud credential. vet reads no keychain login of the job user, so no request carries a credential."
+  labels: [action, credentials]
 - id: ci/setup/init
   title: "vet ci init adds the vet workflow"
   category: ci

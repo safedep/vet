@@ -152,3 +152,42 @@ func TestEndpointSync(t *testing.T) {
 	assert.Len(t, s.Events(), 1, "a failed call records nothing")
 	assert.Equal(t, 2, s.Calls(EndpointSync))
 }
+
+// TestIDTokensDifferInFlight guards the token numbers. The stub counts a
+// call before its delay, so two requests in flight must not take their
+// token from that count.
+func TestIDTokensDifferInFlight(t *testing.T) {
+	s, _ := start(t)
+	s.SetDelay(100 * time.Millisecond)
+	const n = 4
+	tokens := make(chan string, n)
+	for range n {
+		go func() {
+			req, err := http.NewRequest(http.MethodGet, s.URL()+IDTokenPath+"?audience=sts.safedep.io", nil)
+			if err != nil {
+				tokens <- err.Error()
+				return
+			}
+			req.Header.Set("Authorization", "Bearer "+IDTokenRequestToken)
+			res, err := http.DefaultClient.Do(req)
+			if err != nil {
+				tokens <- err.Error()
+				return
+			}
+			defer func() { _ = res.Body.Close() }()
+			body, err := io.ReadAll(res.Body)
+			if err != nil {
+				tokens <- err.Error()
+				return
+			}
+			tokens <- string(body)
+		}()
+	}
+	seen := map[string]bool{}
+	for range n {
+		tok := <-tokens
+		assert.Contains(t, tok, "stub-id-token-")
+		assert.False(t, seen[tok], "the token %s is not unique", tok)
+		seen[tok] = true
+	}
+}

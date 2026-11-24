@@ -65,7 +65,9 @@ Windows profile directories under it. No script reads the host config, state, ca
 `CI` are unset. A script sets the mode that it tests. `testscript` never gives vet a TTY.
 
 The harness starts one stub SafeDep server for each script and sets `VET_CLOUD_ENDPOINTS_API`,
-`VET_CLOUD_ENDPOINTS_COMMUNITY` and `VET_GITHUB_API_URL` to it. The stub answers Insights v2 and
+`VET_CLOUD_ENDPOINTS_COMMUNITY` and `VET_GITHUB_API_URL` to it. It also sets `STUB_URL`, `STUB_ADDR`,
+`STUB_ID_TOKEN_URL` and `STUB_ID_TOKEN_REQUEST_TOKEN`, so a script can give vet the workload
+identity of a GitHub Actions job whose exchange goes to the stub. The stub answers Insights v2 and
 Malysis over gRPC, and the GitHub API over HTTP, from `stub/fixtures/`:
 
 | Service | Fixture | Unknown package or repository |
@@ -86,7 +88,7 @@ that exact name and version, also on a file system that ignores case.
 | `capture <var> <regexp> [file]` | Keep a value, such as a scan id, from stdout or a file. |
 | `jsonq <file\|stdout> <query> <want>` | Assert one field of a JSON document or of a JSON line. The query is a dotted path, for example `trailer.gate.outcome` or `records.-1.kind`. `len` gives a length. A JSON lines file is an array of its lines. |
 | `reportcheck <file\|stdout>` | Check the framing of a `-o json` or `-o jsonl` report: header first, trailer last, `record_count` right. It sets `$RECORDS`. |
-| `stub delay\|fail\|calls\|stop ...` | Control the stub server: slow each answer, fail a service (`insights`, `malysis`, `github`) with a gRPC code, assert the number of calls, or stop it. `calls` also counts `other` (a call to a service that the stub does not serve) and `authenticated` (a request with an authorization header). |
+| `stub delay\|fail\|calls\|auth\|stop ...` | Control the stub server: slow each answer, fail a service (`insights`, `malysis`, `github`, `exchange`) with a gRPC code, assert the number of calls, or stop it. `calls` also counts `other` (a call to a service that the stub does not serve), `authenticated` (a request with an authorization header), `idtoken`, `exchange`, `revoke` and `workload` (a request with a workload credential of the stub). `auth` prints the authorization and the tenant of each enrichment call since the last `auth`. |
 | `sleep <duration>` | Wait, for example before a signal. |
 | `schemacheck <schema> <file\|stdout>` | Validate a JSON document against a JSON Schema file. |
 | `mode <path> <octal>` | Assert the permission bits of a file or a directory. Unix only. |

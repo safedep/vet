@@ -1,0 +1,23 @@
+# In a CI job with a workload identity, vet doctor runs the exchange and
+# names the tenant. The endpoint checks send the workload credential, and
+# doctor revokes it at the end.
+env SAFEDEP_TENANT_ID=acme.safedep.io
+env ACTIONS_ID_TOKEN_REQUEST_URL=$STUB_ID_TOKEN_URL
+env ACTIONS_ID_TOKEN_REQUEST_TOKEN=$STUB_ID_TOKEN_REQUEST_TOKEN
+env SAFEDEP_CLOUD_DATA_ADDR=$STUB_ADDR
+env INSECURE_GRPC_CLIENT_USE_INSECURE_TRANSPORT=true
+exec vet doctor --mode plain -o plain
+stdout '^\[OK\]\s+credentials\s+tenant acme.safedep.io from the workload identity of the job$'
+stdout '^\[OK\]\s+credentials\.exchange\s+SafeDep Cloud gave a workload credential of tenant acme.safedep.io'
+stdout '^\[OK\]\s+endpoint\.insights'
+! stub calls workload 0
+stub calls revoke 1
+
+# A refused exchange fails one check that names the tenant and the reason.
+# doctor skips the endpoint checks, which would only repeat the error.
+stub fail exchange PermissionDenied
+execexit 1 vet doctor --mode plain -o plain
+stdout '^\[ERR\]\s+credentials\.exchange\s+vet did not get a SafeDep Cloud credential of tenant acme.safedep.io.*PermissionDenied'
+stdout '^\s+> Ask a tenant admin for a workload trust rule'
+! stdout 'endpoint\.'
+stub calls revoke 1

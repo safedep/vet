@@ -391,13 +391,15 @@ func needOneOf(t *testing.T, tools ...string) {
 	needTools(t, tools[0])
 }
 
-// fakeVet logs its arguments and the comment options, writes the markdown
+// fakeVet logs its arguments, the comment options and the SafeDep Cloud
+// variables, with unset apart from empty, writes the markdown
 // and SARIF reports, prints the JSON report and exits with FAKE_EXIT. With
 // FAKE_EXIT=3 it prints no report, as vet does on a runtime error.
 const fakeVet = `#!/usr/bin/env bash
 printf '%s\n' "$@" >"$FAKE/args"
 echo "create=${VET_PLUGINS_PR_COMMENT_OPTIONS_CREATE:-} proxy=${VET_PLUGINS_PR_COMMENT_OPTIONS_PROXY:-}" >"$FAKE/env"
 echo "${VET_CACHE_DIR:-unset}" >"$FAKE/cache"
+echo "tenant=${SAFEDEP_TENANT_ID-unset} key=${SAFEDEP_API_KEY-unset}" >"$FAKE/cloud"
 for arg in "$@"; do
   case $arg in
     markdown=*) head -c "${FAKE_SUMMARY_BYTES:-20}" /dev/zero | tr '\0' 'x' >"${arg#markdown=}" ;;
@@ -448,6 +450,11 @@ func TestScan(t *testing.T) {
 		fetch         string
 		// cache is the VET_CACHE_DIR that vet gets.
 		cache string
+		// headRepo is the repository of the head of a pull request. Empty
+		// is the repository of the run.
+		headRepo string
+		// cloud is the SafeDep Cloud variables that vet gets.
+		cloud string
 	}{
 		{
 			name:    "a pull request scans the change, applies the policy and comments",
@@ -622,6 +629,50 @@ func TestScan(t *testing.T) {
 			exit:   1,
 			output: "The comment input is not valid: 'always'",
 		},
+		{
+			name:  "tenant-id with an ID token selects the workload identity, with SAFEDEP_API_KEY unset",
+			event: "push",
+			env: map[string]string{
+				"ACTION_TENANT_ID": "acme.safedep.io", "ACTIONS_ID_TOKEN_REQUEST_URL": "https://token.example",
+				"SAFEDEP_API_KEY": "", "SAFEDEP_TENANT_ID": "job.safedep.io",
+			},
+			cloud: "tenant=acme.safedep.io key=unset",
+		},
+		{
+			name:   "tenant-id and api-key set both variables, and the log hides the key",
+			event:  "push",
+			env:    map[string]string{"ACTION_TENANT_ID": "acme.safedep.io", "ACTION_API_KEY": "sfd_secret"},
+			cloud:  "tenant=acme.safedep.io key=sfd_secret",
+			output: "::add-mask::sfd_secret",
+		},
+		{
+			name:   "api-key with no tenant-id fails",
+			event:  "push",
+			env:    map[string]string{"ACTION_API_KEY": "sfd_secret"},
+			exit:   1,
+			output: "The api-key input needs the tenant-id input",
+		},
+		{
+			name:  "with neither input, vet reads the environment of the job",
+			event: "push",
+			env:   map[string]string{"SAFEDEP_TENANT_ID": "job.safedep.io"},
+			cloud: "tenant=job.safedep.io key=unset",
+		},
+		{
+			name:     "a pull request from a fork with tenant-id and no ID token warns and uses no SafeDep Cloud",
+			event:    "pull_request",
+			headRepo: "someone/web",
+			env:      map[string]string{"ACTION_TENANT_ID": "acme.safedep.io", "SAFEDEP_TENANT_ID": "job.safedep.io"},
+			cloud:    "tenant=unset key=unset",
+			output:   "::warning::GitHub gives no ID token to a pull request from a fork",
+		},
+		{
+			name:   "tenant-id with no ID token outside a fork fails and names the permission",
+			event:  "pull_request",
+			env:    map[string]string{"ACTION_TENANT_ID": "acme.safedep.io"},
+			exit:   1,
+			output: "Give the job the permission id-token: write, or set the api-key input",
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -682,12 +733,17 @@ func TestScan(t *testing.T) {
 			writeFile(t, filepath.Join(bin, "vet"), fakeVet, 0o755)
 			writeFile(t, filepath.Join(bin, "git"), fakeGit, 0o755)
 			event := filepath.Join(root, "event.json")
-			writeFile(t, event, `{"pull_request": {"base": {"sha": "`+base+`"}, "head": {"sha": "`+head+`"}}}`, 0o644)
+			headRepo := tc.headRepo
+			if headRepo == "" {
+				headRepo = "acme/web"
+			}
+			writeFile(t, event, `{"pull_request": {"base": {"sha": "`+base+`"}, "head": {"sha": "`+head+`", "repo": {"full_name": "`+headRepo+`"}}}}`, 0o644)
 			runner := filepath.Join(root, "runner")
 			require.NoError(t, os.MkdirAll(fake, 0o755))
 			require.NoError(t, os.MkdirAll(runner, 0o755))
 			summary := filepath.Join(runner, "summary")
 			outputs := filepath.Join(runner, "outputs")
+			githubEnv := filepath.Join(runner, "env")
 
 			env := map[string]string{
 				"PATH":                 bin + string(os.PathListSeparator) + os.Getenv("PATH"),
@@ -699,6 +755,8 @@ func TestScan(t *testing.T) {
 				"GITHUB_EVENT_PATH":    event,
 				"GITHUB_STEP_SUMMARY":  summary,
 				"GITHUB_OUTPUT":        outputs,
+				"GITHUB_ENV":           githubEnv,
+				"GITHUB_REPOSITORY":    "acme/web",
 				"GITHUB_SERVER_URL":    "https://github.com",
 				"RUNNER_TEMP":          runner,
 				"GH_TOKEN":             "ghs_test",
@@ -715,6 +773,10 @@ func TestScan(t *testing.T) {
 			out, code := run(t, repo, env, script)
 			require.Equal(t, tc.exit, code, out)
 			assert.Contains(t, out, tc.output)
+			// The credentials reach vet only, never a later step.
+			if data, err := os.ReadFile(githubEnv); err == nil {
+				assert.NotContains(t, string(data), "SAFEDEP_")
+			}
 			if tc.exit == 1 && len(tc.outputs) == 0 {
 				return
 			}
@@ -736,6 +798,11 @@ func TestScan(t *testing.T) {
 				got, err := os.ReadFile(filepath.Join(fake, "env"))
 				require.NoError(t, err)
 				assert.Equal(t, tc.comment, strings.TrimSpace(string(got)))
+			}
+			if tc.cloud != "" {
+				got, err := os.ReadFile(filepath.Join(fake, "cloud"))
+				require.NoError(t, err)
+				assert.Equal(t, tc.cloud, strings.TrimSpace(string(got)))
 			}
 			if tc.cache != "" {
 				got, err := os.ReadFile(filepath.Join(fake, "cache"))

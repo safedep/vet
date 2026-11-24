@@ -5,8 +5,14 @@
 #
 # Environment: ACTION_FAIL_ON, ACTION_POLICY, ACTION_COMMENT,
 # ACTION_COMMENT_PROXY, ACTION_SARIF, ACTION_ARGS, ACTION_CACHE_DIR,
-# ACTION_REPORT_ARTIFACT, GH_TOKEN and the variables of GitHub Actions.
+# ACTION_REPORT_ARTIFACT, ACTION_TENANT_ID, ACTION_API_KEY, GH_TOKEN and the
+# variables of GitHub Actions.
 set -euo pipefail
+
+# GitHub hides the key in each later line of the log.
+if [ -n "${ACTION_API_KEY:-}" ]; then
+  echo "::add-mask::$ACTION_API_KEY"
+fi
 
 # The action restores this directory before the scan and saves it after.
 # An empty value keeps the cache directory of the user.
@@ -148,8 +154,53 @@ if [ -n "${ACTION_ARGS:-}" ]; then
   read -r -d '' -a extra <<<"$ACTION_ARGS" || true
 fi
 
+# The SafeDep Cloud inputs set the credentials of vet as the pmg action
+# does. The script sets them for the vet process only, not in GITHUB_ENV, so
+# later steps do not get them. With neither input, vet reads the
+# environment of the job as before.
+cloud=keep
+tenant=${ACTION_TENANT_ID:-}
+if [ -n "${ACTION_API_KEY:-}" ]; then
+  [ -n "$tenant" ] || fail "The api-key input needs the tenant-id input. Set tenant-id to the domain of your SafeDep Cloud tenant, such as acme.safedep.io"
+  cloud=key
+elif [ -n "$tenant" ]; then
+  cloud=workload
+  if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
+    head_repo=""
+    if [[ ${GITHUB_EVENT_NAME:-} == pull_request* ]]; then
+      head_repo=$(jq -r '.pull_request.head.repo.full_name // empty' "${GITHUB_EVENT_PATH:?}")
+    fi
+    if [ -n "$head_repo" ] && [ "$head_repo" != "${GITHUB_REPOSITORY:-}" ]; then
+      # GitHub gives no ID token to the job of a pull request from a fork,
+      # and the fork must not get the API key of the repository.
+      echo "::warning::GitHub gives no ID token to a pull request from a fork, so vet runs with no SafeDep Cloud credentials and uses the community endpoints."
+      cloud=none
+    else
+      fail "The tenant-id input with no api-key input needs an ID token of GitHub. Give the job the permission id-token: write, or set the api-key input"
+    fi
+  fi
+fi
+
 code=0
-vet ${global[@]+"${global[@]}"} "${args[@]}" ${extra[@]+"${extra[@]}"} >"$report" || code=$?
+(
+  case $cloud in
+    key) export SAFEDEP_TENANT_ID=$tenant SAFEDEP_API_KEY=$ACTION_API_KEY ;;
+    # An empty SAFEDEP_API_KEY is a half credential to vet, so the script
+    # unsets it, and vet exchanges the ID token of the job.
+    workload)
+      unset SAFEDEP_API_KEY
+      export SAFEDEP_TENANT_ID=$tenant
+      ;;
+    # The fork run reads no credential at all. cloud.keychain_file points
+    # vet at a keychain file that does not exist, so vet does not read a
+    # login of the job user.
+    none)
+      unset SAFEDEP_API_KEY SAFEDEP_TENANT_ID
+      export VET_CLOUD_KEYCHAIN_FILE=$tmp/no-credentials.json
+      ;;
+  esac
+  exec vet ${global[@]+"${global[@]}"} "${args[@]}" ${extra[@]+"${extra[@]}"}
+) >"$report" || code=$?
 
 # A step summary holds at most 1 MiB.
 if [ -s "$summary" ] && [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then

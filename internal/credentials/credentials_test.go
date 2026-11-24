@@ -1,6 +1,7 @@
 package credentials
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -9,6 +10,9 @@ import (
 	"github.com/safedep/dry/usefulerror"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+
+	"github.com/safedep/vet/v2/test/acceptance/stub"
 )
 
 type fixedResolver struct {
@@ -75,4 +79,72 @@ func TestResolveFromEnvironment(t *testing.T) {
 	assert.False(t, res.Anonymous())
 	assert.Equal(t, "env.safedep.io", res.TenantDomain())
 	assert.Equal(t, "environment", res.Source())
+}
+
+func startStub(t *testing.T) *stub.Server {
+	t.Helper()
+	s, err := stub.Start(t.TempDir())
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, s.Close()) })
+	return s
+}
+
+// TestWorkloadExchange guards the exchange before the scan and the revoke
+// at the end. A refused exchange marks the run, so that the scan makes no
+// call with the credentials.
+func TestWorkloadExchange(t *testing.T) {
+	cases := []struct {
+		name        string
+		refuse      bool
+		wantRefused bool
+		wantRevokes int
+	}{
+		{name: "exchange", wantRevokes: 1},
+		{name: "refused exchange", refuse: true, wantRefused: true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := startStub(t)
+			s.SetWorkloadEnv(t, "acme.safedep.io")
+			if tc.refuse {
+				s.Fail(stub.Exchange, codes.PermissionDenied)
+			}
+			res, err := Resolve(Options{})
+			require.NoError(t, err)
+			assert.Equal(t, "workload identity", res.Source())
+			_, ok := res.Workload()
+			require.True(t, ok)
+
+			err = res.Exchange(context.Background())
+			assert.Equal(t, tc.wantRefused, err != nil)
+			assert.Equal(t, tc.wantRefused, res.Refused())
+			assert.Equal(t, 1, s.Calls(stub.Exchange))
+
+			require.NoError(t, res.Revoke(context.Background()))
+			assert.Equal(t, tc.wantRevokes, s.Calls(stub.Revoke))
+		})
+	}
+}
+
+func TestWorkloadMethodsSkipOtherCredentials(t *testing.T) {
+	key, err := cloud.NewAPIKeyCredential("sfd_key", "acme.safedep.io")
+	require.NoError(t, err)
+	for name, res := range map[string]*Result{"api key": {Credentials: key}, "anonymous": {}} {
+		t.Run(name, func(t *testing.T) {
+			_, ok := res.Workload()
+			assert.False(t, ok)
+			require.NoError(t, res.Exchange(context.Background()))
+			assert.False(t, res.Refused())
+			require.NoError(t, res.Revoke(context.Background()))
+		})
+	}
+}
+
+func TestWorkloadEndpointID(t *testing.T) {
+	id, err := WorkloadEndpointID(func(string) string { return "acme/web" })
+	require.NoError(t, err)
+	assert.Equal(t, "gh:acme/web", id)
+
+	_, err = WorkloadEndpointID(func(string) string { return "" })
+	assert.ErrorContains(t, err, "GITHUB_REPOSITORY")
 }

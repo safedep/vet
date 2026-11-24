@@ -31,6 +31,9 @@ func StartStub(env *testscript.Env, fixtures string) error {
 	env.Setenv("VET_CLOUD_ENDPOINTS_COMMUNITY", s.URL())
 	env.Setenv("VET_GITHUB_API_URL", s.URL())
 	env.Setenv("STUB_URL", s.URL())
+	env.Setenv("STUB_ADDR", s.Addr())
+	env.Setenv("STUB_ID_TOKEN_URL", s.URL()+stub.IDTokenPath)
+	env.Setenv("STUB_ID_TOKEN_REQUEST_TOKEN", stub.IDTokenRequestToken)
 	return nil
 }
 
@@ -42,6 +45,7 @@ func StartStub(env *testscript.Env, fixtures string) error {
 //	stub readonly
 //	stub comments
 //	stub events
+//	stub auth
 //	stub stop
 func cmdStub(ts *testscript.TestScript, neg bool, args []string) {
 	s, ok := ts.Value(stubKey{}).(*stub.Server)
@@ -79,15 +83,20 @@ func cmdStub(ts *testscript.TestScript, neg bool, args []string) {
 			_, err := fmt.Fprintf(ts.Stdout(), "--- comment %d by %s on %s\n%s\n", c.ID, c.Login, c.Issue, c.Body)
 			ts.Check(err)
 		}
+	case args[0] == "auth" && len(args) == 1:
+		for _, a := range s.TakeAuths() {
+			_, err := fmt.Fprintln(ts.Stdout(), a)
+			ts.Check(err)
+		}
 	case args[0] == "events" && len(args) == 1:
 		for _, e := range s.Events() {
-			_, err := fmt.Fprintf(ts.Stdout(), "tenant=%s endpoint=%s %s\n", e.Tenant, e.Endpoint, e.JSON)
+			_, err := fmt.Fprintf(ts.Stdout(), "tenant=%s endpoint=%s machine=%s %s\n", e.Tenant, e.Endpoint, e.MachineID, e.JSON)
 			ts.Check(err)
 		}
 	case args[0] == "stop" && len(args) == 1:
 		ts.Check(s.Close())
 	default:
-		ts.Fatalf("usage: stub delay <duration> | fail <service> <code> | calls <service> <n> | readonly | comments | events | stop")
+		ts.Fatalf("usage: stub delay <duration> | fail <service> <code> | calls <service> <n> | readonly | comments | events | auth | stop")
 	}
 }
 

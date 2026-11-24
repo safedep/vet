@@ -73,7 +73,7 @@ var codeTexts = map[codes.Code]string{
 	codes.Unimplemented:      "not supported",
 	codes.Internal:           "internal error",
 	codes.DataLoss:           "internal error",
-	codes.Unauthenticated:    "API key not accepted",
+	codes.Unauthenticated:    "credential not accepted",
 }
 
 func codeText(c codes.Code) string {

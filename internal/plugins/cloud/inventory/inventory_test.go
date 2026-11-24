@@ -17,6 +17,7 @@ import (
 	servicev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/controltower/v1"
 	"buf.build/go/protovalidate"
 	"github.com/safedep/dry/cloud"
+	"github.com/safedep/dry/cloud/endpointidentity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -31,6 +32,7 @@ import (
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
+	"github.com/safedep/vet/v2/test/acceptance/stub"
 )
 
 type fakeClient struct {
@@ -143,8 +145,8 @@ func TestSyncFailure(t *testing.T) {
 		err  error
 		want string
 	}{
-		{"refused key", status.Error(codes.Unauthenticated, "no"), "SafeDep Cloud refused the API key"},
-		{"gateway answer without trailers", status.Error(codes.Internal, "server closed the stream without sending trailers"), "SafeDep Cloud refused the API key"},
+		{"refused key", status.Error(codes.Unauthenticated, "no"), "SafeDep Cloud refused the credential"},
+		{"gateway answer without trailers", status.Error(codes.Internal, "server closed the stream without sending trailers"), "SafeDep Cloud refused the credential"},
 		{"network", errors.New("connection refused"), "connection refused"},
 	}
 	for _, tc := range cases {
@@ -207,16 +209,23 @@ func TestDecode(t *testing.T) {
 type endpointServer struct {
 	controltowerv1grpc.UnimplementedEndpointServiceServer
 	mu     sync.Mutex
+	fail   bool
 	events []*servicev1.ToolEvent
+	// endpoints holds the endpoint identifier of each event.
+	endpoints []string
 }
 
 func (e *endpointServer) SyncEvents(_ context.Context, req *servicev1.SyncEventsRequest) (*servicev1.SyncEventsResponse, error) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
+	if e.fail {
+		return nil, status.Error(codes.Unavailable, "down")
+	}
 	ids := make([]string, 0, len(req.GetEvents()))
 	for _, ev := range req.GetEvents() {
 		ids = append(ids, ev.GetEventId())
 		e.events = append(e.events, ev)
+		e.endpoints = append(e.endpoints, req.GetEndpoint().GetIdentifier())
 	}
 	return servicev1.SyncEventsResponse_builder{ConfirmedEventIds: ids}.Build(), nil
 }
@@ -246,7 +255,9 @@ func TestOpenSendsThroughTheRealClient(t *testing.T) {
 	s, err := inventory.Open(inventory.Options{EndpointID: "ci-runner-1"}, apiURL, &credentials.Result{Credentials: cred}, state, "test")
 	require.NoError(t, err)
 	require.NoError(t, s.Sync(context.Background(), inventory.Audit{ScanID: "s-1", Items: audit.Items[:1]}))
-	logPath := filepath.Join(state, inventory.LogFile(apiURL, "acme.safedep.io"))
+	// An API key run keeps the log name of an older vet, so the events
+	// that wait in that log still go out.
+	logPath := filepath.Join(state, inventory.LogFile(apiURL, "acme.safedep.io", ""))
 	if runtime.GOOS != "windows" {
 		// The endpointsync log runs in WAL mode. SQLite removes the journal
 		// files on a clean close, so the check runs while the log is open.
@@ -269,6 +280,67 @@ func TestOpenSendsThroughTheRealClient(t *testing.T) {
 	if runtime.GOOS != "windows" {
 		assert.Equal(t, os.FileMode(0o600), info.Mode().Perm(), "the log holds the inventory of each user")
 	}
-	assert.NotEqual(t, inventory.LogFile(apiURL, "acme.safedep.io"), inventory.LogFile(apiURL, "other.safedep.io"),
+	assert.NotEqual(t, inventory.LogFile(apiURL, "acme.safedep.io", "m"), inventory.LogFile(apiURL, "other.safedep.io", "m"),
 		"each tenant has its own log")
+}
+
+// TestLogNameOfOtherCredentials guards the events that an older vet left
+// in its log. A run with an API key or a keychain profile must find the log
+// under the same name.
+func TestLogNameOfOtherCredentials(t *testing.T) {
+	assert.Equal(t, "inventory-sync-fa3223bb95ce.db", inventory.LogFile("http://api.example", "acme.safedep.io", ""))
+	assert.NotEqual(t, inventory.LogFile("http://api.example", "acme.safedep.io", ""),
+		inventory.LogFile("http://api.example", "acme.safedep.io", endpointidentity.MachineID("gh:acme/web")))
+}
+
+// TestWaitingEventsKeepTheirEndpoint guards a shared state directory, as on
+// a self-hosted runner that scans two repositories. Under a workload
+// credential, the events that wait for the endpoint of one repository must
+// not go out with the endpoint of the other.
+func TestWaitingEventsKeepTheirEndpoint(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	srv := grpc.NewServer()
+	es := &endpointServer{fail: true}
+	controltowerv1grpc.RegisterEndpointServiceServer(srv, es)
+	go func() {
+		if err := srv.Serve(ln); err != nil && !errors.Is(err, grpc.ErrServerStopped) {
+			t.Log("serve:", err)
+		}
+	}()
+	t.Cleanup(srv.Stop)
+	apiURL := "http://" + ln.Addr().String()
+	state := t.TempDir()
+
+	// The stub gives the workload credentials. The sync goes to the
+	// server of the test.
+	exchange, err := stub.Start(t.TempDir())
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, exchange.Close()) })
+	exchange.SetWorkloadEnv(t, "acme.safedep.io")
+	creds, err := credentials.Resolve(credentials.Options{})
+	require.NoError(t, err)
+
+	t.Setenv("GITHUB_REPOSITORY", "acme/a")
+	a, err := inventory.Open(inventory.Options{}, apiURL, creds, state, "test")
+	require.NoError(t, err)
+	require.Error(t, a.Sync(context.Background(), inventory.Audit{ScanID: "scan-a", Items: audit.Items[:1]}))
+	require.NoError(t, a.Close())
+
+	es.mu.Lock()
+	es.fail = false
+	es.mu.Unlock()
+	t.Setenv("GITHUB_REPOSITORY", "acme/b")
+	b, err := inventory.Open(inventory.Options{}, apiURL, creds, state, "test")
+	require.NoError(t, err)
+	require.NoError(t, b.Sync(context.Background(), inventory.Audit{ScanID: "scan-b", Items: audit.Items[:1]}))
+	require.NoError(t, b.Close())
+
+	es.mu.Lock()
+	defer es.mu.Unlock()
+	require.NotEmpty(t, es.events)
+	for i, ev := range es.events {
+		assert.Equal(t, "scan-b", ev.GetInvocationId())
+		assert.Equal(t, "gh:acme/b", es.endpoints[i])
+	}
 }

@@ -35,8 +35,20 @@ const Name = "cloud-inventory"
 // LogFile returns the name of the event log in the state directory for
 // one SafeDep Cloud API and tenant. A switch of the tenant, as with
 // --profile, must not send the waiting events of one tenant to another.
-func LogFile(apiURL, tenant string) string {
-	sum := sha256.Sum256([]byte(apiURL + "\n" + tenant))
+//
+// workloadMachineID is the endpoint machine id under a workload
+// credential, and empty for other credentials. The client sends the
+// waiting events with the endpoint of the run, and under a workload
+// credential the endpoint follows the repository. So a self-hosted runner
+// that scans two repositories with one state directory needs a log for
+// each endpoint. Other credentials keep the name without the machine id,
+// so that a later run still sends the events that wait in the log.
+func LogFile(apiURL, tenant, workloadMachineID string) string {
+	key := apiURL + "\n" + tenant
+	if workloadMachineID != "" {
+		key += "\n" + workloadMachineID
+	}
+	sum := sha256.Sum256([]byte(key))
 	return "inventory-sync-" + hex.EncodeToString(sum[:6]) + ".db"
 }
 
@@ -91,11 +103,15 @@ func New(client Client) *Syncer { return &Syncer{client: client, close: client.C
 // Open connects to the SafeDep Cloud API at apiURL with the credentials of
 // the run and opens the event log in stateDir.
 func Open(o Options, apiURL string, creds *credentials.Result, stateDir, version string) (*Syncer, error) {
-	key, err := creds.Credentials.GetAPIKey()
+	ep, err := grpcdial.Cloud(apiURL, creds)
 	if err != nil {
 		return nil, err
 	}
-	id, err := endpointsync.NewEndpointIdentityResolver(endpointsync.WithEndpointID(o.EndpointID)).Resolve()
+	endpointID, err := endpointIDOf(o, creds)
+	if err != nil {
+		return nil, err
+	}
+	id, err := endpointsync.NewEndpointIdentityResolver(endpointsync.WithEndpointID(endpointID)).Resolve()
 	if err != nil {
 		// A container or a CI runner can have no machine id. The events of
 		// the audit then never reach the log, so a retry cannot help.
@@ -104,11 +120,15 @@ func Open(o Options, apiURL string, creds *credentials.Result, stateDir, version
 	if err := os.Remove(filepath.Join(stateDir, oldLogFile)); err != nil && !errors.Is(err, os.ErrNotExist) {
 		log.Warnf("inventory sync: remove %s: %v", oldLogFile, err)
 	}
-	conn, err := grpcdial.Dial("vet-endpointsync", grpcdial.Endpoint{URL: apiURL, APIKey: key, Tenant: creds.TenantDomain()})
+	conn, err := grpcdial.Dial("vet-endpointsync", ep)
 	if err != nil {
 		return nil, err
 	}
-	logPath := filepath.Join(stateDir, LogFile(apiURL, creds.TenantDomain()))
+	workloadMachineID := ""
+	if _, ok := creds.Workload(); ok {
+		workloadMachineID = id.GetMachineId()
+	}
+	logPath := filepath.Join(stateDir, LogFile(apiURL, creds.TenantDomain(), workloadMachineID))
 	if err := privateFile(logPath); err != nil {
 		return nil, errors.Join(fmt.Errorf("vet could not open the inventory sync log: %w", err), conn.Close())
 	}
@@ -118,6 +138,24 @@ func Open(o Options, apiURL string, creds *credentials.Result, stateDir, version
 		return nil, errors.Join(fmt.Errorf("vet could not open the inventory sync log: %w", err), conn.Close())
 	}
 	return &Syncer{client: client, close: func() error { return errors.Join(client.Close(), conn.Close()) }}, nil
+}
+
+// endpointIDOf returns the endpoint id of the sync. Under a workload
+// credential, SafeDep Cloud accepts only the machine id of the endpoint id
+// that it derives from the job, and endpointsync derives the machine id
+// from the endpoint id.
+func endpointIDOf(o Options, creds *credentials.Result) (string, error) {
+	if _, ok := creds.Workload(); !ok {
+		return o.EndpointID, nil
+	}
+	id, err := credentials.WorkloadEndpointID(os.Getenv)
+	if err != nil {
+		return "", err
+	}
+	if o.EndpointID != "" && o.EndpointID != id {
+		log.Warnf("inventory sync: the workload credential names the endpoint %s, so vet does not use plugins.cloud-inventory.options.endpoint_id", id)
+	}
+	return id, nil
 }
 
 // resolved gives the identity that Open resolved, so the client does not
@@ -207,7 +245,7 @@ func unavailable(err error) string {
 	st, ok := status.FromError(err)
 	if ok && (st.Code() == codes.Unauthenticated || st.Code() == codes.PermissionDenied ||
 		st.Code() == codes.Internal && strings.Contains(st.Message(), "without sending trailers")) {
-		return base + ". SafeDep Cloud refused the API key. Make sure that the key can sync endpoints and that it belongs to the tenant"
+		return base + ". SafeDep Cloud refused the credential. Make sure that it can sync endpoints and that it belongs to the tenant"
 	}
 	return fmt.Sprintf("%s (%v)", base, err)
 }

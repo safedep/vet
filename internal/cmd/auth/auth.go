@@ -28,7 +28,10 @@ func New(a *app.App) *cobra.Command {
 vet uses the API endpoints of your tenant. vet reads SAFEDEP_API_KEY and
 SAFEDEP_TENANT_ID first, then the keychain profile of --profile, else
 SAFEDEP_PROFILE, else "default". pmg and the safedep cli share the same
-profiles.`,
+profiles. In a CI job with a workload identity, such as a GitHub Actions
+job with the permission id-token: write, SAFEDEP_TENANT_ID alone is
+enough. vet exchanges the identity of the job for a short-lived
+credential.`,
 	}
 	c.AddCommand(newLogin(a), newStatus(a), newLogout(a))
 	return c
