@@ -26,7 +26,7 @@ import (
 
 type allEnabled struct{}
 
-func (allEnabled) PluginEnabled(string, bool) bool     { return true }
+func (allEnabled) PluginEnabled(string) bool           { return true }
 func (allEnabled) PluginOrigin(string, string) string  { return "" }
 func (allEnabled) PluginOptions(string) map[string]any { return map[string]any{} }
 

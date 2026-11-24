@@ -22,8 +22,8 @@ type keyInfo struct {
 	Kind keyKind
 }
 
-// knownKeys lists the leaf keys of Config, sorted. The plugins section is
-// open: "plugins.<name>.enabled" and "plugins.<name>.options.<option>".
+// knownKeys lists the leaf keys of Config. The keys of the plugins section
+// depend on the built-in plugins, so pluginSet checks them.
 var knownKeys = func() map[string]keyInfo {
 	out := map[string]keyInfo{}
 	walkKeys(reflect.TypeFor[Config](), "", out)
@@ -45,7 +45,7 @@ func walkKeys(t reflect.Type, prefix string, out map[string]keyInfo) {
 		case reflect.Struct:
 			walkKeys(f.Type, key, out)
 		case reflect.Map:
-			// The plugins section is open.
+			// pluginSet checks the keys of the plugins section.
 		case reflect.Bool:
 			out[key] = keyInfo{key, kindBool}
 		case reflect.Int:
@@ -68,27 +68,6 @@ func Keys() []string {
 	return out
 }
 
-// isPluginKey reports whether a key is in the open plugins section.
-func isPluginKey(key string) bool {
-	parts := strings.Split(key, ".")
-	if len(parts) < 3 || parts[0] != "plugins" || parts[1] == "" {
-		return false
-	}
-	switch parts[2] {
-	case "enabled":
-		return len(parts) == 3
-	case "options":
-		return len(parts) >= 4
-	}
-	return false
-}
-
-// IsKnownKey reports whether a key is a known leaf key or a plugin key.
-func IsKnownKey(key string) bool {
-	_, ok := knownKeys[key]
-	return ok || isPluginKey(key)
-}
-
 // EnvName returns the variable for a key: VET_ and the key in upper case,
 // with "." and "-" changed to "_".
 func EnvName(key string) string {
@@ -96,9 +75,13 @@ func EnvName(key string) string {
 	return "VET_" + strings.ToUpper(r.Replace(key))
 }
 
+// hintDistance is the edit distance under which vet suggests a name for a
+// misspelled one.
+const hintDistance = 4
+
 // suggestKey returns the known key closest to an unknown key, or "".
 func suggestKey(key string) string {
-	best, bestDist := "", 4
+	best, bestDist := "", hintDistance
 	for k := range knownKeys {
 		if d := levenshtein(key, k); d < bestDist {
 			best, bestDist = k, d

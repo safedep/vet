@@ -11,7 +11,8 @@ vet config validate [FILE]
 ## Description
 
 `vet config validate` checks a config file: the YAML, each value and each key. An unknown key is an
-error here, with the closest known key, although a scan only warns about it. The default is the
+error here, with the closest known key, although a scan only warns about it. A plugin key that names
+no built-in plugin, or the enabled key of a report format, is an unknown key. The default is the
 config file of the run. validate changes nothing.
 
 ## Examples

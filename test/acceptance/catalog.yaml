@@ -794,6 +794,12 @@
   tier: P1
   guarantee: "vet config set with a typo exits 2 and suggests the closest key."
   labels: [config]
+- id: config/plugins/switches
+  title: "config lists the plugin switches and rejects plugin keys that vet does not read"
+  category: config
+  tier: P1
+  guarantee: "vet config show and vet config get list the enabled key of each plugin with its default. vet config set and vet config validate reject a misspelled plugin name and the enabled key of a report format. A scan warns about a VET_PLUGINS_* variable that names no plugin key, and the variable changes nothing."
+  labels: [config]
 - id: config/edit/checks-the-file
   title: "config edit checks the file after the editor exits"
   category: config

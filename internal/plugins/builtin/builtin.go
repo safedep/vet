@@ -6,8 +6,11 @@ package builtin
 
 import (
 	"cmp"
+	"fmt"
 	"slices"
+	"sync"
 
+	"github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/inventory"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/tenantpolicy"
 	"github.com/safedep/vet/v2/internal/plugins/controls"
@@ -19,7 +22,7 @@ import (
 
 // Plugin is a built-in plugin with a plugins section in the config.
 type Plugin struct {
-	Name string
+	config.Plugin
 	// Check builds the plugin from its options and returns the error.
 	Check func(plugin.Config) error
 	// Schema returns the JSON Schema of the options, or nil for a plugin
@@ -31,17 +34,30 @@ type Plugin struct {
 func Plugins() []Plugin {
 	var out []Plugin
 	for _, s := range controls.Builtin() {
-		out = append(out, fromFactory(s.Name, s.New))
+		out = append(out, fromFactory(config.Plugin{Name: s.Name, Description: s.Description, Switch: true, On: true}, s.New))
 	}
 	for _, s := range sinks.Builtin() {
-		out = append(out, fromFactory(s.Name, s.New))
+		desc := fmt.Sprintf("A report format. It writes %s. The flags -o and --report select it.", s.Description)
+		out = append(out, fromFactory(config.Plugin{Name: s.Name, Description: desc}, s.New))
 	}
 	out = append(out,
-		fromFactory(tenantpolicy.Name, tenantpolicy.New),
-		fromFactory(inventory.Name, inventory.Decode),
-		fromFactory(actionrefs.Name, func(c plugin.Config) (*actionrefs.Enricher, error) { return actionrefs.New(c, nil, "") }),
+		fromFactory(config.Plugin{
+			Name: tenantpolicy.Name, Switch: true,
+			Description: "Adds the policy of your SafeDep Cloud tenant to the gate. It is not available yet.",
+		}, tenantpolicy.New),
+		fromFactory(config.Plugin{
+			Name: inventory.Name, Switch: true, On: true,
+			Description: "Sends the inventory of vet endpoint audit to SafeDep Cloud.",
+		}, inventory.Decode),
+		fromFactory(config.Plugin{
+			Name: actionrefs.Name, Switch: true, On: true,
+			Description: "Checks with the GitHub API that each action pinned to a commit uses a commit of its own repository.",
+		}, func(c plugin.Config) (*actionrefs.Enricher, error) { return actionrefs.New(c, nil, "") }),
 		Plugin{
-			Name:   codeusage.Name,
+			Plugin: config.Plugin{
+				Name: codeusage.Name, Switch: true, On: codeusage.Available(),
+				Description: "Reads the source code for reachability, the call graph and the code capabilities. It needs a vet build with CGO, so a build with no CGO has it off.",
+			},
 			Check:  func(c plugin.Config) error { _, err := codeusage.ParseSettings(c); return err },
 			Schema: func() ([]byte, error) { return codeusage.OptionsSchema(), nil },
 		},
@@ -50,20 +66,39 @@ func Plugins() []Plugin {
 	return out
 }
 
-// Names returns the names of the built-in plugins, sorted.
-func Names() []string {
+// ConfigPlugins returns the built-in plugins as the config sees them.
+func ConfigPlugins() []config.Plugin {
 	ps := Plugins()
-	names := make([]string, len(ps))
+	out := make([]config.Plugin, len(ps))
 	for i, p := range ps {
-		names[i] = p.Name
+		out[i] = p.Plugin
 	}
-	return names
+	return out
 }
 
-func fromFactory[T any](name string, build func(plugin.Config) (T, error)) Plugin {
+// Enabled reports whether the config turns a plugin on. A plugin with no
+// enabled key has its built-in state. A name that is not a built-in plugin
+// is a bug in the caller, so Enabled panics.
+func Enabled(cfg *config.Config, name string) bool {
+	p, ok := byName()[name]
+	if !ok {
+		panic(fmt.Sprintf("builtin: no plugin named %q", name))
+	}
+	return cfg.PluginEnabled(name, p.On)
+}
+
+var byName = sync.OnceValue(func() map[string]config.Plugin {
+	out := map[string]config.Plugin{}
+	for _, p := range Plugins() {
+		out[p.Name] = p.Plugin
+	}
+	return out
+})
+
+func fromFactory[T any](p config.Plugin, build func(plugin.Config) (T, error)) Plugin {
 	return Plugin{
-		Name:  name,
-		Check: func(c plugin.Config) error { _, err := build(c); return err },
+		Plugin: p,
+		Check:  func(c plugin.Config) error { _, err := build(c); return err },
 		Schema: func() ([]byte, error) {
 			p, err := build(plugin.MapConfig(nil))
 			if err != nil {

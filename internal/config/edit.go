@@ -20,10 +20,11 @@ import (
 // not set. The command exits with code 2.
 const CodeKeyNotSet = "config_key_not_set"
 
-// Values returns each leaf key of a config with its value, the plugin keys
-// included.
-func Values(c *Config) (map[string]any, error) {
-	tree, err := toTree(*c)
+// Values returns each leaf key of the effective config with its value, the
+// plugin keys included. The enabled key of each plugin with a switch has
+// the state of the plugin, also when no layer sets it.
+func (l *Loaded) Values() (map[string]any, error) {
+	tree, err := toTree(*l.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -32,6 +33,11 @@ func Values(c *Config) (map[string]any, error) {
 	for _, k := range Keys() {
 		if _, ok := out[k]; !ok {
 			out[k] = nil
+		}
+	}
+	for k, on := range l.plugins.switchKeys() {
+		if out[k] == nil {
+			out[k] = on
 		}
 	}
 	return out, nil
@@ -53,11 +59,11 @@ func flatten(tree map[string]any, prefix string, out map[string]any) {
 
 // Get returns the value of one key. An unknown key is an error that
 // suggests the closest key.
-func Get(c *Config, key string) (any, error) {
-	if !IsKnownKey(key) {
-		return nil, unknownKey(key)
+func (l *Loaded) Get(key string) (any, error) {
+	if !l.plugins.knownKey(key) {
+		return nil, l.plugins.unknownKey(key)
 	}
-	vals, err := Values(c)
+	vals, err := l.Values()
 	if err != nil {
 		return nil, err
 	}
@@ -68,9 +74,9 @@ func Get(c *Config, key string) (any, error) {
 // the comments and the key order of the file stay. It checks the key, the
 // value and the whole file before it writes, and writes through a
 // temporary file and a rename.
-func SetInFile(path, key, raw string) error {
-	if !IsKnownKey(key) {
-		return unknownKey(key)
+func (l *Loaded) SetInFile(path, key, raw string) error {
+	if !l.plugins.knownKey(key) {
+		return l.plugins.unknownKey(key)
 	}
 	v, err := parseValue(key, raw)
 	if err != nil {
@@ -86,23 +92,23 @@ func SetInFile(path, key, raw string) error {
 		return err
 	}
 	setNode(root(doc), strings.Split(key, "."), &node)
-	return writeDoc(path, doc)
+	return l.writeDoc(path, doc)
 }
 
 // DeleteInFile removes a key from a config file and the sections that it
-// leaves empty.
-func DeleteInFile(path, key string) error {
+// leaves empty. It removes an unknown key too, so a user can delete a typo.
+func (l *Loaded) DeleteInFile(path, key string) error {
 	doc, err := readDoc(path)
 	if err != nil {
 		return err
 	}
 	if !deleteNode(root(doc), strings.Split(key, ".")) {
-		if !IsKnownKey(key) {
-			return unknownKey(key)
+		if !l.plugins.knownKey(key) {
+			return l.plugins.unknownKey(key)
 		}
 		return newError(CodeKeyNotSet, fmt.Sprintf("%s: %s does not set the key", key, path), "vet config show --origin shows where each value comes from.")
 	}
-	return writeDoc(path, doc)
+	return l.writeDoc(path, doc)
 }
 
 func readDoc(path string) (*yaml.Node, error) {
@@ -180,16 +186,16 @@ func deleteNode(m *yaml.Node, path []string) bool {
 
 // writeDoc checks the new file with Load and Validate, then writes it with
 // mode 0600 through a temporary file and a rename.
-func writeDoc(path string, doc *yaml.Node) (err error) {
+func (l *Loaded) writeDoc(path string, doc *yaml.Node) (err error) {
 	b, err := encodeDoc(doc)
 	if err != nil {
 		return err
 	}
-	l, err := Load(LoadOptions{ConfigFile: path, ConfigData: b, LookupEnv: func(string) (string, bool) { return "", false }})
+	next, err := Load(LoadOptions{ConfigFile: path, ConfigData: b, LookupEnv: func(string) (string, bool) { return "", false }, Plugins: l.plugins.list})
 	if err != nil {
 		return rejected(err, path)
 	}
-	if err := l.Validate(); err != nil {
+	if err := next.Validate(); err != nil {
 		return rejected(err, path)
 	}
 	if err := appdir.Ensure(filepath.Dir(path)); err != nil {

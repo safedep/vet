@@ -1,5 +1,5 @@
 # vet config edit runs $EDITOR with its arguments, then checks the file. A
-# valid edit exits 0. An unknown key exits 2. With --no-input vet does not
+# valid edit exits 0, also with a plugin key. An unknown key exits 2. With --no-input vet does not
 # open an editor.
 [!unix] skip 'the fake editor is a shell script'
 chmod 755 good.sh
@@ -25,7 +25,7 @@ stderr 'needs a terminal'
 -- good.sh --
 #!/bin/sh
 printf '%s\n' "$1" > "$(dirname "$0")/args"
-printf 'scan:\n  concurrency: 2\n' >> "$2"
+printf 'scan:\n  concurrency: 2\nplugins:\n  vulnerability:\n    enabled: false\n' >> "$2"
 -- bad.sh --
 #!/bin/sh
 printf 'polcy:\n  fail_on: high\n' >> "$1"

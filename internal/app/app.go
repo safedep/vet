@@ -39,8 +39,9 @@ type Options struct {
 	LookupEnv func(string) (string, bool)
 	// Environ lists the variables. It defaults to os.Environ.
 	Environ func() []string
-	// PluginNames are the built-in plugins, for the VET_PLUGINS_* variables.
-	PluginNames []string
+	// Plugins are the built-in plugins, for the plugins section and the
+	// VET_PLUGINS_* variables.
+	Plugins []config.Plugin
 	// Bootstrap changes how the config loads, for tests.
 	Bootstrap config.BootstrapOptions
 }
@@ -161,8 +162,8 @@ func (a *App) Config(o ConfigOptions) (*config.Runtime, error) {
 		if b.Environ == nil {
 			b.Environ = a.opts.Environ
 		}
-		if b.PluginNames == nil {
-			b.PluginNames = a.opts.PluginNames
+		if b.Plugins == nil {
+			b.Plugins = a.opts.Plugins
 		}
 		b.Flags = map[string]string{}
 		if a.Globals.Mode != "" {
@@ -181,6 +182,10 @@ func (a *App) Config(o ConfigOptions) (*config.Runtime, error) {
 	})
 	return a.runtime, a.err
 }
+
+// Plugins returns the built-in plugins, for a command that loads a config
+// file on its own.
+func (a *App) Plugins() []config.Plugin { return a.opts.Plugins }
 
 // Printer returns the data printer for -o. Without -o it picks the format
 // from the messaging mode.

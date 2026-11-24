@@ -617,7 +617,11 @@ locked key is ignored, and a flag for it exits 2.
 **Plugin options**:
 The config section of one plugin: `plugins.<name>.enabled` and `plugins.<name>.options`.
 `plugin.Config` decodes the options and rejects an unknown key. `internal/plugins/builtin` is the one
-list of built-in plugins with a config section.
+list of built-in plugins with a config section. It holds the description of each plugin and its
+**switch**: whether `plugins.<name>.enabled` turns it on and off, and its state with no key.
+`config.Plugin` is that view of a plugin. A report format has no switch, because `-o` and `--report`
+select it. A key that names no built-in plugin, or the enabled key of a report format, is an unknown
+key.
 
 **Ephemeral**:
 A run with no saved state: `--ephemeral` or `VET_EPHEMERAL`. vet also falls back to it when the

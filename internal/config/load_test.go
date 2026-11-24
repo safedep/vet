@@ -59,6 +59,7 @@ func TestLoadLayers(t *testing.T) {
 		UserFile:  user,
 		LookupEnv: env(map[string]string{"VET_SCAN_CONCURRENCY": "6", "VET_SCAN_EXCLUDE": "a/**, b/**"}),
 		Flags:     map[string]string{"policy.fail_on": "critical", "plugins.dependency-cooldown.options.days": "14"},
+		Plugins:   testPlugins,
 	})
 	require.NoError(t, err)
 
@@ -181,10 +182,6 @@ func TestKeys(t *testing.T) {
 	assert.Contains(t, keys, "scan.include_dev")
 	assert.Contains(t, keys, "state.retention.per_target")
 	assert.Contains(t, keys, "cloud.endpoints.api")
-	assert.True(t, IsKnownKey("plugins.x.enabled"))
-	assert.True(t, IsKnownKey("plugins.x.options.days"))
-	assert.False(t, IsKnownKey("plugins.x"))
-	assert.False(t, IsKnownKey("plugins.x.other"))
 	assert.Equal(t, "VET_SCAN_INCLUDE_DEV", EnvName("scan.include_dev"))
 	assert.Equal(t, "VET_PLUGINS_DEPENDENCY_COOLDOWN_ENABLED", EnvName("plugins.dependency-cooldown.enabled"))
 }
@@ -216,13 +213,71 @@ func TestLoadPluginVariables(t *testing.T) {
 		Environ: func() []string {
 			return []string{"VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS=7", "VET_PLUGINS_CODEUSAGE_ENABLED=true", "HOME=/x"}
 		},
-		PluginNames: []string{"dependency-cooldown", "codeusage"},
+		Plugins: testPlugins,
 	})
 	require.NoError(t, err)
 	assert.Equal(t, map[string]any{"days": 7}, l.Config.PluginOptions("dependency-cooldown"))
 	assert.Equal(t, Origin{Layer: LayerEnv, Source: "VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS"}, l.Origins.Of("plugins.dependency-cooldown.options.days"))
 	assert.False(t, l.Config.PluginEnabled("codeusage", true), "a variable cannot change a locked key")
 	assert.NotEmpty(t, l.Warnings)
+}
+
+func TestPluginKeys(t *testing.T) {
+	set := newPluginSet(testPlugins)
+	cases := []struct {
+		key    string
+		known  bool
+		advice string
+	}{
+		{key: "plugins.codeusage.enabled", known: true},
+		{key: "plugins.codeusage.options.budget", known: true},
+		{key: "plugins.table.options.top", known: true},
+		{key: "plugins.table.enabled", advice: "table is a report format with no enabled key. The flags -o and --report select it."},
+		{key: "plugins.codeusag.enabled", advice: "Did you mean plugins.codeusage.enabled?"},
+		{key: "plugins.tabel.options.top", advice: "Did you mean plugins.table.options.top?"},
+		{key: "plugins.tabel.enabled", advice: "vet config schema get lists the plugins.", known: false},
+		{key: "plugins.nosuch.enabled", advice: "vet config schema get lists the plugins."},
+		{key: "plugins.codeusage.enabld", advice: "Did you mean plugins.codeusage.enabled?"},
+		{key: "plugins.table.optons.top", advice: "Did you mean plugins.table.options.top?"},
+		{key: "plugins.table.enabld", advice: ""},
+		{key: "plugins.codeusage", advice: ""},
+		{key: "plugins.codeusage.other", advice: ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.key, func(t *testing.T) {
+			assert.Equal(t, tc.known, set.knownKey(tc.key))
+			if !tc.known {
+				assert.Equal(t, tc.advice, set.advice(tc.key))
+			}
+		})
+	}
+}
+
+func TestLoadWarnsAboutAPluginKeyThatVetDoesNotRead(t *testing.T) {
+	dir := t.TempDir()
+	user := writeFile(t, dir, "config.yml", "plugins:\n  codeusag:\n    enabled: false\n  table:\n    enabled: false\n")
+	l, err := Load(LoadOptions{
+		UserFile: user, LookupEnv: env(nil), Plugins: testPlugins,
+		Environ: func() []string {
+			return []string{
+				"VET_PLUGINS_DEPENDENCY_COOLDWN_ENABLED=false",
+				"VET_PLUGINS_TABLE_ENABLED=false",
+				"VET_PLUGINS_CODEUSAGE_COLOR=red",
+				"VET_PLUGINS_CODEUSAGE_ENABLED=false",
+			}
+		},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, []string{
+		user + ": unknown key plugins.codeusag.enabled. Did you mean plugins.codeusage.enabled?",
+		user + ": unknown key plugins.table.enabled. table is a report format with no enabled key. The flags -o and --report select it.",
+		"VET_PLUGINS_CODEUSAGE_COLOR names no plugin key, so vet ignores it. A plugin variable ends with _ENABLED, or with _OPTIONS_ and the option name.",
+		"VET_PLUGINS_DEPENDENCY_COOLDWN_ENABLED names no plugin key, so vet ignores it. Did you mean VET_PLUGINS_DEPENDENCY_COOLDOWN_ENABLED?",
+		"VET_PLUGINS_TABLE_ENABLED names no plugin key, so vet ignores it. table is a report format with no enabled key. The flags -o and --report select it.",
+	}, l.Warnings)
+	assert.Equal(t, []string{"plugins.codeusag.enabled", "plugins.table.enabled"}, l.UnknownKeys)
+	assert.False(t, l.Config.PluginEnabled("codeusage", true), "a valid variable still applies")
+	assert.True(t, l.Config.PluginEnabled("dependency-cooldown", true), "a misspelled variable changes nothing")
 }
 
 func TestLoadWarnsThatTheManagedFileWins(t *testing.T) {

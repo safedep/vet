@@ -77,8 +77,8 @@ func (l *Loaded) ValidateStrict() error {
 	var lines []string
 	for _, k := range l.UnknownKeys {
 		line := fmt.Sprintf("%s: unknown key in %s", k, l.File)
-		if s := suggestKey(k); s != "" {
-			line += fmt.Sprintf(". Did you mean %s?", s)
+		if a := l.plugins.advice(k); a != "" {
+			line += ". " + a
 		}
 		lines = append(lines, line)
 	}

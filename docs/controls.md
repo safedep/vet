@@ -106,6 +106,11 @@ and `ai-bom-delta`. A workflow is also modified when the change removes one of i
 
 ## Options
 
+Each control plugin is on by default. `plugins.<name>.enabled: false` turns it off, and
+`VET_PLUGINS_<NAME>_ENABLED=false` turns it off for one run. `vet config show` lists the state of
+each plugin, and `vet config schema get` describes each plugin. vet rejects a misspelled plugin name
+in `vet config set` and `vet config validate`. A scan warns about it.
+
 Some controls take options from the config file, under `plugins.<name>.options`.
 `vet config schema get` prints all of them.
 

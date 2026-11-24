@@ -25,6 +25,7 @@ import (
 	"github.com/safedep/vet/v2/internal/github"
 	"github.com/safedep/vet/v2/internal/github/actionslock"
 	"github.com/safedep/vet/v2/internal/overview"
+	"github.com/safedep/vet/v2/internal/plugins/builtin"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/inventory"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/tenantpolicy"
 	"github.com/safedep/vet/v2/internal/plugins/controls"
@@ -505,15 +506,16 @@ func codeAnalysisOf(cfg *config.Config, o Options) (codeAnalysis, error) {
 		return codeAnalysis{}, app.UsageError("an entry point needs the function reach level",
 			"Add --reach function, or set plugins.codeusage.options.reach to function.")
 	}
-	c := codeAnalysis{on: o.Source == nil && cfg.PluginEnabled(codeusage.Name, true), budget: set.Budget, reach: report.ReachInfo{Level: set.Reach}, config: set}
-	p, ok := cfg.Plugins[codeusage.Name]
-	explicit := ok && p.Enabled != nil
+	c := codeAnalysis{on: o.Source == nil && builtin.Enabled(cfg, codeusage.Name), budget: set.Budget, reach: report.ReachInfo{Level: set.Reach}, config: set}
+	// A build with no CGO has codeusage off by default. The report says that
+	// the build cannot analyze code, not that the user turned it off. An
+	// explicit enabled: true runs it and records a diagnostic.
+	_, explicit := cfg.PluginSwitch(codeusage.Name)
 	switch {
+	case o.Source == nil && !explicit && !codeusage.Available():
+		c.reach.Status = report.ReachUnavailable
 	case !c.on:
 		c.reach = report.ReachInfo{Level: report.ReachOff}
-	case !codeusage.Available() && !explicit:
-		c.on = false
-		c.reach.Status = report.ReachUnavailable
 	}
 	return c, nil
 }
@@ -545,7 +547,7 @@ func (c codeAnalysis) options(o Options, cache *state.Cache, cacheDir string) (*
 // actionRefs builds the actionrefs enricher, or nil when the config turns
 // it off.
 func actionRefs(cfg *config.Config) (*actionrefs.Enricher, error) {
-	if !cfg.PluginEnabled(actionrefs.Name, true) {
+	if !builtin.Enabled(cfg, actionrefs.Name) {
 		return nil, nil
 	}
 	return actionrefs.New(plugin.MapConfig(cfg.PluginOptions(actionrefs.Name)), github.DefaultProvider(), cfg.GitHub.APIURL)
@@ -561,7 +563,7 @@ const CodeInventorySync = "inventory_sync_unavailable"
 // events wait in the log of the state directory.
 func syncInventory(ctx context.Context, cfg *config.Config, creds *credentials.Result, store *state.Store, s *state.Scan) error {
 	h := s.Header()
-	if h == nil || h.Scan.Kind != report.ScanKindEndpoint || !cfg.PluginEnabled(inventory.Name, true) {
+	if h == nil || h.Scan.Kind != report.ScanKindEndpoint || !builtin.Enabled(cfg, inventory.Name) {
 		return nil
 	}
 	opts, err := inventory.Decode(plugin.MapConfig(cfg.PluginOptions(inventory.Name)))
@@ -611,7 +613,7 @@ func newEvaluator(ctx context.Context, cfg *config.Config, failOn report.FailOn,
 	if policyFile != nil {
 		srcs = append(srcs, policyFile)
 	}
-	if cfg.PluginEnabled(tenantpolicy.Name, false) {
+	if builtin.Enabled(cfg, tenantpolicy.Name) {
 		src, err := tenantpolicy.New(plugin.MapConfig(cfg.PluginOptions(tenantpolicy.Name)))
 		if err != nil {
 			return nil, app.UsageError(fmt.Sprintf("plugins.%s.options: %v", tenantpolicy.Name, err), "Fix the option in the config file.")
@@ -740,8 +742,8 @@ func (s pluginSettings) PluginOrigin(name, key string) string {
 	return s.origins.Of("plugins." + name + ".options." + key).Short()
 }
 
-func (s pluginSettings) PluginEnabled(name string, def bool) bool {
-	return s.cfg.PluginEnabled(name, def)
+func (s pluginSettings) PluginEnabled(name string) bool {
+	return builtin.Enabled(s.cfg, name)
 }
 
 func (s pluginSettings) PluginOptions(name string) map[string]any {

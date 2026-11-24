@@ -97,9 +97,10 @@ type LoadOptions struct {
 	// Environ lists the variables, for the VET_PLUGINS_* keys. With no
 	// Environ, vet reads no plugin variable.
 	Environ func() []string
-	// PluginNames are the plugins that a VET_PLUGINS_* variable can name.
-	// A variable turns "-" into "_", so vet needs the names to map it back.
-	PluginNames []string
+	// Plugins are the built-in plugins. A key of the plugins section must
+	// name one of them. A variable turns "-" into "_", so vet also needs the
+	// names to map a VET_PLUGINS_* variable back to its key.
+	Plugins []Plugin
 	// TrustManaged checks the owner of the managed file and its directories.
 	// It defaults to ManagedFileTrusted.
 	TrustManaged func(path string) bool
@@ -119,6 +120,8 @@ type Loaded struct {
 	// UnknownKeys holds the unknown keys of the file. "vet config validate"
 	// reports them as errors.
 	UnknownKeys []string
+
+	plugins pluginSet
 }
 
 // Load builds the effective config from the defaults, one config file, the
@@ -136,7 +139,7 @@ func Load(opts LoadOptions) (*Loaded, error) {
 		return nil, err
 	}
 
-	l := &Loaded{Origins: &Origins{byKey: map[string]Origin{}}, Locked: map[string]bool{}}
+	l := &Loaded{Origins: &Origins{byKey: map[string]Origin{}}, Locked: map[string]bool{}, plugins: newPluginSet(opts.Plugins)}
 
 	path, layer, err := pickFile(opts)
 	if err != nil {
@@ -152,13 +155,16 @@ func Load(opts LoadOptions) (*Loaded, error) {
 			l.Warnings = append(l.Warnings, fmt.Sprintf("--config %s is ignored: the managed file %s applies", opts.ConfigFile, path))
 		}
 		for _, key := range leaves(fileTree, "") {
-			if !IsKnownKey(key) && !isSectionKey(key) {
+			if !l.plugins.knownKey(key) && !isSectionKey(key) {
 				msg := fmt.Sprintf("%s: unknown key %s", path, key)
-				if s := suggestKey(key); s != "" {
-					msg += fmt.Sprintf(". Did you mean %s?", s)
+				if a := l.plugins.advice(key); a != "" {
+					msg += ". " + a
 				}
 				l.Warnings = append(l.Warnings, msg)
 				l.UnknownKeys = append(l.UnknownKeys, key)
+				// vet does not read the key, so the effective config does not
+				// hold it. Else vet config show would list it as a default.
+				dropKey(fileTree, key)
 				continue
 			}
 			origin := Origin{Layer: layer, Source: path}
@@ -197,8 +203,12 @@ func Load(opts LoadOptions) (*Loaded, error) {
 		sort.Strings(vars)
 		for _, kv := range vars {
 			name, raw, _ := strings.Cut(kv, "=")
-			key, ok := pluginEnvKey(name, opts.PluginNames)
-			if !ok {
+			if !strings.HasPrefix(name, "VET_PLUGINS_") {
+				continue
+			}
+			key, ok := pluginEnvKey(name, l.plugins.names())
+			if !ok || !l.plugins.known(key) {
+				l.Warnings = append(l.Warnings, fmt.Sprintf("%s names no plugin key, so vet ignores it. %s", name, l.plugins.envAdvice(name)))
 				continue
 			}
 			if l.Locked[key] {
@@ -219,8 +229,8 @@ func Load(opts LoadOptions) (*Loaded, error) {
 	sort.Strings(flagKeys)
 	for _, key := range flagKeys {
 		raw := opts.Flags[key]
-		if !IsKnownKey(key) {
-			return nil, unknownKey(key)
+		if !l.plugins.knownKey(key) {
+			return nil, l.plugins.unknownKey(key)
 		}
 		if l.Locked[key] {
 			return nil, lockedKey(key, l.File)
@@ -366,6 +376,24 @@ func merge(dst, src map[string]any) {
 	}
 }
 
+// dropKey removes a dotted key from a tree, and each section that it
+// leaves empty.
+func dropKey(tree map[string]any, key string) {
+	head, rest, nested := strings.Cut(key, ".")
+	if !nested {
+		delete(tree, head)
+		return
+	}
+	sub, ok := tree[head].(map[string]any)
+	if !ok {
+		return
+	}
+	dropKey(sub, rest)
+	if len(sub) == 0 {
+		delete(tree, head)
+	}
+}
+
 // setKey parses a raw value for a key and sets it in the tree.
 func setKey(tree map[string]any, key, raw string) error {
 	v, err := parseValue(key, raw)
@@ -476,15 +504,14 @@ func pluginEnvKey(name string, plugins []string) (string, bool) {
 	}
 	best := ""
 	for _, p := range plugins {
-		prefix := strings.TrimPrefix(EnvName("plugins."+p), "VET_PLUGINS_") + "_"
-		if strings.HasPrefix(rest, prefix) && len(p) > len(best) {
+		if strings.HasPrefix(rest, envPart(p)+"_") && len(p) > len(best) {
 			best = p
 		}
 	}
 	if best == "" {
 		return "", false
 	}
-	field := strings.TrimPrefix(rest, strings.TrimPrefix(EnvName("plugins."+best), "VET_PLUGINS_")+"_")
+	field := strings.TrimPrefix(rest, envPart(best)+"_")
 	switch {
 	case field == "ENABLED":
 		return "plugins." + best + ".enabled", true

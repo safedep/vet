@@ -15,6 +15,7 @@ import (
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/internal/engine"
+	"github.com/safedep/vet/v2/internal/plugins/builtin"
 	"github.com/safedep/vet/v2/internal/plugins/controls/cooldown"
 	"github.com/safedep/vet/v2/internal/plugins/controls/workflow"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers"
@@ -202,15 +203,15 @@ func TestPluginOriginNamesTheSource(t *testing.T) {
 		want string
 	}{
 		{"default", config.LoadOptions{}, 0, ""},
-		{"file", config.LoadOptions{ConfigFile: file}, 0, "file config.yml"},
+		{"file", config.LoadOptions{ConfigFile: file, Plugins: builtin.ConfigPlugins()}, 0, "file config.yml"},
 		{
 			"variable", config.LoadOptions{
-				LookupEnv:   func(string) (string, bool) { return "", false },
-				Environ:     func() []string { return []string{"VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS=4"} },
-				PluginNames: []string{cooldown.Name},
+				LookupEnv: func(string) (string, bool) { return "", false },
+				Environ:   func() []string { return []string{"VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS=4"} },
+				Plugins:   builtin.ConfigPlugins(),
 			}, 0, "env VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS",
 		},
-		{"flag over the file", config.LoadOptions{ConfigFile: file}, 7, "flag --cooldown-days"},
+		{"flag over the file", config.LoadOptions{ConfigFile: file, Plugins: builtin.ConfigPlugins()}, 7, "flag --cooldown-days"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -286,7 +287,7 @@ func TestTrustsActionsLock(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			file := filepath.Join(t.TempDir(), "config.yml")
 			require.NoError(t, os.WriteFile(file, []byte(tc.config), 0o600))
-			l, err := config.Load(config.LoadOptions{ConfigFile: file, LookupEnv: func(string) (string, bool) { return "", false }})
+			l, err := config.Load(config.LoadOptions{ConfigFile: file, LookupEnv: func(string) (string, bool) { return "", false }, Plugins: builtin.ConfigPlugins()})
 			require.NoError(t, err)
 			rt := &config.Runtime{Loaded: l}
 			getenv := func(k string) string { return tc.env[k] }
@@ -304,4 +305,13 @@ func TestTrustsActionsLock(t *testing.T) {
 			assert.Equal(t, tc.want, settingsOf(rt, 0, got).PluginOptions(workflow.Name)[workflow.OptionTrustActionsLock])
 		})
 	}
+}
+
+func TestControlsTakeTheBuiltInStateOfTheirPlugin(t *testing.T) {
+	off := false
+	cfg := &config.Config{Plugins: map[string]config.PluginConfig{"vulnerability": {Enabled: &off}}}
+	s := pluginSettings{cfg: cfg}
+	assert.False(t, s.PluginEnabled("vulnerability"), "a layer turns a control off")
+	assert.True(t, s.PluginEnabled("malware"), "a control with no key is on, as builtin says")
+	assert.False(t, s.PluginEnabled("tenant-policy"), "a plugin that is off by default stays off")
 }
