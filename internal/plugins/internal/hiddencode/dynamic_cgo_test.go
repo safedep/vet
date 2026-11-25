@@ -179,7 +179,6 @@ func TestRoutedFiles(t *testing.T) {
 		"jest.config.base.js": {Data: []byte(loader)},
 		"data.json":           {Data: []byte(loader)},
 		"mid.js":              {Data: []byte("module.exports = require('./api');\n")},
-		"far.js":              {Data: []byte("module.exports = require('./mid');\n")},
 	}
 	cases := []struct {
 		name, path, data string
@@ -191,8 +190,7 @@ func TestRoutedFiles(t *testing.T) {
 		{"a config loads a config, which gets its own check", "jest.config.js", "module.exports = require('./jest.config.base');\n", nil},
 		{"a config loads a package", "jest.config.js", "module.exports = require('api');\n", nil},
 		{"a config loads a file that is not JavaScript", "jest.config.js", "module.exports = require('./data.json');\n", nil},
-		{"a config loads a helper that loads a loader", "jest.config.js", "module.exports = require('./mid');\n", []string{"dynamic-code api.js", "dynamic-code api.js"}},
-		{"the check stops after two hops", "jest.config.js", "module.exports = require('./far');\n", nil},
+		{"the check does not follow a file that a routed file loads", "jest.config.js", "module.exports = require('./mid');\n", nil},
 		{"a jest config names a setup file", "jest.config.js", "module.exports = { setupFiles: ['<rootDir>/api.js'], globalSetup: './clean.js' };\n", []string{"dynamic-code api.js", "dynamic-code api.js"}},
 		{"the jest key of a package.json names a setup file", "package.json", `{"jest":{"setupFilesAfterEnv":["./api.js"]}}`, []string{"dynamic-code api.js", "dynamic-code api.js"}},
 		{"a hook runs another script", "package.json", `{"scripts":{"pretest":"npm run setup","setup":"node api.js"}}`, []string{"script-hook-added package.json", "dynamic-code api.js", "dynamic-code api.js"}},
@@ -228,7 +226,6 @@ func TestRoutedFiles(t *testing.T) {
 	assert.Equal(t, 3, h[0].Line)
 	assert.Equal(t, `"pretest": "node api.js"`, h[0].Visible)
 	assert.Equal(t, "The pretest script runs api.js, a file of the project. npm runs the script on its own, and the user does not see it", h[0].Title)
-	assert.Equal(t, "api.js, which mid.js loads, puts require, eval or Function, or a key that it computes, on the global object on line 1", Analyze(fsys, Config, "jest.config.js", []byte("require('./mid');\n"))[0].Title)
 }
 
 func TestRoutedFilesHaveALimit(t *testing.T) {

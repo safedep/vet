@@ -18,15 +18,9 @@ const (
 	entryText  = "The npm entry script"
 )
 
-const (
-	// maxRouted is the most files that one analyzed file routes to. Each
-	// routed file costs a parse, and Analyze runs at the head and at the
-	// base.
-	maxRouted = 16
-	// maxDepth is the most hops from the analyzed file to a routed file. A
-	// config can load a helper that loads the loader.
-	maxDepth = 2
-)
+// maxRouted is the most files that one analyzed file routes to. Each
+// routed file costs a parse, and Analyze runs at the head and at the base.
+const maxRouted = 16
 
 // implicitHooks are the npm scripts that npm runs on its own around an
 // install, a pack, a publish or a test. The user does not type their
@@ -94,9 +88,13 @@ type router struct {
 
 func newRouter(fsys fs.FS) *router { return &router{fsys: fsys, read: map[string]bool{}} }
 
-// route checks the file rel, which what names in the titles. A routed file
-// that loads a file of the project routes to it too, up to maxDepth hops.
-func (r *router) route(rel, what string, depth int) {
+// route checks the file rel, which what names in the titles. vet does not
+// follow the files that a routed file loads. A config of a tool often
+// loads the library of the tool, and the false-positive run showed three
+// warnings in the library of webpack with a second hop.
+// known gap: a config that loads a clean helper, which loads the loader,
+// gives no finding.
+func (r *router) route(rel, what string) {
 	if r.read[rel] || len(r.read) >= maxRouted {
 		return
 	}
@@ -118,19 +116,16 @@ func (r *router) route(rel, what string, depth int) {
 		s.Path = rel
 		r.signals = append(r.signals, s)
 	}
-	if depth < maxDepth {
-		r.load(rel, loadedSpecs(rel, data), depth+1)
-	}
 }
 
 // load routes to each file of the project that the file p loads.
-func (r *router) load(p string, specs []string, depth int) {
+func (r *router) load(p string, specs []string) {
 	for _, spec := range specs {
 		if !relative(spec) {
 			continue
 		}
 		if rel, ok := localFile(r.fsys, path.Dir(p), spec); ok {
-			r.route(rel, fmt.Sprintf("%s, which %s loads,", rel, path.Base(p)), depth)
+			r.route(rel, fmt.Sprintf("%s, which %s loads,", rel, path.Base(p)))
 		}
 	}
 }
@@ -159,7 +154,7 @@ func loadedCode(fsys fs.FS, p string, data []byte) []Signal {
 		return nil
 	}
 	r := newRouter(fsys)
-	r.load(p, loadedSpecs(p, data), 1)
+	r.load(p, loadedSpecs(p, data))
 	return r.signals
 }
 
@@ -260,13 +255,13 @@ func hookedCode(fsys fs.FS, p string, data []byte) []Signal {
 					Title: fmt.Sprintf("The %s script runs %s, a file of the project. npm runs the script on its own, and the user does not see it", name, rel),
 				})
 			}
-			r.route(rel, fmt.Sprintf("%s, which the %s script of %s runs,", rel, name, p), 1)
+			r.route(rel, fmt.Sprintf("%s, which the %s script of %s runs,", rel, name, p))
 		}
 	}
 	for _, spec := range pkg.setup {
 		if spec = rootDir(spec); relative(spec) {
 			if rel, ok := localFile(fsys, dir, spec); ok {
-				r.route(rel, fmt.Sprintf("%s, which the jest key of %s loads,", rel, p), 1)
+				r.route(rel, fmt.Sprintf("%s, which the jest key of %s loads,", rel, p))
 			}
 		}
 	}
