@@ -52,6 +52,17 @@ func TestScriptHookAddedOnlyForAHookThatTheBaseDidNotHave(t *testing.T) {
 	}
 }
 
+func TestScriptHookAddedWhenAHookGetsAnotherCandidate(t *testing.T) {
+	base := fstest.MapFS{"package.json": {Data: []byte(`{"version":"1.0.0","scripts":{"pretest":"node tools"}}`)}, "tools.cjs": {Data: []byte("1\n")}}
+	head := fstest.MapFS{"package.json": {Data: []byte(`{"version":"1.0.1","scripts":{"pretest":"node tools"}}`)}, "tools.cjs": {Data: []byte("1\n")}, "tools/index.js": {Data: []byte("2\n")}}
+	c, err := hiddencode.New(plugin.MapConfig(nil))
+	require.NoError(t, err)
+	m := &model.Manifest{ID: "m", Path: "package.json", Kind: model.ManifestKindFile, Change: model.ChangeModified, Root: head, Base: base}
+	fs := plugintest.TestControl(t, c, m, nil)
+	require.Len(t, fs, 1, "the hook can now run tools/index.js too")
+	assert.Equal(t, "script-hook-added", fs[0].ControlID)
+}
+
 func TestScriptHookAddedWhenAHookRunsAnotherFile(t *testing.T) {
 	pkg := func(file string) []byte {
 		return []byte(`{"scripts":{"pretest":"npm run setup","setup":"node ` + file + `"}}`)

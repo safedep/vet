@@ -296,11 +296,11 @@ func (r *router) hooks(p string, data []byte) []Signal {
 			if len(rels) == 0 {
 				continue
 			}
-			if rel := rels[0]; implicit(name, pkg.scripts) && !hooked[rel] {
-				hooked[rel] = true
+			if target := strings.Join(sortedCopy(rels), ","); implicit(name, pkg.scripts) && !hooked[target] {
+				hooked[target] = true
 				hooks = append(hooks, Signal{
-					ID: IDScriptHook, Line: scriptLine(data, name), Visible: scriptSnippet(name, cmd), Target: rel,
-					Title: fmt.Sprintf("The %s script runs %s, a file of the project. npm runs the script on its own, and the user does not see it", name, rel),
+					ID: IDScriptHook, Line: scriptLine(data, name), Visible: scriptSnippet(name, cmd), Target: target,
+					Title: fmt.Sprintf("The %s script runs %s, a file of the project. npm runs the script on its own, and the user does not see it", name, rels[0]),
 				})
 			}
 			for _, rel := range rels {
@@ -316,6 +316,13 @@ func (r *router) hooks(p string, data []byte) []Signal {
 		}
 	}
 	return hooks
+}
+
+// sortedCopy returns the strings in order, and leaves s as it is.
+func sortedCopy(s []string) []string {
+	out := slices.Clone(s)
+	slices.Sort(out)
+	return out
 }
 
 // localFiles resolves a path that a script or a module names, relative to

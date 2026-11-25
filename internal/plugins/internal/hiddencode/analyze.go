@@ -55,9 +55,11 @@ type Signal struct {
 	// analyzes. Such a file is a file that a build config loads or that an
 	// npm script runs.
 	Path string
-	// Target is the file that a script hook runs. It is part of the
-	// identity of the hook across the head and the base, so a change of
-	// the file that a hook runs counts as a new hook.
+	// Target lists the files that a script hook can run, in order and
+	// joined by commas. vet cannot tell which candidate node picks, so
+	// the list is part of the identity of the hook across the head and
+	// the base. A change of the files that a hook can run counts as a new
+	// hook.
 	Target string
 }
 
