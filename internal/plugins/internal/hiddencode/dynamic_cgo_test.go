@@ -176,6 +176,10 @@ func TestLoadedSpecs(t *testing.T) {
 	assert.Equal(t, []string{"./src/setup.js"}, loadedSpecs("jest.config.js", []byte(rooted)))
 	projects := "module.exports = { projects: [{ rootDir: './a', setupFiles: ['<rootDir>/setup.js'] }, { setupFiles: ['<rootDir>/setup.js'], rootDir: './b' }, { setupFiles: ['<rootDir>/c.js'] }] };\n"
 	assert.Equal(t, []string{"./a/setup.js", "./b/setup.js", "./c.js"}, loadedSpecs("jest.config.js", []byte(projects)))
+	twice := "module.exports = { rootDir: './safe', setupFiles: ['<rootDir>/setup.js'], rootDir: './payload' };\n"
+	assert.Equal(t, []string{"./payload/setup.js"}, loadedSpecs("jest.config.js", []byte(twice)), "JavaScript keeps the last rootDir")
+	indirect := "require.call(null, './a');\nrequire.apply(null, ['./b']);\nconst r = require;\nr('./c');\n"
+	assert.Equal(t, []string{"./a", "./b", "./c"}, loadedSpecs("jest.config.js", []byte(indirect)))
 }
 
 func TestRoutedFiles(t *testing.T) {
@@ -201,7 +205,7 @@ func TestRoutedFiles(t *testing.T) {
 		{"a config loads a package", "jest.config.js", "module.exports = require('api');\n", nil},
 		{"a config loads a file that is not JavaScript", "jest.config.js", "module.exports = require('./data.json');\n", nil},
 		{"a config loads a file with another extension, which node runs as JavaScript", "jest.config.js", "require('./setup.txt');\n", []string{"dynamic-code setup.txt", "dynamic-code setup.txt"}},
-		{"a config loads a style sheet", "vite.config.js", "import './style.css';\n", nil},
+		{"a config requires a file with a style sheet name, which node runs as JavaScript", "jest.config.js", "require('./style.css');\n", []string{"dynamic-code style.css", "dynamic-code style.css"}},
 		{"the check does not follow a file that a routed file loads", "jest.config.js", "module.exports = require('./mid');\n", nil},
 		{"a jest config names a setup file", "jest.config.js", "module.exports = { setupFiles: ['<rootDir>/api.js'], globalSetup: './clean.js' };\n", []string{"dynamic-code api.js", "dynamic-code api.js"}},
 		{"the jest key of a package.json names a setup file", "package.json", `{"jest":{"setupFilesAfterEnv":["./api.js"]}}`, []string{"dynamic-code api.js", "dynamic-code api.js"}},

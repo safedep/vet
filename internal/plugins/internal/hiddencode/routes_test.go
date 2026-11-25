@@ -56,44 +56,44 @@ func TestScriptFiles(t *testing.T) {
 	}
 }
 
-func TestLocalFile(t *testing.T) {
+func TestLocalFiles(t *testing.T) {
 	fsys := fstest.MapFS{
 		"api.js":                    {Data: []byte("x")},
 		"lib/index.js":              {Data: []byte("x")},
 		"apps/a/run.ts":             {Data: []byte("x")},
 		"node_modules/pkg/index.js": {Data: []byte("x")},
 		"link.js":                   {Data: []byte("/outside/secret.js"), Mode: fs.ModeSymlink},
+		"linked":                    {Data: []byte("lib"), Mode: fs.ModeSymlink},
+		"tools.cjs":                 {Data: []byte("x")},
 		"tools/package.json":        {Data: []byte(`{"main":"setup.js"}`)},
 		"tools/setup.js":            {Data: []byte("x")},
 		"tools/index.js":            {Data: []byte("x")},
 		"far/package.json":          {Data: []byte(`{"main":"../../outside.js"}`)},
 		"far/index.js":              {Data: []byte("x")},
-		"linked":                    {Data: []byte("lib"), Mode: fs.ModeSymlink},
 	}
 	cases := []struct {
-		dir, spec, want string
+		dir, spec string
+		want      []string
 	}{
-		{".", "api", "api.js"},
-		{".", "./api.js", "api.js"},
-		{".", "lib", "lib/index.js"},
-		{"apps/a", "run", "apps/a/run.ts"},
-		{"apps/a", "../../api", "api.js"},
-		{".", "../outside.js", ""},
-		{".", "/etc/passwd", ""},
-		{".", "https://x.example/a.js", ""},
-		{".", "node_modules/pkg", ""},
-		{".", "missing.js", ""},
-		{".", "--flag", ""},
-		{".", "link.js", ""},
-		{".", "linked/index.js", ""},
-		{".", "tools", "tools/setup.js"},
-		{".", "far", "far/index.js"},
+		{".", "api", []string{"api.js"}},
+		{".", "./api.js", []string{"api.js"}},
+		{".", "lib", []string{"lib/index.js"}},
+		{"apps/a", "run", []string{"apps/a/run.ts"}},
+		{"apps/a", "../../api", []string{"api.js"}},
+		{".", "../outside.js", nil},
+		{".", "/etc/passwd", nil},
+		{".", "https://x.example/a.js", nil},
+		{".", "node_modules/pkg", nil},
+		{".", "missing.js", nil},
+		{".", "--flag", nil},
+		{".", "link.js", nil},
+		{".", "linked/index.js", nil},
+		{".", "tools", []string{"tools.cjs", "tools/setup.js", "tools/index.js"}},
+		{".", "far", []string{"far/index.js"}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.dir+":"+tc.spec, func(t *testing.T) {
-			got, ok := localFile(fsys, tc.dir, tc.spec)
-			assert.Equal(t, tc.want, got)
-			assert.Equal(t, tc.want != "", ok)
+			assert.Equal(t, tc.want, localFiles(fsys, tc.dir, tc.spec))
 		})
 	}
 }

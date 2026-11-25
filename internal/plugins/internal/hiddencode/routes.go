@@ -61,13 +61,10 @@ var jsExts = []string{".js", ".cjs", ".mjs", ".ts", ".cts", ".mts"}
 
 // notCode are the extensions of the routed files that vet does not read.
 // node does not run a JSON file, an addon or a WebAssembly module as
-// JavaScript, and a hook runs a shell script with a shell. A build loads a
-// style sheet, a source map or an image with a plugin, not with node. node
-// runs a required file with any other extension as JavaScript.
-var notCode = map[string]bool{
-	".json": true, ".node": true, ".wasm": true, ".sh": true, ".bash": true, ".zsh": true,
-	".css": true, ".map": true, ".svg": true, ".md": true,
-}
+// JavaScript. node runs a required file with any other extension as
+// JavaScript, such as setup.css. A style sheet or a shell script that is
+// not JavaScript gives no parse, so it gives no finding.
+var notCode = map[string]bool{".json": true, ".node": true, ".wasm": true}
 
 var bom = []byte("\xef\xbb\xbf")
 
@@ -143,7 +140,7 @@ func (r *router) load(p string, specs []string) {
 		if !relative(spec) {
 			continue
 		}
-		if rel, ok := localFile(r.fsys, path.Dir(p), spec); ok {
+		for _, rel := range localFiles(r.fsys, path.Dir(p), spec) {
 			r.route(rel, fmt.Sprintf("%s, which %s loads,", rel, path.Base(p)))
 		}
 	}
@@ -295,23 +292,25 @@ func (r *router) hooks(p string, data []byte) []Signal {
 		cmd := pkg.scripts[name]
 		hooked := map[string]bool{}
 		for _, spec := range scriptFiles(cmd, pkg.scripts) {
-			rel, ok := localFile(r.fsys, dir, spec)
-			if !ok {
+			rels := localFiles(r.fsys, dir, spec)
+			if len(rels) == 0 {
 				continue
 			}
-			if implicit(name, pkg.scripts) && !hooked[rel] {
+			if rel := rels[0]; implicit(name, pkg.scripts) && !hooked[rel] {
 				hooked[rel] = true
 				hooks = append(hooks, Signal{
 					ID: IDScriptHook, Line: scriptLine(data, name), Visible: scriptSnippet(name, cmd), Target: rel,
 					Title: fmt.Sprintf("The %s script runs %s, a file of the project. npm runs the script on its own, and the user does not see it", name, rel),
 				})
 			}
-			r.route(rel, fmt.Sprintf("%s, which the %s script of %s runs,", rel, name, p))
+			for _, rel := range rels {
+				r.route(rel, fmt.Sprintf("%s, which the %s script of %s runs,", rel, name, p))
+			}
 		}
 	}
 	for _, spec := range pkg.setup {
 		if relative(spec) {
-			if rel, ok := localFile(r.fsys, dir, spec); ok {
+			for _, rel := range localFiles(r.fsys, dir, spec) {
 				r.route(rel, fmt.Sprintf("%s, which the jest key of %s loads,", rel, p))
 			}
 		}
@@ -319,20 +318,25 @@ func (r *router) hooks(p string, data []byte) []Signal {
 	return hooks
 }
 
-// localFile resolves a path that a script or a module names, relative to
-// the folder dir, to a regular file of fsys, as node does. It tries the
-// path, then the path with each JavaScript extension. For a folder, it
+// localFiles resolves a path that a script or a module names, relative to
+// the folder dir, to the regular files of fsys that it can name. It tries
+// the path, then the path with each JavaScript extension. For a folder, it
 // then tries the main file that the package.json of the folder names, and
 // then its index.js. It rejects a path outside the target, a URL, a file
 // of an install folder and a path through a symbolic link, which can point
 // out of the target.
-func localFile(fsys fs.FS, dir, spec string) (string, bool) {
+//
+// node, a bundler and a TypeScript loader try the candidates in other
+// orders. So localFiles returns each candidate that exists, not the first
+// one. A clean decoy, such as a tools.cjs next to a tools folder, then
+// does not hide the file that the loader picks.
+func localFiles(fsys fs.FS, dir, spec string) []string {
 	if spec == "" || path.IsAbs(spec) || strings.Contains(spec, "://") || strings.HasPrefix(spec, "-") {
-		return "", false
+		return nil
 	}
 	clean := path.Clean(path.Join(dir, spec))
 	if outside(clean) {
-		return "", false
+		return nil
 	}
 	candidates := withExts(clean)
 	if main := mainOf(fsys, clean); main != "" {
@@ -340,12 +344,13 @@ func localFile(fsys fs.FS, dir, spec string) (string, bool) {
 		candidates = append(candidates, main+"/index.js")
 	}
 	candidates = append(candidates, clean+"/index.js")
+	var out []string
 	for _, c := range candidates {
-		if regular(fsys, c) {
-			return c, true
+		if !slices.Contains(out, c) && regular(fsys, c) {
+			out = append(out, c)
 		}
 	}
-	return "", false
+	return out
 }
 
 // outside reports a clean path outside the target or in an install folder.
@@ -479,7 +484,7 @@ func isScriptRun(words []string) bool {
 // nodeArgs returns the paths in the arguments of node: the value of each
 // preload flag, and each argument that is not a flag. A flag can take the
 // next argument as its value, so the check keeps each word that is not a
-// flag, and localFile keeps the words that name a file. A preload of a
+// flag, and localFiles keeps the words that name a file. A preload of a
 // bare name loads a package, so it gives no path. With preloadOnly, it
 // returns only the preloads, as for NODE_OPTIONS.
 func nodeArgs(args []string, preloadOnly bool) []string {

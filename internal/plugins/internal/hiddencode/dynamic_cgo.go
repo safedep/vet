@@ -195,11 +195,16 @@ func parseJS(ctx context.Context, l core.Language, data []byte, maxBytes int) (c
 	return parser.ParseBytes(ctx, l, data, parser.WithMaxBytes(maxBytes))
 }
 
+// callsGlobal reports a call of the global name, by that name or under
+// another name, as in r = require; r(x). targets are the values of the
+// callee.
+func callsGlobal(c ecmascript.Call, targets []ecmascript.Value, name string) bool {
+	return c.Name == name || slices.ContainsFunc(targets, func(v ecmascript.Value) bool { return v.IsGlobal(name) })
+}
+
 func callKind(a *ecmascript.Analysis, c ecmascript.Call) dynamicKind {
 	targets := a.Eval(c.Callee)
-	calls := func(name string) bool {
-		return c.Name == name || slices.ContainsFunc(targets, func(v ecmascript.Value) bool { return v.IsGlobal(name) })
-	}
+	calls := func(name string) bool { return callsGlobal(c, targets, name) }
 	arg := payload(a, c)
 	switch {
 	case c.New:
@@ -417,8 +422,8 @@ func loadedSpecs(p string, data []byte) []string {
 		}
 	}
 	for _, c := range a.Calls() {
-		if c.Name == "require" || c.Callee.Type() == "import" {
-			add(c.Arg(0))
+		if c.Callee.Type() == "import" || callsGlobal(c, a.Eval(c.Callee), "require") {
+			add(payload(a, c))
 		}
 	}
 	// A walk stops only at its node limit or its time limit. The paths
@@ -450,14 +455,15 @@ func objectRoot(a *ecmascript.Analysis, obj *sitter.Node, data []byte) string {
 	if obj == nil {
 		return ""
 	}
+	// JavaScript keeps the last value of a key that an object sets twice.
+	root := ""
 	for i := range int(obj.NamedChildCount()) {
 		pair := obj.NamedChild(i)
 		if pair.Type() == "pair" && keyName(a, pair.ChildByFieldName("key"), data) == "rootDir" {
-			root, _ := a.StringValue(pair.ChildByFieldName("value"))
-			return root
+			root, _ = a.StringValue(pair.ChildByFieldName("value"))
 		}
 	}
-	return ""
+	return root
 }
 
 // keyName returns the name of the key of an object pair.
