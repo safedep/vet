@@ -8,6 +8,8 @@ package hiddencode
 // builds have CGO.
 const dynamicCodeAvailable = false
 
-func dynamicCode(Class, string, []byte) []Signal { return nil }
+func dynamicCode(string, string, []byte, bool) []Signal { return nil }
+
+func loadedSpecs(string, []byte) []string { return nil }
 
 func runsAsScript([]byte) (runs, parsed bool) { return false, false }

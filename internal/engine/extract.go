@@ -322,6 +322,7 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 	}
 	if d != nil {
 		for _, m := range ms {
+			m.InBase = d.base.manifests[m.ID] != nil
 			diff(m, d.base.manifests[m.ID], !same)
 			if inBase && d.base.manifests[m.ID] == nil {
 				// The base file gave no manifest, such as a clean file of the

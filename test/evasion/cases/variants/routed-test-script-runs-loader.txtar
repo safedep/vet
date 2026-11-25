@@ -1,0 +1,11 @@
+# A test script that runs a loader before the tests, behind a variable and a node flag
+want: dynamic-code
+-- package.json --
+{
+  "name": "app",
+  "scripts": {
+    "test": "NODE_ENV=test node --no-warnings scripts/bootstrap.js && jest"
+  }
+}
+-- scripts/bootstrap.js --
+{% dynamicloader %}

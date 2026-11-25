@@ -1,0 +1,12 @@
+# A pretest script that runs a file of the project with node, and the loader in that file
+want: dynamic-code
+-- package.json --
+{
+  "name": "app",
+  "scripts": {
+    "pretest": "node api.js",
+    "test": "jest"
+  }
+}
+-- api.js --
+{% dynamicloader %}

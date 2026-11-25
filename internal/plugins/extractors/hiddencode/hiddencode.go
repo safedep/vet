@@ -66,7 +66,7 @@ func (Extractor) Extract(_ context.Context, in *filesystem.ScanInput) (inventory
 	// The control reads and analyzes the file again. A manifest carries no
 	// signals, and a stored scan replays the control on the manifest
 	// alone, so the extractor only decides that the file has a manifest.
-	if len(hiddencode.Analyze(c, p, data)) == 0 {
+	if len(hiddencode.Analyze(in.FS, c, p, data)) == 0 {
 		return inventory.Inventory{}, scalibr.ErrNoManifest
 	}
 	return inventory.Inventory{}, nil

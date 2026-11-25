@@ -73,6 +73,11 @@ type Manifest struct {
 	// that leaves the manifest file next to it, such as package.json, as it
 	// was.
 	LockfileOnly bool `json:"lockfile_only,omitempty"`
+	// InBase reports, in pull request mode, that the base version of the
+	// file gave this manifest too. The hidden-code extractor gives a
+	// manifest only for a file with a sign of hidden code, so a modified
+	// file with no InBase had no such sign at the base.
+	InBase bool `json:"in_base,omitempty"`
 
 	// Extractor is the name of the extractor that read the manifest.
 	Extractor string `json:"extractor,omitempty"`

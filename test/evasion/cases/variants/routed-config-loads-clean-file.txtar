@@ -1,0 +1,7 @@
+# Near miss: a test config that loads a shared config file of the project
+want: none
+-- apps/web/jest.config.js --
+const base = require('../../jest.shared');
+module.exports = { ...base, testEnvironment: 'node' };
+-- jest.shared.js --
+module.exports = { coverageDirectory: 'coverage', testMatch: ['**/*.test.js'] };

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"testing/fstest"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -75,7 +76,7 @@ func TestDynamicCode(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			var got []string
-			for _, s := range dynamicCode(Config, tc.path, []byte(tc.data)) {
+			for _, s := range dynamicCode(configText, tc.path, []byte(tc.data), false) {
 				assert.Equal(t, IDDynamicCode, s.ID)
 				got = append(got, s.Visible)
 			}
@@ -97,7 +98,7 @@ var hiddenByValueLimit = func() string {
 }()
 
 func TestDynamicCodeTooComplexToRead(t *testing.T) {
-	s := dynamicCode(Config, "vite.config.js", []byte(strings.Repeat("a;", 400_000)))
+	s := dynamicCode(configText, "vite.config.js", []byte(strings.Repeat("a;", 400_000)), false)
 	require.Len(t, s, 1)
 	assert.Equal(t, "<not read>", s[0].Visible)
 	assert.Equal(t, "The build config is too large or too complex for vet to read in full on line 1", s[0].Title)
@@ -111,7 +112,7 @@ func TestRunsAsScriptPastTheNodeLimit(t *testing.T) {
 func TestDynamicCodeLongCallChain(t *testing.T) {
 	data := []byte("x" + strings.Repeat("()", 300_000))
 	start := time.Now()
-	dynamicCode(Config, "vite.config.js", data)
+	dynamicCode(configText, "vite.config.js", data, false)
 	assert.Less(t, time.Since(start), 10*time.Second)
 }
 
@@ -140,7 +141,7 @@ func TestRunsAsScript(t *testing.T) {
 }
 
 func TestDynamicCodeTitle(t *testing.T) {
-	s := dynamicCode(Entry, "node_modules/npm/lib/cli.js", []byte("require('./cli/entry.js')(process)\nglobal['r']=require\n"))
+	s := dynamicCode(entryText, "node_modules/npm/lib/cli.js", []byte("require('./cli/entry.js')(process)\nglobal['r']=require\n"), false)
 	require.Len(t, s, 1)
 	assert.Equal(t, 2, s[0].Line)
 	assert.Equal(t, "The npm entry script puts require, eval or Function, or a key that it computes, on the global object on line 2", s[0].Title)
@@ -158,7 +159,84 @@ func FuzzDynamicCode(f *testing.F) {
 		f.Add(s)
 	}
 	f.Fuzz(func(t *testing.T, text string) {
-		dynamicCode(Config, "vite.config.js", []byte(text))
+		dynamicCode(configText, "vite.config.js", []byte(text), false)
 		runsAsScript([]byte(text))
 	})
+}
+
+func TestLoadedSpecs(t *testing.T) {
+	data := "const base = require('../../jest.config.base');\nimport x from './x.mjs';\nexport * from './y';\nconst z = await import('./z');\nrequire(name);\nrequire('jest-util');\n"
+	assert.Equal(t, []string{"../../jest.config.base", "./z", "jest-util", "./x.mjs", "./y"}, loadedSpecs("jest.config.mjs", []byte(data)))
+}
+
+func TestRoutedFiles(t *testing.T) {
+	loader := "global['r']=require;(function(){var f=Function(atob('Y29uc29sZS5sb2coMSk='));f();})();\n"
+	fsys := fstest.MapFS{
+		"api.js":              {Data: []byte(loader)},
+		"clean.js":            {Data: []byte("module.exports = { testEnvironment: 'node' };\n")},
+		"jest.config.base.js": {Data: []byte(loader)},
+	}
+	cases := []struct {
+		name, path, data string
+		want             []string
+	}{
+		{"a config loads a loader", "apps/a/jest.config.js", "require('../../api');\nmodule.exports = {};\n", []string{"dynamic-code api.js", "dynamic-code api.js"}},
+		{"an ESM config loads a loader", "vite.config.mjs", "import './api.js';\nexport default {};\n", []string{"dynamic-code api.js", "dynamic-code api.js"}},
+		{"a config loads a clean file", "jest.config.js", "module.exports = require('./clean');\n", nil},
+		{"a config loads a config, which gets its own check", "jest.config.js", "module.exports = require('./jest.config.base');\n", nil},
+		{"a config loads a package", "jest.config.js", "module.exports = require('api');\n", nil},
+		{"a hook runs a loader", "package.json", `{"scripts":{"pretest":"node api.js"}}`, []string{"script-hook-added package.json", "dynamic-code api.js", "dynamic-code api.js"}},
+		{"a hook runs a clean file", "package.json", `{"scripts":{"postinstall":"node clean.js"}}`, []string{"script-hook-added package.json"}},
+		{"test runs a loader with no hook", "package.json", `{"scripts":{"test":"node api.js && jest"}}`, []string{"dynamic-code api.js", "dynamic-code api.js"}},
+		{"a build script is not read", "package.json", `{"scripts":{"build":"node api.js"}}`, nil},
+		{"a hook runs a file that is not there", "package.json", `{"scripts":{"prepare":"node gone.js"}}`, nil},
+		{"two hooks run one file", "package.json", `{"scripts":{"pretest":"node api.js","posttest":"node api.js"}}`, []string{"script-hook-added package.json", "dynamic-code api.js", "dynamic-code api.js", "script-hook-added package.json"}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, ok := Classify(tc.path)
+			require.True(t, ok)
+			var got []string
+			for _, s := range Analyze(fsys, c, tc.path, []byte(tc.data)) {
+				p := s.Path
+				if p == "" {
+					p = tc.path
+				}
+				got = append(got, s.ID+" "+p)
+			}
+			assert.Equal(t, tc.want, got)
+		})
+	}
+
+	s := Analyze(fsys, Config, "apps/a/jest.config.js", []byte("require('../../api');\n"))
+	require.Len(t, s, 2)
+	assert.Equal(t, "api.js, which jest.config.js loads, puts require, eval or Function, or a key that it computes, on the global object on line 1", s[0].Title)
+	h := Analyze(fsys, Hooks, "package.json", []byte("{\n  \"scripts\": {\n    \"pretest\": \"node api.js\"\n  }\n}\n"))
+	require.Len(t, h, 3)
+	assert.Equal(t, 3, h[0].Line)
+	assert.Equal(t, `"pretest": "node api.js"`, h[0].Visible)
+	assert.Equal(t, "The pretest script runs api.js, a file of the project. npm runs it with no sign", h[0].Title)
+}
+
+func TestRoutedFilesKeepOnlyTheKindsOfALoader(t *testing.T) {
+	cases := []struct {
+		name, data string
+		want       []string
+	}{
+		{"eval", "eval(x)", []string{"eval(...)"}},
+		{"Function", "new Function(x)()", []string{"Function(...)"}},
+		{"require on the global object", "global.r = require", []string{"global[...] = ..."}},
+		{"a process with a computed command", "require('child_process').execSync(`npm run ${x}`)", nil},
+		{"a computed require", "require(path.join(dir, name))", nil},
+		{"a file too large to read", strings.Repeat("a;", 400_000), nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var got []string
+			for _, s := range dynamicCode("scripts/build.js", "scripts/build.js", []byte(tc.data), true) {
+				got = append(got, s.Visible)
+			}
+			assert.Equal(t, tc.want, got)
+		})
+	}
 }

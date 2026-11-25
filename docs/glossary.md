@@ -156,7 +156,10 @@ How pull request mode saw a package, a manifest, an inventory item or a capabili
 base ref: `ADDED`, `UPGRADED`, `DOWNGRADED`, `MODIFIED`, `REMOVED`, `UNCHANGED`, or empty in a full
 scan. `model.Change`. `MODIFIED` means the same version with another resolved URL, integrity or local
 mark. A change **introduces** content when it is `ADDED`, `UPGRADED`, `DOWNGRADED` or `MODIFIED`
-(`Change.Introduces`). Pull request mode keeps only the findings on introduced content.
+(`Change.Introduces`). Pull request mode keeps only the findings on introduced content. A manifest
+whose base file gave the same manifest has `Manifest.InBase`. A file that the hidden-code extractor
+reads gives a manifest only with a sign of hidden code, so an introduced manifest with no `InBase`
+holds a sign that the change brings in.
 _Avoid_: diff, delta status
 
 **Previous version**:
@@ -684,6 +687,17 @@ skips it. `internal/plugins/internal/hiddencode` classifies the files
 `hidden-code` control share it. `campaigns.yaml` holds the markers that name a known campaign, such as
 PolinRider, in a finding.
 _Avoid_: obfuscation (a payload can be plain code), steganography
+
+**Build-time code**:
+Code of the project that runs when a developer or a CI job builds, tests or installs it: a build
+config, a file of the project that a build config loads with a plain path, and a JavaScript file that
+an npm lifecycle script or the test script runs with node. The dynamic-code check reads each of them.
+In a file that a config loads or that a script runs, it reports only the kinds that a loader needs to
+run code that it decodes: eval, Function, vm, and require on the global object or under another name.
+A lifecycle script is one that npm runs on its own around an install, a pack, a publish or a test,
+such as `pretest` or `postinstall`. `hiddencode.Hooks` is the class of a `package.json`, read for its
+scripts. A sign in a file that a config loads or that a script runs has `Signal.Path`.
+_Avoid_: route (alone), entry point (the call graph term)
 
 **npm entry script**:
 A script of a global npm install that runs at each npm or npx command, such as `npm/lib/cli.js`.

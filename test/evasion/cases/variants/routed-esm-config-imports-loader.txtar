@@ -1,0 +1,7 @@
+# An ESM build config that imports a file of the project for its side effect, with the loader in that file
+want: dynamic-code
+-- vite.config.mjs --
+import './tools/setup.mjs';
+export default {};
+-- tools/setup.mjs --
+{% dynamicloader %}

@@ -32,6 +32,11 @@ type Control struct {
 	// parts are the parts of split payloads that Evaluate found in this
 	// scan. EvaluateApplication adds them and clears the list.
 	parts []part
+	// routed maps the id of each finding on a file that a config loads or
+	// that an npm script runs to the manifest that reports it. Several
+	// configs can load one file, so the first manifest owns the finding,
+	// and a second evaluation of that manifest gives it again.
+	routed map[string]string
 }
 
 // part is a part of a split payload in one file, with the change of the
@@ -48,7 +53,7 @@ func New(cfg plugin.Config) (plugin.Control, error) {
 	if err := cfg.Decode(&o); err != nil {
 		return nil, err
 	}
-	return &Control{}, nil
+	return &Control{routed: map[string]string{}}, nil
 }
 
 // control is one control id of the plugin, with its remediation.
@@ -92,9 +97,25 @@ var controls = []control{
 		plugin.ControlInfo{
 			ID: hiddencode.IDDynamicCode, Family: finding.FamilyHiddenCode, Severity: finding.SeverityHigh,
 			Title:       "Build config or npm entry script that runs dynamic code",
-			Description: "A build config or an npm entry script calls eval or the Function constructor, runs code with the vm module, loads a module by a name that it builds at run time, puts require, eval or Function on the global object or under another name, or starts a process with a command that it builds at run time. A config only declares settings, and a loader needs one of these to run its payload. vet reads the syntax tree, so a renamed require or a string table does not hide it. A build with no CGO skips the check. The control warns until a false-positive run on real configs shows that it can fail the attacks gate.",
+			Description: "A build config or an npm entry script calls eval or the Function constructor, runs code with the vm module, loads a module by a name that it builds at run time, puts require, eval or Function on the global object or under another name, or starts a process with a command that it builds at run time. A config only declares settings, and a loader needs one of these to run its payload. vet also reads each file of the project that a build config loads with a plain path, and each JavaScript file that an npm lifecycle script or the test script runs with node, because a loader can sit there in place of the config. In those files vet reports only eval, the Function constructor, the vm module, and require on the global object or under another name, because a build script often starts a process or loads a module by a computed name. vet reads the syntax tree, so a renamed require or a string table does not hide it. A build with no CGO skips the check. The control warns until a false-positive run on real configs shows that it can fail the attacks gate.",
 		},
 		"Read the code at the line. Remove it if the config does not need it, and restore the file from a clean commit if you did not write it.",
+	},
+	{
+		plugin.ControlInfo{
+			ID: hiddencode.IDDynamicCodeAdded, Family: finding.FamilyHiddenCode, Severity: finding.SeverityHigh,
+			Title:       "Change that adds dynamic code to code that runs at build, test or install time",
+			Description: "In pull request mode, the change brings dynamic code into a build config, into a file of the project that a build config loads, or into a file that an npm lifecycle script or the test script runs. The base version of the config or of the package.json showed no sign of hidden code. The dynamic-code control lists each call. This control marks that the change brings it in, which is the sign of a loader that a pull request adds. A policy can suppress it by path. The control warns until a false-positive run on real pull requests shows that it can fail the attacks gate.",
+		},
+		"Read the code that the change adds. Do not merge it, run the tests or install the project until you know what it runs.",
+	},
+	{
+		plugin.ControlInfo{
+			ID: hiddencode.IDScriptHook, Family: finding.FamilyHiddenCode, Severity: finding.SeverityMedium,
+			Title:       "Change that adds an npm lifecycle script that runs a file of the project",
+			Description: "In pull request mode, the change adds a preinstall, install, postinstall, prepare, prepack, prepublish, pretest or posttest script, or a pre or post script of one, to a package.json that had no such script. The script runs a JavaScript file of the project with node or a node runner. npm runs it with no sign at each install or test, so a CI job that tests the pull request runs the file. vet reads the file for dynamic code. A package.json that already ran a file of the project with such a script gives no finding.",
+		},
+		"Read the file that the script runs. Remove the script if the project does not need it.",
 	},
 	{
 		plugin.ControlInfo{
@@ -148,28 +169,76 @@ func (*Control) Controls() []plugin.ControlInfo { return infos }
 func (*Control) OptionsSchema() []byte { return optschema.Of(&Options{}) }
 
 // Evaluate reads the file of the manifest and reports each sign of hidden
-// code. A part of a split payload waits for EvaluateApplication.
+// code. A part of a split payload waits for EvaluateApplication. In pull
+// request mode, a manifest that the change brings in, from a base file
+// with no sign of hidden code, also gives dynamic-code-added for each file
+// with dynamic code, and gives its script-hook-added signals. A full scan
+// has no base, so it gives neither.
 func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State) ([]finding.Finding, error) {
 	signals, err := signalsOf(m)
 	if err != nil {
 		return nil, err
 	}
+	fresh := m.Change.Introduces() && !m.InBase
+	// Pull request mode keeps no finding of a manifest that the change
+	// keeps as it is. Such a manifest must not take the place of a routed
+	// file finding of a manifest that the change edits.
+	kept := m.Change == model.ChangeNone || m.Change.Introduces()
 	seen := map[string]int{}
+	added := map[string]bool{}
 	var out []finding.Finding
 	for _, s := range signals {
-		if s.ID == hiddencode.IDSplitPayload {
+		switch {
+		case s.ID == hiddencode.IDSplitPayload:
 			c.mu.Lock()
 			c.parts = append(c.parts, part{m.Path, m.Change, s})
 			c.mu.Unlock()
 			continue
+		case s.ID == hiddencode.IDScriptHook && !fresh:
+			continue
+		case s.Path != "" && !kept:
+			continue
+		}
+		path := m.Path
+		if s.Path != "" {
+			path = s.Path
 		}
 		title := s.Title
 		if s.Campaign != "" {
 			title += ". It matches " + s.Campaign
 		}
-		out = append(out, fileFinding(m.Path, s, title, seen))
+		found := []finding.Finding{fileFinding(path, s, title, seen)}
+		if s.ID == hiddencode.IDDynamicCode && fresh && !added[path] {
+			added[path] = true
+			a := s
+			a.ID = hiddencode.IDDynamicCodeAdded
+			a.Title = fmt.Sprintf("The change brings dynamic code into %s, which runs at build, test or install time", path)
+			found = append(found, fileFinding(path, a, a.Title, seen))
+		}
+		if s.Path != "" {
+			found = c.owned(m.ID, found)
+		}
+		out = append(out, found...)
 	}
 	return out, nil
+}
+
+// owned keeps the findings on a routed file that no other manifest of the
+// scan owns.
+func (c *Control) owned(manifest string, fs []finding.Finding) []finding.Finding {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	var out []finding.Finding
+	for _, f := range fs {
+		owner, ok := c.routed[f.ID]
+		if !ok {
+			c.routed[f.ID] = manifest
+		}
+		if !ok || owner == manifest {
+			out = append(out, f)
+		}
+	}
+	return out
 }
 
 // EvaluateApplication adds the parts of a payload in invisible characters
@@ -218,7 +287,7 @@ func signalsOf(m *model.Manifest) ([]hiddencode.Signal, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", m.Path, err)
 	}
-	return hiddencode.Analyze(c, m.Path, data), nil
+	return hiddencode.Analyze(m.Root, c, m.Path, data), nil
 }
 
 // fileFinding returns the finding of a signal on a file. seen counts the
