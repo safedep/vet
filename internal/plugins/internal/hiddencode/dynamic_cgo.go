@@ -52,6 +52,10 @@ var dynamicText = map[dynamicKind]struct{ title, snippet string }{
 	dynUnread:   {"is too large or too complex for vet to read in full", "<not read>"},
 }
 
+// loaderKinds are the kinds that a loader needs to run code that it
+// decodes.
+var loaderKinds = map[dynamicKind]bool{dynEval: true, dynFunction: true, dynVM: true, dynGlobal: true, dynAlias: true}
+
 var (
 	vmRun = map[string]bool{"runInThisContext": true, "runInNewContext": true, "runInContext": true, "compileFunction": true}
 	// processes are the child_process calls that run a command. exec is
@@ -80,19 +84,24 @@ const (
 	maxScriptSize = 8 << 20
 )
 
-// dynamicCode finds code in a build config or an npm entry script that runs
-// code that a reader cannot see. A config only declares settings, so it
-// has no reason to call eval, build a function from a string, load a module
-// by a name that it computes, or keep require under another name. The
-// check reads what each name stands for, not the name, because a loader
-// renames require (global['r']=require) and hides its strings in tables.
-// A file that vet cannot read in full gives a finding too, because a loader
-// can hide behind the limits of the parse.
-func dynamicCode(c Class, p string, data []byte) []Signal {
-	what := "The build config"
-	if c == Entry {
-		what = "The npm entry script"
-	}
+// dynamicCode finds code that a reader cannot see in a file that runs at
+// build, test or install time. what names the file in the titles. A config only declares settings, so it has no reason to call
+// eval, build a function from a string, load a module by a name that it
+// computes, or keep require under another name. The check reads what each
+// name stands for, not the name, because a loader renames require
+// (global['r']=require) and hides its strings in tables. A file that vet
+// cannot read in full gives a finding too, because a loader can hide
+// behind the limits of the parse.
+//
+// A file that a config loads or that an npm script runs is ordinary code
+// of the project, such as a build script. It often starts a process or
+// loads a module by a computed name, and it can be a large generated file.
+// So for it, loadersOnly keeps eval, Function, vm, and require on the
+// global object or under another name. A loader needs one of these to run
+// code that it decodes.
+// known gap: a routed file that runs its payload with child_process, with
+// a computed require, or past the size limit gives no finding.
+func dynamicCode(what, p string, data []byte, loadersOnly bool) []Signal {
 	signal := func(k dynamicKind, line int) Signal {
 		t := dynamicText[k]
 		return Signal{ID: IDDynamicCode, Line: line, Visible: t.snippet, Title: fmt.Sprintf("%s %s on line %d", what, t.title, line)}
@@ -100,14 +109,18 @@ func dynamicCode(c Class, p string, data []byte) []Signal {
 
 	ctx, cancel := context.WithTimeout(context.Background(), parseTimeout)
 	defer cancel()
+	unread := []Signal{signal(dynUnread, 1)}
+	if loadersOnly {
+		unread = nil
+	}
 	tree, err := parseJS(ctx, languageOf(p), data, MaxSize+1)
 	if err != nil {
-		return []Signal{signal(dynUnread, 1)}
+		return unread
 	}
 	defer tree.Tree().Close()
 	a, err := ecmascript.Analyze(ctx, tree, ecmascript.Options{})
 	if err != nil {
-		return []Signal{signal(dynUnread, 1)}
+		return unread
 	}
 
 	type hit struct {
@@ -143,10 +156,13 @@ func dynamicCode(c Class, p string, data []byte) []Signal {
 	// Eval can drop values at the value limit, so Truncated is read after
 	// the checks.
 	if a.Truncated() {
-		out = append(out, signal(dynUnread, 1))
+		out = append(out, unread...)
 	}
 	found := map[dynamicKind]bool{}
 	for _, h := range hits {
+		if loadersOnly && !loaderKinds[h.kind] {
+			continue
+		}
 		if !found[h.kind] {
 			found[h.kind] = true
 			out = append(out, signal(h.kind, int(h.node.StartPoint().Row)+1))
@@ -179,11 +195,16 @@ func parseJS(ctx context.Context, l core.Language, data []byte, maxBytes int) (c
 	return parser.ParseBytes(ctx, l, data, parser.WithMaxBytes(maxBytes))
 }
 
+// callsGlobal reports a call of the global name, by that name or under
+// another name, as in r = require; r(x). targets are the values of the
+// callee.
+func callsGlobal(c ecmascript.Call, targets []ecmascript.Value, name string) bool {
+	return c.Name == name || slices.ContainsFunc(targets, func(v ecmascript.Value) bool { return v.IsGlobal(name) })
+}
+
 func callKind(a *ecmascript.Analysis, c ecmascript.Call) dynamicKind {
 	targets := a.Eval(c.Callee)
-	calls := func(name string) bool {
-		return c.Name == name || slices.ContainsFunc(targets, func(v ecmascript.Value) bool { return v.IsGlobal(name) })
-	}
+	calls := func(name string) bool { return callsGlobal(c, targets, name) }
 	arg := payload(a, c)
 	switch {
 	case c.New:
@@ -358,4 +379,101 @@ func isFilePath(a *ecmascript.Analysis, n *sitter.Node) bool {
 		}
 	}
 	return false
+}
+
+// loadedSpecs returns the module paths that a file loads with a plain
+// string, as in require('x'), import('x'), import ... from 'x' and
+// export ... from 'x'. It also returns the paths of the setupKeys of a
+// jest or vitest config, with <rootDir> as a relative path. The caller
+// keeps the paths of the project files.
+func loadedSpecs(p string, data []byte) []string {
+	ctx, cancel := context.WithTimeout(context.Background(), parseTimeout)
+	defer cancel()
+	tree, err := parseJS(ctx, languageOf(p), data, MaxSize+1)
+	if err != nil {
+		return nil
+	}
+	defer tree.Tree().Close()
+	a, err := ecmascript.Analyze(ctx, tree, ecmascript.Options{})
+	if err != nil {
+		return nil
+	}
+	var out []string
+	add := func(n *sitter.Node) {
+		if s, ok := a.StringValue(n); ok {
+			out = append(out, s)
+		}
+	}
+	addSetup := func(v *sitter.Node, root string) {
+		if v == nil {
+			return
+		}
+		values := []*sitter.Node{v}
+		if v.Type() == "array" {
+			values = values[:0]
+			for i := range int(v.NamedChildCount()) {
+				values = append(values, v.NamedChild(i))
+			}
+		}
+		for _, n := range values {
+			if s, ok := a.StringValue(n); ok {
+				out = append(out, rootDir(s, root))
+			}
+		}
+	}
+	for _, c := range a.Calls() {
+		if c.Callee.Type() == "import" || callsGlobal(c, a.Eval(c.Callee), "require") {
+			add(payload(a, c))
+		}
+	}
+	// A walk stops only at its node limit or its time limit. The paths
+	// before the stop still count, and dynamicCode reports a config that
+	// vet cannot read in full.
+	_ = ts.Walk(ctx, tree.Tree().RootNode(), ts.WalkOptions{}, func(n *sitter.Node) bool {
+		switch n.Type() {
+		case "import_statement", "export_statement":
+			// An export of an object, as in export default { ... }, has
+			// no source, and its keys can name setup files.
+			if src := n.ChildByFieldName("source"); src != nil {
+				add(src)
+				return false
+			}
+		case "pair":
+			if setupKeys[keyName(a, n.ChildByFieldName("key"), data)] {
+				addSetup(n.ChildByFieldName("value"), objectRoot(a, n.Parent(), data))
+			}
+		}
+		return true
+	})
+	return out
+}
+
+// objectRoot returns the rootDir key of an object, or "". Each project of
+// the projects key of jest has its own root, and the root can follow the
+// setup keys in the object.
+func objectRoot(a *ecmascript.Analysis, obj *sitter.Node, data []byte) string {
+	if obj == nil {
+		return ""
+	}
+	// JavaScript keeps the last value of a key that an object sets twice.
+	root := ""
+	for i := range int(obj.NamedChildCount()) {
+		pair := obj.NamedChild(i)
+		if pair.Type() == "pair" && keyName(a, pair.ChildByFieldName("key"), data) == "rootDir" {
+			root, _ = a.StringValue(pair.ChildByFieldName("value"))
+		}
+	}
+	return root
+}
+
+// keyName returns the name of the key of an object pair.
+func keyName(a *ecmascript.Analysis, k *sitter.Node, data []byte) string {
+	if k == nil {
+		return ""
+	}
+	if k.Type() == "property_identifier" {
+		return k.Content(data)
+	}
+	s, _ := a.StringValue(k)
+	return s
 }

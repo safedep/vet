@@ -356,6 +356,12 @@
   tier: P1
   guarantee: "In pull request mode, a change that adds code after a run of spaces to a build config gives padded-code and fails the attacks gate. A clean config that the change keeps gives nothing."
   labels: [hidden-code, pr-mode]
+- id: controls/hidden-code/pr-build-time
+  title: "hidden code: a change that brings dynamic code into build-time code in pull request mode"
+  category: controls
+  tier: P1
+  guarantee: "In pull request mode, a change that brings dynamic code into a build config, a file that a config loads or a file that an npm lifecycle script runs gives dynamic-code-added. A new lifecycle script that runs a file of the project gives script-hook-added. Both warn. A config that had dynamic code at the base gives dynamic-code only, and a full scan gives neither."
+  labels: [hidden-code, pr-mode]
 - id: controls/agent-config/pr-linked-instructions
   title: "agent config: an instruction file that links to another in pull request mode"
   category: controls

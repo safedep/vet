@@ -27,13 +27,15 @@ func TestClassify(t *testing.T) {
 		"lib/util.py":                     Source,
 		"CLAUDE.md":                       Source,
 		".cursor/rules/style.mdc":         Source,
+		"package.json":                    Hooks,
+		"apps/web/package.json":           Hooks,
 	}
 	for p, want := range cases {
 		got, ok := Classify(p)
 		assert.True(t, ok, p)
 		assert.Equal(t, want, got, p)
 	}
-	for _, p := range []string{"README.md", "logo.ai", "package.json", "main.go"} {
+	for _, p := range []string{"README.md", "logo.ai", "package-lock.json", "main.go"} {
 		_, ok := Classify(p)
 		assert.False(t, ok, p)
 	}

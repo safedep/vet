@@ -1,0 +1,73 @@
+# In pull request mode, a change that brings dynamic code into code that
+# runs at build or test time gives dynamic-code-added. The code can sit in a
+# build config, in a file that a config loads, or in a file that an npm
+# lifecycle script runs. A new lifecycle script that runs a file of the
+# project gives script-hook-added. Both warn, so the attacks gate passes. A
+# config that had dynamic code at the base gives dynamic-code only. A full
+# scan has no base, so it gives neither of the two. A change that edits only
+# a file that an unchanged config loads gives dynamic-code-added too.
+[!git] skip 'needs git'
+[!cgo] skip 'the dynamic-code check needs a vet built with CGO'
+cd repo
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+cp $WORK/head/jest.config.js jest.config.js
+cp $WORK/head/api.js api.js
+cp $WORK/head/package.json package.json
+cp $WORK/head/setup.js setup.js
+cp $WORK/head/legacy.config.js legacy.config.js
+exec vet scan . --base-ref HEAD --mode plain -o plain --fail-on attacks
+stdout '^high\tdynamic-code-added\tapi.js\t'
+stdout '^high\tdynamic-code\tapi.js\t'
+stdout '^medium\tscript-hook-added\tpackage.json\t'
+stdout '^high\tdynamic-code\tlegacy.config.js\t'
+! stdout 'dynamic-code-added\tlegacy.config.js'
+! stdout 'setup.js'
+stderr 'Gate passed'
+
+exec vet scan . --mode plain -o plain --fail-on attacks --fresh
+stdout '^high\tdynamic-code\tapi.js\t'
+! stdout 'dynamic-code-added'
+! stdout 'script-hook-added'
+
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m head
+cp $WORK/next/api.js api.js
+exec vet scan . --base-ref HEAD --mode plain -o plain --fail-on attacks --fresh
+stdout '^high\tdynamic-code-added\tapi.js\t'
+! stdout 'jest.config.js'
+! stdout 'script-hook-added'
+stderr 'Gate passed'
+
+-- repo/jest.config.js --
+module.exports = { testEnvironment: 'node' };
+-- repo/legacy.config.js --
+module.exports = eval('({ a: 1 })');
+-- repo/package.json --
+{
+  "name": "app",
+  "scripts": {
+    "test": "jest"
+  }
+}
+-- head/jest.config.js --
+require('./api');
+module.exports = { testEnvironment: 'node' };
+-- head/api.js --
+global['r']=require;(function(){var f=Function(atob('Y29uc29sZS5sb2coMSk='));f();})();
+-- head/package.json --
+{
+  "name": "app",
+  "scripts": {
+    "pretest": "node setup.js",
+    "test": "jest"
+  }
+}
+-- head/setup.js --
+console.log('setup');
+-- head/legacy.config.js --
+module.exports = eval('({ a: 2 })');
+-- next/api.js --
+global['r']=require;(function(){var f=Function(atob('Y29uc29sZS5sb2coMSk='));f();})();
+eval(atob('Y29uc29sZS5sb2coMik='));

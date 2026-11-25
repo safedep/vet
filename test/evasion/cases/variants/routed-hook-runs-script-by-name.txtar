@@ -1,0 +1,17 @@
+# A pretest hook runs another npm script by its name, and that script runs the loader with node
+want: dynamic-code
+-- package.json --
+{
+  "name": "app",
+  "scripts": {
+    "pretest": "npm run setup",
+    "setup": "NODE_OPTIONS=--require=./scripts/env.js node scripts/check.js",
+    "test": "jest"
+  }
+}
+-- scripts/check.js --
+console.log('check');
+-- scripts/env.js --
+const k = 'Y29uc29sZS5sb2coMSk=';
+global['r'] = require;
+new Function(Buffer.from(k, 'base64').toString())();

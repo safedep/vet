@@ -35,6 +35,9 @@ const (
 	// such as npm/lib/cli.js. It runs at each npm or npx command. It is the
 	// one class that sits in an install folder.
 	Entry Class = "entry"
+	// Hooks is a package.json, read for the npm scripts that run a file of
+	// the project around an install, a pack, a publish or a test.
+	Hooks Class = "hooks"
 )
 
 // entryFiles are the entry scripts of npm in its install folder.
@@ -128,6 +131,8 @@ func Classify(p string) (c Class, ok bool) {
 	switch {
 	case configName.MatchString(base) || configFiles[base]:
 		return Config, true
+	case base == "package.json":
+		return Hooks, true
 	case assetExts[ext] != 0:
 		return Asset, true
 	case scriptExts[ext] || base == ".gitignore":

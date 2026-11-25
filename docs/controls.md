@@ -32,6 +32,8 @@ to its section.
 | [`disguised-script`](#disguised-script) | hidden-code | critical | Script in a font, image, dictionary, style sheet or source map |
 | [`unicode-payload`](#unicode-payload) | hidden-code | critical | Payload in invisible Unicode characters |
 | [`dynamic-code`](#dynamic-code) | hidden-code | high | Build config or npm entry script that runs dynamic code |
+| [`dynamic-code-added`](#dynamic-code-added) | hidden-code | high | Change that adds dynamic code to code that runs at build, test or install time |
+| [`script-hook-added`](#script-hook-added) | hidden-code | medium | Change that adds an npm lifecycle script that runs a file of the project |
 | [`font-payload`](#font-payload) | hidden-code | high | Encoded payload or script tokens in a binary font |
 | [`split-unicode-payload`](#split-unicode-payload) | hidden-code | high | Payload in invisible Unicode characters split across files |
 | [`invisible-unicode`](#invisible-unicode) | hidden-code | high | Invisible Unicode characters |
@@ -100,9 +102,24 @@ add a technique.
 
 `vet scan --base-ref REF` compares the target with a git ref. vet reports only the findings of the
 packages and the workflows that the change adds or modifies. Some controls run only in this mode,
-because they need the base: `integrity-changed`, `lockfile-only-change`, `install-scripts-added`
-and `ai-bom-delta`. A workflow is also modified when the change removes one of its entries from the
-[Actions lockfile](#actions-lockfile).
+because they need the base: `integrity-changed`, `lockfile-only-change`, `install-scripts-added`,
+`ai-bom-delta`, `dynamic-code-added` and `script-hook-added`. A workflow is also modified when the
+change removes one of its entries from the [Actions lockfile](#actions-lockfile).
+
+`dynamic-code-added` and `script-hook-added` read the build-time code of the change. That code is the
+build configs, the files of the project that a config loads, and the files that an npm lifecycle script
+or the test script runs. vet reads each file at the head and at the base commit, and reports only the
+dynamic code and the scripts that the base did not have. A change that edits only a file that an
+unchanged config loads gives `dynamic-code-added` too. Both controls warn. A policy suppression with a `control` and a
+`path` hides them for a folder that needs dynamic code in its build, as in this example:
+
+```yaml
+suppressions:
+  - control: dynamic-code-added
+    path: tools/webpack/**
+    reason: The webpack config loads its plugins by name
+    expires: 2027-03-31
+```
 
 ## Options
 
@@ -370,7 +387,19 @@ A file holds 16 or more variation selectors with no base character, or tag chara
 
 **Build config or npm entry script that runs dynamic code.** Family `hidden-code`. Default severity high. Plugin `hidden-code`.
 
-A build config or an npm entry script calls eval or the Function constructor, runs code with the vm module, loads a module by a name that it builds at run time, puts require, eval or Function on the global object or under another name, or starts a process with a command that it builds at run time. A config only declares settings, and a loader needs one of these to run its payload. vet reads the syntax tree, so a renamed require or a string table does not hide it. A build with no CGO skips the check. The control warns until a false-positive run on real configs shows that it can fail the attacks gate.
+A build config or an npm entry script calls eval or the Function constructor, runs code with the vm module, loads a module by a name that it builds at run time, puts require, eval or Function on the global object or under another name, or starts a process with a command that it builds at run time. A config only declares settings, and a loader needs one of these to run its payload. vet also reads each file of the project that a build config loads with a plain path, and each file that an npm lifecycle script or the test script runs with node, because a loader can sit there in place of the config. vet skips a JSON file, a native addon and a WebAssembly module, which node does not run as JavaScript. In those files vet reports only eval, the Function constructor, the vm module, and require on the global object or under another name, because a build script often starts a process or loads a module by a computed name. vet reads the syntax tree, so a renamed require or a string table does not hide it. A build with no CGO skips the check. The control warns until a false-positive run on real configs shows that it can fail the attacks gate.
+
+### dynamic-code-added
+
+**Change that adds dynamic code to code that runs at build, test or install time.** Family `hidden-code`. Default severity high. Plugin `hidden-code`.
+
+In pull request mode, the change brings dynamic code into a build config, into a file of the project that a build config loads, or into a file that an npm lifecycle script or the test script runs. vet reads the base version of the config or of the package.json, and of each file that it loads or runs. The base did not have this kind of dynamic code in the file. The dynamic-code control lists each call. This control marks that the change brings it in, which is the sign of a loader that a pull request adds. A policy can suppress it by path. The control warns until a false-positive run on real pull requests shows that it can fail the attacks gate.
+
+### script-hook-added
+
+**Change that adds an npm lifecycle script that runs a file of the project.** Family `hidden-code`. Default severity medium. Plugin `hidden-code`.
+
+In pull request mode, the change adds a script to a package.json that npm runs on its own, or makes such a script run another file. Such a script is preinstall, install, postinstall, prepare, prepack, prepublish, postpublish, pretest, posttest, or the pre or post script of another script or of an npm command. The script runs a file of the project with node, a node runner or a shell. npm runs it at each install, test or run of the other script, and the user does not see it. So a CI job that tests the pull request runs the file. vet reads the file for dynamic code when node runs it. A script that the base version of the package.json already had gives no finding.
 
 ### font-payload
 

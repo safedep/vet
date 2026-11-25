@@ -3,11 +3,14 @@ package engine
 import (
 	"cmp"
 	"context"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
+	"testing/fstest"
 	"time"
 
 	gogit "github.com/go-git/go-git/v5"
@@ -463,6 +466,103 @@ func (fileControl) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State
 		return nil, err
 	}
 	return nil, nil
+}
+
+// baseControl records the base version of the file of each manifest.
+type baseControl struct{ seen map[string]string }
+
+func (c baseControl) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State) ([]finding.Finding, error) {
+	if m.Base == nil {
+		c.seen[m.Path] = "<no base>"
+		return nil, nil
+	}
+	data, err := fs.ReadFile(m.Base, m.Path)
+	if errors.Is(err, fs.ErrNotExist) {
+		c.seen[m.Path] = "<not in base>"
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	c.seen[m.Path] = string(data)
+	return nil, nil
+}
+
+func TestPullRequestModeGivesTheControlsTheBaseCommit(t *testing.T) {
+	cases := []struct {
+		name, baseRef string
+		want          map[string]string
+	}{
+		{"pull request mode", "HEAD", map[string]string{"package-lock.json": baseLock, "requirements.txt": "requests==2.31.0\n", "tools/requirements.txt": "<not in base>"}},
+		{"a full scan", "", map[string]string{"package-lock.json": "<no base>", "requirements.txt": "<no base>", "tools/requirements.txt": "<no base>"}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newFixture(t)
+			c := baseControl{seen: map[string]string{}}
+			o := f.options(t, gitProject(t), &fakeEnricher{}, Control{ID: "base", Plugin: c})
+			o.BaseRef = tc.baseRef
+			runScan(t, o)
+			for p, want := range tc.want {
+				assert.Equal(t, want, c.seen[p], p)
+			}
+		})
+	}
+}
+
+// otherFileControl reports a finding on each of its paths, for each
+// manifest.
+type otherFileControl struct{ paths []string }
+
+func (c otherFileControl) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State) ([]finding.Finding, error) {
+	var out []finding.Finding
+	for _, p := range c.paths {
+		out = append(out, finding.ForFile(finding.Meta{
+			ControlID: "other-file", Family: finding.FamilyHiddenCode, Severity: finding.SeverityHigh, Title: "a loader in a routed file",
+		}, finding.Locus{Path: p, StartLine: 1, EndLine: 1}, finding.Key{Discriminator: m.ID}))
+	}
+	return out, nil
+}
+
+func TestAScanReportsNothingOnARoutedFileThatTheWalkSkips(t *testing.T) {
+	f := newFixture(t)
+	o := f.options(t, project(t), &fakeEnricher{}, Control{ID: "other-file", Plugin: otherFileControl{paths: []string{"vendor/setup.js", "node_modules/x/index.js", "tools/setup.js"}}})
+	o.Exclude = []string{"vendor"}
+	res := runScan(t, o)
+	paths := map[string]bool{}
+	for rec, err := range res.Scan.Records(context.Background()) {
+		require.NoError(t, err)
+		if rec.Finding != nil {
+			paths[rec.Finding.Locus.Path] = true
+		}
+	}
+	assert.Equal(t, map[string]bool{"tools/setup.js": true}, paths)
+}
+
+func TestIntroducedKeepsAFindingOnAnotherFileThatTheChangeEdits(t *testing.T) {
+	head := fstest.MapFS{"jest.config.js": {Data: []byte("require('./api')")}, "api.js": {Data: []byte("eval(x)")}}
+	onFile := func(p string) finding.Finding {
+		return finding.ForFile(finding.Meta{ControlID: "c"}, finding.Locus{Path: p}, finding.Key{})
+	}
+	cases := []struct {
+		name   string
+		change model.Change
+		base   fstest.MapFS
+		path   string
+		want   bool
+	}{
+		{"the change edits the other file", model.ChangeUnchanged, fstest.MapFS{"jest.config.js": head["jest.config.js"], "api.js": {Data: []byte("1")}}, "api.js", true},
+		{"the change adds the other file", model.ChangeUnchanged, fstest.MapFS{"jest.config.js": head["jest.config.js"]}, "api.js", true},
+		{"the change keeps the other file", model.ChangeUnchanged, head, "api.js", false},
+		{"the change keeps the file of the manifest", model.ChangeUnchanged, fstest.MapFS{}, "jest.config.js", false},
+		{"the change edits the manifest", model.ChangeModified, head, "api.js", true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			m := &model.Manifest{Path: "jest.config.js", Change: tc.change, Root: head, Base: tc.base}
+			assert.Equal(t, tc.want, introduced(onFile(tc.path), m))
+		})
+	}
 }
 
 func TestPullRequestModeSkipsTheControlsOfARemovedManifest(t *testing.T) {

@@ -1,0 +1,12 @@
+# Near miss: a build script that starts a process with a computed command. npm does not run build on its own, so vet does not read it
+want: none
+-- package.json --
+{
+  "name": "app",
+  "scripts": {
+    "build": "node scripts/build.js"
+  }
+}
+-- scripts/build.js --
+const { execSync } = require('child_process');
+for (const pkg of ['a', 'b']) execSync(`npm run build --workspace ${pkg}`);

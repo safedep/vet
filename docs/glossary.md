@@ -156,7 +156,9 @@ How pull request mode saw a package, a manifest, an inventory item or a capabili
 base ref: `ADDED`, `UPGRADED`, `DOWNGRADED`, `MODIFIED`, `REMOVED`, `UNCHANGED`, or empty in a full
 scan. `model.Change`. `MODIFIED` means the same version with another resolved URL, integrity or local
 mark. A change **introduces** content when it is `ADDED`, `UPGRADED`, `DOWNGRADED` or `MODIFIED`
-(`Change.Introduces`). Pull request mode keeps only the findings on introduced content.
+(`Change.Introduces`). Pull request mode keeps only the findings on introduced content. In this mode
+`Manifest.Base` holds the tree of the base commit, so a control can read the base version of a file and
+tell what the change brings in.
 _Avoid_: diff, delta status
 
 **Previous version**:
@@ -684,6 +686,19 @@ skips it. `internal/plugins/internal/hiddencode` classifies the files
 `hidden-code` control share it. `campaigns.yaml` holds the markers that name a known campaign, such as
 PolinRider, in a finding.
 _Avoid_: obfuscation (a payload can be plain code), steganography
+
+**Build-time code**:
+Code of the project that runs when a developer or a CI job builds, tests or installs it. It is a build
+config, a file of the project that a build config loads with a plain path or names in a jest setup key,
+or a file that an npm lifecycle script or the test script runs. The dynamic-code check reads each file
+of them that node runs as JavaScript. In a file that a config loads or that a script runs, it reports only eval,
+Function, vm, and require on the global object or under another name. A loader needs one of these to
+run code that it decodes. A lifecycle script is a script that npm runs on its own, such as `pretest`,
+`postinstall`, or the `pre` or `post` script of another script. `hiddencode.Hooks` is the class of a
+`package.json`, which vet reads for its scripts and its jest key. A **route** is the link from a config
+or a `package.json` to a file that it loads or runs (`routes.go`). A sign in a routed file has
+`Signal.Path`.
+_Avoid_: entry point (the call graph term)
 
 **npm entry script**:
 A script of a global npm install that runs at each npm or npx command, such as `npm/lib/cli.js`.

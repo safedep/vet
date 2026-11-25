@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -97,6 +98,7 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 	if err != nil {
 		return nil, BaseRefError(err)
 	}
+	r.baseCommit = tree.Commit
 	hash := &tree.Commit
 	cache := r.baseCache(a, *hash, exs)
 	if b, ok := cache.load(); ok && b.sameLinks(a.Path) {
@@ -437,7 +439,24 @@ func introduced(f finding.Finding, m *model.Manifest) bool {
 		}
 		return false
 	case finding.SubjectFile, finding.SubjectManifest:
-		return m.Change.Introduces()
+		return m.Change.Introduces() || otherFileChanged(f, m)
 	}
 	return true
+}
+
+// otherFileChanged reports a finding on a file other than the file of the
+// manifest, such as a file that a build config loads, when the change adds
+// or edits that file. The change of the manifest says nothing about such a
+// file. A file that vet cannot read at the head or at the base counts as
+// changed, so vet reports more, not less.
+func otherFileChanged(f finding.Finding, m *model.Manifest) bool {
+	if f.Subject.Kind != finding.SubjectFile || f.Locus == nil || f.Locus.Path == m.Path || m.Root == nil || m.Base == nil {
+		return false
+	}
+	head, err := fs.ReadFile(m.Root, f.Locus.Path)
+	if err != nil {
+		return true
+	}
+	base, err := fs.ReadFile(m.Base, f.Locus.Path)
+	return err != nil || !bytes.Equal(head, base)
 }

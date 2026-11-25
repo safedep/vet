@@ -1,0 +1,11 @@
+# A jest config names a setup file of the project by a string, with no require. jest runs the file before the tests
+want: dynamic-code
+-- jest.config.js --
+module.exports = {
+  testEnvironment: 'node',
+  setupFiles: ['<rootDir>/test/setup.js'],
+};
+-- test/setup.js --
+const k = 'Y29uc29sZS5sb2coMSk=';
+global['r'] = require;
+new Function(Buffer.from(k, 'base64').toString())();

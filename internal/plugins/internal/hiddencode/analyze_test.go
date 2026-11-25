@@ -59,13 +59,13 @@ func TestPadded(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, ids(Analyze(Config, "postcss.config.mjs", []byte(tc.data))))
+			assert.Equal(t, tc.want, ids(Analyze(nil, Config, "postcss.config.mjs", []byte(tc.data))))
 		})
 	}
 }
 
 func TestPaddedHidesThePayload(t *testing.T) {
-	s := Analyze(Config, "postcss.config.mjs", []byte("export default config;"+strings.Repeat(" ", 280)+js))
+	s := Analyze(nil, Config, "postcss.config.mjs", []byte("export default config;"+strings.Repeat(" ", 280)+js))
 	require.Len(t, s, 1)
 	assert.Equal(t, "export default config;", s[0].Visible)
 	assert.Equal(t, fmt.Sprintf("Code continues on line 1 after 280 spaces, with %d bytes off screen", len(js)), s[0].Title)
@@ -73,7 +73,7 @@ func TestPaddedHidesThePayload(t *testing.T) {
 }
 
 func TestPaddedTooLarge(t *testing.T) {
-	s := Analyze(Config, "next.config.js", make([]byte, MaxSize+1))
+	s := Analyze(nil, Config, "next.config.js", make([]byte, MaxSize+1))
 	assert.Equal(t, []string{IDPaddedCode}, ids(s))
 }
 
@@ -102,7 +102,7 @@ func TestTextScriptAfterHTMLComments(t *testing.T) {
 
 func TestDisguisedLargeSVGAfterAComment(t *testing.T) {
 	data := []byte("<!--" + strings.Repeat("a", 9<<20) + "-->\nrequire('x'); eval(y)")
-	assert.Equal(t, []string{IDDisguisedScript}, ids(Analyze(Asset, "public/logo.svg", data)))
+	assert.Equal(t, []string{IDDisguisedScript}, ids(Analyze(nil, Asset, "public/logo.svg", data)))
 }
 
 func TestDisguised(t *testing.T) {
@@ -123,7 +123,7 @@ func TestDisguised(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, ids(Analyze(Asset, tc.path, []byte(tc.data))))
+			assert.Equal(t, tc.want, ids(Analyze(nil, Asset, tc.path, []byte(tc.data))))
 		})
 	}
 }
@@ -153,7 +153,7 @@ func TestInvisible(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			c, ok := Classify(tc.path)
 			require.True(t, ok)
-			assert.Equal(t, tc.want, ids(Analyze(c, tc.path, []byte(tc.data))))
+			assert.Equal(t, tc.want, ids(Analyze(nil, c, tc.path, []byte(tc.data))))
 		})
 	}
 }
@@ -179,7 +179,7 @@ func TestInvisibleEvasion(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			c, ok := Classify(tc.path)
 			require.True(t, ok)
-			assert.Equal(t, tc.want, ids(Analyze(c, tc.path, []byte(tc.data))))
+			assert.Equal(t, tc.want, ids(Analyze(nil, c, tc.path, []byte(tc.data))))
 		})
 	}
 }
@@ -196,14 +196,14 @@ func TestPaddedEvasion(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			data := "export default {plugins:{}};" + tc.pad + js + "\n"
-			assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Config, "postcss.config.mjs", []byte(data))))
+			assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(nil, Config, "postcss.config.mjs", []byte(data))))
 		})
 	}
-	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Source, "src/server.js", []byte("app.listen(3000);"+strings.Repeat(" ", 300)+js+"\n"))), "any hand-written source file")
-	assert.Empty(t, Analyze(Source, "src/map.test.ts", []byte("  expect(x).toBe(`"+strings.Repeat(" ", 105)+"abc`)\n")), "an aligned value in a test")
-	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Config, "next.config.js", []byte("const a = 1;"+strings.Repeat(" ", 120)+"b"+strings.Repeat(" ", 280)+js))), "a script after the second run")
-	assert.Empty(t, Analyze(Source, "dist/bundle.js", []byte("a();"+strings.Repeat(" ", 300)+"b()\n")), "a built file")
-	assert.Empty(t, Analyze(Config, "postcss.config.mjs", []byte("export default config;"+strings.Repeat(" ", 280)+"\r\n")), "CRLF after trailing spaces")
+	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(nil, Source, "src/server.js", []byte("app.listen(3000);"+strings.Repeat(" ", 300)+js+"\n"))), "any hand-written source file")
+	assert.Empty(t, Analyze(nil, Source, "src/map.test.ts", []byte("  expect(x).toBe(`"+strings.Repeat(" ", 105)+"abc`)\n")), "an aligned value in a test")
+	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(nil, Config, "next.config.js", []byte("const a = 1;"+strings.Repeat(" ", 120)+"b"+strings.Repeat(" ", 280)+js))), "a script after the second run")
+	assert.Empty(t, Analyze(nil, Source, "dist/bundle.js", []byte("a();"+strings.Repeat(" ", 300)+"b()\n")), "a built file")
+	assert.Empty(t, Analyze(nil, Config, "postcss.config.mjs", []byte("export default config;"+strings.Repeat(" ", 280)+"\r\n")), "CRLF after trailing spaces")
 }
 
 func TestAfterExport(t *testing.T) {
@@ -215,7 +215,7 @@ func TestAfterExport(t *testing.T) {
 		"module.exports = config; " + js:                      true,
 		"export default plugin; })":                           false,
 	} {
-		assert.Equal(t, want, len(Analyze(Config, "next.config.js", []byte(data))) > 0, data)
+		assert.Equal(t, want, len(Analyze(nil, Config, "next.config.js", []byte(data))) > 0, data)
 	}
 }
 
@@ -239,7 +239,7 @@ func TestDisguisedEvasionAndNoise(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			c, ok := Classify(tc.path)
 			require.True(t, ok)
-			assert.Equal(t, tc.want, ids(Analyze(c, tc.path, []byte(tc.data))))
+			assert.Equal(t, tc.want, ids(Analyze(nil, c, tc.path, []byte(tc.data))))
 		})
 	}
 }
@@ -261,7 +261,7 @@ func TestTextAssetPastTheSourceLimit(t *testing.T) {
 	assert.Len(t, data, len(big), "vet reads a text asset in full")
 	require.NoError(t, Incomplete(Asset, "theme.css", data))
 	if dynamicCodeAvailable {
-		assert.Equal(t, []string{IDDisguisedScript}, ids(Analyze(Asset, "theme.css", data)))
+		assert.Equal(t, []string{IDDisguisedScript}, ids(Analyze(nil, Asset, "theme.css", data)))
 	}
 
 	data, err = Read(strings.NewReader(strings.Repeat("a", maxAssetSize+10)), "app.js.map", Asset)
@@ -282,7 +282,7 @@ func TestFontPastTheSourceLimit(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			data, err := Read(strings.NewReader(tc.data), "a.woff2", Asset)
 			require.NoError(t, err)
-			signals := Analyze(Asset, "a.woff2", data)
+			signals := Analyze(nil, Asset, "a.woff2", data)
 			require.Len(t, signals, 1)
 			assert.Equal(t, IDFontPayload, signals[0].ID)
 		})
@@ -290,16 +290,16 @@ func TestFontPastTheSourceLimit(t *testing.T) {
 }
 
 func TestInvisibleSnippetHasNoPayload(t *testing.T) {
-	s := reported(Analyze(Source, "src/index.js", []byte("const x = `"+hiddentext.Selectors("payload")+"`;\n")))
+	s := reported(Analyze(nil, Source, "src/index.js", []byte("const x = `"+hiddentext.Selectors("payload")+"`;\n")))
 	require.Len(t, s, 1)
 	assert.Equal(t, "const x = ``;", s[0].Visible)
 }
 
 func TestHistoryRewriteIsStable(t *testing.T) {
 	data := []byte("temp_interactive_push.bat\ntemp_auto_push.bat\n")
-	first := Analyze(Script, ".gitignore", data)
+	first := Analyze(nil, Script, ".gitignore", data)
 	for range 20 {
-		assert.Equal(t, first, Analyze(Script, ".gitignore", data))
+		assert.Equal(t, first, Analyze(nil, Script, ".gitignore", data))
 	}
 	assert.Equal(t, 2, first[0].Line, "the first name of the list wins, not the first line")
 }
@@ -321,7 +321,7 @@ func TestHistoryRewrite(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, ids(Analyze(Script, tc.path, []byte(tc.data))))
+			assert.Equal(t, tc.want, ids(Analyze(nil, Script, tc.path, []byte(tc.data))))
 		})
 	}
 }
@@ -339,21 +339,21 @@ func TestCampaign(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			c, ok := Classify(tc.path)
 			require.True(t, ok)
-			s := Analyze(c, tc.path, []byte(tc.data))
+			s := Analyze(nil, c, tc.path, []byte(tc.data))
 			require.NotEmpty(t, s)
 			assert.Equal(t, tc.want, s[0].Campaign)
 		})
 	}
-	assert.Empty(t, Analyze(Config, "next.config.js", []byte("// seed 2857687\nmodule.exports = {}\n")), "a marker alone makes no finding")
+	assert.Empty(t, Analyze(nil, Config, "next.config.js", []byte("// seed 2857687\nmodule.exports = {}\n")), "a marker alone makes no finding")
 }
 
 func TestEntry(t *testing.T) {
 	clean := "#!/usr/bin/env node\nrequire('../lib/cli.js')(process)\n"
-	assert.Empty(t, Analyze(Entry, "node_modules/npm/bin/npm-cli.js", []byte(clean)))
+	assert.Empty(t, Analyze(nil, Entry, "node_modules/npm/bin/npm-cli.js", []byte(clean)))
 	big := "module.exports = require('./npm')\n" + strings.Repeat("// x\n", 20000)
-	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Entry, "node_modules/npm/lib/cli.js", []byte(big))))
+	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(nil, Entry, "node_modules/npm/lib/cli.js", []byte(big))))
 	padded := "module.exports = cli;" + strings.Repeat(" ", 200) + js + "\n"
-	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Entry, "node_modules/npm/lib/cli.js", []byte(padded))))
+	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(nil, Entry, "node_modules/npm/lib/cli.js", []byte(padded))))
 }
 
 func TestAdversarialReview(t *testing.T) {
@@ -390,7 +390,7 @@ func TestAdversarialReview(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			c, ok := Classify(tc.path)
 			require.True(t, ok)
-			assert.Equal(t, tc.want, ids(Analyze(c, tc.path, []byte(tc.data))))
+			assert.Equal(t, tc.want, ids(Analyze(nil, c, tc.path, []byte(tc.data))))
 		})
 	}
 }
@@ -415,7 +415,7 @@ func TestSplitIDSplitPayload(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			got := 0
-			for _, s := range Analyze(Source, "src/a.js", []byte(tc.data)) {
+			for _, s := range Analyze(nil, Source, "src/a.js", []byte(tc.data)) {
 				if s.ID == IDSplitPayload {
 					got = s.Hidden
 					assert.Equal(t, "const x = ``;", s.Visible, "the snippet holds no payload")

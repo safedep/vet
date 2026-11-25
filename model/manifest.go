@@ -86,6 +86,10 @@ type Manifest struct {
 	// Root is the file system of the target, for controls that read the
 	// manifest file. It is nil when the manifest has no file.
 	Root fs.FS `json:"-"`
+	// Base is the file system of the base commit, rooted where Root is, in
+	// pull request mode. A control reads the base version of a file there
+	// to tell what the change brings in. It is nil in a full scan.
+	Base fs.FS `json:"-"`
 }
 
 // Package returns the package with the identity, or nil.

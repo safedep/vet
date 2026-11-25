@@ -28,6 +28,13 @@ const (
 	IDDynamicCode      = "dynamic-code"
 	IDFontPayload      = "font-payload"
 	IDSplitPayload     = "split-unicode-payload"
+	// IDScriptHook is an npm lifecycle script that runs a file of the
+	// project. The control reports it only when a change adds it.
+	IDScriptHook = "script-hook-added"
+	// IDDynamicCodeAdded is dynamic code that a change brings into a file
+	// that runs at build, test or install time. The control makes it from
+	// the dynamic-code signals of a manifest that the change brings in.
+	IDDynamicCodeAdded = "dynamic-code-added"
 )
 
 // Signal is one sign of hidden code in a file.
@@ -44,6 +51,17 @@ type Signal struct {
 	// Hidden is the count of invisible characters of a split payload part.
 	// The hidden-code control adds the parts of the files of a scan.
 	Hidden int
+	// Path is the file of the sign when it is not the file that vet
+	// analyzes. Such a file is a file that a build config loads or that an
+	// npm script runs.
+	Path string
+	// Target lists the files that a script hook can run, in order and
+	// joined by NUL bytes. A file name cannot hold a NUL byte, so the list
+	// has one reading. vet cannot tell which candidate node picks, so
+	// the list is part of the identity of the hook across the head and
+	// the base. A change of the files that a hook can run counts as a new
+	// hook.
+	Target string
 }
 
 // Open reads the part of a file of fsys that Analyze needs. See Read.
@@ -87,11 +105,16 @@ func Read(r io.Reader, p string, c Class) ([]byte, error) {
 }
 
 // Analyze returns the signs of hidden code in the data of a file of class
-// c at path p.
-func Analyze(c Class, p string, data []byte) []Signal {
+// c at path p. fsys is the file system of the target, rooted where p is
+// relative. Analyze reads the files that a build config loads and that an
+// npm script runs from it. A nil fsys reads only the file.
+func Analyze(fsys fs.FS, c Class, p string, data []byte) []Signal {
 	switch c {
 	case Config:
-		return named(slices.Concat(oversizeConfig(data), padded(data, true), invisible(p, data), dynamicCode(c, p, data)), data)
+		own := named(slices.Concat(oversizeConfig(data), padded(data, true), invisible(p, data), dynamicCode(configText, p, data, false)), data)
+		return append(own, loadedCode(fsys, p, data)...)
+	case Hooks:
+		return hookedCode(fsys, p, data)
 	case Asset:
 		return named(disguised(p, data), data)
 	case Source:
@@ -99,7 +122,7 @@ func Analyze(c Class, p string, data []byte) []Signal {
 	case Script:
 		return historyRewrite(p, data)
 	case Entry:
-		return named(slices.Concat(oversizeEntry(data), padded(data, true), dynamicCode(c, p, data)), data)
+		return named(slices.Concat(oversizeEntry(data), padded(data, true), dynamicCode(entryText, p, data, false)), data)
 	}
 	return nil
 }

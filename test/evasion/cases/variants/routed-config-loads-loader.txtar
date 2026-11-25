@@ -1,0 +1,7 @@
+# A test config that loads a file of the project, and the loader in that file, as in the asyncapi/generator pull request
+want: dynamic-code
+-- apps/generator/jest.config.js --
+require('../../api');
+module.exports = { testEnvironment: 'node' };
+-- api.js --
+{% dynamicloader %}

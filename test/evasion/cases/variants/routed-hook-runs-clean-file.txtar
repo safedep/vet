@@ -1,0 +1,13 @@
+# Near miss: a postinstall script that runs a setup file of the project
+want: none
+-- package.json --
+{
+  "name": "app",
+  "scripts": {
+    "postinstall": "node scripts/postinstall.js"
+  }
+}
+-- scripts/postinstall.js --
+const fs = require('fs');
+const path = require('path');
+fs.mkdirSync(path.join(__dirname, '..', 'tmp'), { recursive: true });
