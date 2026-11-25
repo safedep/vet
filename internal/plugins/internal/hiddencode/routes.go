@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"net/url"
 	"path"
 	"regexp"
 	"slices"
@@ -296,7 +297,7 @@ func (r *router) hooks(p string, data []byte) []Signal {
 			if len(rels) == 0 {
 				continue
 			}
-			if target := strings.Join(sortedCopy(rels), ","); implicit(name, pkg.scripts) && !hooked[target] {
+			if target := strings.Join(sortedCopy(rels), "\x00"); implicit(name, pkg.scripts) && !hooked[target] {
 				hooked[target] = true
 				hooks = append(hooks, Signal{
 					ID: IDScriptHook, Line: scriptLine(data, name), Visible: scriptSnippet(name, cmd), Target: target,
@@ -338,6 +339,32 @@ func sortedCopy(s []string) []string {
 // one. A clean decoy, such as a tools.cjs next to a tools folder, then
 // does not hide the file that the loader picks.
 func localFiles(fsys fs.FS, dir, spec string) []string {
+	var out []string
+	for _, form := range specForms(spec) {
+		for _, c := range candidates(fsys, dir, form) {
+			if !slices.Contains(out, c) && regular(fsys, c) {
+				out = append(out, c)
+			}
+		}
+	}
+	return out
+}
+
+// specForms returns a module path as a file path, and as the path of a
+// URL. node resolves the path of an ES module as a URL, so
+// ./api.mjs?cache=1 loads api.mjs. The URL form drops a query and a
+// fragment, and decodes the percent escapes.
+func specForms(spec string) []string {
+	forms := []string{spec}
+	if u, err := url.Parse(spec); err == nil && u.Scheme == "" && u.Host == "" && u.Path != "" && u.Path != spec {
+		forms = append(forms, u.Path)
+	}
+	return forms
+}
+
+// candidates returns the paths that a module path can name, in the order
+// of localFiles, or none for a path that names no file of the project.
+func candidates(fsys fs.FS, dir, spec string) []string {
 	if spec == "" || path.IsAbs(spec) || strings.Contains(spec, "://") || strings.HasPrefix(spec, "-") {
 		return nil
 	}
@@ -345,19 +372,12 @@ func localFiles(fsys fs.FS, dir, spec string) []string {
 	if outside(clean) {
 		return nil
 	}
-	candidates := withExts(clean)
+	out := withExts(clean)
 	if main := mainOf(fsys, clean); main != "" {
-		candidates = append(candidates, withExts(main)...)
-		candidates = append(candidates, main+"/index.js")
+		out = append(out, withExts(main)...)
+		out = append(out, main+"/index.js")
 	}
-	candidates = append(candidates, clean+"/index.js")
-	var out []string
-	for _, c := range candidates {
-		if !slices.Contains(out, c) && regular(fsys, c) {
-			out = append(out, c)
-		}
-	}
-	return out
+	return append(out, clean+"/index.js")
 }
 
 // outside reports a clean path outside the target or in an install folder.
@@ -427,8 +447,23 @@ func scriptFiles(cmd string, scripts map[string]string) []string {
 
 func filesOf(cmd string, scripts map[string]string, depth int) []string {
 	var out []string
+	// cd is the folder of the commands, or "" when vet cannot tell it. A
+	// subshell restores the folder of its parent when it ends.
 	cd := "."
+	var parents []string
 	for _, words := range commands(cmd) {
+		switch {
+		case len(words) == 1 && words[0] == "(":
+			parents = append(parents, cd)
+			continue
+		case len(words) == 1 && words[0] == ")":
+			if n := len(parents); n > 0 {
+				cd, parents = parents[n-1], parents[:n-1]
+			}
+			continue
+		case cd == "":
+			continue
+		}
 		at := func(spec string) string { return path.Join(cd, spec) }
 		for len(words) > 0 {
 			if name, value, ok := strings.Cut(words[0], "="); ok && !strings.HasPrefix(name, "-") {
@@ -455,8 +490,10 @@ func filesOf(cmd string, scripts map[string]string, depth int) []string {
 		switch {
 		case name == "cd":
 			if len(words) != 2 || path.IsAbs(words[1]) {
-				// vet cannot tell the folder of the commands that follow.
-				return out
+				// vet cannot tell the folder of the commands that follow,
+				// up to the end of the subshell.
+				cd = ""
+				continue
 			}
 			cd = path.Join(cd, words[1])
 		case isScriptRun(words):
@@ -523,8 +560,10 @@ func nodeArgs(args []string, preloadOnly bool) []string {
 // commands splits a shell command line into its commands, and each one
 // into its words. A quote groups words. A backslash keeps the next
 // character as it is, as the shell does, and in double quotes only before
-// a double quote, a backslash, $ or a backquote. A newline, a parenthesis
-// and the operators &&, ||, ;, | and & end a command.
+// a double quote, a backslash, $ or a backquote. A newline and the
+// operators &&, ||, ;, | and & end a command. A parenthesis ends a command
+// too, and stands as a command of its own, so that the reader can scope a
+// cd to its subshell.
 func commands(line string) [][]string {
 	var out [][]string
 	var words []string
@@ -567,7 +606,10 @@ func commands(line string) [][]string {
 			}
 		case r == '\'' || r == '"':
 			quote, inWord = r, true
-		case strings.ContainsRune(";&|\n()", r):
+		case r == '(' || r == ')':
+			flushCmd()
+			out = append(out, []string{string(r)})
+		case strings.ContainsRune(";&|\n", r):
 			flushCmd()
 		case r == ' ' || r == '\t' || r == '\r':
 			flushWord()

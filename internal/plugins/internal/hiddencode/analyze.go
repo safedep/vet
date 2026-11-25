@@ -56,7 +56,8 @@ type Signal struct {
 	// npm script runs.
 	Path string
 	// Target lists the files that a script hook can run, in order and
-	// joined by commas. vet cannot tell which candidate node picks, so
+	// joined by NUL bytes. A file name cannot hold a NUL byte, so the list
+	// has one reading. vet cannot tell which candidate node picks, so
 	// the list is part of the identity of the hook across the head and
 	// the base. A change of the files that a hook can run counts as a new
 	// hook.

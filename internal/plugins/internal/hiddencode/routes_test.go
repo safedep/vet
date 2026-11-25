@@ -42,6 +42,9 @@ func TestScriptFiles(t *testing.T) {
 		{`node 'a\ b.js'`, []string{`a\ b.js`}},
 		{"node \\\napi.js", []string{"api.js"}},
 		{"cd /tmp && node api.js", nil},
+		{"(cd tools && node clean.js); node setup.js", []string{"tools/clean.js", "setup.js"}},
+		{"(cd /tmp && node a.js); node b.js", []string{"b.js"}},
+		{"cd a && (cd b && node x.js) && node y.js", []string{"a/b/x.js", "a/y.js"}},
 		{"npm run setup", []string{"s.js"}},
 		{"npm run a", nil},
 		{"/usr/bin/node 'with space.js'", []string{"with space.js"}},
@@ -70,6 +73,7 @@ func TestLocalFiles(t *testing.T) {
 		"tools/index.js":            {Data: []byte("x")},
 		"far/package.json":          {Data: []byte(`{"main":"../../outside.js"}`)},
 		"far/index.js":              {Data: []byte("x")},
+		"a b.mjs":                   {Data: []byte("x")},
 	}
 	cases := []struct {
 		dir, spec string
@@ -90,6 +94,9 @@ func TestLocalFiles(t *testing.T) {
 		{".", "linked/index.js", nil},
 		{".", "tools", []string{"tools.cjs", "tools/setup.js", "tools/index.js"}},
 		{".", "far", []string{"far/index.js"}},
+		{".", "./api.js?cache=1", []string{"api.js"}},
+		{".", "./api#x", []string{"api.js"}},
+		{".", "./a%20b.mjs", []string{"a b.mjs"}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.dir+":"+tc.spec, func(t *testing.T) {
