@@ -59,6 +59,16 @@ var setupKeys = map[string]bool{
 // jsExts are the extensions that node tries for a path with none.
 var jsExts = []string{".js", ".cjs", ".mjs", ".ts", ".cts", ".mts"}
 
+// notCode are the extensions of the routed files that vet does not read.
+// node does not run a JSON file, an addon or a WebAssembly module as
+// JavaScript, and a hook runs a shell script with a shell. A build loads a
+// style sheet, a source map or an image with a plugin, not with node. node
+// runs a required file with any other extension as JavaScript.
+var notCode = map[string]bool{
+	".json": true, ".node": true, ".wasm": true, ".sh": true, ".bash": true, ".zsh": true,
+	".css": true, ".map": true, ".svg": true, ".md": true,
+}
+
 var bom = []byte("\xef\xbb\xbf")
 
 // implicit reports an npm script that npm runs on its own: a hook of
@@ -85,6 +95,8 @@ type router struct {
 	seen    map[string]bool
 	read    int
 	signals []Signal
+	// probe counts the routed files and reads none of them.
+	probe bool
 }
 
 func newRouter(fsys fs.FS) *router { return &router{fsys: fsys, seen: map[string]bool{}} }
@@ -104,19 +116,21 @@ func (r *router) route(rel, what string) {
 		// A config or an npm entry script gets its own check.
 		return
 	}
-	if ext := path.Ext(rel); ext != "" && !slices.Contains(jsExts, ext) {
+	if notCode[path.Ext(rel)] || r.read >= maxRouted {
 		return
 	}
-	if r.read >= maxRouted {
+	if r.probe {
+		r.read++
 		return
 	}
-	r.read++
 	data, err := Open(r.fsys, rel, Config)
 	if err != nil {
 		// The route names the file, but the file is gone or vet cannot
-		// read it. There is no code to report.
+		// read it. There is no code to report, and the file does not count
+		// against the limit.
 		return
 	}
+	r.read++
 	for _, s := range dynamicCode(what, rel, data, true) {
 		s.Path = rel
 		r.signals = append(r.signals, s)
@@ -237,6 +251,33 @@ func hookedCode(fsys fs.FS, p string, data []byte) []Signal {
 	if !routable(fsys, p) {
 		return nil
 	}
+	r := newRouter(fsys)
+	return append(r.hooks(p, data), r.signals...)
+}
+
+// Routes reports a build config or a package.json that routes to a file
+// of the project. The extractor keeps a manifest for such a file with no
+// sign of hidden code. Then a continued scan evaluates the route again,
+// and finds a loader that an edit puts in the routed file.
+func Routes(fsys fs.FS, c Class, p string, data []byte) bool {
+	if !routable(fsys, p) {
+		return false
+	}
+	r := newRouter(fsys)
+	r.probe = true
+	switch c {
+	case Config:
+		r.load(p, loadedSpecs(p, data))
+	case Hooks:
+		r.hooks(p, data)
+	}
+	return r.read > 0
+}
+
+// hooks returns the script-hook-added signals of a package.json, and
+// routes to each file that a routed script runs or that the jest key
+// names.
+func (r *router) hooks(p string, data []byte) []Signal {
 	pkg, ok := parsePkg(data)
 	if !ok {
 		return nil
@@ -249,13 +290,12 @@ func hookedCode(fsys fs.FS, p string, data []byte) []Signal {
 	}
 	slices.Sort(names)
 	dir := path.Dir(p)
-	r := newRouter(fsys)
 	var hooks []Signal
 	for _, name := range names {
 		cmd := pkg.scripts[name]
 		hooked := map[string]bool{}
 		for _, spec := range scriptFiles(cmd, pkg.scripts) {
-			rel, ok := localFile(fsys, dir, spec)
+			rel, ok := localFile(r.fsys, dir, spec)
 			if !ok {
 				continue
 			}
@@ -271,30 +311,33 @@ func hookedCode(fsys fs.FS, p string, data []byte) []Signal {
 	}
 	for _, spec := range pkg.setup {
 		if relative(spec) {
-			if rel, ok := localFile(fsys, dir, spec); ok {
+			if rel, ok := localFile(r.fsys, dir, spec); ok {
 				r.route(rel, fmt.Sprintf("%s, which the jest key of %s loads,", rel, p))
 			}
 		}
 	}
-	return append(hooks, r.signals...)
+	return hooks
 }
 
 // localFile resolves a path that a script or a module names, relative to
 // the folder dir, to a regular file of fsys, as node does. It tries the
-// path, then the path with each JavaScript extension, then its index.js.
-// It rejects a path outside the target, a URL, a file of an install folder
-// and a path through a symbolic link, which can point out of the target.
+// path, then the path with each JavaScript extension. For a folder, it
+// then tries the main file that the package.json of the folder names, and
+// then its index.js. It rejects a path outside the target, a URL, a file
+// of an install folder and a path through a symbolic link, which can point
+// out of the target.
 func localFile(fsys fs.FS, dir, spec string) (string, bool) {
 	if spec == "" || path.IsAbs(spec) || strings.Contains(spec, "://") || strings.HasPrefix(spec, "-") {
 		return "", false
 	}
 	clean := path.Clean(path.Join(dir, spec))
-	if clean == ".." || strings.HasPrefix(clean, "../") || slices.Contains(strings.Split(clean, "/"), "node_modules") {
+	if outside(clean) {
 		return "", false
 	}
-	candidates := []string{clean}
-	for _, ext := range jsExts {
-		candidates = append(candidates, clean+ext)
+	candidates := withExts(clean)
+	if main := mainOf(fsys, clean); main != "" {
+		candidates = append(candidates, withExts(main)...)
+		candidates = append(candidates, main+"/index.js")
 	}
 	candidates = append(candidates, clean+"/index.js")
 	for _, c := range candidates {
@@ -303,6 +346,46 @@ func localFile(fsys fs.FS, dir, spec string) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+// outside reports a clean path outside the target or in an install folder.
+func outside(clean string) bool {
+	return clean == ".." || strings.HasPrefix(clean, "../") || slices.Contains(strings.Split(clean, "/"), "node_modules")
+}
+
+// withExts returns a path, then the path with each JavaScript extension.
+func withExts(p string) []string {
+	out := []string{p}
+	for _, ext := range jsExts {
+		out = append(out, p+ext)
+	}
+	return out
+}
+
+// mainOf returns the main file that the package.json of the folder dir
+// names, as a clean path, or "". A main file outside the target gives "".
+func mainOf(fsys fs.FS, dir string) string {
+	pj := dir + "/package.json"
+	if !regular(fsys, pj) {
+		return ""
+	}
+	data, err := Open(fsys, pj, Hooks)
+	if err != nil {
+		// The folder has a package.json that vet cannot read. node then
+		// fails to load the folder, or loads its index.js.
+		return ""
+	}
+	var pkg struct {
+		Main string `json:"main"`
+	}
+	if json.Unmarshal(bytes.TrimPrefix(data, bom), &pkg) != nil || pkg.Main == "" {
+		return ""
+	}
+	main := path.Clean(path.Join(dir, pkg.Main))
+	if outside(main) {
+		return ""
+	}
+	return main
 }
 
 // regular reports a regular file that no symbolic link leads to.

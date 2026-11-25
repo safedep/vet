@@ -48,8 +48,8 @@ func (Extractor) FileRequired(api filesystem.FileAPI) bool {
 // rule itself.
 func (Extractor) ReadsInstallDirs() bool { return true }
 
-// Extract yields no package. A file with no sign of hidden code gives
-// scalibr.ErrNoManifest, so it adds nothing to the report.
+// Extract yields no package. A file with no sign of hidden code and no
+// route gives scalibr.ErrNoManifest, so it adds nothing to the report.
 func (Extractor) Extract(_ context.Context, in *filesystem.ScanInput) (inventory.Inventory, error) {
 	p := filepath.ToSlash(in.Path)
 	c, ok := hiddencode.Classify(p)
@@ -65,8 +65,10 @@ func (Extractor) Extract(_ context.Context, in *filesystem.ScanInput) (inventory
 	}
 	// The control reads and analyzes the file again. A manifest carries no
 	// signals, and a stored scan replays the control on the manifest
-	// alone, so the extractor only decides that the file has a manifest.
-	if len(hiddencode.Analyze(in.FS, c, p, data)) == 0 {
+	// alone, so the extractor only decides that the file has a manifest. A
+	// clean file that routes to a file of the project keeps one, so the
+	// control reads the routed file again in a later run.
+	if len(hiddencode.Analyze(in.FS, c, p, data)) == 0 && !hiddencode.Routes(in.FS, c, p, data) {
 		return inventory.Inventory{}, scalibr.ErrNoManifest
 	}
 	return inventory.Inventory{}, nil

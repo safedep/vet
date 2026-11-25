@@ -394,22 +394,26 @@ func loadedSpecs(p string, data []byte) []string {
 		return nil
 	}
 	var out []string
-	var root string
 	add := func(n *sitter.Node) {
 		if s, ok := a.StringValue(n); ok {
 			out = append(out, s)
 		}
 	}
-	addAll := func(v *sitter.Node) {
+	addSetup := func(v *sitter.Node, root string) {
 		if v == nil {
 			return
 		}
-		if v.Type() != "array" {
-			add(v)
-			return
+		values := []*sitter.Node{v}
+		if v.Type() == "array" {
+			values = values[:0]
+			for i := range int(v.NamedChildCount()) {
+				values = append(values, v.NamedChild(i))
+			}
 		}
-		for i := range int(v.NamedChildCount()) {
-			add(v.NamedChild(i))
+		for _, n := range values {
+			if s, ok := a.StringValue(n); ok {
+				out = append(out, rootDir(s, root))
+			}
 		}
 	}
 	for _, c := range a.Calls() {
@@ -430,19 +434,30 @@ func loadedSpecs(p string, data []byte) []string {
 				return false
 			}
 		case "pair":
-			switch key := keyName(a, n.ChildByFieldName("key"), data); {
-			case key == "rootDir":
-				root, _ = a.StringValue(n.ChildByFieldName("value"))
-			case setupKeys[key]:
-				addAll(n.ChildByFieldName("value"))
+			if setupKeys[keyName(a, n.ChildByFieldName("key"), data)] {
+				addSetup(n.ChildByFieldName("value"), objectRoot(a, n.Parent(), data))
 			}
 		}
 		return true
 	})
-	for i, spec := range out {
-		out[i] = rootDir(spec, root)
-	}
 	return out
+}
+
+// objectRoot returns the rootDir key of an object, or "". Each project of
+// the projects key of jest has its own root, and the root can follow the
+// setup keys in the object.
+func objectRoot(a *ecmascript.Analysis, obj *sitter.Node, data []byte) string {
+	if obj == nil {
+		return ""
+	}
+	for i := range int(obj.NamedChildCount()) {
+		pair := obj.NamedChild(i)
+		if pair.Type() == "pair" && keyName(a, pair.ChildByFieldName("key"), data) == "rootDir" {
+			root, _ := a.StringValue(pair.ChildByFieldName("value"))
+			return root
+		}
+	}
+	return ""
 }
 
 // keyName returns the name of the key of an object pair.

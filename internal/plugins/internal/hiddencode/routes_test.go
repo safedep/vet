@@ -63,6 +63,11 @@ func TestLocalFile(t *testing.T) {
 		"apps/a/run.ts":             {Data: []byte("x")},
 		"node_modules/pkg/index.js": {Data: []byte("x")},
 		"link.js":                   {Data: []byte("/outside/secret.js"), Mode: fs.ModeSymlink},
+		"tools/package.json":        {Data: []byte(`{"main":"setup.js"}`)},
+		"tools/setup.js":            {Data: []byte("x")},
+		"tools/index.js":            {Data: []byte("x")},
+		"far/package.json":          {Data: []byte(`{"main":"../../outside.js"}`)},
+		"far/index.js":              {Data: []byte("x")},
 		"linked":                    {Data: []byte("lib"), Mode: fs.ModeSymlink},
 	}
 	cases := []struct {
@@ -81,6 +86,8 @@ func TestLocalFile(t *testing.T) {
 		{".", "--flag", ""},
 		{".", "link.js", ""},
 		{".", "linked/index.js", ""},
+		{".", "tools", "tools/setup.js"},
+		{".", "far", "far/index.js"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.dir+":"+tc.spec, func(t *testing.T) {
@@ -127,6 +134,25 @@ func TestScriptHooks(t *testing.T) {
 			assert.Equal(t, tc.want, n)
 		})
 	}
+}
+
+func TestRoutes(t *testing.T) {
+	fsys := fstest.MapFS{"setup.js": {Data: []byte("1\n")}, "data.json": {Data: []byte("{}")}}
+	cases := []struct {
+		name, data string
+		want       bool
+	}{
+		{"a script that runs a file", `{"scripts":{"test":"node setup.js"}}`, true},
+		{"a script that runs a file that is not there", `{"scripts":{"test":"node gone.js"}}`, false},
+		{"a jest key that names a file that vet does not read", `{"jest":{"setupFiles":["./data.json"]}}`, false},
+		{"no script", `{"name":"app"}`, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, Routes(fsys, Hooks, "package.json", []byte(tc.data)))
+		})
+	}
+	assert.False(t, Routes(nil, Hooks, "package.json", []byte(`{"scripts":{"test":"node setup.js"}}`)))
 }
 
 func TestHooksNeedAFileSystem(t *testing.T) {

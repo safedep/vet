@@ -4,6 +4,7 @@ package hiddencode
 
 import (
 	"fmt"
+	"io/fs"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -173,6 +174,8 @@ func TestLoadedSpecs(t *testing.T) {
 	assert.Equal(t, []string{"./a.js", "./b"}, loadedSpecs("vitest.config.mjs", []byte(exported)))
 	rooted := "module.exports = { setupFiles: ['<rootDir>/setup.js'], rootDir: './src' };\n"
 	assert.Equal(t, []string{"./src/setup.js"}, loadedSpecs("jest.config.js", []byte(rooted)))
+	projects := "module.exports = { projects: [{ rootDir: './a', setupFiles: ['<rootDir>/setup.js'] }, { setupFiles: ['<rootDir>/setup.js'], rootDir: './b' }, { setupFiles: ['<rootDir>/c.js'] }] };\n"
+	assert.Equal(t, []string{"./a/setup.js", "./b/setup.js", "./c.js"}, loadedSpecs("jest.config.js", []byte(projects)))
 }
 
 func TestRoutedFiles(t *testing.T) {
@@ -184,6 +187,8 @@ func TestRoutedFiles(t *testing.T) {
 		"data.json":           {Data: []byte(loader)},
 		"mid.js":              {Data: []byte("module.exports = require('./api');\n")},
 		"src/api.js":          {Data: []byte(loader)},
+		"setup.txt":           {Data: []byte(loader)},
+		"style.css":           {Data: []byte(loader)},
 	}
 	cases := []struct {
 		name, path, data string
@@ -195,6 +200,8 @@ func TestRoutedFiles(t *testing.T) {
 		{"a config loads a config, which gets its own check", "jest.config.js", "module.exports = require('./jest.config.base');\n", nil},
 		{"a config loads a package", "jest.config.js", "module.exports = require('api');\n", nil},
 		{"a config loads a file that is not JavaScript", "jest.config.js", "module.exports = require('./data.json');\n", nil},
+		{"a config loads a file with another extension, which node runs as JavaScript", "jest.config.js", "require('./setup.txt');\n", []string{"dynamic-code setup.txt", "dynamic-code setup.txt"}},
+		{"a config loads a style sheet", "vite.config.js", "import './style.css';\n", nil},
 		{"the check does not follow a file that a routed file loads", "jest.config.js", "module.exports = require('./mid');\n", nil},
 		{"a jest config names a setup file", "jest.config.js", "module.exports = { setupFiles: ['<rootDir>/api.js'], globalSetup: './clean.js' };\n", []string{"dynamic-code api.js", "dynamic-code api.js"}},
 		{"the jest key of a package.json names a setup file", "package.json", `{"jest":{"setupFilesAfterEnv":["./api.js"]}}`, []string{"dynamic-code api.js", "dynamic-code api.js"}},
@@ -259,6 +266,28 @@ func TestRoutedFilesHaveALimit(t *testing.T) {
 	got := Analyze(fsys, Config, "jest.config.js", []byte(skipped.String()))
 	require.NotEmpty(t, got, "a file that vet does not read does not count against the limit")
 	assert.Equal(t, "f00.js", got[0].Path)
+
+	var unread strings.Builder
+	for i := range maxRouted + 4 {
+		name := fmt.Sprintf("u%02d.js", i)
+		fsys[name] = &fstest.MapFile{Data: []byte("1")}
+		unread.WriteString("require('./" + name + "');\n")
+	}
+	unread.WriteString("require('./f00.js');\n")
+	got = Analyze(failOpen{fsys}, Config, "jest.config.js", []byte(unread.String()))
+	require.NotEmpty(t, got, "a file that vet cannot open does not count against the limit")
+	assert.Equal(t, "f00.js", got[0].Path)
+}
+
+// failOpen fails to open each file whose name starts with u, as a file
+// that the user cannot read does.
+type failOpen struct{ fstest.MapFS }
+
+func (f failOpen) Open(name string) (fs.File, error) {
+	if strings.HasPrefix(name, "u") {
+		return nil, fs.ErrPermission
+	}
+	return f.MapFS.Open(name)
 }
 
 func TestRoutedFilesKeepOnlyTheKindsOfALoader(t *testing.T) {

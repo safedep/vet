@@ -510,6 +510,35 @@ func TestPullRequestModeGivesTheControlsTheBaseCommit(t *testing.T) {
 	}
 }
 
+// otherFileControl reports a finding on each of its paths, for each
+// manifest.
+type otherFileControl struct{ paths []string }
+
+func (c otherFileControl) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State) ([]finding.Finding, error) {
+	var out []finding.Finding
+	for _, p := range c.paths {
+		out = append(out, finding.ForFile(finding.Meta{
+			ControlID: "other-file", Family: finding.FamilyHiddenCode, Severity: finding.SeverityHigh, Title: "a loader in a routed file",
+		}, finding.Locus{Path: p, StartLine: 1, EndLine: 1}, finding.Key{Discriminator: m.ID}))
+	}
+	return out, nil
+}
+
+func TestAScanReportsNothingOnARoutedFileThatTheWalkSkips(t *testing.T) {
+	f := newFixture(t)
+	o := f.options(t, project(t), &fakeEnricher{}, Control{ID: "other-file", Plugin: otherFileControl{paths: []string{"vendor/setup.js", "node_modules/x/index.js", "tools/setup.js"}}})
+	o.Exclude = []string{"vendor"}
+	res := runScan(t, o)
+	paths := map[string]bool{}
+	for rec, err := range res.Scan.Records(context.Background()) {
+		require.NoError(t, err)
+		if rec.Finding != nil {
+			paths[rec.Finding.Locus.Path] = true
+		}
+	}
+	assert.Equal(t, map[string]bool{"tools/setup.js": true}, paths)
+}
+
 func TestIntroducedKeepsAFindingOnAnotherFileThatTheChangeEdits(t *testing.T) {
 	head := fstest.MapFS{"jest.config.js": {Data: []byte("require('./api')")}, "api.js": {Data: []byte("eval(x)")}}
 	onFile := func(p string) finding.Finding {

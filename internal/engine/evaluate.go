@@ -77,7 +77,7 @@ func (r *run) evaluateManifest(ctx context.Context, m *model.Manifest) []finding
 	for _, c := range r.o.Controls {
 		fs, err := c.Plugin.Evaluate(ctx, m, r.res.Scan)
 		for _, f := range r.valid(c.ID, m.Path, fs, err) {
-			if seen[f.ID] || (r.o.BaseRef != "" && !introduced(f, m)) {
+			if seen[f.ID] || r.skippedFile(f, m) || (r.o.BaseRef != "" && !introduced(f, m)) {
 				continue
 			}
 			seen[f.ID] = true
@@ -87,6 +87,13 @@ func (r *run) evaluateManifest(ctx context.Context, m *model.Manifest) []finding
 		}
 	}
 	return out
+}
+
+// skippedFile reports a finding on a file other than the manifest file,
+// under a path that the walk skips. A config can load a file from an
+// excluded folder, and the scan reports nothing in such a folder.
+func (r *run) skippedFile(f finding.Finding, m *model.Manifest) bool {
+	return f.Subject.Kind == finding.SubjectFile && f.Locus != nil && f.Locus.Path != m.Path && r.skipped(f.Locus.Path)
 }
 
 // evaluateApplication runs each application control once.

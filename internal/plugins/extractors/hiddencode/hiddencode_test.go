@@ -17,18 +17,23 @@ import (
 	"github.com/safedep/vet/v2/model"
 )
 
-func TestOnlyAFileWithASignIsAManifest(t *testing.T) {
+func TestOnlyAFileWithASignOrARouteIsAManifest(t *testing.T) {
 	dir := t.TempDir()
 	write := func(name, data string) {
 		require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte(data), 0o600))
 	}
 	write("next.config.js", "module.exports = {}\n")
+	require.NoError(t, os.Mkdir(filepath.Join(dir, "app"), 0o700))
+	write("app/package.json", `{"scripts":{"test":"node setup.js"}}`)
+	write("app/setup.js", "console.log('setup')\n")
+	require.NoError(t, os.Mkdir(filepath.Join(dir, "lib"), 0o700))
+	write("lib/package.json", `{"scripts":{"test":"jest"}}`)
 	write("postcss.config.mjs", "export default config;"+strings.Repeat(" ", 200)+"(function(){"+strings.Repeat("var _0xa1b2=1;", 20)+"})();\n")
 	exs := []filesystem.Extractor{hiddencode.New()}
 	for _, tc := range []struct {
 		path string
 		want int
-	}{{"next.config.js", 0}, {"postcss.config.mjs", 1}} {
+	}{{"next.config.js", 0}, {"postcss.config.mjs", 1}, {"app/package.json", 1}, {"lib/package.json", 0}} {
 		ms, errs := scalibr.ExtractFile(context.Background(), scalibr.File{Root: dir, Path: tc.path}, exs)
 		assert.Empty(t, errs, tc.path)
 		require.Len(t, ms, tc.want, tc.path)

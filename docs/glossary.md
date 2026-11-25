@@ -690,8 +690,8 @@ _Avoid_: obfuscation (a payload can be plain code), steganography
 **Build-time code**:
 Code of the project that runs when a developer or a CI job builds, tests or installs it. It is a build
 config, a file of the project that a build config loads with a plain path or names in a jest setup key,
-or a file that an npm lifecycle script or the test script runs. The dynamic-code check reads each
-JavaScript file of them. In a file that a config loads or that a script runs, it reports only eval,
+or a file that an npm lifecycle script or the test script runs. The dynamic-code check reads each file
+of them that node runs as JavaScript. In a file that a config loads or that a script runs, it reports only eval,
 Function, vm, and require on the global object or under another name. A loader needs one of these to
 run code that it decodes. A lifecycle script is a script that npm runs on its own, such as `pretest`,
 `postinstall`, or the `pre` or `post` script of another script. `hiddencode.Hooks` is the class of a
