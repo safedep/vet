@@ -36,7 +36,7 @@ func TestDynamicCodeAddedOnlyForDynamicCodeThatTheBaseDidNotHave(t *testing.T) {
 		{"a new config", model.ChangeAdded, fstest.MapFS{}, both},
 		{"a config whose base had other dynamic code", model.ChangeModified, fstest.MapFS{"jest.config.js": {Data: []byte("eval(x);\n")}}, both},
 		{"a config whose base had the same dynamic code", model.ChangeModified, fstest.MapFS{"jest.config.js": {Data: []byte("// v1\n" + loader)}}, only},
-		{"a config that the change keeps", model.ChangeUnchanged, fstest.MapFS{"jest.config.js": {Data: []byte("module.exports = {};\n")}}, only},
+		{"a config that the change keeps", model.ChangeUnchanged, head, only},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -59,19 +59,21 @@ func TestDynamicCodeAddedOnARoutedFile(t *testing.T) {
 	both := []string{"dynamic-code api.js", "dynamic-code-added api.js", "dynamic-code api.js"}
 	only := []string{"dynamic-code api.js", "dynamic-code api.js"}
 	cases := []struct {
-		name string
-		base fstest.MapFS
-		want []string
+		name   string
+		change model.Change
+		base   fstest.MapFS
+		want   []string
 	}{
-		{"the change routes the config to a loader", fstest.MapFS{"api.js": {Data: []byte(loader)}, "jest.config.js": {Data: []byte("module.exports = {};\n")}}, both},
-		{"the change puts a loader in a routed file", fstest.MapFS{"api.js": {Data: []byte("module.exports = 1;\n")}, "jest.config.js": {Data: []byte("require('./api');\n")}}, both},
-		{"the base routed the config to the same loader", fstest.MapFS{"api.js": {Data: []byte(loader)}, "jest.config.js": {Data: []byte("require('./api');\n")}}, only},
+		{"the change routes the config to a loader", model.ChangeModified, fstest.MapFS{"api.js": {Data: []byte(loader)}, "jest.config.js": {Data: []byte("module.exports = {};\n")}}, both},
+		{"the change puts a loader in a routed file", model.ChangeModified, fstest.MapFS{"api.js": {Data: []byte("module.exports = 1;\n")}, "jest.config.js": {Data: []byte("require('./api');\n")}}, both},
+		{"the base routed the config to the same loader", model.ChangeModified, fstest.MapFS{"api.js": {Data: []byte(loader)}, "jest.config.js": {Data: []byte("require('./api');\n")}}, only},
+		{"the change edits only the routed file", model.ChangeUnchanged, fstest.MapFS{"api.js": {Data: []byte("module.exports = 1;\n")}, "jest.config.js": head["jest.config.js"]}, both},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			c, err := hiddencode.New(plugin.MapConfig(nil))
 			require.NoError(t, err)
-			m := &model.Manifest{ID: "m", Path: "jest.config.js", Kind: model.ManifestKindFile, Change: model.ChangeModified, Root: head, Base: tc.base}
+			m := &model.Manifest{ID: "m", Path: "jest.config.js", Kind: model.ManifestKindFile, Change: tc.change, Root: head, Base: tc.base}
 			assert.Equal(t, tc.want, controlIDs(plugintest.TestControl(t, c, m, nil)))
 		})
 	}

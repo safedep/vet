@@ -394,6 +394,7 @@ func loadedSpecs(p string, data []byte) []string {
 		return nil
 	}
 	var out []string
+	var root string
 	add := func(n *sitter.Node) {
 		if s, ok := a.StringValue(n); ok {
 			out = append(out, s)
@@ -422,19 +423,24 @@ func loadedSpecs(p string, data []byte) []string {
 	_ = ts.Walk(ctx, tree.Tree().RootNode(), ts.WalkOptions{}, func(n *sitter.Node) bool {
 		switch n.Type() {
 		case "import_statement", "export_statement":
+			// An export of an object, as in export default { ... }, has
+			// no source, and its keys can name setup files.
 			if src := n.ChildByFieldName("source"); src != nil {
 				add(src)
+				return false
 			}
-			return false
 		case "pair":
-			if setupKeys[keyName(a, n.ChildByFieldName("key"), data)] {
+			switch key := keyName(a, n.ChildByFieldName("key"), data); {
+			case key == "rootDir":
+				root, _ = a.StringValue(n.ChildByFieldName("value"))
+			case setupKeys[key]:
 				addAll(n.ChildByFieldName("value"))
 			}
 		}
 		return true
 	})
 	for i, spec := range out {
-		out[i] = rootDir(spec)
+		out[i] = rootDir(spec, root)
 	}
 	return out
 }

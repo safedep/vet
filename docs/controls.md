@@ -109,10 +109,8 @@ change removes one of its entries from the [Actions lockfile](#actions-lockfile)
 `dynamic-code-added` and `script-hook-added` read the build-time code of the change. That code is the
 build configs, the files of the project that a config loads, and the files that an npm lifecycle script
 or the test script runs. vet reads each file at the head and at the base commit, and reports only the
-dynamic code and the scripts that the base did not have. vet reports a routed file only when the change
-edits the config or the `package.json` that routes to it. A change that edits only a file that an
-unchanged config loads gives `dynamic-code` in a full scan, and nothing in pull request mode. Both
-controls warn. A policy suppression with a `control` and a
+dynamic code and the scripts that the base did not have. A change that edits only a file that an
+unchanged config loads gives `dynamic-code-added` too. Both controls warn. A policy suppression with a `control` and a
 `path` hides them for a folder that needs dynamic code in its build, as in this example:
 
 ```yaml

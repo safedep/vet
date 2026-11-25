@@ -33,6 +33,7 @@ func TestScriptHookAddedOnlyForAHookThatTheBaseDidNotHave(t *testing.T) {
 		{"the change adds a hook next to a hook of the base", model.ChangeModified, base(`{"version":"1.0.0","scripts":{"postinstall":"node bin/setup"}}`), []string{"script-hook-added package.json"}},
 		{"the change edits only the version", model.ChangeModified, base(`{"version":"1.0.0","scripts":{"postinstall":"node bin/setup","pretest":"node setup.js"}}`), nil},
 		{"a new package.json", model.ChangeAdded, fstest.MapFS{}, []string{"script-hook-added package.json", "script-hook-added package.json"}},
+		{"the change keeps the package.json", model.ChangeUnchanged, base(`{"version":"2.0.0","scripts":{"postinstall":"node bin/setup","pretest":"node setup.js"}}`), nil},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -49,4 +50,19 @@ func TestScriptHookAddedOnlyForAHookThatTheBaseDidNotHave(t *testing.T) {
 			assert.Equal(t, tc.want, got)
 		})
 	}
+}
+
+func TestScriptHookAddedWhenAHookRunsAnotherFile(t *testing.T) {
+	pkg := func(file string) []byte {
+		return []byte(`{"scripts":{"pretest":"npm run setup","setup":"node ` + file + `"}}`)
+	}
+	files := func(p []byte) fstest.MapFS {
+		return fstest.MapFS{"package.json": {Data: p}, "a.js": {Data: []byte("1\n")}, "b.js": {Data: []byte("2\n")}}
+	}
+	c, err := hiddencode.New(plugin.MapConfig(nil))
+	require.NoError(t, err)
+	m := &model.Manifest{ID: "m", Path: "package.json", Kind: model.ManifestKindFile, Change: model.ChangeModified, Root: files(pkg("b.js")), Base: files(pkg("a.js"))}
+	fs := plugintest.TestControl(t, c, m, nil)
+	require.Len(t, fs, 1)
+	assert.Equal(t, "script-hook-added", fs[0].ControlID)
 }

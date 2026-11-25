@@ -82,11 +82,12 @@ func implicit(name string, scripts map[string]string) bool {
 // routes to, each file once, up to maxRouted files.
 type router struct {
 	fsys    fs.FS
-	read    map[string]bool
+	seen    map[string]bool
+	read    int
 	signals []Signal
 }
 
-func newRouter(fsys fs.FS) *router { return &router{fsys: fsys, read: map[string]bool{}} }
+func newRouter(fsys fs.FS) *router { return &router{fsys: fsys, seen: map[string]bool{}} }
 
 // route checks the file rel, which what names in the titles. vet does not
 // follow the files that a routed file loads. A config of a tool often
@@ -95,10 +96,10 @@ func newRouter(fsys fs.FS) *router { return &router{fsys: fsys, read: map[string
 // known gap: a config that loads a clean helper, which loads the loader,
 // gives no finding.
 func (r *router) route(rel, what string) {
-	if r.read[rel] || len(r.read) >= maxRouted {
+	if r.seen[rel] {
 		return
 	}
-	r.read[rel] = true
+	r.seen[rel] = true
 	if c, ok := Classify(rel); ok && (c == Config || c == Entry) {
 		// A config or an npm entry script gets its own check.
 		return
@@ -106,6 +107,10 @@ func (r *router) route(rel, what string) {
 	if ext := path.Ext(rel); ext != "" && !slices.Contains(jsExts, ext) {
 		return
 	}
+	if r.read >= maxRouted {
+		return
+	}
+	r.read++
 	data, err := Open(r.fsys, rel, Config)
 	if err != nil {
 		// The route names the file, but the file is gone or vet cannot
@@ -136,14 +141,17 @@ func relative(spec string) bool {
 	return strings.HasPrefix(spec, "./") || strings.HasPrefix(spec, "../")
 }
 
-// rootDir turns the <rootDir> token of a jest path into a relative path.
-// jest takes the folder of the config as the root when the config sets no
-// other root.
-func rootDir(spec string) string {
-	if rest, ok := strings.CutPrefix(spec, "<rootDir>/"); ok {
-		return "./" + rest
+// rootDir turns the <rootDir> token of a jest path into a path relative to
+// the config. root is the rootDir key of the config, relative to the
+// config. jest takes the folder of the config when the config sets no
+// root, so an empty root is that folder. An absolute root names no file of
+// the project, so the path stays as it is and the route skips it.
+func rootDir(spec, root string) string {
+	rest, ok := strings.CutPrefix(spec, "<rootDir>/")
+	if !ok || path.IsAbs(root) {
+		return spec
 	}
-	return spec
+	return "./" + path.Join(root, rest)
 }
 
 // loadedCode gives the dynamic-code check to each file of the project that
@@ -190,9 +198,12 @@ func parsePkg(data []byte) (pkgJSON, bool) {
 	}
 	var jest map[string]any
 	if j, ok := raw["jest"]; ok && json.Unmarshal(j, &jest) == nil {
+		root, _ := jest["rootDir"].(string)
 		for key, v := range jest {
 			if setupKeys[key] {
-				pkg.setup = append(pkg.setup, jsonStrings(v)...)
+				for _, spec := range jsonStrings(v) {
+					pkg.setup = append(pkg.setup, rootDir(spec, root))
+				}
 			}
 		}
 		slices.Sort(pkg.setup)
@@ -251,7 +262,7 @@ func hookedCode(fsys fs.FS, p string, data []byte) []Signal {
 			if implicit(name, pkg.scripts) && !hooked[rel] {
 				hooked[rel] = true
 				hooks = append(hooks, Signal{
-					ID: IDScriptHook, Line: scriptLine(data, name), Visible: scriptSnippet(name, cmd),
+					ID: IDScriptHook, Line: scriptLine(data, name), Visible: scriptSnippet(name, cmd), Target: rel,
 					Title: fmt.Sprintf("The %s script runs %s, a file of the project. npm runs the script on its own, and the user does not see it", name, rel),
 				})
 			}
@@ -259,7 +270,7 @@ func hookedCode(fsys fs.FS, p string, data []byte) []Signal {
 		}
 	}
 	for _, spec := range pkg.setup {
-		if spec = rootDir(spec); relative(spec) {
+		if relative(spec) {
 			if rel, ok := localFile(fsys, dir, spec); ok {
 				r.route(rel, fmt.Sprintf("%s, which the jest key of %s loads,", rel, p))
 			}
@@ -415,8 +426,10 @@ func nodeArgs(args []string, preloadOnly bool) []string {
 }
 
 // commands splits a shell command line into its commands, and each one
-// into its words. A quote groups words. A newline, a parenthesis and the
-// operators &&, ||, ;, | and & end a command.
+// into its words. A quote groups words. A backslash keeps the next
+// character as it is, as the shell does, and in double quotes only before
+// a double quote, a backslash, $ or a backquote. A newline, a parenthesis
+// and the operators &&, ||, ;, | and & end a command.
 func commands(line string) [][]string {
 	var out [][]string
 	var words []string
@@ -437,8 +450,20 @@ func commands(line string) [][]string {
 		}
 	}
 	var quote rune
+	escaped := false
 	for _, r := range line {
 		switch {
+		case escaped:
+			escaped = false
+			if quote == '"' && !strings.ContainsRune("\"\\$`\n", r) {
+				word.WriteRune('\\')
+			}
+			if r != '\n' {
+				word.WriteRune(r)
+				inWord = true
+			}
+		case r == '\\' && quote != '\'':
+			escaped = true
 		case quote != 0:
 			if r == quote {
 				quote = 0

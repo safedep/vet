@@ -4,7 +4,8 @@
 # lifecycle script runs. A new lifecycle script that runs a file of the
 # project gives script-hook-added. Both warn, so the attacks gate passes. A
 # config that had dynamic code at the base gives dynamic-code only. A full
-# scan has no base, so it gives neither of the two.
+# scan has no base, so it gives neither of the two. A change that edits only
+# a file that an unchanged config loads gives dynamic-code-added too.
 [!git] skip 'needs git'
 [!cgo] skip 'the dynamic-code check needs a vet built with CGO'
 cd repo
@@ -29,6 +30,15 @@ exec vet scan . --mode plain -o plain --fail-on attacks --fresh
 stdout '^high\tdynamic-code\tapi.js\t'
 ! stdout 'dynamic-code-added'
 ! stdout 'script-hook-added'
+
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m head
+cp $WORK/next/api.js api.js
+exec vet scan . --base-ref HEAD --mode plain -o plain --fail-on attacks --fresh
+stdout '^high\tdynamic-code-added\tapi.js\t'
+! stdout 'jest.config.js'
+! stdout 'script-hook-added'
+stderr 'Gate passed'
 
 -- repo/jest.config.js --
 module.exports = { testEnvironment: 'node' };
@@ -58,3 +68,6 @@ global['r']=require;(function(){var f=Function(atob('Y29uc29sZS5sb2coMSk='));f()
 console.log('setup');
 -- head/legacy.config.js --
 module.exports = eval('({ a: 2 })');
+-- next/api.js --
+global['r']=require;(function(){var f=Function(atob('Y29uc29sZS5sb2coMSk='));f();})();
+eval(atob('Y29uc29sZS5sb2coMik='));

@@ -215,12 +215,13 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 }
 
 // baseKeys returns the keys of the signals of the base version of the
-// file of a manifest that the change adds or edits. It returns nil for any
-// other manifest, and in a full scan. A file that the base does not have,
-// or that vet cannot read there, gives an empty set. Then each signal
-// counts as new, so vet reports more, not less.
+// file of a manifest, in pull request mode. A manifest that the change
+// keeps can route to a file that the change edits, so it gets keys too. It
+// returns nil in a full scan. A file that the base does not have, or that
+// vet cannot read there, gives an empty set. Then each signal counts as
+// new, so vet reports more, not less.
 func baseKeys(m *model.Manifest) map[string]bool {
-	if !m.Change.Introduces() {
+	if m.Base == nil && !m.Change.Introduces() {
 		return nil
 	}
 	keys := map[string]bool{}
@@ -241,7 +242,7 @@ func baseKeys(m *model.Manifest) map[string]bool {
 // version of a file. It leaves out the line and the title, which an edit
 // above the signal changes.
 func signalKey(s hiddencode.Signal) string {
-	return s.ID + "\x00" + s.Path + "\x00" + finding.NormalizeSnippet(s.Visible)
+	return s.ID + "\x00" + s.Path + "\x00" + s.Target + "\x00" + finding.NormalizeSnippet(s.Visible)
 }
 
 // EvaluateApplication adds the parts of a payload in invisible characters

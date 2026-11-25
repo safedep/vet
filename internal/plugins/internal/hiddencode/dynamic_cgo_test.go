@@ -169,6 +169,10 @@ func TestLoadedSpecs(t *testing.T) {
 	assert.Equal(t, []string{"../../jest.config.base", "./z", "jest-util", "./x.mjs", "./y"}, loadedSpecs("jest.config.mjs", []byte(data)))
 	setup := "module.exports = { setupFiles: ['<rootDir>/a.js', './b'], 'globalSetup': './c.js', other: './d.js' };\n"
 	assert.Equal(t, []string{"./a.js", "./b", "./c.js"}, loadedSpecs("jest.config.js", []byte(setup)))
+	exported := "export default { setupFiles: ['./a.js'] };\nexport * from './b';\n"
+	assert.Equal(t, []string{"./a.js", "./b"}, loadedSpecs("vitest.config.mjs", []byte(exported)))
+	rooted := "module.exports = { setupFiles: ['<rootDir>/setup.js'], rootDir: './src' };\n"
+	assert.Equal(t, []string{"./src/setup.js"}, loadedSpecs("jest.config.js", []byte(rooted)))
 }
 
 func TestRoutedFiles(t *testing.T) {
@@ -179,6 +183,7 @@ func TestRoutedFiles(t *testing.T) {
 		"jest.config.base.js": {Data: []byte(loader)},
 		"data.json":           {Data: []byte(loader)},
 		"mid.js":              {Data: []byte("module.exports = require('./api');\n")},
+		"src/api.js":          {Data: []byte(loader)},
 	}
 	cases := []struct {
 		name, path, data string
@@ -193,6 +198,7 @@ func TestRoutedFiles(t *testing.T) {
 		{"the check does not follow a file that a routed file loads", "jest.config.js", "module.exports = require('./mid');\n", nil},
 		{"a jest config names a setup file", "jest.config.js", "module.exports = { setupFiles: ['<rootDir>/api.js'], globalSetup: './clean.js' };\n", []string{"dynamic-code api.js", "dynamic-code api.js"}},
 		{"the jest key of a package.json names a setup file", "package.json", `{"jest":{"setupFilesAfterEnv":["./api.js"]}}`, []string{"dynamic-code api.js", "dynamic-code api.js"}},
+		{"the jest key of a package.json names a setup file under its root", "package.json", `{"jest":{"rootDir":"src","setupFiles":["<rootDir>/api.js"]}}`, []string{"dynamic-code src/api.js", "dynamic-code src/api.js"}},
 		{"a hook runs another script", "package.json", `{"scripts":{"pretest":"npm run setup","setup":"node api.js"}}`, []string{"script-hook-added package.json", "dynamic-code api.js", "dynamic-code api.js"}},
 		{"a hook runs a loader", "package.json", `{"scripts":{"pretest":"node api.js"}}`, []string{"script-hook-added package.json", "dynamic-code api.js", "dynamic-code api.js"}},
 		{"a pre script of another script runs a loader", "package.json", `{"scripts":{"prebuild":"node api","build":"tsc"}}`, []string{"script-hook-added package.json", "dynamic-code api.js", "dynamic-code api.js"}},
@@ -242,6 +248,17 @@ func TestRoutedFilesHaveALimit(t *testing.T) {
 		paths[s.Path] = true
 	}
 	assert.Len(t, paths, maxRouted)
+
+	var skipped strings.Builder
+	for i := range maxRouted + 4 {
+		name := fmt.Sprintf("d%02d.json", i)
+		fsys[name] = &fstest.MapFile{Data: []byte("{}")}
+		skipped.WriteString("require('./" + name + "');\n")
+	}
+	skipped.WriteString("require('./f00.js');\n")
+	got := Analyze(fsys, Config, "jest.config.js", []byte(skipped.String()))
+	require.NotEmpty(t, got, "a file that vet does not read does not count against the limit")
+	assert.Equal(t, "f00.js", got[0].Path)
 }
 
 func TestRoutedFilesKeepOnlyTheKindsOfALoader(t *testing.T) {

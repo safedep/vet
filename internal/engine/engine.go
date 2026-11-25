@@ -15,6 +15,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-git/go-git/v5/plumbing"
+
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/gitbase"
@@ -328,6 +330,10 @@ type run struct {
 	// reachChanged marks a reach that the enrich stage changed after the
 	// header recorded it.
 	reachChanged bool
+	// baseCommit is the commit that the extract stage read for the base
+	// ref. A ref such as HEAD can move during the scan, so the evaluate
+	// stage opens this commit and does not resolve the ref again.
+	baseCommit plumbing.Hash
 }
 
 // rootOf returns the file system that a manifest was read from, for the
@@ -346,12 +352,17 @@ func (r *run) rootOf(m *model.Manifest) fs.FS {
 
 // baseOf returns the base tree of the target in pull request mode, for the
 // controls that compare a file with its base version. The scan state keeps
-// no file system, so a continued scan opens the tree again here.
+// no file system, so a continued scan with no extract stage resolves the
+// base ref here.
 func (r *run) baseOf() (fs.FS, error) {
 	if r.o.BaseRef == "" || len(r.artifacts) == 0 || r.artifacts[0].Kind != plugin.ArtifactDirectory {
 		return nil, nil
 	}
-	tree, err := gitbase.Open(r.artifacts[0].Path, r.o.BaseRef)
+	rev := r.o.BaseRef
+	if !r.baseCommit.IsZero() {
+		rev = r.baseCommit.String()
+	}
+	tree, err := gitbase.Open(r.artifacts[0].Path, rev)
 	if err != nil {
 		return nil, BaseRefError(err)
 	}

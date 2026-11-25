@@ -55,6 +55,10 @@ type Signal struct {
 	// analyzes. Such a file is a file that a build config loads or that an
 	// npm script runs.
 	Path string
+	// Target is the file that a script hook runs. It is part of the
+	// identity of the hook across the head and the base, so a change of
+	// the file that a hook runs counts as a new hook.
+	Target string
 }
 
 // Open reads the part of a file of fsys that Analyze needs. See Read.
