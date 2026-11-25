@@ -52,8 +52,8 @@ type Signal struct {
 	// The hidden-code control adds the parts of the files of a scan.
 	Hidden int
 	// Path is the file of the sign when it is not the file that vet
-	// analyzes: a file that a build config loads or that an npm script
-	// runs.
+	// analyzes. Such a file is a file that a build config loads or that an
+	// npm script runs.
 	Path string
 }
 

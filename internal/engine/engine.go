@@ -17,6 +17,7 @@ import (
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/app"
+	"github.com/safedep/vet/v2/internal/gitbase"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
@@ -341,6 +342,20 @@ func (r *run) rootOf(m *model.Manifest) fs.FS {
 		return osFS{}
 	}
 	return r.artifacts[0].Root
+}
+
+// baseOf returns the base tree of the target in pull request mode, for the
+// controls that compare a file with its base version. The scan state keeps
+// no file system, so a continued scan opens the tree again here.
+func (r *run) baseOf() (fs.FS, error) {
+	if r.o.BaseRef == "" || len(r.artifacts) == 0 || r.artifacts[0].Kind != plugin.ArtifactDirectory {
+		return nil, nil
+	}
+	tree, err := gitbase.Open(r.artifacts[0].Path, r.o.BaseRef)
+	if err != nil {
+		return nil, BaseRefError(err)
+	}
+	return tree.FS(), nil
 }
 
 // osFS opens the absolute slash paths of the files of an endpoint.

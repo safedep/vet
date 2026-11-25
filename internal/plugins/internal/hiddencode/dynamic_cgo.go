@@ -84,9 +84,8 @@ const (
 	maxScriptSize = 8 << 20
 )
 
-// dynamicCode finds code in a file that runs at build, test or install
-// time that runs code that a reader cannot see. what names the file in the
-// titles. A config only declares settings, so it has no reason to call
+// dynamicCode finds code that a reader cannot see in a file that runs at
+// build, test or install time. what names the file in the titles. A config only declares settings, so it has no reason to call
 // eval, build a function from a string, load a module by a name that it
 // computes, or keep require under another name. The check reads what each
 // name stands for, not the name, because a loader renames require
@@ -97,9 +96,9 @@ const (
 // A file that a config loads or that an npm script runs is ordinary code
 // of the project, such as a build script. It often starts a process or
 // loads a module by a computed name, and it can be a large generated file.
-// So for it, loadersOnly keeps the kinds that a loader needs to run code
-// that it decodes: eval, Function, vm, and require on the global object
-// or under another name.
+// So for it, loadersOnly keeps eval, Function, vm, and require on the
+// global object or under another name. A loader needs one of these to run
+// code that it decodes.
 // known gap: a routed file that runs its payload with child_process, with
 // a computed require, or past the size limit gives no finding.
 func dynamicCode(what, p string, data []byte, loadersOnly bool) []Signal {
@@ -377,9 +376,11 @@ func isFilePath(a *ecmascript.Analysis, n *sitter.Node) bool {
 	return false
 }
 
-// loadedSpecs returns the module paths that a build config loads with a
-// plain string: require('x'), import('x'), import ... from 'x' and
-// export ... from 'x'. The caller keeps the paths of the project files.
+// loadedSpecs returns the module paths that a file loads with a plain
+// string, as in require('x'), import('x'), import ... from 'x' and
+// export ... from 'x'. It also returns the paths of the setupKeys of a
+// jest or vitest config, with <rootDir> as a relative path. The caller
+// keeps the paths of the project files.
 func loadedSpecs(p string, data []byte) []string {
 	ctx, cancel := context.WithTimeout(context.Background(), parseTimeout)
 	defer cancel()
@@ -398,6 +399,18 @@ func loadedSpecs(p string, data []byte) []string {
 			out = append(out, s)
 		}
 	}
+	addAll := func(v *sitter.Node) {
+		if v == nil {
+			return
+		}
+		if v.Type() != "array" {
+			add(v)
+			return
+		}
+		for i := range int(v.NamedChildCount()) {
+			add(v.NamedChild(i))
+		}
+	}
 	for _, c := range a.Calls() {
 		if c.Name == "require" || c.Callee.Type() == "import" {
 			add(c.Arg(0))
@@ -413,8 +426,27 @@ func loadedSpecs(p string, data []byte) []string {
 				add(src)
 			}
 			return false
+		case "pair":
+			if setupKeys[keyName(a, n.ChildByFieldName("key"), data)] {
+				addAll(n.ChildByFieldName("value"))
+			}
 		}
 		return true
 	})
+	for i, spec := range out {
+		out[i] = rootDir(spec)
+	}
 	return out
+}
+
+// keyName returns the name of the key of an object pair.
+func keyName(a *ecmascript.Analysis, k *sitter.Node, data []byte) string {
+	if k == nil {
+		return ""
+	}
+	if k.Type() == "property_identifier" {
+		return k.Content(data)
+	}
+	s, _ := a.StringValue(k)
+	return s
 }

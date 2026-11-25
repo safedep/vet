@@ -73,11 +73,6 @@ type Manifest struct {
 	// that leaves the manifest file next to it, such as package.json, as it
 	// was.
 	LockfileOnly bool `json:"lockfile_only,omitempty"`
-	// InBase reports, in pull request mode, that the base version of the
-	// file gave this manifest too. The hidden-code extractor gives a
-	// manifest only for a file with a sign of hidden code, so a modified
-	// file with no InBase had no such sign at the base.
-	InBase bool `json:"in_base,omitempty"`
 
 	// Extractor is the name of the extractor that read the manifest.
 	Extractor string `json:"extractor,omitempty"`
@@ -91,6 +86,10 @@ type Manifest struct {
 	// Root is the file system of the target, for controls that read the
 	// manifest file. It is nil when the manifest has no file.
 	Root fs.FS `json:"-"`
+	// Base is the file system of the base commit, rooted where Root is, in
+	// pull request mode. A control reads the base version of a file there
+	// to tell what the change brings in. It is nil in a full scan.
+	Base fs.FS `json:"-"`
 }
 
 // Package returns the package with the identity, or nil.

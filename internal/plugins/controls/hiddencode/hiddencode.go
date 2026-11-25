@@ -6,11 +6,16 @@
 package hiddencode
 
 import (
+	"cmp"
 	"context"
+	"errors"
 	"fmt"
+	"io/fs"
 	"slices"
 	"strings"
 	"sync"
+
+	"github.com/safedep/dry/log"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/plugins/internal/hiddencode"
@@ -32,11 +37,6 @@ type Control struct {
 	// parts are the parts of split payloads that Evaluate found in this
 	// scan. EvaluateApplication adds them and clears the list.
 	parts []part
-	// routed maps the id of each finding on a file that a config loads or
-	// that an npm script runs to the manifest that reports it. Several
-	// configs can load one file, so the first manifest owns the finding,
-	// and a second evaluation of that manifest gives it again.
-	routed map[string]string
 }
 
 // part is a part of a split payload in one file, with the change of the
@@ -53,7 +53,7 @@ func New(cfg plugin.Config) (plugin.Control, error) {
 	if err := cfg.Decode(&o); err != nil {
 		return nil, err
 	}
-	return &Control{routed: map[string]string{}}, nil
+	return &Control{}, nil
 }
 
 // control is one control id of the plugin, with its remediation.
@@ -105,7 +105,7 @@ var controls = []control{
 		plugin.ControlInfo{
 			ID: hiddencode.IDDynamicCodeAdded, Family: finding.FamilyHiddenCode, Severity: finding.SeverityHigh,
 			Title:       "Change that adds dynamic code to code that runs at build, test or install time",
-			Description: "In pull request mode, the change brings dynamic code into a build config, into a file of the project that a build config loads, or into a file that an npm lifecycle script or the test script runs. The base version of the config or of the package.json showed no sign of hidden code. The dynamic-code control lists each call. This control marks that the change brings it in, which is the sign of a loader that a pull request adds. A policy can suppress it by path. The control warns until a false-positive run on real pull requests shows that it can fail the attacks gate.",
+			Description: "In pull request mode, the change brings dynamic code into a build config, into a file of the project that a build config loads, or into a file that an npm lifecycle script or the test script runs. vet reads the base version of the config or of the package.json, and of each file that it loads or runs. The base did not have this kind of dynamic code in the file. The dynamic-code control lists each call. This control marks that the change brings it in, which is the sign of a loader that a pull request adds. A policy can suppress it by path. The control warns until a false-positive run on real pull requests shows that it can fail the attacks gate.",
 		},
 		"Read the code that the change adds. Do not merge it, run the tests or install the project until you know what it runs.",
 	},
@@ -113,7 +113,7 @@ var controls = []control{
 		plugin.ControlInfo{
 			ID: hiddencode.IDScriptHook, Family: finding.FamilyHiddenCode, Severity: finding.SeverityMedium,
 			Title:       "Change that adds an npm lifecycle script that runs a file of the project",
-			Description: "In pull request mode, the change adds a preinstall, install, postinstall, prepare, prepack, prepublish, pretest or posttest script, or a pre or post script of one, to a package.json that had no such script. The script runs a JavaScript file of the project with node or a node runner. npm runs it with no sign at each install or test, so a CI job that tests the pull request runs the file. vet reads the file for dynamic code. A package.json that already ran a file of the project with such a script gives no finding.",
+			Description: "In pull request mode, the change adds a script to a package.json that npm runs on its own, or makes such a script run another file. Such a script is preinstall, install, postinstall, prepare, prepack, prepublish, postpublish, pretest, posttest, or the pre or post script of another script or of an npm command. The script runs a file of the project with node, a node runner or a shell. npm runs it at each install, test or run of the other script, and the user does not see it. So a CI job that tests the pull request runs the file. vet reads a JavaScript file for dynamic code. A script that the base version of the package.json already had gives no finding.",
 		},
 		"Read the file that the script runs. Remove the script if the project does not need it.",
 	},
@@ -170,75 +170,78 @@ func (*Control) OptionsSchema() []byte { return optschema.Of(&Options{}) }
 
 // Evaluate reads the file of the manifest and reports each sign of hidden
 // code. A part of a split payload waits for EvaluateApplication. In pull
-// request mode, a manifest that the change brings in, from a base file
-// with no sign of hidden code, also gives dynamic-code-added for each file
-// with dynamic code, and gives its script-hook-added signals. A full scan
-// has no base, so it gives neither.
+// request mode, Evaluate also reads the base version of the file. Each
+// file whose dynamic code the base did not have gives dynamic-code-added,
+// and each script hook that the base did not have gives
+// script-hook-added. A full scan has no base, so it gives neither.
+//
+// Several configs can load one file. Each one gives the same findings on
+// that file, with the same ids, and the scan keeps one of each.
 func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State) ([]finding.Finding, error) {
-	signals, err := signalsOf(m)
+	signals, err := signalsOf(m.Root, m)
 	if err != nil {
 		return nil, err
 	}
-	fresh := m.Change.Introduces() && !m.InBase
-	// Pull request mode keeps no finding of a manifest that the change
-	// keeps as it is. Such a manifest must not take the place of a routed
-	// file finding of a manifest that the change edits.
-	kept := m.Change == model.ChangeNone || m.Change.Introduces()
+	base := baseKeys(m)
 	seen := map[string]int{}
 	added := map[string]bool{}
 	var out []finding.Finding
 	for _, s := range signals {
-		switch {
-		case s.ID == hiddencode.IDSplitPayload:
+		if s.ID == hiddencode.IDSplitPayload {
 			c.mu.Lock()
 			c.parts = append(c.parts, part{m.Path, m.Change, s})
 			c.mu.Unlock()
 			continue
-		case s.ID == hiddencode.IDScriptHook && !fresh:
-			continue
-		case s.Path != "" && !kept:
+		}
+		brought := base != nil && !base[signalKey(s)]
+		if s.ID == hiddencode.IDScriptHook && !brought {
 			continue
 		}
-		path := m.Path
-		if s.Path != "" {
-			path = s.Path
-		}
+		path := cmp.Or(s.Path, m.Path)
 		title := s.Title
 		if s.Campaign != "" {
 			title += ". It matches " + s.Campaign
 		}
-		found := []finding.Finding{fileFinding(path, s, title, seen)}
-		if s.ID == hiddencode.IDDynamicCode && fresh && !added[path] {
+		out = append(out, fileFinding(path, s, title, seen))
+		if s.ID == hiddencode.IDDynamicCode && brought && !added[path] {
 			added[path] = true
 			a := s
 			a.ID = hiddencode.IDDynamicCodeAdded
 			a.Title = fmt.Sprintf("The change brings dynamic code into %s, which runs at build, test or install time", path)
-			found = append(found, fileFinding(path, a, a.Title, seen))
+			out = append(out, fileFinding(path, a, a.Title, seen))
 		}
-		if s.Path != "" {
-			found = c.owned(m.ID, found)
-		}
-		out = append(out, found...)
 	}
 	return out, nil
 }
 
-// owned keeps the findings on a routed file that no other manifest of the
-// scan owns.
-func (c *Control) owned(manifest string, fs []finding.Finding) []finding.Finding {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	var out []finding.Finding
-	for _, f := range fs {
-		owner, ok := c.routed[f.ID]
-		if !ok {
-			c.routed[f.ID] = manifest
-		}
-		if !ok || owner == manifest {
-			out = append(out, f)
-		}
+// baseKeys returns the keys of the signals of the base version of the
+// file of a manifest that the change adds or edits. It returns nil for any
+// other manifest, and in a full scan. A file that the base does not have,
+// or that vet cannot read there, gives an empty set. Then each signal
+// counts as new, so vet reports more, not less.
+func baseKeys(m *model.Manifest) map[string]bool {
+	if !m.Change.Introduces() {
+		return nil
 	}
-	return out
+	keys := map[string]bool{}
+	signals, err := signalsOf(m.Base, m)
+	if err != nil {
+		if !errors.Is(err, fs.ErrNotExist) {
+			log.Warnf("hidden-code: read the base of %s: %v. vet takes each sign as new", m.Path, err)
+		}
+		return keys
+	}
+	for _, s := range signals {
+		keys[signalKey(s)] = true
+	}
+	return keys
+}
+
+// signalKey is the identity of a signal across the head and the base
+// version of a file. It leaves out the line and the title, which an edit
+// above the signal changes.
+func signalKey(s hiddencode.Signal) string {
+	return s.ID + "\x00" + s.Path + "\x00" + finding.NormalizeSnippet(s.Visible)
 }
 
 // EvaluateApplication adds the parts of a payload in invisible characters
@@ -273,28 +276,30 @@ func (c *Control) EvaluateApplication(context.Context, plugin.State) ([]finding.
 	return out, nil
 }
 
-// signalsOf reads the file of a manifest and returns its signs of hidden
-// code. A manifest of another kind gives none.
-func signalsOf(m *model.Manifest) ([]hiddencode.Signal, error) {
-	if m.Kind != model.ManifestKindFile || m.Root == nil {
+// signalsOf reads the file of a manifest in fsys and returns its signs of
+// hidden code. A manifest of another kind, or a nil fsys, gives none.
+func signalsOf(fsys fs.FS, m *model.Manifest) ([]hiddencode.Signal, error) {
+	if m.Kind != model.ManifestKindFile || fsys == nil {
 		return nil, nil
 	}
 	c, ok := hiddencode.Classify(m.Path)
 	if !ok {
 		return nil, nil
 	}
-	data, err := hiddencode.Open(m.Root, m.Path, c)
+	data, err := hiddencode.Open(fsys, m.Path, c)
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", m.Path, err)
 	}
-	return hiddencode.Analyze(m.Root, c, m.Path, data), nil
+	return hiddencode.Analyze(fsys, c, m.Path, data), nil
 }
 
 // fileFinding returns the finding of a signal on a file. seen counts the
-// signals of one id and snippet, so that each one has its own id.
+// signals of one id, path and snippet, so that each one has its own id.
+// The count of a routed file does not depend on the signals of the config
+// that loads it, so each config gives the same ids on that file.
 func fileFinding(path string, s hiddencode.Signal, title string, seen map[string]int) finding.Finding {
 	info := controlOf(s.ID)
-	k := s.ID + "\x00" + finding.NormalizeSnippet(s.Visible)
+	k := s.ID + "\x00" + path + "\x00" + finding.NormalizeSnippet(s.Visible)
 	occ := seen[k]
 	seen[k]++
 	f := finding.ForFile(finding.Meta{

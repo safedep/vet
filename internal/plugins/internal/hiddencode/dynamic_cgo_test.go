@@ -167,6 +167,8 @@ func FuzzDynamicCode(f *testing.F) {
 func TestLoadedSpecs(t *testing.T) {
 	data := "const base = require('../../jest.config.base');\nimport x from './x.mjs';\nexport * from './y';\nconst z = await import('./z');\nrequire(name);\nrequire('jest-util');\n"
 	assert.Equal(t, []string{"../../jest.config.base", "./z", "jest-util", "./x.mjs", "./y"}, loadedSpecs("jest.config.mjs", []byte(data)))
+	setup := "module.exports = { setupFiles: ['<rootDir>/a.js', './b'], 'globalSetup': './c.js', other: './d.js' };\n"
+	assert.Equal(t, []string{"./a.js", "./b", "./c.js"}, loadedSpecs("jest.config.js", []byte(setup)))
 }
 
 func TestRoutedFiles(t *testing.T) {
@@ -175,6 +177,9 @@ func TestRoutedFiles(t *testing.T) {
 		"api.js":              {Data: []byte(loader)},
 		"clean.js":            {Data: []byte("module.exports = { testEnvironment: 'node' };\n")},
 		"jest.config.base.js": {Data: []byte(loader)},
+		"data.json":           {Data: []byte(loader)},
+		"mid.js":              {Data: []byte("module.exports = require('./api');\n")},
+		"far.js":              {Data: []byte("module.exports = require('./mid');\n")},
 	}
 	cases := []struct {
 		name, path, data string
@@ -185,12 +190,19 @@ func TestRoutedFiles(t *testing.T) {
 		{"a config loads a clean file", "jest.config.js", "module.exports = require('./clean');\n", nil},
 		{"a config loads a config, which gets its own check", "jest.config.js", "module.exports = require('./jest.config.base');\n", nil},
 		{"a config loads a package", "jest.config.js", "module.exports = require('api');\n", nil},
+		{"a config loads a file that is not JavaScript", "jest.config.js", "module.exports = require('./data.json');\n", nil},
+		{"a config loads a helper that loads a loader", "jest.config.js", "module.exports = require('./mid');\n", []string{"dynamic-code api.js", "dynamic-code api.js"}},
+		{"the check stops after two hops", "jest.config.js", "module.exports = require('./far');\n", nil},
+		{"a jest config names a setup file", "jest.config.js", "module.exports = { setupFiles: ['<rootDir>/api.js'], globalSetup: './clean.js' };\n", []string{"dynamic-code api.js", "dynamic-code api.js"}},
+		{"the jest key of a package.json names a setup file", "package.json", `{"jest":{"setupFilesAfterEnv":["./api.js"]}}`, []string{"dynamic-code api.js", "dynamic-code api.js"}},
+		{"a hook runs another script", "package.json", `{"scripts":{"pretest":"npm run setup","setup":"node api.js"}}`, []string{"script-hook-added package.json", "dynamic-code api.js", "dynamic-code api.js"}},
 		{"a hook runs a loader", "package.json", `{"scripts":{"pretest":"node api.js"}}`, []string{"script-hook-added package.json", "dynamic-code api.js", "dynamic-code api.js"}},
+		{"a pre script of another script runs a loader", "package.json", `{"scripts":{"prebuild":"node api","build":"tsc"}}`, []string{"script-hook-added package.json", "dynamic-code api.js", "dynamic-code api.js"}},
 		{"a hook runs a clean file", "package.json", `{"scripts":{"postinstall":"node clean.js"}}`, []string{"script-hook-added package.json"}},
 		{"test runs a loader with no hook", "package.json", `{"scripts":{"test":"node api.js && jest"}}`, []string{"dynamic-code api.js", "dynamic-code api.js"}},
 		{"a build script is not read", "package.json", `{"scripts":{"build":"node api.js"}}`, nil},
 		{"a hook runs a file that is not there", "package.json", `{"scripts":{"prepare":"node gone.js"}}`, nil},
-		{"two hooks run one file", "package.json", `{"scripts":{"pretest":"node api.js","posttest":"node api.js"}}`, []string{"script-hook-added package.json", "dynamic-code api.js", "dynamic-code api.js", "script-hook-added package.json"}},
+		{"two hooks run one file", "package.json", `{"scripts":{"pretest":"node api.js","posttest":"node api.js"}}`, []string{"script-hook-added package.json", "script-hook-added package.json", "dynamic-code api.js", "dynamic-code api.js"}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -215,7 +227,24 @@ func TestRoutedFiles(t *testing.T) {
 	require.Len(t, h, 3)
 	assert.Equal(t, 3, h[0].Line)
 	assert.Equal(t, `"pretest": "node api.js"`, h[0].Visible)
-	assert.Equal(t, "The pretest script runs api.js, a file of the project. npm runs it with no sign", h[0].Title)
+	assert.Equal(t, "The pretest script runs api.js, a file of the project. npm runs the script on its own, and the user does not see it", h[0].Title)
+	assert.Equal(t, "api.js, which mid.js loads, puts require, eval or Function, or a key that it computes, on the global object on line 1", Analyze(fsys, Config, "jest.config.js", []byte("require('./mid');\n"))[0].Title)
+}
+
+func TestRoutedFilesHaveALimit(t *testing.T) {
+	loader := "eval(x);\n"
+	fsys := fstest.MapFS{}
+	var config strings.Builder
+	for i := range maxRouted + 4 {
+		name := fmt.Sprintf("f%02d.js", i)
+		fsys[name] = &fstest.MapFile{Data: []byte(loader)}
+		config.WriteString("require('./" + name + "');\n")
+	}
+	paths := map[string]bool{}
+	for _, s := range Analyze(fsys, Config, "jest.config.js", []byte(config.String())) {
+		paths[s.Path] = true
+	}
+	assert.Len(t, paths, maxRouted)
 }
 
 func TestRoutedFilesKeepOnlyTheKindsOfALoader(t *testing.T) {

@@ -3,7 +3,9 @@ package engine
 import (
 	"cmp"
 	"context"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -463,6 +465,48 @@ func (fileControl) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State
 		return nil, err
 	}
 	return nil, nil
+}
+
+// baseControl records the base version of the file of each manifest.
+type baseControl struct{ seen map[string]string }
+
+func (c baseControl) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State) ([]finding.Finding, error) {
+	if m.Base == nil {
+		c.seen[m.Path] = "<no base>"
+		return nil, nil
+	}
+	data, err := fs.ReadFile(m.Base, m.Path)
+	if errors.Is(err, fs.ErrNotExist) {
+		c.seen[m.Path] = "<not in base>"
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	c.seen[m.Path] = string(data)
+	return nil, nil
+}
+
+func TestPullRequestModeGivesTheControlsTheBaseCommit(t *testing.T) {
+	cases := []struct {
+		name, baseRef string
+		want          map[string]string
+	}{
+		{"pull request mode", "HEAD", map[string]string{"package-lock.json": baseLock, "requirements.txt": "requests==2.31.0\n", "tools/requirements.txt": "<not in base>"}},
+		{"a full scan", "", map[string]string{"package-lock.json": "<no base>", "requirements.txt": "<no base>", "tools/requirements.txt": "<no base>"}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newFixture(t)
+			c := baseControl{seen: map[string]string{}}
+			o := f.options(t, gitProject(t), &fakeEnricher{}, Control{ID: "base", Plugin: c})
+			o.BaseRef = tc.baseRef
+			runScan(t, o)
+			for p, want := range tc.want {
+				assert.Equal(t, want, c.seen[p], p)
+			}
+		})
+	}
 }
 
 func TestPullRequestModeSkipsTheControlsOfARemovedManifest(t *testing.T) {

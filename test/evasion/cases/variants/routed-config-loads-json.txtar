@@ -1,0 +1,7 @@
+# Near miss: a config loads a JSON file of the project that holds a code string. vet reads only JavaScript files on a route
+want: none
+-- jest.config.js --
+const fixtures = require('./fixtures.json');
+module.exports = { globals: fixtures };
+-- fixtures.json --
+{ "snippet": "eval(atob('Y29uc29sZS5sb2coMSk='))" }

@@ -165,11 +165,15 @@ detection, and commit the diff. See README.md.
 | `polinrider-rewrite`: PolinRider: a script that amends the last commit, keeps its date and force-pushes it | `history-rewrite-script` | `history-rewrite-script` | fails | pass |
 | `polinrider-task`: PolinRider: a hidden folder-open task runs node on a fake font | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | `disguised-script`, `editor-autorun-enabled`, `editor-task-command`, `suspicious-command` | fails | pass |
 | `routed-build-script-not-read`: Near miss: a build script that starts a process with a computed command. npm does not run build on its own, so vet does not read it | none | none | passes | pass |
+| `routed-config-helper-loads-loader`: A config loads a clean helper of the project, and the helper loads the loader | `dynamic-code` | `dynamic-code` | passes | pass |
 | `routed-config-loads-clean-file`: Near miss: a test config that loads a shared config file of the project | none | none | passes | pass |
+| `routed-config-loads-json`: Near miss: a config loads a JSON file of the project that holds a code string. vet reads only JavaScript files on a route | none | none | passes | pass |
 | `routed-config-loads-loader`: A test config that loads a file of the project, and the loader in that file, as in the asyncapi/generator pull request | `dynamic-code` | `dynamic-code` | passes | pass |
 | `routed-esm-config-imports-loader`: An ESM build config that imports a file of the project for its side effect, with the loader in that file | `dynamic-code` | `dynamic-code` | passes | pass |
 | `routed-hook-runs-clean-file`: Near miss: a postinstall script that runs a setup file of the project | none | none | passes | pass |
 | `routed-hook-runs-loader`: A pretest script that runs a file of the project with node, and the loader in that file | `dynamic-code` | `dynamic-code` | passes | pass |
+| `routed-hook-runs-script-by-name`: A pretest hook runs another npm script by its name, and that script runs the loader with node | `dynamic-code` | `dynamic-code` | passes | pass |
+| `routed-jest-setup-file-loader`: A jest config names a setup file of the project by a string, with no require. jest runs the file before the tests | `dynamic-code` | `dynamic-code` | passes | pass |
 | `routed-test-script-runs-loader`: A test script that runs a loader before the tests, behind a variable and a node flag | `dynamic-code` | `dynamic-code` | passes | pass |
 
-Total: 139 cases, 136 pass, 0 fail, 3 known misses.
+Total: 143 cases, 140 pass, 0 fail, 3 known misses.

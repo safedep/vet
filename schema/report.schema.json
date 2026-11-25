@@ -886,9 +886,6 @@
         "lockfile_only": {
           "type": "boolean"
         },
-        "in_base": {
-          "type": "boolean"
-        },
         "extractor": {
           "type": "string"
         }

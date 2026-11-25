@@ -33,6 +33,10 @@ func (r *run) evaluate(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	base, err := r.baseOf()
+	if err != nil {
+		return err
+	}
 	for i, id := range ids {
 		if err := ctx.Err(); err != nil {
 			return err
@@ -46,6 +50,9 @@ func (r *run) evaluate(ctx context.Context) error {
 		// each of its findings.
 		if m.Change != model.ChangeRemoved {
 			m.Root = r.rootOf(m)
+			if m.Root != nil {
+				m.Base = base
+			}
 			fs = r.evaluateManifest(ctx, m)
 		}
 		if err := scan.AddFindings(ctx, m.ID, fs); err != nil {

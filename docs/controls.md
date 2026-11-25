@@ -106,11 +106,13 @@ because they need the base: `integrity-changed`, `lockfile-only-change`, `instal
 `ai-bom-delta`, `dynamic-code-added` and `script-hook-added`. A workflow is also modified when the
 change removes one of its entries from the [Actions lockfile](#actions-lockfile).
 
-`dynamic-code-added` and `script-hook-added` read the build-time code of the change: build configs,
-the files of the project that a config loads, and the files that an npm lifecycle script or the test
-script runs. They report a file only when the change edits the config or the `package.json` that runs
-it. A change that edits only a file that an unchanged config loads gives `dynamic-code` in a full scan,
-and nothing in pull request mode. Both controls warn. A policy suppression with a `control` and a
+`dynamic-code-added` and `script-hook-added` read the build-time code of the change. That code is the
+build configs, the files of the project that a config loads, and the files that an npm lifecycle script
+or the test script runs. vet reads each file at the head and at the base commit, and reports only the
+dynamic code and the scripts that the base did not have. vet reports a routed file only when the change
+edits the config or the `package.json` that routes to it. A change that edits only a file that an
+unchanged config loads gives `dynamic-code` in a full scan, and nothing in pull request mode. Both
+controls warn. A policy suppression with a `control` and a
 `path` hides them for a folder that needs dynamic code in its build, as in this example:
 
 ```yaml
@@ -393,13 +395,13 @@ A build config or an npm entry script calls eval or the Function constructor, ru
 
 **Change that adds dynamic code to code that runs at build, test or install time.** Family `hidden-code`. Default severity high. Plugin `hidden-code`.
 
-In pull request mode, the change brings dynamic code into a build config, into a file of the project that a build config loads, or into a file that an npm lifecycle script or the test script runs. The base version of the config or of the package.json showed no sign of hidden code. The dynamic-code control lists each call. This control marks that the change brings it in, which is the sign of a loader that a pull request adds. A policy can suppress it by path. The control warns until a false-positive run on real pull requests shows that it can fail the attacks gate.
+In pull request mode, the change brings dynamic code into a build config, into a file of the project that a build config loads, or into a file that an npm lifecycle script or the test script runs. vet reads the base version of the config or of the package.json, and of each file that it loads or runs. The base did not have this kind of dynamic code in the file. The dynamic-code control lists each call. This control marks that the change brings it in, which is the sign of a loader that a pull request adds. A policy can suppress it by path. The control warns until a false-positive run on real pull requests shows that it can fail the attacks gate.
 
 ### script-hook-added
 
 **Change that adds an npm lifecycle script that runs a file of the project.** Family `hidden-code`. Default severity medium. Plugin `hidden-code`.
 
-In pull request mode, the change adds a preinstall, install, postinstall, prepare, prepack, prepublish, pretest or posttest script, or a pre or post script of one, to a package.json that had no such script. The script runs a JavaScript file of the project with node or a node runner. npm runs it with no sign at each install or test, so a CI job that tests the pull request runs the file. vet reads the file for dynamic code. A package.json that already ran a file of the project with such a script gives no finding.
+In pull request mode, the change adds a script to a package.json that npm runs on its own, or makes such a script run another file. Such a script is preinstall, install, postinstall, prepare, prepack, prepublish, postpublish, pretest, posttest, or the pre or post script of another script or of an npm command. The script runs a file of the project with node, a node runner or a shell. npm runs it at each install, test or run of the other script, and the user does not see it. So a CI job that tests the pull request runs the file. vet reads a JavaScript file for dynamic code. A script that the base version of the package.json already had gives no finding.
 
 ### font-payload
 
