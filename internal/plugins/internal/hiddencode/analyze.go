@@ -62,6 +62,11 @@ type Signal struct {
 	// the base. A change of the files that a hook can run counts as a new
 	// hook.
 	Target string
+	// Calls is the count of the calls of one kind of dynamic code in the
+	// file. A sign of dynamic code stands for all of them. Pull request mode
+	// compares the count with the base, so a new call next to an old one
+	// of the same kind counts as new.
+	Calls int
 }
 
 // Open reads the part of a file of fsys that Analyze needs. See Read.

@@ -158,7 +158,9 @@ scan. `model.Change`. `MODIFIED` means the same version with another resolved UR
 mark. A change **introduces** content when it is `ADDED`, `UPGRADED`, `DOWNGRADED` or `MODIFIED`
 (`Change.Introduces`). Pull request mode keeps only the findings on introduced content. In this mode
 `Manifest.Base` holds the tree of the base commit, so a control can read the base version of a file and
-tell what the change brings in.
+tell what the change brings in. The change of a manifest says nothing about another file that a
+finding names, such as a file that a build config loads. The engine keeps a finding on such a file when
+the change edits the file, or when the control sets `Finding.Change` to a change that introduces content.
 _Avoid_: diff, delta status
 
 **Previous version**:

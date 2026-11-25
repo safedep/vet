@@ -97,7 +97,7 @@ var controls = []control{
 		plugin.ControlInfo{
 			ID: hiddencode.IDDynamicCode, Family: finding.FamilyHiddenCode, Severity: finding.SeverityHigh,
 			Title:       "Build config or npm entry script that runs dynamic code",
-			Description: "A build config or an npm entry script calls eval or the Function constructor, runs code with the vm module, loads a module by a name that it builds at run time, puts require, eval or Function on the global object or under another name, or starts a process with a command that it builds at run time. A config only declares settings, and a loader needs one of these to run its payload. vet also reads each file of the project that a build config loads with a plain path, and each file that an npm lifecycle script or the test script runs with node, because a loader can sit there in place of the config. vet skips a JSON file, a native addon and a WebAssembly module, which node does not run as JavaScript. In those files vet reports only eval, the Function constructor, the vm module, and require on the global object or under another name, because a build script often starts a process or loads a module by a computed name. vet reads the syntax tree, so a renamed require or a string table does not hide it. A build with no CGO skips the check. The control warns until a false-positive run on real configs shows that it can fail the attacks gate.",
+			Description: "A build config or an npm entry script calls eval or the Function constructor, runs code with the vm module, loads a module by a name that it builds at run time, puts require, eval or Function on the global object or under another name, or starts a process with a command that it builds at run time. A config only declares settings, and a loader needs one of these to run its payload. vet also reads each file of the project that a build config loads with a plain path, and each file that an npm lifecycle script or the test script runs with node, because a loader can sit there in place of the config. In pull request mode, vet reports a kind of call in such a file only when the file has more calls of that kind than its base version. vet skips a JSON file, a native addon and a WebAssembly module, which node does not run as JavaScript. In those files vet reports only eval, the Function constructor, the vm module, and require on the global object or under another name, because a build script often starts a process or loads a module by a computed name. vet reads the syntax tree, so a renamed require or a string table does not hide it. A build with no CGO skips the check. The control warns until a false-positive run on real configs shows that it can fail the attacks gate.",
 		},
 		"Read the code at the line. Remove it if the config does not need it, and restore the file from a clean commit if you did not write it.",
 	},
@@ -105,7 +105,7 @@ var controls = []control{
 		plugin.ControlInfo{
 			ID: hiddencode.IDDynamicCodeAdded, Family: finding.FamilyHiddenCode, Severity: finding.SeverityHigh,
 			Title:       "Change that adds dynamic code to code that runs at build, test or install time",
-			Description: "In pull request mode, the change brings dynamic code into a build config, into a file of the project that a build config loads, or into a file that an npm lifecycle script or the test script runs. vet reads the base version of the config or of the package.json, and of each file that it loads or runs. The base did not have this kind of dynamic code in the file. The dynamic-code control lists each call. This control marks that the change brings it in, which is the sign of a loader that a pull request adds. A policy can suppress it by path. The control warns until a false-positive run on real pull requests shows that it can fail the attacks gate.",
+			Description: "In pull request mode, the change brings dynamic code into a build config, into a file of the project that a build config loads, or into a file that an npm lifecycle script or the test script runs. vet reads the base version of the config or of the package.json, and of each file that it loads or runs. The file has more calls of this kind of dynamic code than its base version. The dynamic-code control lists each call. This control marks that the change brings it in, which is the sign of a loader that a pull request adds. A policy can suppress it by path. The control warns until a false-positive run on real pull requests shows that it can fail the attacks gate.",
 		},
 		"Read the code that the change adds. Do not merge it, run the tests or install the project until you know what it runs.",
 	},
@@ -173,10 +173,12 @@ func (*Control) OptionsSchema() []byte { return optschema.Of(&Options{}) }
 // request mode, Evaluate also reads the base version of the file. Each
 // file whose dynamic code the base did not have gives dynamic-code-added,
 // and each script hook that the base did not have gives
-// script-hook-added. A full scan has no base, so it gives neither.
+// script-hook-added. A full scan has no base, so it gives neither. A sign in
+// a routed file whose calls the base had gives no finding, because an edit
+// of a large file with old dynamic code is not a new loader.
 //
-// Several configs can load one file. Each one gives the same findings on
-// that file, with the same ids, and the scan keeps one of each.
+// Several configs can load one file. Each one that reports a sign on that
+// file gives the same finding, with the same id, and the scan keeps one.
 func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State) ([]finding.Finding, error) {
 	signals, err := signalsOf(m.Root, m)
 	if err != nil {
@@ -193,38 +195,51 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 			c.mu.Unlock()
 			continue
 		}
-		brought := base != nil && !base[signalKey(s)]
+		brought := base != nil && max(s.Calls, 1) > base[signalKey(s)]
 		if s.ID == hiddencode.IDScriptHook && !brought {
 			continue
 		}
 		path := cmp.Or(s.Path, m.Path)
+		if base != nil && !brought && path != m.Path {
+			continue
+		}
 		title := s.Title
 		if s.Campaign != "" {
 			title += ". It matches " + s.Campaign
 		}
-		out = append(out, fileFinding(path, s, title, seen))
+		out = append(out, introduce(fileFinding(path, s, title, seen), brought))
 		if s.ID == hiddencode.IDDynamicCode && brought && !added[path] {
 			added[path] = true
 			a := s
 			a.ID = hiddencode.IDDynamicCodeAdded
 			a.Title = fmt.Sprintf("The change brings dynamic code into %s, which runs at build, test or install time", path)
-			out = append(out, fileFinding(path, a, a.Title, seen))
+			out = append(out, introduce(fileFinding(path, a, a.Title, seen), true))
 		}
 	}
 	return out, nil
 }
 
+// introduce marks a finding on a sign that the base did not have. With the
+// mark, the engine keeps a finding on a routed file of an unchanged config,
+// whose route can go to an old file that the base did not route to.
+func introduce(f finding.Finding, brought bool) finding.Finding {
+	if brought {
+		f.Change = model.ChangeAdded
+	}
+	return f
+}
+
 // baseKeys returns the keys of the signals of the base version of the
-// file of a manifest, in pull request mode. A manifest that the change
-// keeps can route to a file that the change edits, so it gets keys too. It
-// returns nil in a full scan. A file that the base does not have, or that
-// vet cannot read there, gives an empty set. Then each signal counts as
-// new, so vet reports more, not less.
-func baseKeys(m *model.Manifest) map[string]bool {
+// file of a manifest, with the count of the calls of each one, in pull
+// request mode. A manifest that the change keeps can route to a file that
+// the change edits, so it gets keys too. It returns nil in a full scan. A
+// file that the base does not have, or that vet cannot read there, gives an
+// empty map. Then each signal counts as new, so vet reports more, not less.
+func baseKeys(m *model.Manifest) map[string]int {
 	if m.Base == nil && !m.Change.Introduces() {
 		return nil
 	}
-	keys := map[string]bool{}
+	keys := map[string]int{}
 	signals, err := signalsOf(m.Base, m)
 	if err != nil {
 		if !errors.Is(err, fs.ErrNotExist) {
@@ -233,7 +248,7 @@ func baseKeys(m *model.Manifest) map[string]bool {
 		return keys
 	}
 	for _, s := range signals {
-		keys[signalKey(s)] = true
+		keys[signalKey(s)] = max(s.Calls, 1)
 	}
 	return keys
 }

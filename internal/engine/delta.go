@@ -439,15 +439,17 @@ func introduced(f finding.Finding, m *model.Manifest) bool {
 		}
 		return false
 	case finding.SubjectFile, finding.SubjectManifest:
-		return m.Change.Introduces() || otherFileChanged(f, m)
+		return m.Change.Introduces() || f.Change.Introduces() || otherFileChanged(f, m)
 	}
 	return true
 }
 
 // otherFileChanged reports a finding on a file other than the file of the
-// manifest, such as a file that a build config loads, when the change adds
-// or edits that file. The change of the manifest says nothing about such a
-// file. A file that vet cannot read at the head or at the base counts as
+// manifest when the change adds or edits that file. The change of the
+// manifest says nothing about such a file. A control that knows which signs
+// the change brings in sets the change of the finding in place of this
+// check, such as the hidden-code control on a file that a build config
+// loads. A file that vet cannot read at the head or at the base counts as
 // changed, so vet reports more, not less.
 func otherFileChanged(f finding.Finding, m *model.Manifest) bool {
 	if f.Subject.Kind != finding.SubjectFile || f.Locus == nil || f.Locus.Path == m.Path || m.Root == nil || m.Base == nil {

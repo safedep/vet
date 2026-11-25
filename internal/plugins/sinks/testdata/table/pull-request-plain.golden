@@ -12,7 +12,7 @@ Gate: FAIL
 │            │            │                                 │                              │ SHA                       │
 └────────────┴────────────┴─────────────────────────────────┴──────────────────────────────┴───────────────────────────┘
 
-> Each finding is on a package or a file that the change adds.
+> Each finding is on content that the change adds.
 > 1 suppressed finding. vet report show -o json lists it.
 
 Tools: 1 MCP server

@@ -15,7 +15,7 @@ exec vet scan . --mode plain -o table --base-ref HEAD~1
 stdout 'Changed: 1'
 ! stdout 'Packages: 2'
 ! stdout 'CHANGE'
-stdout 'Each finding is on a package or a file that the change adds.'
+stdout 'Each finding is on content that the change adds.'
 stderr '1 package changed'
 
 execexit 2 vet scan . --mode plain --base-ref nosuchref

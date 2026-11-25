@@ -1,8 +1,9 @@
 # False-positive run
 
 The false-positive run scans clean projects at fixed commits with the built-in extractors and
-controls, and with no enricher. It fails on each finding of an attack control. It writes a table of
-the other hidden-code and agent-config findings, so a reviewer sees the noise of a control that
+controls, and with no enricher. It also scans clean commits against their first parent, as a pull
+request scan does. It fails on each finding of an attack control. It writes a table of the other
+hidden-code and agent-config findings for each mode, so a reviewer sees the noise of a control that
 warns.
 
 ```bash
@@ -19,6 +20,9 @@ It is never a required check, so a red run does not block a merge.
 
 - [repos.yaml](repos.yaml) lists each project with a fixed commit and the detection that it stresses.
   Move a commit only in a change that records the table before and after.
+- [changes.yaml](changes.yaml) lists clean commits for the pull request scans. Each one changes code
+  that runs at build or test time. A control of pull request mode, such as `dynamic-code-added`,
+  gives findings only in this table.
 - A new detection with a risk of false positives starts as a control that warns. It becomes an attack
   control in a change that shows a clean run in its pull request.
 - A pull request that changes a detection runs the workflow, and the run writes the table to its

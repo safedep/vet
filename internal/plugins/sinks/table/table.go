@@ -626,7 +626,7 @@ var changeVerbs = map[model.Change]string{
 // CHANGE column.
 func changeHint(c model.Change) string {
 	if v, ok := changeVerbs[c]; ok {
-		return "Each finding is on a package or a file that the change " + v + "."
+		return "Each finding is on content that the change " + v + "."
 	}
 	return ""
 }
