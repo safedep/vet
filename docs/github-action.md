@@ -198,8 +198,8 @@ The comment ends with a closed "For AI agents" block. It is YAML with these keys
 A key with no value is not in the block. Each list holds at most 100 ids. The report has each finding.
 
 The comment stays under 12,000 characters, with at most 2,500 outside the collapsed sections. A
-larger result shows fewer cards and more one-line items. The step summary has a card for each cause,
-and the report file has each finding. A vulnerability card shows its reach when the scan computed it.
+larger result shows fewer cards and more one-line items. A vulnerability card shows its reach when the
+scan computed it. The report file has each finding.
 
 `comment: auto` posts a comment when the change adds or upgrades a package or a workflow, or has a
 finding. A change that only removes a package gets no new comment. `comment: findings` posts only when the change has a finding. `comment: never`
@@ -215,6 +215,24 @@ Set it in the env of the step:
         env:
           VET_PLUGINS_PR_COMMENT_OPTIONS_KEY: api
 ```
+
+## The step summary
+
+The step summary is the `markdown` report of the scan. It shows:
+
+- the gate, the rules that block, and the number of packages and findings
+- what to do: the steps that clear the blocking findings, or the findings to review when nothing
+  blocks. An attack comes first. Then come the upgrades of each manifest, with each version in use and
+  the version to take, and then the fix of each other cause. A version that the data does not mark as
+  fixed is the latest version. The help and the link of each policy rule that blocks come last
+- a table of the blocking findings, with the advisory or the control, the place, the reach and the
+  rules that block. Each advisory has a row of its own
+- a table of the findings to review: the attacks and the critical and high findings that do not block
+- the other findings in a collapsed list for each control, with a link to the docs of the control
+- the command that shows the full report
+
+A table and an upgrade step show at most 50 rows, so the summary stays far below the limit of 1 MiB.
+The report file has each finding.
 
 ## Forks
 

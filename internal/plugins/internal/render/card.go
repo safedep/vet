@@ -15,8 +15,9 @@ const (
 	// so that no single finding fills a markdown report.
 	MaxField = 200
 	MaxText  = 1000
-	// maxMembers bounds the names in the list of a card.
-	maxMembers = 50
+	// MaxMembers bounds the names in the list of a card, and the rows of
+	// one table of a markdown report.
+	MaxMembers = 50
 )
 
 // Bounded escapes free text for markdown and bounds it to n runes.
@@ -128,8 +129,8 @@ func NewCard(g Group) Card {
 	}
 	title := Title(f)
 	for i, m := range g.Findings[1:] {
-		if i == maxMembers {
-			c.Members = append(c.Members, fmt.Sprintf("- %d more in the full report", len(g.Findings)-1-maxMembers))
+		if i == MaxMembers {
+			c.Members = append(c.Members, fmt.Sprintf("- %d more in the full report", len(g.Findings)-1-MaxMembers))
 			break
 		}
 		line := "- " + ShortCode(Subject(m))

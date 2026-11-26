@@ -1,7 +1,9 @@
 # Each finding that a rule blocks or warns names the rule in the report,
 # with the help and the link of the rule.
 execexit 1 vet scan proj --policy $WORK/vet-policy.yml --mode plain -o markdown
-stdout 'Blocked by policy rule pin-actions'
+stdout 'Policy rule pin-actions blocks \*\*1 finding\*\*'
+stdout '\| Blocked by \|$'
+stdout '\| pin-actions \|$'
 execexit 1 vet scan proj --policy $WORK/vet-policy.yml --mode plain -o json
 stdout '"gate":\{"action":"fail","rules":\["pin-actions"\],"help":"Pin the action to a commit SHA.","link":"https://wiki.example.com/actions"\}'
 

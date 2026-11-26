@@ -531,6 +531,19 @@ fix, is a group of its own. `render.Group`, from `render.Groups`, in
 latest end of a wait of its findings, as the end of a cooldown.
 _Avoid_: bucket, cluster, issue
 
+**Blocking finding**, **finding to review**:
+A blocking finding fails the gate: its id is in the `finding_ids` of the gate. A finding to review does
+not fail the gate, and is an attack finding or a critical or high finding. The other findings of a
+report go to a closed list. `overview.Sections` splits the findings. The pull request comment and the
+markdown report read it.
+_Avoid_: failing finding, important finding
+
+**Upgrade**:
+The version of one package that fixes its findings: the highest fixed version of the findings, or the
+latest version for a vulnerability with no fixed version. `overview.Upgrade`, from `overview.Upgrades`.
+The fix hint of the view and the "What to do" list of the markdown report read it.
+_Avoid_: fix target, bump
+
 **Agent block**:
 The closed "For AI agents" YAML block of the pull request comment. It holds the gate, each shown
 finding group with its fix as data, the finding ids and the command that downloads the report

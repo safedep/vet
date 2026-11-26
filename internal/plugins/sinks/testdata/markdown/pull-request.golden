@@ -1,38 +1,42 @@
-## vet scan
+## vet scan · ❌ The gate failed
 
-| Packages | Findings | Critical | High | Suppressed | Gate |
-| ---: | ---: | ---: | ---: | ---: | --- |
-| 2 | 2 | 1 | 0 | 1 | **FAIL** |
+Policy rule no-malware and --fail-on high block **1 finding** in this pull request. vet checked 2 packages and found 2 findings. The policy suppresses 1 more finding.
 
-| Kind | Control | Subject | Where | Change | Title | Gate | Finding |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| critical | malware | `npm/evil-colors@1.4.1` | `package-lock.json:42` | added | Malicious package | Blocked by policy rule no-malware and --fail-on high | `f-f7017b227d6ad796` |
-| medium | unpinned-action | `tj-actions/changed-files@v44` | `.github/workflows/ci.yml:8` | added | is not pinned to a commit SHA | Warned by policy rule pin-actions | `f-e815bb3b5e0846f1` |
+### What to do
 
-### Causes
+1. **Malicious package (1 finding).** Remove evil-colors.
+   - `npm/evil-colors@1.4.1` in `package-lock.json:42`
 
-`npm/evil-colors@1.4.1`: **Malicious package** · `critical` · `package-lock.json:42`
+**Policy help**
 
-The package runs a postinstall script that reads \~/.npmrc.
+- `no-malware`: Remove the package and rotate the secrets of each machine that installed it. · [Policy guidance](https://wiki.example.com/security/malware)
 
-**Blocked by:** policy rule no-malware and --fail-on high
+### Blocking findings (1)
 
-**Policy help:** Remove the package and rotate the secrets of each machine that installed it. · [Policy guidance](https://wiki.example.com/security/malware)
+|  | Finding | Where | Change | Blocked by |
+| --- | --- | --- | --- | --- |
+| 🔴 critical | [malware](https://github.com/safedep/vet/blob/v2/docs/controls.md#malware) · `f-f7017b22`<br>Malicious package | `npm/evil-colors@1.4.1`<br>`package-lock.json:42` | added | no-malware, --fail-on high |
 
-**Fix:** Remove evil-colors.
+### Other findings (1)
 
-**Evidence:** Verified malicious
+They do not block the gate.
 
-`f-f7017b227d6ad796`
+<details><summary><b>unpinned-action</b> · 1 finding · 1 medium</summary>
 
-`tj-actions/changed-files@v44`: **is not pinned to a commit SHA** · `medium` · `.github/workflows/ci.yml:8`
+[What this control checks](https://github.com/safedep/vet/blob/v2/docs/controls.md#unpinned-action)
 
-**Warned by:** policy rule pin-actions
+|  | Finding | Where | Change | Gate | ID |
+| --- | --- | --- | --- | --- | --- |
+| 🟡 medium | is not pinned to a commit SHA | `tj-actions/changed-files@v44`<br>`.github/workflows/ci.yml:8` | added | Warned by policy rule pin-actions | `f-e815bb3b` |
 
-`f-e815bb3b5e0846f1`
+</details>
 
 <details><summary>1 suppressed</summary>
 
 - `dependency-cooldown` `npm/left-pad@1.3.0`: Reviewed
 
 </details>
+
+---
+
+Full report: `vet report show test0000 --all` · One finding: `vet report finding show <id>`

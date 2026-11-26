@@ -1,7 +1,7 @@
 ## vet scan
 
-| Packages | Findings | Critical | High | Suppressed | Gate |
-| ---: | ---: | ---: | ---: | ---: | --- |
-| 2 | 0 | 0 | 0 | 0 | NONE |
+The scan has no gate. vet checked 2 packages and found no findings.
 
-No findings. 2 packages checked.
+---
+
+Full report: `vet report show test0000 --all`

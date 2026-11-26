@@ -245,21 +245,6 @@ func TestKeyedMarker(t *testing.T) {
 	assert.ErrorContains(t, err, "key must hold only")
 }
 
-func TestRef(t *testing.T) {
-	cases := map[string]string{
-		"2.0.0":                              "v2.0.0",
-		"v2.1.3":                             "v2.1.3",
-		"2.0.0-alpha.20261005063951":         "v2.0.0-alpha.20261005063951",
-		"devel":                              devRef,
-		"v2.0.0-20261005063951-abcdefabcdef": devRef,
-		"2.0.0+dirty":                        devRef,
-	}
-	for version, want := range cases {
-		c := &input{header: &report.Header{Tool: report.Tool{Version: version}}}
-		assert.Equal(t, want, c.ref(), version)
-	}
-}
-
 func TestWrite(t *testing.T) {
 	sink, err := New(plugin.MapConfig{"create": "findings"})
 	require.NoError(t, err)

@@ -644,6 +644,12 @@
   tier: P1
   guarantee: "The table shows the vulnerabilities of one package on one row with the short id of the most severe finding. vet report finding show accepts the short id. vet report show --all lists each finding on its own row."
   labels: [scan, output]
+- id: scan/output/job-summary
+  title: "the job summary says what to do and shows the blocking findings first"
+  category: scan
+  tier: P1
+  guarantee: "The markdown report names each upgrade that clears the blocking findings, with the version in use, the version to take and the count of findings. One table shows only the blocking findings. One open table shows the critical and high findings that do not block. The other findings are in a closed list for each control. The report has no list of causes."
+  labels: [scan, output, gate]
 - id: state/continue/after-interrupt
   title: "continue: after interrupt"
   category: state
