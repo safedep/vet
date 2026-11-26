@@ -1,46 +1,42 @@
 ## vet scan
 
-| Packages | Findings | Critical | High | Suppressed | Gate |
-| ---: | ---: | ---: | ---: | ---: | --- |
-| 2 | 4 | 1 | 1 | 1 | NONE |
+The scan has no gate. vet checked 2 packages and found 4 findings. A suppression hides 1 more finding.
 
-| Kind | Control | Subject | Where | Title | Reach | Finding |
-| --- | --- | --- | --- | --- | --- | --- |
-| critical | malware | `npm/evil-colors@1.4.1` | `package-lock.json:42` | Malicious package |  | `f-f7017b227d6ad796` |
-| high | vulnerability | `npm/left-pad@1.3.0` | `package-lock.json` | GHSA-stub-0001 in left-pad | called · 2 hops | `f-68be2d562f0682bb` |
-| medium | unpinned-action | `tj-actions/changed-files@v44` | `.github/workflows/ci.yml:8` | is not pinned to a commit SHA |  | `f-e815bb3b5e0846f1` |
-| low | vulnerability | `npm/left-pad@1.3.0` | `package-lock.json` | GHSA-stub-0002 in left-pad | not called | `f-ff61bff9fc367aea` |
+### Findings to review (2)
 
-### Causes
+|  | Finding | Where | Reach |
+| --- | --- | --- | --- |
+| 🔴 critical | [malware](https://github.com/safedep/vet/blob/v2/docs/controls.md#malware) · `f-f7017b22`<br>Malicious package | `npm/evil-colors@1.4.1`<br>`package-lock.json:42` |  |
+| 🟠 high | GHSA-stub-0001 · `f-68be2d56`<br>GHSA-stub-0001 in left-pad | `npm/left-pad@1.3.0`<br>`package-lock.json` | called · 2 hops |
 
-`npm/evil-colors@1.4.1`: **Malicious package** · `critical` · `package-lock.json:42`
+### Other findings (2)
 
-The package runs a postinstall script that reads \~/.npmrc.
+<details><summary><b>unpinned-action</b> · 1 finding · 1 medium</summary>
 
-**Fix:** Remove evil-colors.
+[What this control checks](https://github.com/safedep/vet/blob/v2/docs/controls.md#unpinned-action)
 
-**Evidence:** Verified malicious
+|  | Finding | Where | ID |
+| --- | --- | --- | --- |
+| 🟡 medium | is not pinned to a commit SHA | `tj-actions/changed-files@v44`<br>`.github/workflows/ci.yml:8` | `f-e815bb3b` |
 
-`f-f7017b227d6ad796`
+</details>
 
-`npm/left-pad@1.3.0`: **GHSA-stub-0001 in left-pad** · `high` · `package-lock.json`
+<details><summary><b>vulnerability</b> · 1 finding · 1 low</summary>
 
-**Reach:** called · 2 hops
+[What this control checks](https://github.com/safedep/vet/blob/v2/docs/controls.md#vulnerability)
 
-`f-68be2d562f0682bb`
+|  | Finding | Where | ID |
+| --- | --- | --- | --- |
+| ⚪ low | GHSA-stub-0002 in left-pad | `npm/left-pad@1.3.0`<br>`package-lock.json` | `f-ff61bff9` |
 
-`tj-actions/changed-files@v44`: **is not pinned to a commit SHA** · `medium` · `.github/workflows/ci.yml:8`
-
-`f-e815bb3b5e0846f1`
-
-`npm/left-pad@1.3.0`: **GHSA-stub-0002 in left-pad** · `low` · `package-lock.json`
-
-**Reach:** not called
-
-`f-ff61bff9fc367aea`
+</details>
 
 <details><summary>1 suppressed</summary>
 
 - `dependency-cooldown` `npm/left-pad@1.3.0`: Reviewed
 
 </details>
+
+---
+
+Full report: `vet report show test0000 --all` · One finding: `vet report finding show <id>`

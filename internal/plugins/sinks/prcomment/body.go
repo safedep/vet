@@ -10,7 +10,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/safedep/vet/v2/finding"
-	"github.com/safedep/vet/v2/internal/github"
 	"github.com/safedep/vet/v2/internal/overview"
 	"github.com/safedep/vet/v2/internal/plugins/internal/render"
 	"github.com/safedep/vet/v2/internal/tui/humanize"
@@ -40,8 +39,7 @@ const (
 	// maxAlerts bounds the lines of an alert.
 	maxAlerts = 5
 
-	repoURL  = "https://github.com/safedep/vet"
-	devRef   = "v2"
+	repoURL  = render.RepoURL
 	formFile = "false-positive.yml"
 )
 
@@ -175,28 +173,8 @@ type sections struct {
 }
 
 func (c *input) sections() sections {
-	g := c.trailer.Gate
-	var blocking, attacks, review, rest []*finding.Finding
-	for _, f := range c.view.Findings {
-		switch {
-		case g.Outcome == report.GateFail && slices.Contains(g.FindingIDs, f.ID):
-			blocking = append(blocking, f)
-		case f.Attack != nil:
-			attacks = append(attacks, f)
-		case f.Severity.AtLeast(finding.SeverityHigh):
-			review = append(review, f)
-		default:
-			rest = append(rest, f)
-		}
-	}
-	if len(blocking) > 0 {
-		rest = append(review, rest...)
-		slices.SortStableFunc(rest, finding.Compare)
-		return sections{shown: render.Groups(blocking), blocking: true, count: len(blocking), attacks: render.Groups(attacks), rest: rest}
-	}
-	review = append(attacks, review...)
-	slices.SortStableFunc(review, finding.Compare)
-	return sections{shown: render.Groups(review), count: len(review), rest: rest}
+	sp := c.view.Sections(c.trailer.Gate)
+	return sections{shown: render.Groups(sp.Shown), blocking: sp.Blocking, count: len(sp.Shown), attacks: render.Groups(sp.Attacks), rest: sp.Rest}
 }
 
 // render renders the comment at one level. It returns the body and the
@@ -494,7 +472,7 @@ func (c *input) card(b *strings.Builder, g render.Group) {
 		b.WriteString(strings.Join(card.Members, "\n") + "\n\n")
 		c.close(b)
 	}
-	fmt.Fprintf(b, "[About this control](%s) · [Wrong result?](%s) · %s\n\n", c.docURL(f.ControlID), c.formURL(f), code(f.ID))
+	fmt.Fprintf(b, "[About this control](%s) · [Wrong result?](%s) · %s\n\n", render.ControlURL(c.header.Tool.Version, f.ControlID), c.formURL(f), code(f.ID))
 }
 
 // groupLine writes one group on one line.
@@ -586,7 +564,7 @@ func (c *input) footer(b *strings.Builder) {
 	}
 	parts = append(parts,
 		fmt.Sprintf("[Wrong result?](%s)", c.formURL(nil)),
-		fmt.Sprintf("[Add vet to your repo](%s/blob/%s/docs/github-action.md)", repoURL, c.ref()))
+		fmt.Sprintf("[Add vet to your repo](%s/blob/%s/docs/github-action.md)", repoURL, render.DocsRef(c.header.Tool.Version)))
 	c.small(b, strings.Join(parts, " · "))
 	if c.via != "" {
 		c.small(b, c.via)
@@ -647,19 +625,6 @@ func pathEscape(p string) string {
 		segs[i] = url.PathEscape(s)
 	}
 	return strings.Join(segs, "/")
-}
-
-// ref is the git ref of the vet docs: the tag of a release build, else
-// the v2 branch.
-func (c *input) ref() string {
-	if tag, ok := github.ReleaseTag(c.header.Tool.Version); ok {
-		return tag
-	}
-	return devRef
-}
-
-func (c *input) docURL(control string) string {
-	return fmt.Sprintf("%s/blob/%s/docs/controls.md#%s", repoURL, c.ref(), url.PathEscape(control))
 }
 
 // formURL opens the false-positive issue form, filled in for f when f is

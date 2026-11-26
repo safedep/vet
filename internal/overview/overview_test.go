@@ -35,3 +35,32 @@ func TestRead(t *testing.T) {
 	assert.Equal(t, []finding.Severity{finding.SeverityCritical, finding.SeverityHigh, finding.SeverityMedium}, severities,
 		"the most severe first, and no suppressed finding")
 }
+
+func TestUpgrades(t *testing.T) {
+	pkg := func(name, fixed string) *finding.Finding {
+		p := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, name, "1.0.0")}
+		f := finding.ForPackage(finding.Meta{ControlID: "vulnerability", Family: finding.FamilyVulnerability, Severity: finding.SeverityHigh, Title: "v"},
+			"package-lock.json", p, finding.Key{Discriminator: name + fixed})
+		f.Remediation = &finding.Remediation{Summary: "Upgrade.", FixedVersion: fixed}
+		return &f
+	}
+	latest := map[model.PackageKey]string{model.MustPackageVersion(model.EcosystemNpm, "a", "1.0.0").Key(): "1.5.0"}
+	cases := []struct {
+		name       string
+		findings   []*finding.Finding
+		want       string
+		wantLatest bool
+	}{
+		{name: "a fixed version above the latest version", findings: []*finding.Finding{pkg("a", ""), pkg("a", "2.0.0")}, want: "2.0.0"},
+		{name: "the latest version above a fixed version", findings: []*finding.Finding{pkg("a", "1.2.0"), pkg("a", "")}, want: "1.5.0", wantLatest: true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ups := Upgrades(tc.findings, latest)
+			require.Len(t, ups, 1)
+			assert.Equal(t, tc.want, ups[0].To.RawVersion())
+			assert.Equal(t, tc.wantLatest, ups[0].Latest)
+			assert.Len(t, ups[0].Findings, 2, "each finding of the package is in the upgrade")
+		})
+	}
+}

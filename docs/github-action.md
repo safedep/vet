@@ -198,8 +198,20 @@ The comment ends with a closed "For AI agents" block. It is YAML with these keys
 A key with no value is not in the block. Each list holds at most 100 ids. The report has each finding.
 
 The comment stays under 12,000 characters, with at most 2,500 outside the collapsed sections. A
-larger result shows fewer cards and more one-line items. The step summary has a card for each cause,
-and the report file has each finding. A vulnerability card shows its reach when the scan computed it.
+larger result shows fewer cards and more one-line items. A vulnerability card shows its reach when the
+scan computed it. The report file has each finding.
+
+## The step summary
+
+The step summary is the `markdown` report of the scan. It shows:
+
+- the gate, the rules that block, and the number of packages and findings
+- what to do: the upgrades of each manifest, with the version that fixes each package, then the fix of
+  each other blocking cause. An attack comes first. A version that the data does not mark as fixed is
+  the latest version
+- a table of the blocking findings, with the advisory or the control, the place, the reach and the gate
+- the other findings in a collapsed list for each control, with a link to the docs of the control
+- the command that shows the full report
 
 `comment: auto` posts a comment when the change adds or upgrades a package or a workflow, or has a
 finding. A change that only removes a package gets no new comment. `comment: findings` posts only when the change has a finding. `comment: never`
