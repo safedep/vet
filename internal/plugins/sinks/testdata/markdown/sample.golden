@@ -1,6 +1,11 @@
 ## vet scan
 
-The scan has no gate. vet checked 2 packages and found 2 findings. A suppression hides 1 more finding.
+The scan has no gate. vet checked 2 packages and found 2 findings. The policy suppresses 1 more finding.
+
+### What to do
+
+1. **Malicious package (1 finding).** Remove evil-colors.
+   - `npm/evil-colors@1.4.1` in `package-lock.json:42`
 
 ### Findings to review (1)
 

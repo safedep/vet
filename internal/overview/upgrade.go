@@ -1,6 +1,8 @@
 package overview
 
 import (
+	"slices"
+
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/model"
 )
@@ -9,12 +11,16 @@ import (
 type Upgrade struct {
 	// Name is the raw name of the package in its first finding.
 	Name string
-	// From is the version in use of the first finding, and To the
-	// highest version that a finding names.
-	From, To model.PackageVersion
+	// From are the versions in use, in the order of their first finding.
+	From []model.PackageVersion
+	// To is the highest version that a finding names.
+	To model.PackageVersion
 	// Latest reports that To is the latest version of the package, because
-	// the finding that names it has no fixed version.
-	Latest   bool
+	// no finding names it as a fixed version.
+	Latest bool
+	// Unfixed counts the findings with no fixed version. The data does not
+	// show that To fixes them.
+	Unfixed  int
 	Findings []*finding.Finding
 }
 
@@ -28,7 +34,7 @@ func Upgrades(fs []*finding.Finding, latest map[model.PackageKey]string) []Upgra
 	var out []Upgrade
 	at := map[model.PackageKey]int{}
 	for _, f := range fs {
-		from, to, isLatest, ok := upgrade(f, latest)
+		from, to, unfixed, ok := upgrade(f, latest)
 		if !ok {
 			continue
 		}
@@ -36,11 +42,17 @@ func Upgrades(fs []*finding.Finding, latest map[model.PackageKey]string) []Upgra
 		if !seen {
 			i = len(out)
 			at[from.NameKey()] = i
-			out = append(out, Upgrade{Name: from.RawName(), From: from})
+			out = append(out, Upgrade{Name: from.RawName()})
 		}
 		u := &out[i]
-		if u.To.IsZero() || less(u.To, to) {
-			u.To, u.Latest = to, isLatest
+		if !slices.ContainsFunc(u.From, from.Equal) {
+			u.From = append(u.From, from)
+		}
+		if u.To.IsZero() || less(u.To, to) || u.Latest && !unfixed && !less(to, u.To) {
+			u.To, u.Latest = to, unfixed
+		}
+		if unfixed {
+			u.Unfixed++
 		}
 		u.Findings = append(u.Findings, f)
 	}
@@ -48,7 +60,8 @@ func Upgrades(fs []*finding.Finding, latest map[model.PackageKey]string) []Upgra
 }
 
 // upgrade returns the package of a finding, the version that fixes it, and
-// whether that version is the latest version.
+// whether that version is the latest version because the finding has no
+// fixed version.
 func upgrade(f *finding.Finding, latest map[model.PackageKey]string) (model.PackageVersion, model.PackageVersion, bool, bool) {
 	p := f.Subject.Package
 	if p == nil || f.Remediation == nil {
@@ -58,14 +71,14 @@ func upgrade(f *finding.Finding, latest map[model.PackageKey]string) (model.Pack
 	if err != nil {
 		return model.PackageVersion{}, model.PackageVersion{}, false, false
 	}
-	version, isLatest := f.Remediation.FixedVersion, false
+	version, unfixed := f.Remediation.FixedVersion, false
 	if version == "" && f.Family == finding.FamilyVulnerability {
-		version, isLatest = latest[id.Key()], true
+		version, unfixed = latest[id.Key()], true
 	}
 	if version == "" || !less(id, id.WithVersion(version)) {
 		return model.PackageVersion{}, model.PackageVersion{}, false, false
 	}
-	return id, id.WithVersion(version), isLatest, true
+	return id, id.WithVersion(version), unfixed, true
 }
 
 // less reports a version below another under the order of the ecosystem.

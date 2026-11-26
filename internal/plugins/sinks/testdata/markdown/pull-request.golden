@@ -1,11 +1,15 @@
 ## vet scan · ❌ The gate failed
 
-Policy rule no-malware and --fail-on high block **1 finding** in this pull request. vet checked 2 packages and found 2 findings. A suppression hides 1 more finding.
+Policy rule no-malware and --fail-on high block **1 finding** in this pull request. vet checked 2 packages and found 2 findings. The policy suppresses 1 more finding.
 
 ### What to do
 
 1. **Malicious package (1 finding).** Remove evil-colors.
    - `npm/evil-colors@1.4.1` in `package-lock.json:42`
+
+**Policy help**
+
+- `no-malware`: Remove the package and rotate the secrets of each machine that installed it. · [Policy guidance](https://wiki.example.com/security/malware)
 
 ### Blocking findings (1)
 

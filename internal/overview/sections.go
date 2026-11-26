@@ -7,45 +7,50 @@ import (
 	"github.com/safedep/vet/v2/report"
 )
 
-// Sections split the findings for a report that shows some findings in
-// full and lists the rest.
+// Sections split the open findings by what a person does with them. Each
+// part keeps the finding.Compare order.
 type Sections struct {
-	// Shown are the findings that fail the gate. With no failed gate, they
-	// are the attacks and the critical and high findings to review.
-	Shown []*finding.Finding
-	// Blocking reports that Shown are the findings that fail the gate.
-	Blocking bool
-	// Attacks are the attacks that do not fail a gate that fails on other
-	// findings, as with a gate of policy rules only. An attack never goes
-	// to Rest.
+	// Blocking are the findings that fail the gate.
+	Blocking []*finding.Finding
+	// Attacks are the attack findings that do not fail the gate.
 	Attacks []*finding.Finding
-	Rest    []*finding.Finding
+	// Review are the critical and high findings that do not fail the gate
+	// and are not attacks.
+	Review []*finding.Finding
+	// Rest are the other findings.
+	Rest []*finding.Finding
 }
 
-// Sections splits the findings by the gate. Each part keeps the
-// finding.Compare order.
+// Sections splits the findings by the gate.
 func (s Overview) Sections(g report.Gate) Sections {
-	var blocking, attacks, review, rest []*finding.Finding
-	for _, f := range s.Findings {
-		switch {
-		case g.Outcome == report.GateFail && slices.Contains(g.FindingIDs, f.ID):
-			blocking = append(blocking, f)
-		case f.Attack != nil:
-			attacks = append(attacks, f)
-		case f.Severity.AtLeast(finding.SeverityHigh):
-			review = append(review, f)
-		default:
-			rest = append(rest, f)
+	blocks := map[string]bool{}
+	if g.Outcome == report.GateFail {
+		for _, id := range g.FindingIDs {
+			blocks[id] = true
 		}
 	}
-	if len(blocking) > 0 {
-		rest = append(review, rest...)
-		slices.SortStableFunc(rest, finding.Compare)
-		return Sections{Shown: blocking, Blocking: true, Attacks: attacks, Rest: rest}
+	var sec Sections
+	for _, f := range s.Findings {
+		switch {
+		case blocks[f.ID]:
+			sec.Blocking = append(sec.Blocking, f)
+		case f.Attack != nil:
+			sec.Attacks = append(sec.Attacks, f)
+		case f.Severity.AtLeast(finding.SeverityHigh):
+			sec.Review = append(sec.Review, f)
+		default:
+			sec.Rest = append(sec.Rest, f)
+		}
 	}
-	review = append(attacks, review...)
-	slices.SortStableFunc(review, finding.Compare)
-	return Sections{Shown: review, Rest: rest}
+	return sec
+}
+
+// ToReview are the attacks and the review findings, in finding.Compare
+// order.
+func (s Sections) ToReview() []*finding.Finding {
+	fs := slices.Concat(s.Attacks, s.Review)
+	slices.SortStableFunc(fs, finding.Compare)
+	return fs
 }
 
 // shortScanID is the length of the scan id prefix in a command. vet report

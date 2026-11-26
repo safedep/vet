@@ -39,7 +39,6 @@ const (
 	// maxAlerts bounds the lines of an alert.
 	maxAlerts = 5
 
-	repoURL  = render.RepoURL
 	formFile = "false-positive.yml"
 )
 
@@ -174,7 +173,13 @@ type sections struct {
 
 func (c *input) sections() sections {
 	sp := c.view.Sections(c.trailer.Gate)
-	return sections{shown: render.Groups(sp.Shown), blocking: sp.Blocking, count: len(sp.Shown), attacks: render.Groups(sp.Attacks), rest: sp.Rest}
+	if len(sp.Blocking) == 0 {
+		review := sp.ToReview()
+		return sections{shown: render.Groups(review), count: len(review), rest: sp.Rest}
+	}
+	rest := slices.Concat(sp.Review, sp.Rest)
+	slices.SortStableFunc(rest, finding.Compare)
+	return sections{shown: render.Groups(sp.Blocking), blocking: true, count: len(sp.Blocking), attacks: render.Groups(sp.Attacks), rest: rest}
 }
 
 // render renders the comment at one level. It returns the body and the
@@ -552,7 +557,7 @@ func (c *input) details(b *strings.Builder, sec sections, lines int) {
 }
 
 func (c *input) footer(b *strings.Builder) {
-	parts := []string{fmt.Sprintf("[vet](%s) %s", repoURL, md(c.header.Tool.Version, maxField)), "open source, by SafeDep"}
+	parts := []string{fmt.Sprintf("[vet](%s) %s", render.RepoURL, md(c.header.Tool.Version, maxField)), "open source, by SafeDep"}
 	if c.links.Run != "" {
 		parts = append(parts, fmt.Sprintf("[Full report](%s)", c.links.Run))
 	}
@@ -564,7 +569,7 @@ func (c *input) footer(b *strings.Builder) {
 	}
 	parts = append(parts,
 		fmt.Sprintf("[Wrong result?](%s)", c.formURL(nil)),
-		fmt.Sprintf("[Add vet to your repo](%s/blob/%s/docs/github-action.md)", repoURL, render.DocsRef(c.header.Tool.Version)))
+		fmt.Sprintf("[Add vet to your repo](%s/blob/%s/docs/github-action.md)", render.RepoURL, render.DocsRef(c.header.Tool.Version)))
 	c.small(b, strings.Join(parts, " · "))
 	if c.via != "" {
 		c.small(b, c.via)
@@ -636,7 +641,7 @@ func (c *input) formURL(f *finding.Finding) string {
 		q.Set("finding", f.ID)
 		q.Set("subject", render.SubjectID(f))
 	}
-	return repoURL + "/issues/new?" + q.Encode()
+	return render.RepoURL + "/issues/new?" + q.Encode()
 }
 
 func (c *input) alert(b *strings.Builder, kind string, lines []string) {
