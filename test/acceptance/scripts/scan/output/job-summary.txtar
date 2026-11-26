@@ -1,0 +1,34 @@
+# The markdown report that the GitHub Action writes to the job summary says
+# what to do first: the upgrade, with the version in use, the version to
+# take and the count of findings. A table shows only the findings that
+# block. A critical or high finding that does not block shows in an open
+# table. The other findings are in a closed list for each control.
+cd proj
+execexit 1 vet scan . --mode plain -o json --fail-on critical --report markdown=$WORK/summary.md
+grep '^1\. \*\*In `package-lock\.json`, upgrade 1 package\.\*\* This can clear 1 finding\.$' $WORK/summary.md
+grep '^   - `minimist` 1\.2\.0 → \*\*1\.2\.8\*\*, the latest version \(1 finding\)$' $WORK/summary.md
+
+# The blocking table holds the critical advisory and no other finding. A
+# "#" starts the next heading, and no osv.dev link holds one.
+grep '(?s)### Blocking findings \(1\)\n\n[^#]*GHSA-stub-0002[^#]*\n### Findings to review' $WORK/summary.md
+! grep '(?s)### Blocking findings[^#]*GHSA-stub-0001' $WORK/summary.md
+
+# The high advisory that does not block is in the open table. A closed list
+# starts with a link to the control docs, which holds a "#".
+grep '(?s)### Findings to review \(1\)\n\n[^#]*GHSA-stub-0001[^#]*\n### Other findings' $WORK/summary.md
+
+# The medium advisory is in the closed list of its control.
+grep '(?s)<details><summary><b>vulnerability</b> · 1 finding · 1 medium</summary>\n\n[^\n]*\n\n[^\n]*\n[^\n]*\n\| 🟡 medium \| GHSA-stub-0003: ' $WORK/summary.md
+! grep '<details open' $WORK/summary.md
+! grep '### Causes' $WORK/summary.md
+
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"minimist": "1.2.0", "left-pad": "1.3.0"}},
+    "node_modules/minimist": {"version": "1.2.0", "resolved": "https://registry.npmjs.org/minimist/-/minimist-1.2.0.tgz"},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}

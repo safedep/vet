@@ -275,3 +275,39 @@ func TestStepsBeyondTheLimit(t *testing.T) {
 	assert.Equal(t, 10, strings.Count(todo, "(1 finding).**"), "the list has at most 10 steps")
 	assert.True(t, strings.HasSuffix(todo, "This list leaves out 2 more steps. The tables show their findings."))
 }
+
+func TestShortIDsTellSuppressedFindingsApart(t *testing.T) {
+	s := plugintest.SampleReport()
+	s.FindingList[0].ID = "f-aaaaaaaa11"
+	s.FindingList[2].ID = "f-aaaaaaaa22"
+	out := write(t, s)
+	require.NotNil(t, s.FindingList[2].Suppression)
+	assert.Contains(t, out, "`f-aaaaaaaa1`", "the short id of an open finding does not match a suppressed finding")
+	assert.NotContains(t, out, "`f-aaaaaaaa`")
+}
+
+func TestTheRowLimitKeepsTheMostSevereAdvisories(t *testing.T) {
+	m := &model.Manifest{ID: "m-1", Path: "go.mod", Ecosystem: model.EcosystemGo, Kind: model.ManifestKindLockfile}
+	s := plugintest.NewMemState(m)
+	var ids []string
+	add := func(name string, sev finding.Severity) {
+		p := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, name, "1.0.0")}
+		m.Packages = append(m.Packages, p)
+		f := finding.ForPackage(finding.Meta{ControlID: "vulnerability", Family: finding.FamilyVulnerability, Severity: sev, Title: "v"}, m.Path, p, finding.Key{})
+		f.Advisory = "GHSA-" + name
+		f.Remediation = &finding.Remediation{Summary: "Upgrade."}
+		f.Gate = &finding.GateRecord{Action: finding.GateActionFail, Rules: []string{"r"}}
+		s.FindingList = append(s.FindingList, &f)
+		ids = append(ids, f.ID)
+	}
+	for i := range 60 {
+		add(fmt.Sprintf("p%02d", i), finding.SeverityHigh)
+	}
+	add("zz00", finding.SeverityCritical)
+	add("zz01", finding.SeverityCritical)
+	s.Trailer().Gate = report.Gate{Outcome: report.GateFail, FindingIDs: ids}
+	blocking := section(write(t, s), "Blocking findings (62)")
+	assert.Contains(t, blocking, "GHSA-zz00")
+	assert.Contains(t, blocking, "GHSA-zz01")
+	assert.Equal(t, 2, strings.Count(blocking, "| 🔴 critical |"))
+}

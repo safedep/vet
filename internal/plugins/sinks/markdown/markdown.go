@@ -74,9 +74,11 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	ids := make([]string, len(view.Findings))
-	for i, f := range view.Findings {
-		ids[i] = f.ID
+	// vet report finding show also reads the suppressed findings, so a
+	// short id must not match one of them.
+	var ids []string
+	for _, f := range slices.Concat(view.Findings, view.Suppressed) {
+		ids = append(ids, f.ID)
 	}
 	p := page{header: r.Header(), trailer: r.Trailer(), view: view, idLength: report.ShortIDLength(ids)}
 	sec := view.Sections(p.trailer.Gate)
@@ -389,7 +391,9 @@ func onlyWhere(f *finding.Finding) bool {
 }
 
 // rows puts the findings of one cause in one row. A finding with an
-// advisory has a row of its own, so that each advisory shows.
+// advisory has a row of its own, so that each advisory shows. These rows
+// come in finding.Compare order, so that the row limit cuts the least
+// severe advisories of a group.
 func rows(fs []*finding.Finding) []render.Group {
 	var out []render.Group
 	for _, g := range render.Groups(fs) {
@@ -397,7 +401,9 @@ func rows(fs []*finding.Finding) []render.Group {
 			out = append(out, g)
 			continue
 		}
-		for _, f := range g.Findings {
+		members := slices.Clone(g.Findings)
+		slices.SortStableFunc(members, finding.Compare)
+		for _, f := range members {
 			out = append(out, render.Group{Findings: []*finding.Finding{f}})
 		}
 	}
