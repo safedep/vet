@@ -1,0 +1,52 @@
+# Clean commits for the pull request mode of the false-positive run. vet scans
+# each commit against its first parent, as a pull request scan does. Each one
+# changes code that runs at build or test time. Move a commit only in a change
+# that records the result before and after.
+- name: webpack
+  url: https://github.com/webpack/webpack
+  commit: e9dde56045d0d89a5708361314c8e2ee0e1c4edd
+  why: Edits a parser that a test config loads, which has old Function calls. It adds none.
+- name: webpack
+  url: https://github.com/webpack/webpack
+  commit: 845a0094f1c0fc52774bfc0b2b900b586a0f22ca
+  why: Edits the same parser, with no new dynamic code.
+- name: webpack
+  url: https://github.com/webpack/webpack
+  commit: fa81f1c2a0701d706d3b0fa544bf51752a4b6ea2
+  why: Changes links in comments of two loaded files that have old Function calls.
+- name: webpack
+  url: https://github.com/webpack/webpack
+  commit: 2100e721c65d2ff460872f27cf911dfdf1138b82
+  why: Edits the same parser, with no new dynamic code.
+- name: webpack
+  url: https://github.com/webpack/webpack
+  commit: 27dfadba3b53833a292a789d5c2d345042a3759b
+  why: Adds a test config that runs a compiled template with new Function. It gives dynamic-code-added.
+- name: webpack
+  url: https://github.com/webpack/webpack
+  commit: bba9874f0d896da00465b3947493f8e1948374c0
+  why: Adds a loaded helper that tests async support with eval. It gives dynamic-code-added.
+- name: webpack
+  url: https://github.com/webpack/webpack
+  commit: 9c448c4ca3b5296849453384f49f4032b01345d6
+  why: Moves a jest setup file that sets a key on the global object. It gives dynamic-code-added.
+- name: vite
+  url: https://github.com/vitejs/vite
+  commit: 19feea1a6bc7d82e3113393a73d90ecf05d0600c
+  why: Changes the test scripts and the vitest config.
+- name: jest
+  url: https://github.com/jestjs/jest
+  commit: 3ed3acdbd505ac79c2f074e298cf0fbc5ce0b7bb
+  why: Adds a test script that names another jest config.
+- name: jest
+  url: https://github.com/jestjs/jest
+  commit: cfc27d4a65d0536cb9a463fcb211a4354ccc78b4
+  why: Changes a jest config and its setup file.
+- name: axios
+  url: https://github.com/axios/axios
+  commit: f64e4586e9a6a6458af9364bc0b5839ce8cac571
+  why: Adds a script that runs a test file with node.
+- name: asyncapi-generator
+  url: https://github.com/asyncapi/generator
+  commit: 0dfbb7db162e0c2335a67d249e4ae83596b43c3b
+  why: Adds a jest config and test scripts to a template, in the repository of a real attack.

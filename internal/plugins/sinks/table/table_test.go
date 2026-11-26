@@ -259,7 +259,7 @@ func TestPullRequestTable(t *testing.T) {
 	got := write(t, nil, r)
 	assert.Contains(t, got, "Changed: 1", "the card counts the changed packages, not every package")
 	assert.NotContains(t, got, "CHANGE", "each row has the same change")
-	assert.Contains(t, got, "Each finding is on a package or a file that the change adds.")
+	assert.Contains(t, got, "Each finding is on content that the change adds.")
 
 	r.FindingList[1].Change = model.ChangeModified
 	got = write(t, nil, r)

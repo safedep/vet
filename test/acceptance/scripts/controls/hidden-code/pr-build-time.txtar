@@ -5,7 +5,10 @@
 # project gives script-hook-added. Both warn, so the attacks gate passes. A
 # config that had dynamic code at the base gives dynamic-code only. A full
 # scan has no base, so it gives neither of the two. A change that edits only
-# a file that an unchanged config loads gives dynamic-code-added too.
+# a file that an unchanged config loads gives dynamic-code-added too. An edit
+# that keeps the old dynamic code of a loaded file gives no finding. A change
+# to the main field of a package.json that routes a config to an old loader
+# gives dynamic-code-added.
 [!git] skip 'needs git'
 [!cgo] skip 'the dynamic-code check needs a vet built with CGO'
 cd repo
@@ -40,6 +43,21 @@ stdout '^high\tdynamic-code-added\tapi.js\t'
 ! stdout 'script-hook-added'
 stderr 'Gate passed'
 
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m next
+exec sh -c 'echo "// a comment" >> api.js'
+exec vet scan . --base-ref HEAD --mode plain -o plain --fail-on attacks --fresh
+! stdout 'api.js'
+
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m comment
+cp $WORK/route/package.json tools/package.json
+exec vet scan . --base-ref HEAD --mode plain -o plain --fail-on attacks --fresh
+stdout '^high\tdynamic-code-added\ttools/b.js\t'
+stdout '^high\tdynamic-code\ttools/b.js\t'
+! stdout 'vitest.config.js'
+stderr 'Gate passed'
+
 -- repo/jest.config.js --
 module.exports = { testEnvironment: 'node' };
 -- repo/legacy.config.js --
@@ -51,6 +69,17 @@ module.exports = eval('({ a: 1 })');
     "test": "jest"
   }
 }
+-- repo/vitest.config.js --
+require('./tools');
+module.exports = {};
+-- repo/tools/package.json --
+{"main": "a.js"}
+-- repo/tools/a.js --
+module.exports = 1;
+-- repo/tools/b.js --
+global['r']=require;(function(){var f=Function(atob('Y29uc29sZS5sb2coMSk='));f();})();
+-- route/package.json --
+{"main": "b.js"}
 -- head/jest.config.js --
 require('./api');
 module.exports = { testEnvironment: 'node' };

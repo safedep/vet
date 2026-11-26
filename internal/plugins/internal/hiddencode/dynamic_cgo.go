@@ -158,15 +158,19 @@ func dynamicCode(what, p string, data []byte, loadersOnly bool) []Signal {
 	if a.Truncated() {
 		out = append(out, unread...)
 	}
-	found := map[dynamicKind]bool{}
+	found := map[dynamicKind]int{}
 	for _, h := range hits {
 		if loadersOnly && !loaderKinds[h.kind] {
 			continue
 		}
-		if !found[h.kind] {
-			found[h.kind] = true
-			out = append(out, signal(h.kind, int(h.node.StartPoint().Row)+1))
+		if i, ok := found[h.kind]; ok {
+			out[i].Calls++
+			continue
 		}
+		found[h.kind] = len(out)
+		s := signal(h.kind, int(h.node.StartPoint().Row)+1)
+		s.Calls = 1
+		out = append(out, s)
 	}
 	return out
 }

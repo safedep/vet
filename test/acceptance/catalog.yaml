@@ -360,7 +360,7 @@
   title: "hidden code: a change that brings dynamic code into build-time code in pull request mode"
   category: controls
   tier: P1
-  guarantee: "In pull request mode, a change that brings dynamic code into a build config, a file that a config loads or a file that an npm lifecycle script runs gives dynamic-code-added. A new lifecycle script that runs a file of the project gives script-hook-added. Both warn. A config that had dynamic code at the base gives dynamic-code only, and a full scan gives neither."
+  guarantee: "In pull request mode, a change that brings dynamic code into a build config, a file that a config loads or a file that an npm lifecycle script runs gives dynamic-code-added. A new lifecycle script that runs a file of the project gives script-hook-added. Both warn. A config that had dynamic code at the base gives dynamic-code only, and a full scan gives neither. An edit of a loaded file that keeps its old dynamic code gives no finding, and a change of the main field of a package.json that routes a config to an old loader gives dynamic-code-added."
   labels: [hidden-code, pr-mode]
 - id: controls/agent-config/pr-linked-instructions
   title: "agent config: an instruction file that links to another in pull request mode"

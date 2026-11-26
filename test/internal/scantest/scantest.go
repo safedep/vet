@@ -51,6 +51,14 @@ func Endpoint(home string) plugin.Source {
 // Scan runs the built-in controls on src and returns the findings.
 func Scan(t *testing.T, src plugin.Source) []*finding.Finding {
 	t.Helper()
+	return ScanAgainst(t, src, "")
+}
+
+// ScanAgainst runs the built-in controls on src in pull request mode, with
+// base as the base ref, and returns the findings. An empty base gives a full
+// scan.
+func ScanAgainst(t *testing.T, src plugin.Source, base string) []*finding.Finding {
+	t.Helper()
 	ctx := context.Background()
 	built, err := controls.Build(allEnabled{})
 	require.NoError(t, err)
@@ -64,7 +72,7 @@ func Scan(t *testing.T, src plugin.Source) []*finding.Finding {
 	res, err := engine.Run(ctx, engine.Options{
 		Store: store, Source: src, Controls: cs,
 		Extractors:  func(plugin.ArtifactKind) ([]plugin.Extractor, error) { return extractors.For(model.PackagesDeclared) },
-		OptionsHash: "scantest", VetVersion: "test", BatchSize: 10,
+		OptionsHash: "scantest", VetVersion: "test", BatchSize: 10, BaseRef: base,
 	})
 	require.NoError(t, err)
 	defer func() { assert.NoError(t, res.Scan.Close()) }()

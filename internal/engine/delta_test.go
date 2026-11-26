@@ -539,28 +539,32 @@ func TestAScanReportsNothingOnARoutedFileThatTheWalkSkips(t *testing.T) {
 	assert.Equal(t, map[string]bool{"tools/setup.js": true}, paths)
 }
 
-func TestIntroducedKeepsAFindingOnAnotherFileThatTheChangeEdits(t *testing.T) {
+func TestIntroducedKeepsAFindingOnAnotherFile(t *testing.T) {
 	head := fstest.MapFS{"jest.config.js": {Data: []byte("require('./api')")}, "api.js": {Data: []byte("eval(x)")}}
-	onFile := func(p string) finding.Finding {
-		return finding.ForFile(finding.Meta{ControlID: "c"}, finding.Locus{Path: p}, finding.Key{})
+	onFile := func(p string, change model.Change) finding.Finding {
+		f := finding.ForFile(finding.Meta{ControlID: "c"}, finding.Locus{Path: p}, finding.Key{})
+		f.Change = change
+		return f
 	}
 	cases := []struct {
-		name   string
-		change model.Change
-		base   fstest.MapFS
-		path   string
-		want   bool
+		name     string
+		manifest model.Change
+		base     fstest.MapFS
+		path     string
+		finding  model.Change
+		want     bool
 	}{
-		{"the change edits the other file", model.ChangeUnchanged, fstest.MapFS{"jest.config.js": head["jest.config.js"], "api.js": {Data: []byte("1")}}, "api.js", true},
-		{"the change adds the other file", model.ChangeUnchanged, fstest.MapFS{"jest.config.js": head["jest.config.js"]}, "api.js", true},
-		{"the change keeps the other file", model.ChangeUnchanged, head, "api.js", false},
-		{"the change keeps the file of the manifest", model.ChangeUnchanged, fstest.MapFS{}, "jest.config.js", false},
-		{"the change edits the manifest", model.ChangeModified, head, "api.js", true},
+		{"the control marks a sign in another file that the change keeps", model.ChangeUnchanged, head, "api.js", model.ChangeAdded, true},
+		{"the change edits another file", model.ChangeUnchanged, fstest.MapFS{"jest.config.js": head["jest.config.js"], "api.js": {Data: []byte("1")}}, "api.js", "", true},
+		{"the change adds another file", model.ChangeUnchanged, fstest.MapFS{"jest.config.js": head["jest.config.js"]}, "api.js", "", true},
+		{"the change keeps another file", model.ChangeUnchanged, head, "api.js", "", false},
+		{"the change keeps the file of the manifest", model.ChangeUnchanged, fstest.MapFS{}, "jest.config.js", "", false},
+		{"the change edits the manifest", model.ChangeModified, head, "api.js", "", true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			m := &model.Manifest{Path: "jest.config.js", Change: tc.change, Root: head, Base: tc.base}
-			assert.Equal(t, tc.want, introduced(onFile(tc.path), m))
+			m := &model.Manifest{Path: "jest.config.js", Change: tc.manifest, Root: head, Base: tc.base}
+			assert.Equal(t, tc.want, introduced(onFile(tc.path, tc.finding), m))
 		})
 	}
 }
