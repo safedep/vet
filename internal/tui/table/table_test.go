@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	"github.com/safedep/dry/tui/output"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFit(t *testing.T) {
@@ -58,10 +59,14 @@ func TestFitCell(t *testing.T) {
 		cell     string
 		width    int
 		fit      Fit
+		lines    int
 		ellipsis string
 		want     string
 	}{
 		{name: "cut", cell: "abcdefghij", width: 5, fit: Cut, ellipsis: "…", want: "abcd…"},
+		{name: "wrap to two lines", cell: "Malicious package", width: 10, fit: Wrap, lines: 2, ellipsis: "…", want: "Malicious\npackage"},
+		{name: "wrap and cut at a word", cell: "Third-party action is not pinned to a commit", width: 12, fit: Wrap, lines: 2, ellipsis: "…", want: "Third-party\naction is…"},
+		{name: "wrap and cut in ASCII", cell: "Third-party action is not pinned to a commit", width: 12, fit: Wrap, lines: 2, ellipsis: "...", want: "Third-party\naction is..."},
 		{name: "cut in ASCII", cell: "abcdefghij", width: 5, fit: Cut, ellipsis: "...", want: "ab..."},
 		{name: "cut left at a separator", cell: "/tmp/claude-0/uxreview/projects/npm-app", width: 20, fit: CutLeft, ellipsis: "…", want: "…/projects/npm-app"},
 		{name: "cut left in ASCII", cell: "/tmp/claude-0/uxreview/projects/npm-app", width: 20, fit: CutLeft, ellipsis: "...", want: ".../projects/npm-app"},
@@ -71,7 +76,7 @@ func TestFitCell(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, fitCell(tc.cell, tc.width, tc.fit, tc.ellipsis))
+			assert.Equal(t, tc.want, fitCell(tc.cell, tc.width, Column{Fit: tc.fit, Lines: tc.lines}, tc.ellipsis))
 		})
 	}
 }
@@ -118,11 +123,11 @@ func TestRenderMeasuresTheWidestLineOfACell(t *testing.T) {
 	assert.Contains(t, out, subject, "a two-line cell is as wide as its widest line")
 }
 
-// TestRenderIsASCIIOutsideRichMode keeps the box-drawing border and the
-// ellipsis character out of a CI log and a report file. Rich mode keeps
-// them.
+// TestRenderIsASCIIOutsideRichMode keeps the plain and agent modes ASCII
+// while stderr is a rich terminal, as for a report file. Only the rich mode
+// draws a box-drawing border and an ellipsis character.
 func TestRenderIsASCIIOutsideRichMode(t *testing.T) {
-	t.Cleanup(func() { output.SetMode(output.Rich) })
+	output.SetMode(output.Rich)
 	long := strings.Repeat("very-long-package-name-", 5)
 	cases := []struct {
 		mode  output.Mode
@@ -134,11 +139,26 @@ func TestRenderIsASCIIOutsideRichMode(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.mode.String(), func(t *testing.T) {
-			output.SetMode(tc.mode)
-			out := New().Headers("SEVERITY", "SUBJECT").Row("high", long).MaxWidth(40).Render()
+			out := New().Mode(tc.mode).Headers("SEVERITY", "SUBJECT").Row("high", long).MaxWidth(40).Render()
 			assert.Contains(t, out, "high")
 			isASCII := strings.IndexFunc(out, func(r rune) bool { return r > unicode.MaxASCII }) < 0
 			assert.Equal(t, tc.ascii, isASCII, out)
 		})
 	}
+}
+
+// TestPlainBorderKeepsTheCellText keeps untrusted text as it is. Only the
+// border of a plain table is ASCII.
+func TestPlainBorderKeepsTheCellText(t *testing.T) {
+	out := New().Mode(output.Plain).Headers("TITLE").Row("├── payload").MaxWidth(40).Render()
+	lines := strings.Split(out, "\n")
+	require.Len(t, lines, 5)
+	assert.Equal(t, "+-------------+", lines[0])
+	assert.Equal(t, "| ├── payload |", lines[3])
+}
+
+func TestRenderCapsAColumnAtItsMax(t *testing.T) {
+	out := New().Mode(output.Plain).Headers("NAME", "TAGS").Row(strings.Repeat("x", 30), "llm").
+		Columns(Column{Max: 10}).MaxWidth(200).Render()
+	assert.Contains(t, out, "| xxxxxxx... | llm  |")
 }

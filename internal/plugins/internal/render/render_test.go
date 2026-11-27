@@ -85,3 +85,21 @@ func TestSafeURL(t *testing.T) {
 	assert.Empty(t, SafeURL("javascript:alert(1)"))
 	assert.Empty(t, SafeURL("https://"))
 }
+
+// TestPolicyHelpKeepsACommandAsItIs puts no full stop after a help text,
+// which can end with a command that a person copies.
+func TestPolicyHelpKeepsACommandAsItIs(t *testing.T) {
+	cases := []struct {
+		name, help, link, want string
+	}{
+		{name: "command and link", help: "Run vet ci setup", link: "https://wiki.example.com/vet", want: "Run vet ci setup [Policy guidance](https://wiki.example.com/vet)"},
+		{name: "command alone", help: "Run vet ci setup", want: "Run vet ci setup"},
+		{name: "link alone", link: "https://wiki.example.com/vet", want: "[Policy guidance](https://wiki.example.com/vet)"},
+		{name: "nothing"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, PolicyHelp(tc.help, tc.link))
+		})
+	}
+}

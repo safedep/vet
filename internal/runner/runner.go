@@ -462,6 +462,9 @@ func Outputs(cfg *config.Config, out string, reports []string, extra map[string]
 		if err != nil {
 			return nil, app.UsageError(err.Error(), "Fix the option in the config file.")
 		}
+		// stderr decides the messaging mode. A file or a pipe gets plain
+		// text, even when stderr is a rich terminal.
+		s = sinks.WithMode(s, output.DataMode(d.Path == "" && !d.Publish))
 		outs = append(outs, engine.Output{Format: d.Format, Path: d.Path, Publish: d.Publish, Sink: s})
 	}
 	return outs, nil

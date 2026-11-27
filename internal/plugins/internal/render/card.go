@@ -140,14 +140,11 @@ func NewCard(g Group) Card {
 }
 
 // PolicyHelp is the help of a policy rule and the link to its guidance, in
-// markdown, or "". The help ends with a full stop, so the link starts a new
-// sentence.
+// markdown, or "". It adds no full stop to the help, which can end with a
+// command that a person copies.
 func PolicyHelp(help, link string) string {
 	var parts []string
 	if help != "" {
-		if !strings.HasSuffix(help, ".") && !strings.HasSuffix(help, "?") && !strings.HasSuffix(help, "!") {
-			help += "."
-		}
 		parts = append(parts, Bounded(Text(help), MaxText))
 	}
 	if u := SafeURL(link); u != "" {

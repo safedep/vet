@@ -88,6 +88,21 @@ func (r Registry) New(format string, cfg plugin.Config) (plugin.Sink, error) {
 	return s, nil
 }
 
+// moded is a format that draws for the output mode of its destination, as
+// the table format does.
+type moded interface {
+	WithMode(m output.Mode) plugin.Sink
+}
+
+// WithMode gives a sink the output mode of its destination. A format that
+// draws no terminal text stays as it is.
+func WithMode(s plugin.Sink, m output.Mode) plugin.Sink {
+	if ms, ok := s.(moded); ok {
+		return ms.WithMode(m)
+	}
+	return s
+}
+
 // Destination is a format and a path. An empty path is stdout, unless
 // Publish is set.
 type Destination struct {

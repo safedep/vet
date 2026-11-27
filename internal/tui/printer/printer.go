@@ -67,6 +67,8 @@ type Rows struct {
 type Printer struct {
 	w      io.Writer
 	format Format
+	// mode is the mode of the table: rich only on a terminal.
+	mode output.Mode
 }
 
 // Option changes a printer.
@@ -77,7 +79,7 @@ func WithWriter(w io.Writer) Option { return func(p *Printer) { p.w = w } }
 
 // New returns a printer that writes to stdout.
 func New(f Format, opts ...Option) *Printer {
-	p := &Printer{w: output.Stdout(), format: f}
+	p := &Printer{w: output.Stdout(), format: f, mode: output.DataMode(true)}
 	for _, o := range opts {
 		o(p)
 	}
@@ -101,7 +103,7 @@ func (p *Printer) Print(value any, rows Rows) error {
 	case Plain:
 		return p.plain(rows)
 	default:
-		r := table.New().Headers(rows.Headers...).Rows(rows.Rows...).Columns(rows.Columns...).
+		r := table.New().Mode(p.mode).Headers(rows.Headers...).Rows(rows.Rows...).Columns(rows.Columns...).
 			Title(rows.Title).Footer(rows.Footer)
 		if rows.Empty != "" {
 			r.EmptyMessage(rows.Empty)

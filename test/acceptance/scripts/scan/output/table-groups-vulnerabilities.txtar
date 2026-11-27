@@ -20,6 +20,14 @@ stdout -count=2 'npm/minimist@1\.2\.0'
 stdout 'GHSA-stub-0002'
 ! stdout 'vulnerabilities in'
 
+# A rich stderr does not make the table rich on a pipe or in a file. Only a
+# terminal shows rich text.
+exec vet report show --mode rich -o table --report table=$WORK/table.txt
+stdout '^\+-'
+! stdout '[^\x00-\x7F]'
+grep '^\+-' $WORK/table.txt
+! grep '[^\x00-\x7F]' $WORK/table.txt
+
 -- proj/package-lock.json --
 {
   "name": "app",

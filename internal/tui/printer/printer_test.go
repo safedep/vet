@@ -57,6 +57,16 @@ func TestTable(t *testing.T) {
 	assert.Contains(t, buf.String(), "No scans.")
 }
 
+// TestTableIsASCIIInAPipe keeps rich text out of a redirect or a pipe of
+// stdout while stderr is a rich terminal. The test binary has no terminal
+// on stdout.
+func TestTableIsASCIIInAPipe(t *testing.T) {
+	output.SetMode(output.Rich)
+	var buf bytes.Buffer
+	require.NoError(t, New(Table, WithWriter(&buf)).Print(nil, Rows{Headers: []string{"NAME"}, Rows: [][]string{{"vet"}}}))
+	assert.Equal(t, "+------+\n| NAME |\n+------+\n| vet  |\n+------+\n", buf.String())
+}
+
 func TestParseAndDefaultFormat(t *testing.T) {
 	for _, f := range Formats() {
 		got, err := ParseFormat(string(f))

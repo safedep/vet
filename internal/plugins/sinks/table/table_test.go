@@ -12,6 +12,7 @@ import (
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/tui/output"
+	"github.com/safedep/vet/v2/internal/tui/page"
 	"github.com/safedep/vet/v2/internal/tui/theme"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
@@ -31,11 +32,12 @@ func withWidth(t *testing.T, n int) {
 	})
 }
 
+// write renders in the messaging mode, as the runner does for a terminal.
 func write(t *testing.T, options plugin.MapConfig, r *plugintest.MemState) string {
 	t.Helper()
 	s, err := New(options)
 	require.NoError(t, err)
-	return string(plugintest.TestSink(t, s, r))
+	return string(plugintest.TestSink(t, s.(Sink).WithMode(output.CurrentMode()), r))
 }
 
 // vulnReport has 3 vulnerabilities of django, 2 of requests, and one
@@ -335,7 +337,7 @@ func TestTagsPutTheWeakBadgeLast(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, tags(&report.Capability{Tags: tc.tags}))
+			assert.Equal(t, tc.want, Sink{page: page.For(output.Plain)}.tags(&report.Capability{Tags: tc.tags}))
 		})
 	}
 }
@@ -352,26 +354,6 @@ func TestEmptyScanWritesNothing(t *testing.T) {
 	r := plugintest.SampleReport()
 	r.ManifestList, r.FindingList, r.CapabilityList, r.InventoryList = nil, nil, nil, nil
 	assert.Empty(t, string(plugintest.TestSink(t, s, r)))
-}
-
-func TestWrap(t *testing.T) {
-	cases := []struct {
-		name     string
-		text     string
-		width    int
-		ellipsis string
-		want     string
-	}{
-		{name: "fits", text: "Malicious package", width: 20, ellipsis: "…", want: "Malicious package"},
-		{name: "two lines", text: "Malicious package", width: 10, ellipsis: "…", want: "Malicious\npackage"},
-		{name: "cut at a word", text: "Third-party action is not pinned to a commit", width: 12, ellipsis: "…", want: "Third-party\naction is…"},
-		{name: "cut in ASCII", text: "Third-party action is not pinned to a commit", width: 12, ellipsis: "...", want: "Third-party\naction is..."},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, wrap(tc.text, tc.width, textLines, tc.ellipsis))
-		})
-	}
 }
 
 func TestToolTable(t *testing.T) {

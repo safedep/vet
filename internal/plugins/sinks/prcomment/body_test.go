@@ -94,7 +94,7 @@ func TestBodyGolden(t *testing.T) {
 			s.TrailerValue.Gate.PolicyChanged = true
 			return newInput(t, s)
 		},
-		"upgrade": func(t *testing.T) *input { return newInput(t, plugintest.UpgradeReport()) },
+		"upgrade": upgradeInput,
 		"plain-dialect": func(t *testing.T) *input {
 			c := newInput(t, pullRequest(report.GateFail))
 			c.dialect = dialect{}

@@ -93,6 +93,8 @@ suppressions:
 vet-agent: v1
 gate: fail
 head: "2222222222222222222222222222222222222222"
+report: gh run download 99 -R acme/app -n vet-report -D vet-report
+finding: vet report finding show <id> --scan vet-report/report.json -o json
 causes:
   - gate: fail
     control: dependency-cooldown
@@ -107,6 +109,6 @@ other: [f-4c153369825a13c7, f-5040d4c508043032, f-6af0f2aca8e112d7, f-822a48b188
 
 </details>
 
-<sub>[vet](https://github.com/safedep/vet) 2.0.0-alpha.20261014124335, open source by SafeDep<br>[Full report](https://github.com/acme/app/actions/runs/99).<br>[Policy](https://github.com/acme/app/blob/1c8a58d6e27559015e1621a830dc20e9dc6b4bd0/.github/vet/policy.yml), [Wrong result?](https://github.com/safedep/vet/issues/new?template=false-positive.yml&version=2.0.0-alpha.20261014124335), [Add vet to your repo](https://github.com/safedep/vet/blob/v2.0.0-alpha.20261014124335/docs/github-action.md)</sub>
+<sub>[vet](https://github.com/safedep/vet) 2.0.0-alpha.20261014124335, open source by SafeDep<br>Full report: [run 99](https://github.com/acme/app/actions/runs/99). Report file: `gh run download 99 -R acme/app -n vet-report -D vet-report`<br>[Policy](https://github.com/acme/app/blob/1c8a58d6e27559015e1621a830dc20e9dc6b4bd0/.github/vet/policy.yml), [Wrong result?](https://github.com/safedep/vet/issues/new?template=false-positive.yml&version=2.0.0-alpha.20261014124335), [Add vet to your repo](https://github.com/safedep/vet/blob/v2.0.0-alpha.20261014124335/docs/github-action.md)</sub>
 
 <!-- vet:state eyJ2IjoxLCJoZWFkIjoiMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsImlkcyI6WyJmLTA5MDRjYjI2ODljNjA4NWUiLCJmLTEwMDYzNzQzYWJmZDRjMDEiLCJmLTIzYmQ2M2RkOGFmOGVkMjMiLCJmLTI2ODBkNWQwMDFhNjA5OGYiLCJmLTMyYWMyYTI4NmVkNzk1Y2IiLCJmLTQ2Nzg1YjkwZTllYmFkMTYiLCJmLTQ5MmU2YWI2Mzc5N2YxNDkiLCJmLTRiOTAwODdmOWJlMzk1NjgiLCJmLTRjMTUzMzY5ODI1YTEzYzciLCJmLTUwNDBkNGM1MDgwNDMwMzIiLCJmLTZhODQxZTk4MDU2MTgxYjQiLCJmLTZhODc2M2E4MGM5ZWNkMjciLCJmLTZhZjBmMmFjYThlMTEyZDciLCJmLTgyMmE0OGIxODhhMzY0MGEiLCJmLTgzNjU5NDMxNGRmZGU1ZmQiLCJmLThhYTdhYmNiODM1ODg3MjAiLCJmLThjNGFiMTg2OWU5MWY2MGYiLCJmLTkyZmU1MTAwMmYwNjEwZTYiLCJmLTlkMDJhM2Y1OTUwMmY1YTkiLCJmLWE0OWU0N2RhZjYyNDZlNDgiLCJmLWE2OWI2MDA3NzViZjIzZjkiLCJmLWIwNTc5ZDBhZmFiZmVkYjQiLCJmLWMyZTk1NTFlNTA2YzMxZTAiLCJmLWYxOWIxY2UxN2Q0NjhlYjQiXSwiZmlyc3QiOnRydWV9 -->

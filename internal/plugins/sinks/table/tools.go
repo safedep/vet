@@ -7,8 +7,6 @@ import (
 	"strings"
 
 	"github.com/safedep/vet/v2/internal/plugins/internal/render"
-	"github.com/safedep/vet/v2/internal/tui/section"
-	"github.com/safedep/vet/v2/internal/tui/style"
 	"github.com/safedep/vet/v2/internal/tui/table"
 	"github.com/safedep/vet/v2/report"
 )
@@ -91,14 +89,14 @@ func (s Sink) toolTable(tools []*report.InventoryItem) []string {
 	if s.limit > 0 && len(shown) > s.limit {
 		shown = shown[:s.limit]
 	}
-	tbl := table.New().Headers("KIND", "NAME", "VERSION", "CLIENT", "PATH").
+	tbl := s.page.Table().Headers("KIND", "NAME", "VERSION", "CLIENT", "PATH").
 		Columns(table.Column{}, table.Column{}, table.Column{Drop: 1}, table.Column{Drop: 2}, table.Column{Fit: table.CutLeft})
 	for _, t := range shown {
 		tbl.Row(toolName(t.Kind), render.Text(t.Name), render.Text(t.Version), render.Text(t.Client), render.Text(toolPath(t)))
 	}
-	parts := []string{style.Heading("Tools: " + toolCounts(tools)), tbl.Render()}
+	parts := []string{s.page.Heading("Tools: " + toolCounts(tools)), tbl.Render()}
 	if more := len(tools) - len(shown); more > 0 {
-		parts = append(parts, section.Hint(fmt.Sprintf("%s. vet report show --all lists each one.", plural(more, "more tool", "more tools"))))
+		parts = append(parts, s.page.Hint(fmt.Sprintf("%s. vet report show --all lists each one.", plural(more, "more tool", "more tools"))))
 	}
 	return parts
 }
