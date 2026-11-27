@@ -21,7 +21,7 @@ pluggy>=0.13.1
 py>=1.9.0
 pycparser>=2.20
 pyfiglet>=0.8.post1
-pyOpenSSL==19.1.0
+pyOpenSSL==26.0.0
 pyparsing>=2.4.7
 python-crfsuite>=0.9.7
 requests>=2.24.0
