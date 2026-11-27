@@ -60,7 +60,7 @@ type properties struct {
 	SecuritySeverity string   `json:"security-severity,omitempty"`
 	Tags             []string `json:"tags,omitempty"`
 	// Reach is the reach label of a vulnerability finding, as
-	// "called · 2 hops".
+	// "called (2 hops)".
 	Reach string `json:"reach,omitempty"`
 }
 

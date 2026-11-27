@@ -315,3 +315,40 @@ func TestControlsTakeTheBuiltInStateOfTheirPlugin(t *testing.T) {
 	assert.True(t, s.PluginEnabled("malware"), "a control with no key is on, as builtin says")
 	assert.False(t, s.PluginEnabled("tenant-policy"), "a plugin that is off by default stays off")
 }
+
+// TestOutputsGiveTheTableTheModeOfItsDestination draws a table format
+// while stderr is a rich terminal. A file and a pipe get plain text. Only
+// stdout on a terminal gets rich text.
+func TestOutputsGiveTheTableTheModeOfItsDestination(t *testing.T) {
+	prev := output.CurrentMode()
+	t.Cleanup(func() {
+		output.SetMode(prev)
+		output.SetStdoutTerminal(nil)
+		output.SetWidthOverride(0)
+	})
+	output.SetMode(output.Rich)
+	output.SetWidthOverride(120)
+	cases := []struct {
+		name     string
+		terminal bool
+		out      string
+		reports  []string
+		at       int
+		rich     bool
+	}{
+		{name: "file", terminal: true, out: "json", reports: []string{"table=" + filepath.Join(t.TempDir(), "t.txt")}, at: 1},
+		{name: "stdout to a pipe", out: "table"},
+		{name: "stdout on a terminal", terminal: true, out: "table", rich: true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			output.SetStdoutTerminal(func() bool { return tc.terminal })
+			cfg := config.Default()
+			outs, err := Outputs(&cfg, tc.out, tc.reports, nil)
+			require.NoError(t, err)
+			got := string(plugintest.TestSink(t, outs[tc.at].Sink, plugintest.SampleReport()))
+			assert.Equal(t, tc.rich, strings.Contains(got, "╭"), got)
+			assert.Equal(t, !tc.rich, strings.Contains(got, "+---"), got)
+		})
+	}
+}

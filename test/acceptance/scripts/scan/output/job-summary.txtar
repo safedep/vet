@@ -5,8 +5,10 @@
 # table. The other findings are in a closed list for each control.
 cd proj
 execexit 1 vet scan . --mode plain -o json --fail-on critical --report markdown=$WORK/summary.md
+grep '^## vet scan failed the gate$' $WORK/summary.md
+grep '^> \[!CAUTION\]$' $WORK/summary.md
 grep '^1\. \*\*In `package-lock\.json`, upgrade 1 package\.\*\* This can clear 1 finding\.$' $WORK/summary.md
-grep '^   - `minimist` 1\.2\.0 → \*\*1\.2\.8\*\*, the latest version \(1 finding\)$' $WORK/summary.md
+grep '^   - `minimist` 1\.2\.0 to \*\*1\.2\.8\*\*, the latest version \(1 finding\)$' $WORK/summary.md
 
 # The blocking table holds the critical advisory and no other finding. A
 # "#" starts the next heading, and no osv.dev link holds one.
@@ -18,9 +20,12 @@ grep '(?s)### Blocking findings \(1\)\n\n[^#]*GHSA-stub-0002[^#]*\n### Findings 
 grep '(?s)### Findings to review \(1\)\n\n[^#]*GHSA-stub-0001[^#]*\n### Other findings' $WORK/summary.md
 
 # The medium advisory is in the closed list of its control.
-grep '(?s)<details><summary><b>vulnerability</b> · 1 finding · 1 medium</summary>\n\n[^\n]*\n\n[^\n]*\n[^\n]*\n\| 🟡 medium \| GHSA-stub-0003: ' $WORK/summary.md
+grep '(?s)<details><summary><b>vulnerability</b>: 1 finding \(1 medium\)</summary>\n\n[^\n]*\n\n[^\n]*\n[^\n]*\n\| medium \| GHSA-stub-0003: ' $WORK/summary.md
 ! grep '<details open' $WORK/summary.md
 ! grep '### Causes' $WORK/summary.md
+
+# The summary is ASCII. A middle dot, an arrow or an emoji is hard to read.
+! grep '[^\x00-\x7F]' $WORK/summary.md
 
 -- proj/package-lock.json --
 {

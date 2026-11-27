@@ -3,7 +3,7 @@
 # the source. A delete of the last key leaves YAML, not {}.
 exec vet --config $WORK/config.yml config get scan.concurrency -o table --mode plain
 stdout '^4$'
-! stdout '│'
+! stdout '\|'
 exec vet --config $WORK/config.yml config get scan.concurrency -o plain --mode plain
 stdout '^4$'
 exec vet --config $WORK/config.yml config get scan.concurrency -o json

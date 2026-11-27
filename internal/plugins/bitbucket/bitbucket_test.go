@@ -26,8 +26,9 @@ func TestTruncate(t *testing.T) {
 	}{
 		{"short", 10, "short"},
 		{"exactly10!", 10, "exactly10!"},
-		{"a longer title", 5, "a lo…"},
-		{"ünïcödé", 4, "ünï…"},
+		{"a longer title", 5, "a ..."},
+		{"ünïcödé", 4, "ü..."},
+		{"too short for the mark", 2, "to"},
 	}
 	for _, tc := range cases {
 		assert.Equal(t, tc.want, render.Truncate(tc.in, tc.n), tc.in)

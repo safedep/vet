@@ -70,7 +70,7 @@ pipelines:
 ## AI agents
 
 vet finds an AI agent from the `CLAUDECODE` or the `AI_AGENT` variable. In agent mode, vet writes
-JSON on stdout and never prompts. It prints each error as one `ERR: code=… message=… help=…` line.
+JSON on stdout and never prompts. It prints each error as one `ERR: code=... message=... help=...` line.
 `--mode agent` turns on the same mode.
 
 The [`vet-policy-authoring`](../.claude/skills/vet-policy-authoring/SKILL.md) Agent Skill lets an

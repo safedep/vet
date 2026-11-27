@@ -107,11 +107,15 @@ func TestSinksGolden(t *testing.T) {
 					file = name + "-" + modeName
 				}
 				t.Run(spec.Name+"/"+file, func(t *testing.T) {
+					// stderr is a rich terminal. The mode of the
+					// destination decides the text, as for a report
+					// file in plain mode.
 					prev := output.CurrentMode()
-					output.SetMode(mode)
+					output.SetMode(output.Rich)
 					t.Cleanup(func() { output.SetMode(prev) })
 					s, err := spec.New(plugin.MapConfig(nil))
 					require.NoError(t, err)
+					s = sinks.WithMode(s, mode)
 					if c, ok := s.(plugin.Checker); ok && c.Check() != nil {
 						t.Skip("a stub sink writes nothing")
 					}

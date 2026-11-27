@@ -88,6 +88,23 @@ func (r Registry) New(format string, cfg plugin.Config) (plugin.Sink, error) {
 	return s, nil
 }
 
+// moded is a format that draws for the output mode of its destination, as
+// the table format does.
+type moded interface {
+	WithMode(m output.Mode) plugin.Sink
+}
+
+var _ moded = table.Sink{}
+
+// WithMode gives a sink the output mode of its destination. A format that
+// draws no terminal text stays as it is.
+func WithMode(s plugin.Sink, m output.Mode) plugin.Sink {
+	if ms, ok := s.(moded); ok {
+		return ms.WithMode(m)
+	}
+	return s
+}
+
 // Destination is a format and a path. An empty path is stdout, unless
 // Publish is set.
 type Destination struct {
@@ -135,6 +152,9 @@ func (r Registry) Destinations(out string, reports []string, mode output.Mode) (
 	}
 	return dests, nil
 }
+
+// Stdout reports whether the destination is stdout.
+func (d Destination) Stdout() bool { return d.Path == "" && !d.Publish }
 
 func (r Registry) publishes(format string) bool {
 	i := slices.IndexFunc(r, func(s Spec) bool { return s.Name == format })

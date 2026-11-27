@@ -4,8 +4,10 @@ package output
 
 import (
 	"io"
+	"os"
 
 	"github.com/safedep/dry/tui/output"
+	"golang.org/x/term"
 )
 
 // Mode is the messaging mode of stderr.
@@ -31,6 +33,42 @@ func SetMode(m Mode) { output.SetMode(m) }
 
 // CurrentMode returns the mode. It detects the mode on the first call.
 func CurrentMode() Mode { return output.CurrentMode() }
+
+func isStdoutTerminal() bool { return term.IsTerminal(int(os.Stdout.Fd())) }
+
+// stdoutIsTerminal reports whether stdout is a terminal.
+var stdoutIsTerminal = isStdoutTerminal
+
+// DataMode is the mode of report data and printer data. It is the messaging
+// mode, but plain in place of rich unless the data goes to stdout and stdout
+// is a terminal. dry/tui detects the messaging mode from stderr, so a file,
+// a pipe or a redirect of stdout would get rich text without this.
+func DataMode(toStdout bool) Mode {
+	m := CurrentMode()
+	if m == Rich && (!toStdout || !stdoutIsTerminal()) {
+		return Plain
+	}
+	return m
+}
+
+// Drawable is the mode that dry/tui can draw: m, but plain in place of rich
+// when the messaging mode is not rich. dry/tui reads the messaging mode, so
+// a rich drawing under a plain messaging mode would mix the two.
+func Drawable(m Mode) Mode {
+	if m == Rich && CurrentMode() != Rich {
+		return Plain
+	}
+	return m
+}
+
+// SetStdoutTerminal replaces the check of whether stdout is a terminal, for
+// tests. Nil restores the check.
+func SetStdoutTerminal(isTerminal func() bool) {
+	if isTerminal == nil {
+		isTerminal = isStdoutTerminal
+	}
+	stdoutIsTerminal = isTerminal
+}
 
 // SetVerbosity sets the verbosity.
 func SetVerbosity(v Verbosity) { output.SetVerbosity(v) }

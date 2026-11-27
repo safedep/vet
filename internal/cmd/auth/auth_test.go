@@ -33,7 +33,7 @@ func TestStatusRows(t *testing.T) {
 			},
 			rows: [][]string{
 				{"Profile", "work", "--profile"},
-				{"API key", "••••1234 (acme.safedep.io)", "keychain"},
+				{"API key", "****1234 (acme.safedep.io)", "keychain"},
 				{"Cloud access", "acme.safedep.io", "keychain"},
 			},
 			hint: "The safedep CLI reads the same profile.",

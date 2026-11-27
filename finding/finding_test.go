@@ -234,13 +234,14 @@ func TestReachLabel(t *testing.T) {
 		want  string
 	}{
 		{nil, ""},
-		{&Reach{Level: ReachCalled, Path: []model.PathHop{hop, hop, hop, hop}}, "called · 3 hops"},
-		{&Reach{Level: ReachCalled, Path: []model.PathHop{hop, hop}}, "called · 1 hop"},
-		{&Reach{Level: ReachCalled, Path: []model.PathHop{hop, hop}, TestOnly: true}, "called · 1 hop · tests only"},
+		{&Reach{Level: ReachCalled, Path: []model.PathHop{hop, hop, hop, hop}}, "called (3 hops)"},
+		{&Reach{Level: ReachCalled, Path: []model.PathHop{hop, hop}}, "called (1 hop)"},
+		{&Reach{Level: ReachCalled, Path: []model.PathHop{hop, hop}, TestOnly: true}, "called (1 hop, tests only)"},
+		{&Reach{Level: ReachImported, TestOnly: true}, "imported (tests only)"},
 		{&Reach{Level: ReachNotCalled}, "not called"},
-		{&Reach{Level: ReachImported, Cause: ReachNoSymbolData}, "imported · no symbol data"},
+		{&Reach{Level: ReachImported, Cause: ReachNoSymbolData}, "imported (no symbol data)"},
 		{&Reach{Level: ReachUnused}, "unused"},
-		{&Reach{Level: ReachUnknown, Cause: ReachBudget}, "unknown · budget"},
+		{&Reach{Level: ReachUnknown, Cause: ReachBudget}, "unknown (budget)"},
 	}
 	for _, c := range cases {
 		assert.Equal(t, c.want, c.reach.Label())

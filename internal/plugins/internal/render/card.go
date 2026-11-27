@@ -97,22 +97,19 @@ type Card struct {
 // NewCard builds the card of a group.
 func NewCard(g Group) Card {
 	f := g.Lead()
-	c := Card{Head: fmt.Sprintf("%s%s: **%s** · %s", ShortCode(Subject(f)), g.More(), Bounded(Title(f), MaxField), ShortCode(g.Kind()))}
+	c := Card{Head: fmt.Sprintf("%s%s: **%s** (%s)", ShortCode(Subject(f)), g.More(), Bounded(Title(f), MaxField), ShortCode(g.Kind()))}
 	add := func(format string, args ...any) { c.Body = append(c.Body, fmt.Sprintf(format, args...)) }
 	if f.Description != "" {
 		add("%s", Bounded(Text(f.Description), MaxText))
 	}
 	if gr := f.Gate; gr != nil {
 		add("**%s:** %s", gr.Label(), Bounded(Text(gr.Cause()), MaxField))
-		var help []string
-		if gr.Help != "" && (f.Remediation == nil || gr.Help != f.Remediation.Summary) {
-			help = append(help, Bounded(Text(gr.Help), MaxText))
+		help := gr.Help
+		if f.Remediation != nil && help == f.Remediation.Summary {
+			help = ""
 		}
-		if u := SafeURL(gr.Link); u != "" {
-			help = append(help, fmt.Sprintf("[Policy guidance](%s)", u))
-		}
-		if len(help) > 0 {
-			add("**Policy help:** %s", strings.Join(help, " · "))
+		if h := PolicyHelp(help, gr.Link); h != "" {
+			add("**Policy help:** %s", h)
 		}
 	}
 	if fix := g.Fix(); fix != "" {
@@ -140,6 +137,20 @@ func NewCard(g Group) Card {
 		c.Members = append(c.Members, line)
 	}
 	return c
+}
+
+// PolicyHelp is the help of a policy rule and the link to its guidance, in
+// markdown, or "". It adds no full stop to the help, which can end with a
+// command that a person copies.
+func PolicyHelp(help, link string) string {
+	var parts []string
+	if help != "" {
+		parts = append(parts, Bounded(Text(help), MaxText))
+	}
+	if u := SafeURL(link); u != "" {
+		parts = append(parts, fmt.Sprintf("[Policy guidance](%s)", u))
+	}
+	return strings.Join(parts, " ")
 }
 
 // SafeURL returns an http or https link that is safe in a markdown link

@@ -34,6 +34,7 @@ helper or a list. Each row is the one place for its concern.
 | Concern | Use |
 | --- | --- |
 | Terminal output: messages, tables, panels, progress, prompts, banner | `internal/tui/...`, which wraps `dry/tui`. Look in `dry/tui` first for a missing part. |
+| A report or data output that needs a mode-aware drawing: the table format, a printer table, a list on stdout | `internal/tui/page`, with the mode from `output.DataMode`. A file or a pipe gets ASCII while stderr is rich. |
 | Stderr view of a scan: steps, diagnostics, gate line | `internal/view` |
 | What a person sees first in a report: findings in order, diagnostics, what a change adds | `internal/overview`. The view and the sinks read it. |
 | Stdout data in the `-o` format | `internal/tui/printer` |
@@ -119,5 +120,9 @@ messages, commit messages, pull requests and docs.
 - Do not end a message with a full stop right after a value that a user copies: a path, a scan
   id, a config key, a flag or a command. Put the value earlier in the sentence, or end the message
   with the value and no full stop.
+- Only the rich mode of the terminal shows Unicode, and it gets each glyph from `internal/tui`. All
+  other output is ASCII: the report formats, the pull request comment, and the plain and agent
+  modes. Separate facts with lines, lists, table columns, commas or parentheses. Do not write a
+  middle dot, an arrow, an ellipsis character or an emoji.
 - Say SafeDep Threat Intel in user-facing text. Malysis is an internal name. The plugin and the
   config key keep the name `malysis`.

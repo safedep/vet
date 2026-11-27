@@ -131,7 +131,7 @@ func isTestLogNoise(s string) bool {
 func truncate(line string) string {
 	const max = 200
 	if len(line) > max {
-		return line[:max] + "…"
+		return line[:max] + "..."
 	}
 	return line
 }
@@ -166,21 +166,6 @@ func summarize(cat *acc.Catalog, st map[string]Status, scripts map[string]bool) 
 	return sum
 }
 
-func icon(s Status) string {
-	switch s {
-	case StatusPass:
-		return "✅"
-	case StatusFail:
-		return "❌"
-	case StatusSkip:
-		return "⏭️"
-	case StatusUnknown:
-		return "❓"
-	default:
-		return "⚪"
-	}
-}
-
 var tierOrder = []acc.Tier{acc.TierP0, acc.TierP1, acc.TierP2}
 
 // errWriter accumulates the first write error so the report builders stay
@@ -200,7 +185,7 @@ func (ew *errWriter) printf(format string, a ...any) {
 func render(w io.Writer, sum Summary, messages map[string]result) error {
 	ew := &errWriter{w: w}
 	ew.printf("# vet Acceptance Report\n\n")
-	ew.printf("✅ %d pass · ❌ %d fail · ⏭️ %d skip · ❓ %d unknown · ⚪ %d gap\n\n",
+	ew.printf("%d pass, %d fail, %d skip, %d unknown, %d gap\n\n",
 		sum.Counts[StatusPass], sum.Counts[StatusFail], sum.Counts[StatusSkip],
 		sum.Counts[StatusUnknown], sum.Counts[StatusGap])
 
@@ -224,10 +209,10 @@ func render(w io.Writer, sum Summary, messages map[string]result) error {
 			detail := r.G.Guarantee
 			if r.Status == StatusFail || r.Status == StatusSkip {
 				if m, ok := messages[r.G.ID]; ok && m.message != "" {
-					detail = fmt.Sprintf("%s — %s", r.G.Guarantee, m.message)
+					detail = fmt.Sprintf("%s. %s", strings.TrimSuffix(r.G.Guarantee, "."), m.message)
 				}
 			}
-			ew.printf("| %s | %s | `%s` | %s |\n", icon(r.Status), r.G.Tier, r.G.ID, mdCell(detail))
+			ew.printf("| %s | %s | `%s` | %s |\n", r.Status, r.G.Tier, r.G.ID, mdCell(detail))
 		}
 		ew.printf("\n")
 	}
@@ -243,7 +228,7 @@ func renderTierRollup(ew *errWriter, sum Summary) {
 		perTier[r.G.Tier][r.Status]++
 	}
 
-	ew.printf("| Tier | ✅ | ❌ | ⏭️ | ❓ | ⚪ | coverage |\n|---|---|---|---|---|---|---|\n")
+	ew.printf("| Tier | pass | fail | skip | unknown | gap | coverage |\n|---|---|---|---|---|---|---|\n")
 	for _, tier := range tierOrder {
 		c := perTier[tier]
 		total := c[StatusPass] + c[StatusFail] + c[StatusSkip] + c[StatusUnknown] + c[StatusGap]
@@ -331,7 +316,7 @@ func run() error {
 func junitError(cat *acc.Catalog, scripts map[string]bool, cause error) error {
 	var b strings.Builder
 	ew := &errWriter{w: &b}
-	ew.printf("> ⚠️ JUnit results unavailable: %s\n>\n", cause)
+	ew.printf("> [!WARNING]\n> JUnit results unavailable: %s\n>\n", cause)
 	ew.printf("> The acceptance run produced no parsable results. Coverage below is unknown, not zero.\n\n")
 	if ew.err != nil {
 		return fmt.Errorf("%w (and write failed: %v)", cause, ew.err)

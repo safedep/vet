@@ -122,7 +122,7 @@ signatures:
             value: "langchain_core.graph_vectorstores.*"
 
   - id: langchain_core.indexing
-    description: "Code to help indexing data into a vectorstore. This package contains helper logic to help deal with indexing data into a vectorstore while avoiding duplicated content and over-writing content if it’s unchanged."
+    description: "Code to help indexing data into a vectorstore. This package contains helper logic to help deal with indexing data into a vectorstore while avoiding duplicated content and over-writing content if it's unchanged."
     vendor: "Langchain"
     product: "Langchain Core Library"
     service: "Indexing"

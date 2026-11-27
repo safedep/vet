@@ -42,8 +42,8 @@ you use no Dependabot and no Renovate, run `vet ci update` and commit the diff.
 
 vet reads the imports of each Go module that a `go.mod` requires, to tell which modules the code
 reaches. It reads them from the `vendor` directory or the module cache, and downloads no module. A
-module with no source on the disk makes the reach of each module that it can import `unknown · no
-dependency source`. Download the modules in a step before vet:
+module with no source on the disk makes the reach of each module that it can import `unknown (no
+dependency source)`. Download the modules in a step before vet:
 
 ```yaml
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0

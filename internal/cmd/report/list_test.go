@@ -34,7 +34,7 @@ func TestListRowsFitANarrowTerminal(t *testing.T) {
 		want    []string
 		notWant []string
 	}{
-		{width: 80, want: []string{"6f91914c ", "│ …/", "/projects/npm-app ", "FINDINGS"}, notWant: []string{"DURATION", "STATUS"}},
+		{width: 80, want: []string{"6f91914c ", "| .../", "/projects/npm-app ", "FINDINGS"}, notWant: []string{"DURATION", "STATUS"}},
 		{width: 140, want: []string{"6f91914c ", entries[0].TargetKey, "DURATION", "STATUS"}},
 	}
 	for _, tc := range cases {

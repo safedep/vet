@@ -12,6 +12,7 @@ import (
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/tui/output"
+	"github.com/safedep/vet/v2/internal/tui/page"
 	"github.com/safedep/vet/v2/internal/tui/theme"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
@@ -31,11 +32,12 @@ func withWidth(t *testing.T, n int) {
 	})
 }
 
+// write renders in the messaging mode, as the runner does for a terminal.
 func write(t *testing.T, options plugin.MapConfig, r *plugintest.MemState) string {
 	t.Helper()
 	s, err := New(options)
 	require.NoError(t, err)
-	return string(plugintest.TestSink(t, s, r))
+	return string(plugintest.TestSink(t, s.(Sink).WithMode(output.CurrentMode()), r))
 }
 
 // vulnReport has 3 vulnerabilities of django, 2 of requests, and one
@@ -335,7 +337,7 @@ func TestTagsPutTheWeakBadgeLast(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, tags(&report.Capability{Tags: tc.tags}))
+			assert.Equal(t, tc.want, Sink{page: page.For(output.Plain)}.tags(&report.Capability{Tags: tc.tags}))
 		})
 	}
 }
@@ -352,24 +354,6 @@ func TestEmptyScanWritesNothing(t *testing.T) {
 	r := plugintest.SampleReport()
 	r.ManifestList, r.FindingList, r.CapabilityList, r.InventoryList = nil, nil, nil, nil
 	assert.Empty(t, string(plugintest.TestSink(t, s, r)))
-}
-
-func TestWrap(t *testing.T) {
-	cases := []struct {
-		name  string
-		text  string
-		width int
-		want  string
-	}{
-		{name: "fits", text: "Malicious package", width: 20, want: "Malicious package"},
-		{name: "two lines", text: "Malicious package", width: 10, want: "Malicious\npackage"},
-		{name: "cut at a word", text: "Third-party action is not pinned to a commit", width: 12, want: "Third-party\naction is…"},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, wrap(tc.text, tc.width, textLines))
-		})
-	}
 }
 
 func TestToolTable(t *testing.T) {
@@ -424,8 +408,8 @@ func TestReachColumn(t *testing.T) {
 	assert.Contains(t, got, "REACH")
 	rows := rowsOf(got)
 	require.Len(t, rows, 3)
-	assert.Contains(t, rows[0], "pypi/django@2.2.0 called · 2 hops 3 vulnerabilities", "a called finding wins over one that is not called")
-	assert.Contains(t, rows[1], "pypi/requests@2.19.0 imported · no symbol data 2 vulnerabilities")
+	assert.Contains(t, rows[0], "pypi/django@2.2.0 called (2 hops) 3 vulnerabilities", "a called finding wins over one that is not called")
+	assert.Contains(t, rows[1], "pypi/requests@2.19.0 imported (no symbol data) 2 vulnerabilities")
 
 	r = vulnReport()
 	assert.NotContains(t, write(t, nil, r), "REACH", "a scan with no reach has no REACH column")

@@ -12,3 +12,9 @@ execexit 1 vet doctor --mode plain -o plain
 stdout '^\[ERR\]\s+endpoint\.malysis\s+malysis did not answer'
 stdout '^\s+> Check the network'
 stdout '^\[OK\]\s+state\.size\s+0 scans use 0 B'
+
+# A rich stderr does not make the list rich on a pipe. Only a terminal
+# shows the rich icons.
+execexit 1 vet doctor --mode rich -o table
+stdout '^\[ERR\]\s+endpoint\.malysis'
+! stdout '[^\x00-\x7F]'

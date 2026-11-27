@@ -28,8 +28,8 @@ ATT&CK ids. SARIF tags it `attack` and `external/mitre-attack/<id>`.
 
 A vulnerability finding of a scan that computed reach shows it in every format: a REACH column in
 the table, the last column of `plain`, a Reach column in `markdown`, the `reach` property in SARIF
-and the `reach` object in JSON. The value names its evidence, as `called · 3 hops`, `not called`,
-`imported · no symbol data` or `unknown · budget`. The table shows the riskiest reach of a row, so a
+and the `reach` object in JSON. The value names its evidence, as `called (3 hops)`, `not called`,
+`imported (no symbol data)` or `unknown (budget)`. The table shows the riskiest reach of a row, so a
 called vulnerability never hides behind one that is not called. A target with no source code has no
 REACH column, and the scan view says `Reach: not computed, the target has no source code`. The scan
 view also names the symbol bundle and counts each reach and each cause. The call graph search
@@ -40,8 +40,8 @@ For a Go module, the dependency graph comes from the code. vet reads the import 
 files of the project and of each module of the build list. It finds a module in `vendor`, in the
 directory of a local `replace` inside the target, or in the module cache. It runs no build and
 downloads nothing, so run `go mod download` before a scan. A module with no source on the disk is
-open: vet does not know what it imports. A package that only an open module can reach is `unknown ·
-no dependency source`, and the scan warns with `module_graph`. A path in the graph starts at a
+open: vet does not know what it imports. A package that only an open module can reach is `unknown (no
+dependency source)`, and the scan warns with `module_graph`. A path in the graph starts at a
 module that the code of that `go.mod` imports. A path from a module that only the test files of that
 `go.mod` import, and that no other import reaches, is from tests only. A `tool` directive of
 `go.mod` counts as an import, because `go tool` builds and runs the code of the tool. Each Go
@@ -60,7 +60,7 @@ build a higher version. The reach then describes the code of the version that th
 
 vet builds no graph for a `go.mod` with a `go` directive below 1.17, for a workspace module outside
 the target, or for a workspace with an `exclude` directive. The findings of a `go.mod` with no graph
-keep `unknown · no graph`.
+keep `unknown (no graph)`.
 
 For a Python manifest, as `requirements.txt`, `pyproject.toml` or a lockfile, the dependency graph
 also comes from the code, when the target has a virtual environment. vet reads the import statements
@@ -71,13 +71,13 @@ that directory. vet runs no Python and downloads nothing, so install the project
 `pip install -r requirements.txt` or `uv sync`. A distribution whose imports vet cannot read is open:
 one with an extension module, one that imports a computed name, or one that imports a module that no
 distribution holds outside a `try` statement that catches `ImportError`. A package that only an open
-distribution can reach is `unknown · no dependency source`, and the scan warns with `module_graph`. A
+distribution can reach is `unknown (no dependency source)`, and the scan warns with `module_graph`. A
 distribution that the manifest does not list, as a dependency of a dependency that
 `requirements.txt` leaves out, passes its imports on. A package of the manifest that is not
 installed is open, and so is a second version of a name that a lockfile lists for another
 environment. vet builds no graph when the target has no virtual environment, when the environment
 holds another version of a package that the code reaches, or when the code of the project imports a
-module that no distribution holds. The findings then keep `unknown · no graph`, and the scan says
+module that no distribution holds. The findings then keep `unknown (no graph)`, and the scan says
 why.
 
 At the function level, the code of a Python dependency is the distribution of its name at its

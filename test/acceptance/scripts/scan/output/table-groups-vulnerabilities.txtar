@@ -3,22 +3,30 @@
 # id. --all lists each finding on its own row.
 cd proj
 exec vet scan . --mode plain -o table
-stdout '\[CRITICAL\] │ f-[0-9a-f]{8} │ npm/minimist@1\.2\.0'
+stdout '\[CRITICAL\] \| f-[0-9a-f]{8} \| npm/minimist@1\.2\.0'
 stdout '1 critical, 1'
 [cgo] stdout 'REACH'
 stdout -count=1 'npm/minimist@1\.2\.0'
 stdout '2 vulnerabilities in 1 package\. vet report show --all lists each finding\.'
 ! stdout 'Details:'
-capture ID '\[CRITICAL\] │ (f-[0-9a-f]+) │'
+capture ID '\[CRITICAL\] \| (f-[0-9a-f]+) \|'
 
 exec vet report finding show $ID --mode plain -o plain
 stdout 'GHSA-stub-0002'
-[cgo] stdout 'reach\tunknown · no source files'
+[cgo] stdout 'reach\tunknown \(no source files\)'
 
 exec vet report show --all --mode plain -o table
 stdout -count=2 'npm/minimist@1\.2\.0'
 stdout 'GHSA-stub-0002'
 ! stdout 'vulnerabilities in'
+
+# A rich stderr does not make the table rich on a pipe or in a file. Only a
+# terminal shows rich text.
+exec vet report show --mode rich -o table --report table=$WORK/table.txt
+stdout '^\+-'
+! stdout '[^\x00-\x7F]'
+grep '^\+-' $WORK/table.txt
+! grep '[^\x00-\x7F]' $WORK/table.txt
 
 -- proj/package-lock.json --
 {

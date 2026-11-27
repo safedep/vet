@@ -57,6 +57,36 @@ func TestTable(t *testing.T) {
 	assert.Contains(t, buf.String(), "No scans.")
 }
 
+// TestModeIsRichOnlyOnATerminal keeps rich text out of a redirect or a
+// pipe of stdout while stderr is a rich terminal. A printer with its own
+// writer draws plain text unless the caller sets the mode.
+func TestModeIsRichOnlyOnATerminal(t *testing.T) {
+	prev := output.CurrentMode()
+	t.Cleanup(func() { output.SetMode(prev); output.SetStdoutTerminal(nil) })
+	output.SetMode(output.Rich)
+	cases := []struct {
+		name     string
+		terminal bool
+		opts     []Option
+		want     output.Mode
+	}{
+		{name: "stdout on a terminal", terminal: true, want: output.Rich},
+		{name: "stdout to a pipe", want: output.Plain},
+		{name: "own writer", terminal: true, opts: []Option{WithWriter(&bytes.Buffer{})}, want: output.Plain},
+		{name: "own writer and mode", opts: []Option{WithWriter(&bytes.Buffer{}), WithMode(output.Rich)}, want: output.Rich},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			output.SetStdoutTerminal(func() bool { return tc.terminal })
+			assert.Equal(t, tc.want, New(Table, tc.opts...).Mode())
+		})
+	}
+
+	var buf bytes.Buffer
+	require.NoError(t, New(Table, WithWriter(&buf)).Print(nil, Rows{Headers: []string{"NAME"}, Rows: [][]string{{"vet"}}}))
+	assert.Equal(t, "+------+\n| NAME |\n+------+\n| vet  |\n+------+\n", buf.String())
+}
+
 func TestParseAndDefaultFormat(t *testing.T) {
 	for _, f := range Formats() {
 		got, err := ParseFormat(string(f))

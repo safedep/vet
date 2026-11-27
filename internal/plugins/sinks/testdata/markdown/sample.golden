@@ -11,17 +11,17 @@ The scan has no gate. vet checked 2 packages and found 2 findings. The policy su
 
 |  | Finding | Where |
 | --- | --- | --- |
-| 🔴 critical | [malware](https://github.com/safedep/vet/blob/v2/docs/controls.md#malware) · `f-f7017b22`<br>Malicious package | `npm/evil-colors@1.4.1`<br>`package-lock.json:42` |
+| critical | [malware](https://github.com/safedep/vet/blob/v2/docs/controls.md#malware) (`f-f7017b22`)<br>Malicious package | `npm/evil-colors@1.4.1`<br>`package-lock.json:42` |
 
 ### Other findings (1)
 
-<details><summary><b>unpinned-action</b> · 1 finding · 1 medium</summary>
+<details><summary><b>unpinned-action</b>: 1 finding (1 medium)</summary>
 
 [What this control checks](https://github.com/safedep/vet/blob/v2/docs/controls.md#unpinned-action)
 
 |  | Finding | Where | ID |
 | --- | --- | --- | --- |
-| 🟡 medium | is not pinned to a commit SHA | `tj-actions/changed-files@v44`<br>`.github/workflows/ci.yml:8` | `f-e815bb3b` |
+| medium | is not pinned to a commit SHA | `tj-actions/changed-files@v44`<br>`.github/workflows/ci.yml:8` | `f-e815bb3b` |
 
 </details>
 
@@ -33,4 +33,6 @@ The scan has no gate. vet checked 2 packages and found 2 findings. The policy su
 
 ---
 
-Full report: `vet report show test0000 --all` · One finding: `vet report finding show <id>`
+Full report: `vet report show test0000 --all`
+
+One finding: `vet report finding show <id>`

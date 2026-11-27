@@ -17,9 +17,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
 	"github.com/safedep/vet/v2/internal/plugins/internal/render"
 	"github.com/safedep/vet/v2/internal/tui/output"
-	"github.com/safedep/vet/v2/internal/tui/section"
-	"github.com/safedep/vet/v2/internal/tui/stat"
-	"github.com/safedep/vet/v2/internal/tui/style"
+	"github.com/safedep/vet/v2/internal/tui/page"
 	"github.com/safedep/vet/v2/internal/tui/table"
 	"github.com/safedep/vet/v2/internal/tui/theme"
 	"github.com/safedep/vet/v2/model"
@@ -45,6 +43,10 @@ const minTextWidth = 16
 // WHERE.
 const textWidth = 24
 
+// maxCapability is the widest CAPABILITY cell. The table cuts a longer
+// name.
+const maxCapability = 40
+
 // textLines is the most lines that the FINDING text of a row takes. A
 // longer text ends with an ellipsis.
 const textLines = 2
@@ -61,6 +63,7 @@ type Options struct {
 type Sink struct {
 	all   bool
 	limit int
+	page  page.Page
 }
 
 // New builds the sink from its options.
@@ -69,7 +72,7 @@ func New(cfg plugin.Config) (plugin.Sink, error) {
 	if err := cfg.Decode(&o); err != nil {
 		return nil, err
 	}
-	s := Sink{limit: DefaultLimit}
+	s := Sink{limit: DefaultLimit, page: page.For(output.Plain)}
 	switch {
 	case o.All:
 		s.all, s.limit = true, 0
@@ -79,6 +82,14 @@ func New(cfg plugin.Config) (plugin.Sink, error) {
 		s.limit = o.Limit
 	}
 	return s, nil
+}
+
+// WithMode returns the sink for the output mode of its destination. The
+// sink draws plain text until the runner gives it the rich mode, because
+// only a terminal shows rich text.
+func (s Sink) WithMode(m output.Mode) plugin.Sink {
+	s.page = page.For(m)
+	return s
 }
 
 // row is one row of the findings table: one finding, or the vulnerability
@@ -132,20 +143,20 @@ func (s Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	if delta {
 		packages = changed
 	}
-	parts := []string{stat.Render(cards(h, t, packages)...)}
+	parts := []string{s.page.Cards(cards(h, t, packages)...)}
 	change, same := sameChange(shown)
 	if len(shown) == 0 {
 		checked := plural(packages, "package", "packages")
 		if delta {
 			checked = plural(packages, "changed package", "changed packages")
 		}
-		parts = append(parts, style.Success("No findings. "+checked+" checked."))
+		parts = append(parts, s.page.Success("No findings. "+checked+" checked."))
 	} else {
-		parts = append(parts, findingTable(shown, report.ShortIDLength(ids), delta && !same, output.Width()))
+		parts = append(parts, s.findingTable(shown, report.ShortIDLength(ids), delta && !same, output.Width()))
 	}
-	hints := findingHints(len(open), rows, len(shown), t.Summary.Suppressed)
+	hints := s.findingHints(len(open), rows, len(shown), t.Summary.Suppressed)
 	if text := changeHint(change); delta && same && text != "" {
-		hints = append([]string{section.Hint(text)}, hints...)
+		hints = append([]string{s.page.Hint(text)}, hints...)
 	}
 	if len(hints) > 0 {
 		parts = append(parts, strings.Join(hints, "\n"))
@@ -156,7 +167,7 @@ func (s Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	if len(caps) > 0 {
 		parts = append(parts, s.capabilityTable(caps, delta)...)
 	}
-	_, err = io.WriteString(w, section.Join(parts...)+"\n")
+	_, err = io.WriteString(w, page.Join(parts...)+"\n")
 	return err
 }
 
@@ -195,22 +206,24 @@ func (s Sink) rows(fs []*finding.Finding) []row {
 // that a cut falls on the FINDING text and not on the subject or the place.
 // When FINDING gets less than textWidth, the table drops CONTROL, then
 // WHERE.
-func findingTable(rows []row, idLen int, delta bool, width int) string {
+func (s Sink) findingTable(rows []row, idLen int, delta bool, width int) string {
 	wide := width >= wideWidth
-	l := findingLayout(rows, idLen, delta, wide, wide, true)
+	l := s.findingLayout(rows, idLen, delta, wide, wide, true)
 	if l.room(width) < textWidth && wide {
-		l = findingLayout(rows, idLen, delta, false, true, true)
+		l = s.findingLayout(rows, idLen, delta, false, true, true)
 	}
 	if l.room(width) < textWidth && wide {
-		l = findingLayout(rows, idLen, delta, false, false, true)
+		l = s.findingLayout(rows, idLen, delta, false, false, true)
 	}
 	if l.room(width) < textWidth {
-		l = findingLayout(rows, idLen, delta, false, false, false)
+		l = s.findingLayout(rows, idLen, delta, false, false, false)
 	}
 	room := max(l.room(width), minTextWidth)
-	tbl := table.New().Headers(l.cells[0]...)
+	cols := make([]table.Column, len(l.cells[0]))
+	cols[l.textAt] = table.Column{Fit: table.Wrap, Max: room, Lines: textLines}
+	tbl := s.page.Table().Headers(l.cells[0]...).Columns(cols...)
 	for i, row := range l.cells[1:] {
-		row[l.textAt] = wrap(rows[i].text(room), room, textLines)
+		row[l.textAt] = rows[i].text(room)
 		tbl.Row(row...)
 	}
 	return tbl.Render()
@@ -224,7 +237,7 @@ type layout struct {
 
 // findingLayout lays out the columns. With no fullReach, REACH shows the
 // level alone, as "called", so that a narrow terminal keeps the subject.
-func findingLayout(rows []row, idLen int, delta, control, where, fullReach bool) layout {
+func (s Sink) findingLayout(rows []row, idLen int, delta, control, where, fullReach bool) layout {
 	headers := []string{"SEVERITY", "ID"}
 	gated := slices.ContainsFunc(rows, func(r row) bool { return r.gate() != nil })
 	if gated {
@@ -249,7 +262,7 @@ func findingLayout(rows []row, idLen int, delta, control, where, fullReach bool)
 	cells := [][]string{headers}
 	for _, r := range rows {
 		f := r[0]
-		row := []string{badge(f.Severity), f.ID[:min(idLen, len(f.ID))]}
+		row := []string{s.badge(f.Severity), f.ID[:min(idLen, len(f.ID))]}
 		if gated {
 			row = append(row, gateText(r.gate()))
 		}
@@ -283,17 +296,6 @@ func (l layout) room(width int) int {
 		}
 	}
 	return room
-}
-
-// wrap breaks text into lines of width cells at most, and cuts it to n
-// lines. The last line of a cut text ends with an ellipsis.
-func wrap(text string, width, n int) string {
-	lines := strings.Split(ansi.Wrap(text, width, ""), "\n")
-	if len(lines) > n {
-		last, _, _ := strings.Cut(ansi.Wrap(strings.Join(lines[n-1:], " "), width-1, ""), "\n")
-		lines = append(lines[:n-1], strings.TrimRight(last, " ")+"…")
-	}
-	return strings.Join(lines, "\n")
 }
 
 func columnWidth(rows [][]string, col int) int {
@@ -425,7 +427,7 @@ func (r row) fix() string {
 }
 
 // findingHints says what the table leaves out, and where to read it.
-func findingHints(findings int, rows []row, shown, suppressed int) []string {
+func (s Sink) findingHints(findings int, rows []row, shown, suppressed int) []string {
 	const all = "vet report show --all lists each finding."
 	var hints []string
 	grouped := len(rows) < findings
@@ -444,7 +446,7 @@ func findingHints(findings int, rows []row, shown, suppressed int) []string {
 		hints = append(hints, fmt.Sprintf("%d suppressed findings. vet report show -o json lists them.", suppressed))
 	}
 	for i, h := range hints {
-		hints[i] = section.Hint(h)
+		hints[i] = s.page.Hint(h)
 	}
 	return hints
 }
@@ -505,7 +507,9 @@ func (s Sink) capabilityTable(caps []*report.Capability, delta bool) []string {
 	if wide {
 		headers = append(headers, "CALL")
 	}
-	tbl := table.New().Headers(headers...)
+	cols := make([]table.Column, len(headers))
+	cols[slices.Index(headers, "CAPABILITY")] = table.Column{Max: maxCapability}
+	tbl := s.page.Table().Headers(headers...).Columns(cols...)
 	shown := caps
 	if s.limit > 0 && len(shown) > s.limit {
 		shown = shown[:s.limit]
@@ -515,15 +519,15 @@ func (s Sink) capabilityTable(caps []*report.Capability, delta bool) []string {
 		if delta {
 			row = append(row, strings.ToLower(string(c.Change)))
 		}
-		row = append(row, render.Truncate(render.Text(c.Name()), 40), tags(c), CapabilityWhere(c))
+		row = append(row, render.Text(c.Name()), s.tags(c), CapabilityWhere(c))
 		if wide {
 			row = append(row, call(c))
 		}
 		tbl.Row(row...)
 	}
-	parts := []string{style.Heading("AI and crypto: " + kindCounts(caps)), tbl.Render()}
+	parts := []string{s.page.Heading("AI and crypto: " + kindCounts(caps)), tbl.Render()}
 	if more := len(caps) - len(shown); more > 0 {
-		parts = append(parts, section.Hint(plural(more, "more capability", "more capabilities")+". vet report capability list lists each one."))
+		parts = append(parts, s.page.Hint(plural(more, "more capability", "more capabilities")+". vet report capability list lists each one."))
 	}
 	return parts
 }
@@ -573,7 +577,7 @@ func kindCounts(caps []*report.Capability) string {
 
 // tags lists the tags other than the kind tag, and then the weak tag as a
 // badge in the colour of a high severity.
-func tags(c *report.Capability) string {
+func (s Sink) tags(c *report.Capability) string {
 	var out []string
 	weak := false
 	for _, t := range c.DetailTags() {
@@ -587,7 +591,7 @@ func tags(c *report.Capability) string {
 	if !weak {
 		return text
 	}
-	b := style.Badge(theme.RoleHigh, strings.ToUpper(report.TagWeak))
+	b := s.page.Badge(theme.RoleHigh, strings.ToUpper(report.TagWeak))
 	switch {
 	case text == "":
 		return b
@@ -633,18 +637,18 @@ func changeHint(c model.Change) string {
 
 // cards counts the packages and the findings. A pull request scan counts
 // the packages that it changes. An endpoint audit also counts the tools.
-func cards(h *report.Header, t *report.Trailer, packages int) []stat.Card {
+func cards(h *report.Header, t *report.Trailer, packages int) []page.Card {
 	sum := t.Summary
 	crit, high := theme.RoleCritical, theme.RoleHigh
-	var cs []stat.Card
+	var cs []page.Card
 	if h.Scan.Kind == report.ScanKindEndpoint {
-		cs = append(cs, stat.Card{Label: "Tools", Value: strconv.Itoa(sum.Inventory)})
+		cs = append(cs, page.Card{Label: "Tools", Value: strconv.Itoa(sum.Inventory)})
 	}
 	label := "Packages"
 	if h.Scan.Mode == report.ScanModeDelta {
 		label = "Changed"
 	}
-	cs = append(cs, []stat.Card{
+	cs = append(cs, []page.Card{
 		{Label: label, Value: strconv.Itoa(packages)},
 		{Label: "Findings", Value: strconv.Itoa(sum.Findings)},
 		{Label: "Critical", Value: strconv.Itoa(sum.BySeverity[finding.SeverityCritical]), Accent: &crit},
@@ -653,10 +657,10 @@ func cards(h *report.Header, t *report.Trailer, packages int) []stat.Card {
 	switch t.Gate.Outcome {
 	case report.GatePass:
 		pass := theme.RoleSuccess
-		cs = append(cs, stat.Card{Label: "Gate", Value: "PASS", Accent: &pass})
+		cs = append(cs, page.Card{Label: "Gate", Value: "PASS", Accent: &pass})
 	case report.GateFail:
 		fail := theme.RoleError
-		cs = append(cs, stat.Card{Label: "Gate", Value: "FAIL", Accent: &fail})
+		cs = append(cs, page.Card{Label: "Gate", Value: "FAIL", Accent: &fail})
 	}
 	return cs
 }
@@ -670,12 +674,12 @@ var severityRoles = map[finding.Severity]theme.Role{
 	finding.SeverityInfo:     theme.RoleInfo,
 }
 
-func badge(s finding.Severity) string {
-	role, ok := severityRoles[s]
+func (s Sink) badge(sev finding.Severity) string {
+	role, ok := severityRoles[sev]
 	if !ok {
 		role = theme.RoleInfo
 	}
-	return style.Badge(role, strings.ToUpper(string(s)))
+	return s.page.Badge(role, strings.ToUpper(string(sev)))
 }
 
 // OptionsSchema returns the JSON Schema of the options.

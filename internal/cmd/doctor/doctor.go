@@ -92,7 +92,7 @@ scan.`,
 				items = append(items, checklist.Item{Status: c.Status.item(), Name: c.ID, Text: escape.Line(c.Message), Fix: escape.Line(c.Fix)})
 				failed = failed || c.Status == Fail
 			}
-			if err := p.PrintText(checks, checklist.Lines(items)...); err != nil {
+			if err := p.PrintText(checks, checklist.Lines(p.Mode(), items)...); err != nil {
 				return err
 			}
 			if failed {

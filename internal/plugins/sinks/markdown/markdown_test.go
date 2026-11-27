@@ -118,10 +118,10 @@ func TestWhatToDo(t *testing.T) {
 	assert.Equal(t, "1. **Payload in invisible Unicode characters (1 finding).** Do not run the code.\n"+
 		"   - `src/x.js:5`\n"+
 		"2. **In `go.mod`, upgrade 2 packages.** This can clear 5 findings.\n"+
-		"   - `example.com/a` 1.0.0, 0.9.0 → **1.3.0** (4 findings, 1 with no known fixed version)\n"+
-		"   - `example.com/b` 1.0.0 → **2.0.0**, the latest version (1 finding)\n\n"+
+		"   - `example.com/a` 1.0.0, 0.9.0 to **1.3.0** (4 findings, 1 with no known fixed version)\n"+
+		"   - `example.com/b` 1.0.0 to **2.0.0**, the latest version (1 finding)\n\n"+
 		"**Policy help**\n\n"+
-		"- `no-high`: Upgrade the package to the fixed version. · [Policy guidance](https://wiki.example.com/vulns)",
+		"- `no-high`: Upgrade the package to the fixed version. [Policy guidance](https://wiki.example.com/vulns)",
 		section(out, "What to do"), "only the blocking findings, attacks first, with each version in use and no claim that the fix is known")
 }
 
@@ -130,7 +130,7 @@ func TestUpgradeClaim(t *testing.T) {
 	s.FindingList = s.FindingList[:2]
 	s.TrailerValue.Gate.FindingIDs = []string{s.FindingList[0].ID, s.FindingList[1].ID}
 	assert.Contains(t, section(write(t, s), "What to do"),
-		"**In `go.mod`, upgrade 1 package.** This clears 2 findings.\n   - `example.com/a` 1.0.0 → **1.3.0** (2 findings)",
+		"**In `go.mod`, upgrade 1 package.** This clears 2 findings.\n   - `example.com/a` 1.0.0 to **1.3.0** (2 findings)",
 		"each finding has a fixed version")
 }
 
@@ -148,16 +148,16 @@ func TestBlockingFindings(t *testing.T) {
 	out := write(t, gated(report.GateFail))
 	assert.Contains(t, out, "Policy rule no-high and --fail-on attacks block **6 findings** in this scan.")
 	blocking := section(out, "Blocking findings (6)")
-	assert.Contains(t, blocking, "| 🟠 high | [GHSA-1](https://osv.dev/vulnerability/GHSA-1) · `f-",
+	assert.Contains(t, blocking, "| high | [GHSA-1](https://osv.dev/vulnerability/GHSA-1) (`f-",
 		"each advisory of one fix has its own row")
-	assert.Contains(t, blocking, "| 🟠 high | [GHSA-2](https://osv.dev/vulnerability/GHSA-2) · `f-")
+	assert.Contains(t, blocking, "| high | [GHSA-2](https://osv.dev/vulnerability/GHSA-2) (`f-")
 	assert.Contains(t, blocking, "<br>Bad \\| worse | `go/example.com/b@1.0.0`<br>`go.mod:6` | no-high |",
 		"the row names the rule, and a pipe in the title does not split the cell")
 	assert.NotContains(t, blocking, "GHSA-3", "a finding that only warns does not block")
 	review := section(out, "Findings to review (1)")
 	assert.Contains(t, review, "pull\\_request\\_target checks out the head", "a high finding that does not block stays open")
 	other := section(out, "Other findings (1)")
-	assert.Contains(t, other, "<details><summary><b>vulnerability</b> · 1 finding · 1 medium</summary>")
+	assert.Contains(t, other, "<details><summary><b>vulnerability</b>: 1 finding (1 medium)</summary>")
 	assert.Contains(t, other, "Warned by policy rule note-medium", "a finding that warns names its rule")
 }
 
@@ -255,7 +255,7 @@ func TestBounds(t *testing.T) {
 	todo := section(out, "What to do")
 	assert.Contains(t, todo, "   - 10 more in the full report\n", "an upgrade step lists at most 50 packages")
 	assert.True(t, strings.HasSuffix(todo, "\n   - 2 more"), "a step lists at most 5 places")
-	assert.Equal(t, 50, strings.Count(section(out, "Blocking findings (67)"), "| 🟠 high |"), "a table has at most 50 rows")
+	assert.Equal(t, 50, strings.Count(section(out, "Blocking findings (67)"), "| high |"), "a table has at most 50 rows")
 	assert.Contains(t, section(out, "Blocking findings (67)"), "The full report has 17 more.")
 	assert.Contains(t, out, "The full report has 10 more.\n\n</details>", "a control list has at most 50 rows")
 }
@@ -309,5 +309,5 @@ func TestTheRowLimitKeepsTheMostSevereAdvisories(t *testing.T) {
 	blocking := section(write(t, s), "Blocking findings (62)")
 	assert.Contains(t, blocking, "GHSA-zz00")
 	assert.Contains(t, blocking, "GHSA-zz01")
-	assert.Equal(t, 2, strings.Count(blocking, "| 🔴 critical |"))
+	assert.Equal(t, 2, strings.Count(blocking, "| critical |"))
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/safedep/vet/v2/internal/engine"
+	"github.com/safedep/vet/v2/internal/tui/glyph"
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/plugin/plugintest"
@@ -45,8 +46,30 @@ func TestSnapshotTextSaysWhatTheStageDoes(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, tc.s.text(now))
+			assert.Equal(t, tc.want, tc.s.text(now, glyph.For(output.Rich)))
 		})
+	}
+}
+
+// TestSnapshotTextIsASCIIOutsideRichMode keeps the middle dot out of a CI
+// log and out of the output that an agent reads.
+func TestSnapshotTextIsASCIIOutsideRichMode(t *testing.T) {
+	index := plugin.Work{Name: "code_index", Label: "Indexing the source code", Started: start, Budget: 5 * time.Minute}
+	now := start.Add(2*time.Minute + 10*time.Second)
+	cases := []struct {
+		name string
+		s    snapshot
+		want string
+	}{
+		{"walk", snapshot{stage: engine.StageExtract, started: start, done: 41233, dir: "services/api"}, "Reading the manifests: 41233 files in 2m10s, services/api"},
+		{"wait for work", snapshot{stage: engine.StageEnrich, started: start, done: 4210, total: 6501, work: index}, "Indexing the source code: 2m10s of the 5m budget, 4210 of 6501 packages checked"},
+	}
+	for _, tc := range cases {
+		for _, m := range []output.Mode{output.Plain, output.Agent} {
+			t.Run(tc.name+" "+m.String(), func(t *testing.T) {
+				assert.Equal(t, tc.want, tc.s.text(now, glyph.For(m)))
+			})
+		}
 	}
 }
 
@@ -115,7 +138,7 @@ func TestBeatPrintsTheProgressOfALongStage(t *testing.T) {
 		want string
 	}{
 		{"plain", output.Plain, false, "[INFO] Checking 9 packages: 3 done in 16s"},
-		{"plain wait", output.Plain, true, "[INFO] Indexing the source code: 16s of the 5m budget · 3 of 9 packages checked"},
+		{"plain wait", output.Plain, true, "[INFO] Indexing the source code: 16s of the 5m budget, 3 of 9 packages checked"},
 		{"agent", output.Agent, false, "progress: enrich 3 elapsed=16s"},
 		{"agent wait", output.Agent, true, "progress: enrich 3 elapsed=16s work=code_index"},
 		{"rich with no live line", output.Rich, false, "› Checking 9 packages: 3 done in 16s"},

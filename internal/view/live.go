@@ -9,6 +9,7 @@ import (
 
 	"github.com/safedep/vet/v2/internal/engine"
 	"github.com/safedep/vet/v2/internal/tui/escape"
+	"github.com/safedep/vet/v2/internal/tui/glyph"
 	"github.com/safedep/vet/v2/internal/tui/humanize"
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/internal/tui/progress"
@@ -72,8 +73,9 @@ func (s snapshot) waits() bool {
 }
 
 // text says what the stage does now, for the live line and the heartbeat.
-// It is empty for a stage with nothing to say.
-func (s snapshot) text(now time.Time) string {
+// It is empty for a stage with nothing to say. g joins the facts of the
+// line.
+func (s snapshot) text(now time.Time, g glyph.Set) string {
 	elapsed := humanize.Elapsed(now.Sub(s.started))
 	switch {
 	case s.waits():
@@ -82,7 +84,7 @@ func (s snapshot) text(now time.Time) string {
 			t += " of the " + budgetText(s.work.Budget) + " budget"
 		}
 		if s.total > 0 {
-			t += fmt.Sprintf(" · %d of %s checked", s.done, plural(s.total, "package"))
+			t += fmt.Sprintf("%s%d of %s checked", g.Sep, s.done, plural(s.total, "package"))
 		}
 		return t
 	case s.stage == engine.StageExtract:
@@ -97,7 +99,7 @@ func (s snapshot) text(now time.Time) string {
 		}
 		t += " in " + elapsed
 		if s.dir != "" {
-			t += " · " + escape.Line(s.dir)
+			t += g.Sep + escape.Line(s.dir)
 		}
 		return t
 	case s.stage == engine.StageEnrich && s.total > 0:
@@ -146,10 +148,10 @@ func (sh *shown) set(s snapshot) {
 	sh.mu.Unlock()
 }
 
-func (sh *shown) text(now time.Time) string {
+func (sh *shown) text(now time.Time, g glyph.Set) string {
 	sh.mu.Lock()
 	defer sh.mu.Unlock()
-	return sh.s.text(now)
+	return sh.s.text(now, g)
 }
 
 // Walk records the folder of the file that the extract stage reads.
@@ -209,7 +211,7 @@ func (v *Scan) update() {
 	if kind != v.lineKind {
 		v.stopBar()
 		if kind != "" {
-			v.bar = v.startLine(kind, s.total, func() string { return v.shown.text(v.now()) })
+			v.bar = v.startLine(kind, s.total, func() string { return v.shown.text(v.now(), v.glyphs) })
 		}
 		v.lineKind = kind
 	}
@@ -266,7 +268,7 @@ func (v *Scan) beat() {
 		return
 	}
 	s := v.snapshot()
-	text := s.text(now)
+	text := s.text(now, v.glyphs)
 	if text == "" {
 		return
 	}
@@ -282,6 +284,6 @@ func (v *Scan) beat() {
 	case output.Plain:
 		v.line("[INFO] " + text)
 	default:
-		v.line(style.Faint("› ") + text)
+		v.line(style.Faint(v.glyphs.Step+" ") + text)
 	}
 }
