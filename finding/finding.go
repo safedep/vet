@@ -171,24 +171,28 @@ func (l ReachLevel) Rank() int {
 }
 
 // Label is the short text of a reach that names its evidence, as
-// "called · 3 hops", "imported · no symbol data" or "unknown · budget".
+// "called (3 hops)", "imported (no symbol data, tests only)" or
+// "unknown (budget)". It is ASCII, because every format shows it.
 func (r *Reach) Label() string {
 	if r == nil {
 		return ""
 	}
-	label := r.Level.Text()
+	var detail []string
 	switch {
 	case r.Level == ReachCalled && len(r.Path) == 2:
-		label += " · 1 hop"
+		detail = append(detail, "1 hop")
 	case r.Level == ReachCalled && len(r.Path) > 2:
-		label += fmt.Sprintf(" · %d hops", len(r.Path)-1)
+		detail = append(detail, fmt.Sprintf("%d hops", len(r.Path)-1))
 	case r.Cause != "":
-		label += " · " + r.Cause.Text()
+		detail = append(detail, r.Cause.Text())
 	}
 	if r.TestOnly {
-		label += " · tests only"
+		detail = append(detail, "tests only")
 	}
-	return label
+	if len(detail) == 0 {
+		return r.Level.Text()
+	}
+	return r.Level.Text() + " (" + strings.Join(detail, ", ") + ")"
 }
 
 // FetchHint is the action that puts the code of the dependencies of an

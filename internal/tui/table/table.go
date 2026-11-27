@@ -8,6 +8,8 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	"github.com/safedep/dry/tui/output"
 	"github.com/safedep/dry/tui/table"
+
+	"github.com/safedep/vet/v2/internal/tui/glyph"
 )
 
 // minColumn is the narrowest width that truncation gives a column.
@@ -17,9 +19,10 @@ const minColumn = 4
 type Fit int
 
 const (
-	// Cut ends the cell with "…". It is the default.
+	// Cut ends the cell with an ellipsis. It is the default.
 	Cut Fit = iota
-	// CutLeft starts the cell with "…" and keeps its end, for a path.
+	// CutLeft starts the cell with an ellipsis and keeps its end, for a
+	// path.
 	CutLeft
 	// Wrap breaks the cell into lines.
 	Wrap
@@ -95,6 +98,8 @@ func (t *Table) EmptyMessage(s string) *Table { t.t.EmptyMessage(s); return t }
 // than the limit, Render drops columns in their Drop order, then shrinks
 // the widest column that is not Keep, and fits each cell to its column.
 func (t *Table) Render() string {
+	mode := output.CurrentMode()
+	ellipsis := glyph.For(mode).Ellipsis
 	limit := t.maxWidth
 	if limit <= 0 {
 		limit = output.Width()
@@ -105,12 +110,26 @@ func (t *Table) Render() string {
 	keep := visible(widths, cols, limit)
 	widths, cols = pick(widths, keep), pick(cols, keep)
 	widths = fit(widths, cols, limit)
-	t.t.Headers(fitRow(pick(t.headers, keep), widths, cols)...)
+	t.t.Headers(fitRow(pick(t.headers, keep), widths, cols, ellipsis)...)
 	for _, r := range t.rows {
-		t.t.Row(fitRow(pick(r, keep), widths, cols)...)
+		t.t.Row(fitRow(pick(r, keep), widths, cols, ellipsis)...)
+	}
+	if mode == output.Plain {
+		return asciiBorder.Replace(t.t.Render())
 	}
 	return t.t.Render()
 }
+
+// asciiBorder maps the plain border of dry/tui/table to ASCII. dry draws
+// it with the box-drawing characters of lipgloss.NormalBorder, but a CI log
+// and a report file are ASCII. A box-drawing character in a cell also
+// becomes ASCII. Remove this when dry/tui/table draws lipgloss.ASCIIBorder
+// in plain mode.
+var asciiBorder = strings.NewReplacer(
+	"─", "-", "│", "|",
+	"┌", "+", "┐", "+", "└", "+", "┘", "+",
+	"├", "+", "┤", "+", "┬", "+", "┴", "+", "┼", "+",
+)
 
 func columnWidths(headers []string, rows [][]string) []int {
 	var w []int
@@ -199,36 +218,36 @@ func fit(widths []int, cols []Column, limit int) []int {
 	return widths
 }
 
-func fitRow(cells []string, widths []int, cols []Column) []string {
+func fitRow(cells []string, widths []int, cols []Column, ellipsis string) []string {
 	out := make([]string, len(cells))
 	for i, c := range cells {
 		out[i] = c
 		if i < len(widths) && cellWidth(c) > widths[i] {
-			out[i] = fitCell(c, widths[i], cols[i].Fit)
+			out[i] = fitCell(c, widths[i], cols[i].Fit, ellipsis)
 		}
 	}
 	return out
 }
 
-func fitCell(s string, width int, f Fit) string {
+func fitCell(s string, width int, f Fit, ellipsis string) string {
 	switch f {
 	case Keep:
 		return s
 	case Wrap:
 		return ansi.Wrap(s, width, "")
 	case CutLeft:
-		return cutLeft(s, width)
+		return cutLeft(s, width, ellipsis)
 	default:
-		return ansi.Truncate(s, width, "…")
+		return ansi.Truncate(s, width, ellipsis)
 	}
 }
 
 // cutLeft keeps the end of s in width cells. It starts the cut at a path
-// separator when one is in the kept end, as in "…/projects/npm-app".
-func cutLeft(s string, width int) string {
-	tail := ansi.TruncateLeft(s, ansi.StringWidth(s)-width+1, "")
+// separator when one is in the kept end, as in ".../projects/npm-app".
+func cutLeft(s string, width int, ellipsis string) string {
+	tail := ansi.TruncateLeft(s, ansi.StringWidth(s)-width+ansi.StringWidth(ellipsis), "")
 	if i := strings.IndexAny(tail, `/\`); i > 0 && i < len(tail)-1 {
 		tail = tail[i:]
 	}
-	return "…" + tail
+	return ellipsis + tail
 }

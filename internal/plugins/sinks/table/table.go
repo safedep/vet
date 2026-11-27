@@ -16,6 +16,7 @@ import (
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
 	"github.com/safedep/vet/v2/internal/plugins/internal/render"
+	"github.com/safedep/vet/v2/internal/tui/glyph"
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/internal/tui/section"
 	"github.com/safedep/vet/v2/internal/tui/stat"
@@ -141,7 +142,7 @@ func (s Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 		}
 		parts = append(parts, style.Success("No findings. "+checked+" checked."))
 	} else {
-		parts = append(parts, findingTable(shown, report.ShortIDLength(ids), delta && !same, output.Width()))
+		parts = append(parts, findingTable(shown, report.ShortIDLength(ids), delta && !same, output.Width(), glyph.For(output.CurrentMode()).Ellipsis))
 	}
 	hints := findingHints(len(open), rows, len(shown), t.Summary.Suppressed)
 	if text := changeHint(change); delta && same && text != "" {
@@ -194,8 +195,8 @@ func (s Sink) rows(fs []*finding.Finding) []row {
 // the width that the other columns leave, and wraps onto a second line, so
 // that a cut falls on the FINDING text and not on the subject or the place.
 // When FINDING gets less than textWidth, the table drops CONTROL, then
-// WHERE.
-func findingTable(rows []row, idLen int, delta bool, width int) string {
+// WHERE. ellipsis ends a FINDING text that the table cuts.
+func findingTable(rows []row, idLen int, delta bool, width int, ellipsis string) string {
 	wide := width >= wideWidth
 	l := findingLayout(rows, idLen, delta, wide, wide, true)
 	if l.room(width) < textWidth && wide {
@@ -210,7 +211,7 @@ func findingTable(rows []row, idLen int, delta bool, width int) string {
 	room := max(l.room(width), minTextWidth)
 	tbl := table.New().Headers(l.cells[0]...)
 	for i, row := range l.cells[1:] {
-		row[l.textAt] = wrap(rows[i].text(room), room, textLines)
+		row[l.textAt] = wrap(rows[i].text(room), room, textLines, ellipsis)
 		tbl.Row(row...)
 	}
 	return tbl.Render()
@@ -286,12 +287,12 @@ func (l layout) room(width int) int {
 }
 
 // wrap breaks text into lines of width cells at most, and cuts it to n
-// lines. The last line of a cut text ends with an ellipsis.
-func wrap(text string, width, n int) string {
+// lines. The last line of a cut text ends with the ellipsis.
+func wrap(text string, width, n int, ellipsis string) string {
 	lines := strings.Split(ansi.Wrap(text, width, ""), "\n")
 	if len(lines) > n {
-		last, _, _ := strings.Cut(ansi.Wrap(strings.Join(lines[n-1:], " "), width-1, ""), "\n")
-		lines = append(lines[:n-1], strings.TrimRight(last, " ")+"…")
+		last, _, _ := strings.Cut(ansi.Wrap(strings.Join(lines[n-1:], " "), width-ansi.StringWidth(ellipsis), ""), "\n")
+		lines = append(lines[:n-1], strings.TrimRight(last, " ")+ellipsis)
 	}
 	return strings.Join(lines, "\n")
 }

@@ -3,6 +3,7 @@ package table
 import (
 	"strings"
 	"testing"
+	"unicode"
 
 	"github.com/charmbracelet/x/ansi"
 	"github.com/safedep/dry/tui/output"
@@ -53,21 +54,24 @@ func TestVisible(t *testing.T) {
 
 func TestFitCell(t *testing.T) {
 	cases := []struct {
-		name  string
-		cell  string
-		width int
-		fit   Fit
-		want  string
+		name     string
+		cell     string
+		width    int
+		fit      Fit
+		ellipsis string
+		want     string
 	}{
-		{name: "cut", cell: "abcdefghij", width: 5, fit: Cut, want: "abcd…"},
-		{name: "cut left at a separator", cell: "/tmp/claude-0/uxreview/projects/npm-app", width: 20, fit: CutLeft, want: "…/projects/npm-app"},
-		{name: "cut left with no separator", cell: "abcdefghij", width: 5, fit: CutLeft, want: "…ghij"},
+		{name: "cut", cell: "abcdefghij", width: 5, fit: Cut, ellipsis: "…", want: "abcd…"},
+		{name: "cut in ASCII", cell: "abcdefghij", width: 5, fit: Cut, ellipsis: "...", want: "ab..."},
+		{name: "cut left at a separator", cell: "/tmp/claude-0/uxreview/projects/npm-app", width: 20, fit: CutLeft, ellipsis: "…", want: "…/projects/npm-app"},
+		{name: "cut left in ASCII", cell: "/tmp/claude-0/uxreview/projects/npm-app", width: 20, fit: CutLeft, ellipsis: "...", want: ".../projects/npm-app"},
+		{name: "cut left with no separator", cell: "abcdefghij", width: 5, fit: CutLeft, ellipsis: "…", want: "…ghij"},
 		{name: "wrap", cell: "one two three", width: 7, fit: Wrap, want: "one two\nthree"},
 		{name: "keep", cell: "abcdefghij", width: 5, fit: Keep, want: "abcdefghij"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, fitCell(tc.cell, tc.width, tc.fit))
+			assert.Equal(t, tc.want, fitCell(tc.cell, tc.width, tc.fit, tc.ellipsis))
 		})
 	}
 }
@@ -81,11 +85,11 @@ func TestRenderTruncatesToWidth(t *testing.T) {
 	for _, line := range strings.Split(out, "\n") {
 		assert.LessOrEqual(t, ansi.StringWidth(line), 50, line)
 	}
-	assert.Contains(t, out, "…")
+	assert.Contains(t, out, "...")
 	assert.Contains(t, out, "high")
 
 	short := New().Headers("A").Row("b").MaxWidth(50).Render()
-	assert.NotContains(t, short, "…")
+	assert.NotContains(t, short, "...")
 }
 
 func TestRenderFitsColumns(t *testing.T) {
@@ -101,7 +105,7 @@ func TestRenderFitsColumns(t *testing.T) {
 	}
 	assert.Contains(t, out, id)
 	assert.NotContains(t, out, "PLUGIN")
-	assert.NotContains(t, out, "…")
+	assert.NotContains(t, out, "...")
 	assert.Equal(t, 20, strings.Count(out, "word"))
 }
 
@@ -112,4 +116,29 @@ func TestRenderMeasuresTheWidestLineOfACell(t *testing.T) {
 	subject := "npm/evil-colors@1.4.1"
 	out := New().Headers("SUBJECT", "FINDING").Row(subject, "Malicious\npackage").MaxWidth(40).Render()
 	assert.Contains(t, out, subject, "a two-line cell is as wide as its widest line")
+}
+
+// TestRenderIsASCIIOutsideRichMode keeps the box-drawing border and the
+// ellipsis character out of a CI log and a report file. Rich mode keeps
+// them.
+func TestRenderIsASCIIOutsideRichMode(t *testing.T) {
+	t.Cleanup(func() { output.SetMode(output.Rich) })
+	long := strings.Repeat("very-long-package-name-", 5)
+	cases := []struct {
+		mode  output.Mode
+		ascii bool
+	}{
+		{mode: output.Rich},
+		{mode: output.Plain, ascii: true},
+		{mode: output.Agent, ascii: true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.mode.String(), func(t *testing.T) {
+			output.SetMode(tc.mode)
+			out := New().Headers("SEVERITY", "SUBJECT").Row("high", long).MaxWidth(40).Render()
+			assert.Contains(t, out, "high")
+			isASCII := strings.IndexFunc(out, func(r rune) bool { return r > unicode.MaxASCII }) < 0
+			assert.Equal(t, tc.ascii, isASCII, out)
+		})
+	}
 }

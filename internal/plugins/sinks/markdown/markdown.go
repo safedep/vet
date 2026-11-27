@@ -50,14 +50,6 @@ const (
 	maxRows = render.MaxMembers
 )
 
-var icons = map[finding.Severity]string{
-	finding.SeverityCritical: "🔴",
-	finding.SeverityHigh:     "🟠",
-	finding.SeverityMedium:   "🟡",
-	finding.SeverityLow:      "⚪",
-	finding.SeverityInfo:     "🔵",
-}
-
 // page is the input of one markdown report.
 type page struct {
 	header  *report.Header
@@ -110,14 +102,15 @@ func (p page) heading(b *strings.Builder) {
 	fmt.Fprintf(b, "## vet %s", p.header.Scan.Kind)
 	switch p.trailer.Gate.Outcome {
 	case report.GateFail:
-		b.WriteString(" · ❌ The gate failed")
+		b.WriteString(" failed the gate")
 	case report.GatePass:
-		b.WriteString(" · ✅ The gate passed")
+		b.WriteString(" passed the gate")
 	}
 	b.WriteString("\n\n")
 }
 
-// status says what blocks, what vet checked and what it found.
+// status says what blocks, what vet checked and what it found. An alert
+// gives the result of the gate a colour on GitHub.
 func (p page) status(b *strings.Builder, sec overview.Sections) {
 	where := "this scan"
 	if p.delta() {
@@ -148,7 +141,14 @@ func (p page) status(b *strings.Builder, sec overview.Sections) {
 	if n := sum.Suppressed; n > 0 {
 		parts = append(parts, fmt.Sprintf("The policy suppresses %s.", humanize.Count(n, "more finding")))
 	}
-	b.WriteString(strings.Join(parts, " ") + "\n\n")
+	text := strings.Join(parts, " ")
+	switch p.trailer.Gate.Outcome {
+	case report.GateFail:
+		text = "> [!CAUTION]\n> " + text
+	case report.GatePass:
+		text = "> [!NOTE]\n> " + text
+	}
+	b.WriteString(text + "\n\n")
 }
 
 // blockedBy names the rules and the --fail-on value that block the
@@ -233,14 +233,7 @@ func policyHelp(fs []*finding.Finding) []string {
 			continue
 		}
 		seen[g.Rules[0]] = true
-		var parts []string
-		if g.Help != "" {
-			parts = append(parts, render.Bounded(render.Text(g.Help), render.MaxText))
-		}
-		if u := render.SafeURL(g.Link); u != "" {
-			parts = append(parts, fmt.Sprintf("[Policy guidance](%s)", u))
-		}
-		lines = append(lines, fmt.Sprintf("- %s: %s", render.ShortCode(render.Text(g.Rules[0])), strings.Join(parts, " · ")))
+		lines = append(lines, fmt.Sprintf("- %s: %s", render.ShortCode(render.Text(g.Rules[0])), render.PolicyHelp(g.Help, g.Link)))
 	}
 	return lines
 }
@@ -318,7 +311,7 @@ func upgradeLine(u overview.Upgrade) string {
 	if u.Unfixed > 0 && !u.Latest {
 		count += fmt.Sprintf(", %d with no known fixed version", u.Unfixed)
 	}
-	return fmt.Sprintf("%s %s → %s (%s)", render.ShortCode(render.Text(u.Name)), strings.Join(from, ", "), to, count)
+	return fmt.Sprintf("%s %s to %s (%s)", render.ShortCode(render.Text(u.Name)), strings.Join(from, ", "), to, count)
 }
 
 func version(v model.PackageVersion) string {
@@ -436,7 +429,7 @@ func (p page) table(b *strings.Builder, title string, fs []*finding.Finding, blo
 	gs := rows(fs)
 	for _, g := range gs[:min(len(gs), maxRows)] {
 		f := g.Lead()
-		cells := []string{kind(g.Severity(), g.Kind()), p.findingCell(f), whereCell(f, g.More())}
+		cells := []string{g.Kind(), p.findingCell(f), whereCell(f, g.More())}
 		if p.delta() {
 			cells = append(cells, changes(g.Findings))
 		}
@@ -477,7 +470,7 @@ func (p page) control(b *strings.Builder, fs []*finding.Finding) {
 	for _, group := range groupBy(fs, render.Kind) {
 		tally = append(tally, fmt.Sprintf("%d %s", len(group), render.Kind(group[0])))
 	}
-	fmt.Fprintf(b, "<details><summary><b>%s</b> · %s · %s</summary>\n\n", summaryText(id),
+	fmt.Fprintf(b, "<details><summary><b>%s</b>: %s (%s)</summary>\n\n", summaryText(id),
 		humanize.Count(len(fs), "finding"), summaryText(strings.Join(tally, ", ")))
 	if u := render.SafeURL(render.ControlURL(p.header.Tool.Version, id)); u != "" {
 		fmt.Fprintf(b, "[What this control checks](%s)\n\n", u)
@@ -495,7 +488,7 @@ func (p page) control(b *strings.Builder, fs []*finding.Finding) {
 	}
 	writeHeader(b, append(cols, "ID"))
 	for _, f := range fs[:min(len(fs), maxRows)] {
-		cells := []string{kind(f.Severity, render.Kind(f)), render.Bounded(render.Title(f), maxTitle), whereCell(f, "")}
+		cells := []string{render.Kind(f), render.Bounded(render.Title(f), maxTitle), whereCell(f, "")}
 		if p.delta() {
 			cells = append(cells, changes([]*finding.Finding{f}))
 		}
@@ -536,12 +529,13 @@ func (p page) suppressed(b *strings.Builder) {
 	fmt.Fprintf(b, "<details><summary>%d suppressed</summary>\n\n%s\n\n</details>\n\n", len(fs), strings.Join(lines, "\n"))
 }
 
+// footer gives each command a line of its own. A command ends its line
+// with no full stop, so a copy of it runs as it is.
 func (p page) footer(b *strings.Builder) {
-	line := "Full report: " + render.Code(overview.FullList(render.Text(p.header.Scan.ID)))
+	b.WriteString("---\n\nFull report: " + render.Code(overview.FullList(render.Text(p.header.Scan.ID))) + "\n")
 	if len(p.view.Findings) > 0 {
-		line += " · One finding: `vet report finding show <id>`"
+		b.WriteString("\nOne finding: `vet report finding show <id>`\n")
 	}
-	b.WriteString("---\n\n" + line + "\n")
 }
 
 // findingCell links the advisory of a finding, or the docs of its control,
@@ -564,7 +558,7 @@ func (p page) findingCell(f *finding.Finding) string {
 			}
 		}
 	}
-	return ref + " · " + p.id(f) + "<br>" + render.Bounded(title, maxTitle)
+	return ref + " (" + p.id(f) + ")<br>" + render.Bounded(title, maxTitle)
 }
 
 func (p page) id(f *finding.Finding) string { return code(report.ShortID(f.ID, p.idLength)) }
@@ -587,13 +581,6 @@ func changes(fs []*finding.Finding) string {
 		out = appendNew(out, strings.ToLower(string(f.Change)))
 	}
 	return cell(strings.Join(out, ", "))
-}
-
-func kind(s finding.Severity, label string) string {
-	if icon, ok := icons[s]; ok {
-		return icon + " " + label
-	}
-	return label
 }
 
 func writeHeader(b *strings.Builder, cols []string) {

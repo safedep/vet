@@ -7,4 +7,4 @@ stdout '^vet \S+.* go[0-9.]+ [a-z0-9]+/[a-z0-9]+$'
 
 exec vet version --mode plain -o table
 stdout '^vet .* go[0-9.]+ '
-! stdout '│'
+! stdout '\|'

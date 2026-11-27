@@ -1,6 +1,7 @@
-## vet scan · ❌ The gate failed
+## vet scan failed the gate
 
-Policy rule no-malware and --fail-on high block **1 finding** in this pull request. vet checked 2 packages and found 2 findings. The policy suppresses 1 more finding.
+> [!CAUTION]
+> Policy rule no-malware and --fail-on high block **1 finding** in this pull request. vet checked 2 packages and found 2 findings. The policy suppresses 1 more finding.
 
 ### What to do
 
@@ -9,25 +10,25 @@ Policy rule no-malware and --fail-on high block **1 finding** in this pull reque
 
 **Policy help**
 
-- `no-malware`: Remove the package and rotate the secrets of each machine that installed it. · [Policy guidance](https://wiki.example.com/security/malware)
+- `no-malware`: Remove the package and rotate the secrets of each machine that installed it. [Policy guidance](https://wiki.example.com/security/malware)
 
 ### Blocking findings (1)
 
 |  | Finding | Where | Change | Blocked by |
 | --- | --- | --- | --- | --- |
-| 🔴 critical | [malware](https://github.com/safedep/vet/blob/v2/docs/controls.md#malware) · `f-f7017b22`<br>Malicious package | `npm/evil-colors@1.4.1`<br>`package-lock.json:42` | added | no-malware, --fail-on high |
+| critical | [malware](https://github.com/safedep/vet/blob/v2/docs/controls.md#malware) (`f-f7017b22`)<br>Malicious package | `npm/evil-colors@1.4.1`<br>`package-lock.json:42` | added | no-malware, --fail-on high |
 
 ### Other findings (1)
 
 They do not block the gate.
 
-<details><summary><b>unpinned-action</b> · 1 finding · 1 medium</summary>
+<details><summary><b>unpinned-action</b>: 1 finding (1 medium)</summary>
 
 [What this control checks](https://github.com/safedep/vet/blob/v2/docs/controls.md#unpinned-action)
 
 |  | Finding | Where | Change | Gate | ID |
 | --- | --- | --- | --- | --- | --- |
-| 🟡 medium | is not pinned to a commit SHA | `tj-actions/changed-files@v44`<br>`.github/workflows/ci.yml:8` | added | Warned by policy rule pin-actions | `f-e815bb3b` |
+| medium | is not pinned to a commit SHA | `tj-actions/changed-files@v44`<br>`.github/workflows/ci.yml:8` | added | Warned by policy rule pin-actions | `f-e815bb3b` |
 
 </details>
 
@@ -39,4 +40,6 @@ They do not block the gate.
 
 ---
 
-Full report: `vet report show test0000 --all` · One finding: `vet report finding show <id>`
+Full report: `vet report show test0000 --all`
+
+One finding: `vet report finding show <id>`

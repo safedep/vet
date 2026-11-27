@@ -2,6 +2,7 @@ package prcomment
 
 import (
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -101,4 +102,19 @@ func TestAnnotationOfAnAttackWithNoGate(t *testing.T) {
 		assert.Equal(t, ci.AnnotationWarning, got[0].Level, gate)
 		assert.Equal(t, "vet: Malicious package", got[0].Title, gate)
 	}
+}
+
+// TestFooterHasOneLineForEachConcern keeps the footer readable: the
+// version, then the full report and the command that downloads it, then
+// the links. The command ends its line, so a copy of it has no full stop.
+func TestFooterHasOneLineForEachConcern(t *testing.T) {
+	body := upgradeInput(t).body()
+	start := strings.LastIndex(body, "<sub>")
+	require.GreaterOrEqual(t, start, 0)
+	footer := body[start : start+strings.Index(body[start:], "</sub>")]
+	lines := strings.Split(strings.TrimPrefix(footer, "<sub>"), "<br>")
+	require.Len(t, lines, 3)
+	assert.Equal(t, "[vet](https://github.com/safedep/vet) 2.0.0-alpha.20261014124335, open source by SafeDep", lines[0])
+	assert.Equal(t, "Full report: [run 99](https://github.com/acme/app/actions/runs/99). Report file: `gh run download 99 -R acme/app -n vet-report -D vet-report`", lines[1])
+	assert.Regexp(t, `^\[Policy\]\([^)]+\), \[Wrong result\?\]\([^)]+\), \[Add vet to your repo\]\([^)]+\)$`, lines[2])
 }

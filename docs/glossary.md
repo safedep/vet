@@ -496,6 +496,13 @@ How vet writes messages to stderr: `rich`, `plain` or `agent`, with `auto` to de
 `output.mode`. vet picks `agent` when it runs under an AI agent.
 _Avoid_: scan mode, output mode (when you mean the messaging mode)
 
+**Glyph set**:
+The marks that join, cut and start the lines of the terminal: a separator, an ellipsis and a step
+mark. `glyph.Set` in `internal/tui/glyph`, from `glyph.For(mode)`. Only the rich messaging mode gets
+Unicode marks. The plain and agent modes get ASCII marks. A report format writes ASCII text and
+takes no glyph set. Only `internal/tui` holds a Unicode string literal. `internal/archtest` checks it.
+_Avoid_: icons (dry/tui calls its status marks icons), symbols
+
 **View**:
 The stderr text of a scan: the step lines, the progress, the diagnostics, the gate line and the next
 steps. `internal/view`. The report goes to stdout through a sink, never through the view.

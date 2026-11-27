@@ -361,9 +361,9 @@ func TestCardsOfAPackageWithAnAttack(t *testing.T) {
 	c := newInput(t, s)
 	c.dialect = dialect{}
 	body := c.body()
-	assert.Contains(t, body, "### ❌ vet: 2 causes block this pull request", "the attack does not fold into a group with the same fix")
-	assert.Contains(t, body, "`npm/evil-colors@1.4.1`: **Malicious package** · `critical`")
-	assert.Contains(t, body, "`npm/evil-colors@1.4.1`: **Version inside the cooldown window** · `cooldown`")
+	assert.Contains(t, body, "### vet: 2 causes block this pull request", "the attack does not fold into a group with the same fix")
+	assert.Contains(t, body, "`npm/evil-colors@1.4.1`: **Malicious package** (`critical`)")
+	assert.Contains(t, body, "`npm/evil-colors@1.4.1`: **Version inside the cooldown window** (`cooldown`)")
 	assert.Less(t, strings.Index(body, "**Malicious package**"), strings.Index(body, "**Version inside the cooldown window**"), "the attack comes first")
 	assert.Contains(t, body, "**Next step:** `npm/evil-colors@1.4.1` in [`package-lock.json:42`]")
 	assert.Contains(t, body, "**Blocked by:** --fail-on attacks")
@@ -406,7 +406,7 @@ func TestUpgradeComment(t *testing.T) {
 	assert.NotContains(t, body, "\u200b", "a package name copies as it is")
 
 	lines := strings.Split(body, "\n")
-	assert.Equal(t, "### ❌ vet: 1 cause blocks this pull request", lines[1])
+	assert.Equal(t, "### vet: 1 cause blocks this pull request", lines[1])
 	assert.True(t, strings.HasPrefix(lines[3], "**Next step:** `npm/pnpm@12.15.0` and 14 more in [`package.json:119`]"), lines[3])
 	assert.Contains(t, lines[3], `Keep "packageManager" at pnpm@12.8.2 in package.json`)
 	assert.Contains(t, lines[3], "Or wait until 2026-10-23 11:17 UTC, then run the job again.", "the group waits for its last package")

@@ -150,13 +150,19 @@ func wordMark(r rune) bool {
 	return r == '_' || r >= '0' && r <= '9' || r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z'
 }
 
+// ellipsis marks a cut text. It is ASCII, because every format shows it.
+const ellipsis = "..."
+
 // Truncate cuts s to at most n runes, with an ellipsis at the cut.
 func Truncate(s string, n int) string {
 	r := []rune(s)
 	if len(r) <= n {
 		return s
 	}
-	return string(r[:n-1]) + "…"
+	if n <= len(ellipsis) {
+		return string(r[:n])
+	}
+	return string(r[:n-len(ellipsis)]) + ellipsis
 }
 
 // EachRecord calls fn for each record of the report, in report order.

@@ -119,5 +119,9 @@ messages, commit messages, pull requests and docs.
 - Do not end a message with a full stop right after a value that a user copies: a path, a scan
   id, a config key, a flag or a command. Put the value earlier in the sentence, or end the message
   with the value and no full stop.
+- Only the rich mode of the terminal shows Unicode, and it gets each glyph from `internal/tui`. All
+  other output is ASCII: the report formats, the pull request comment, and the plain and agent
+  modes. Separate facts with lines, lists, table columns, commas or parentheses. Do not write a
+  middle dot, an arrow, an ellipsis character or an emoji.
 - Say SafeDep Threat Intel in user-facing text. Malysis is an internal name. The plugin and the
   config key keep the name `malysis`.

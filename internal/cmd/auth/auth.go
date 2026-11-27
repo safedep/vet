@@ -157,7 +157,7 @@ func statusRows(st *credentials.Status) printer.Rows {
 	add("Profile", st.Profile, st.ProfileSource)
 	key, cloud := "none (community endpoints, rate limited)", "none"
 	if st.APIKey != "" {
-		key = "••••" + st.KeyHint
+		key = "****" + st.KeyHint
 		if st.Tenant != "" {
 			key += " (" + st.Tenant + ")"
 		}

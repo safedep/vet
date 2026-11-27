@@ -25,7 +25,7 @@ func reachRows(r *finding.Reach, scan *report.ReachInfo, add func(k, v string)) 
 		add("searched from", fmt.Sprintf("%d entry points. vet report root list lists them.", scan.Roots.Total))
 	}
 	if len(r.Via) > 0 {
-		add("via", strings.Join(r.Via, " → "))
+		add("via", strings.Join(r.Via, " -> "))
 	}
 	for _, s := range r.Imports {
 		add("import", fmt.Sprintf("%s:%d", s.File, s.Line))
@@ -49,7 +49,7 @@ func hopText(i int, h model.PathHop) string {
 		}
 		return fmt.Sprintf("%s (root: %s)", h.Function, root)
 	}
-	text := "→ " + h.Function
+	text := "-> " + h.Function
 	if h.File != "" {
 		text += fmt.Sprintf(" at %s:%d", h.File, h.Line)
 	}

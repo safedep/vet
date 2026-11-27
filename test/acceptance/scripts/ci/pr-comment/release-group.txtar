@@ -3,7 +3,8 @@
 # release with a name glob until the cooldown ends.
 env GITHUB_ACTIONS=
 execexit 1 vet scan . --fail-on high --report pr-comment=comment.md --mode plain -o plain
-grep '^### ❌ vet: 1 cause blocks this scan$' comment.md
+grep '^### vet: 1 cause blocks this scan$' comment.md
+! grep '[^\x00-\x7F]' comment.md
 grep '^\*\*Next step:\*\* `npm/fresh-tool@2.0.0` and 3 more in `package-lock.json:6`: ' comment.md
 grep '^\*\*Next step:\*\* .*2099-01-03 00:00 UTC' comment.md
 grep '^<details><summary>3 more with this cause</summary>$' comment.md

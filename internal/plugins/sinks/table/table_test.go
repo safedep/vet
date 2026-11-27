@@ -356,18 +356,20 @@ func TestEmptyScanWritesNothing(t *testing.T) {
 
 func TestWrap(t *testing.T) {
 	cases := []struct {
-		name  string
-		text  string
-		width int
-		want  string
+		name     string
+		text     string
+		width    int
+		ellipsis string
+		want     string
 	}{
-		{name: "fits", text: "Malicious package", width: 20, want: "Malicious package"},
-		{name: "two lines", text: "Malicious package", width: 10, want: "Malicious\npackage"},
-		{name: "cut at a word", text: "Third-party action is not pinned to a commit", width: 12, want: "Third-party\naction is…"},
+		{name: "fits", text: "Malicious package", width: 20, ellipsis: "…", want: "Malicious package"},
+		{name: "two lines", text: "Malicious package", width: 10, ellipsis: "…", want: "Malicious\npackage"},
+		{name: "cut at a word", text: "Third-party action is not pinned to a commit", width: 12, ellipsis: "…", want: "Third-party\naction is…"},
+		{name: "cut in ASCII", text: "Third-party action is not pinned to a commit", width: 12, ellipsis: "...", want: "Third-party\naction is..."},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, wrap(tc.text, tc.width, textLines))
+			assert.Equal(t, tc.want, wrap(tc.text, tc.width, textLines, tc.ellipsis))
 		})
 	}
 }
@@ -424,8 +426,8 @@ func TestReachColumn(t *testing.T) {
 	assert.Contains(t, got, "REACH")
 	rows := rowsOf(got)
 	require.Len(t, rows, 3)
-	assert.Contains(t, rows[0], "pypi/django@2.2.0 called · 2 hops 3 vulnerabilities", "a called finding wins over one that is not called")
-	assert.Contains(t, rows[1], "pypi/requests@2.19.0 imported · no symbol data 2 vulnerabilities")
+	assert.Contains(t, rows[0], "pypi/django@2.2.0 called (2 hops) 3 vulnerabilities", "a called finding wins over one that is not called")
+	assert.Contains(t, rows[1], "pypi/requests@2.19.0 imported (no symbol data) 2 vulnerabilities")
 
 	r = vulnReport()
 	assert.NotContains(t, write(t, nil, r), "REACH", "a scan with no reach has no REACH column")

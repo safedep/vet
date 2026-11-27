@@ -15,6 +15,7 @@ import (
 	"github.com/safedep/vet/v2/internal/engine"
 	"github.com/safedep/vet/v2/internal/overview"
 	"github.com/safedep/vet/v2/internal/tui/escape"
+	"github.com/safedep/vet/v2/internal/tui/glyph"
 	"github.com/safedep/vet/v2/internal/tui/humanize"
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/internal/tui/section"
@@ -39,9 +40,10 @@ type Options struct {
 
 // Scan is the stderr view of one scan. It implements engine.Observer.
 type Scan struct {
-	o    Options
-	mode output.Mode
-	now  func() time.Time
+	o      Options
+	mode   output.Mode
+	glyphs glyph.Set
+	now    func() time.Time
 
 	mu      sync.Mutex
 	stage   string
@@ -70,7 +72,8 @@ const shownElapsed = time.Second
 
 // NewScan returns the view and prints the start line.
 func NewScan(o Options) *Scan {
-	v := &Scan{o: o, mode: output.CurrentMode(), now: time.Now, startLine: startLine, ticker: newTicker}
+	m := output.CurrentMode()
+	v := &Scan{o: o, mode: m, glyphs: glyph.For(m), now: time.Now, startLine: startLine, ticker: newTicker}
 	mode := "full"
 	if o.BaseRef != "" {
 		mode = "delta"
@@ -151,7 +154,7 @@ func (v *Scan) endStage() {
 	}
 	switch v.mode {
 	case output.Rich:
-		v.line(fmt.Sprintf("%s [%d/%d] %s", style.Faint("›"), v.index, v.steps, text))
+		v.line(fmt.Sprintf("%s [%d/%d] %s", style.Faint(v.glyphs.Step), v.index, v.steps, text))
 	case output.Plain:
 		v.line("[INFO] " + text)
 	case output.Agent:

@@ -230,13 +230,13 @@ func (c *input) heading(sec sections) string {
 	n := len(sec.shown)
 	switch {
 	case sec.blocking:
-		return fmt.Sprintf("❌ vet: %s %s %s", humanize.Count(n, "cause"), verb(n, "blocks", "block"), where)
+		return fmt.Sprintf("vet: %s %s %s", humanize.Count(n, "cause"), verb(n, "blocks", "block"), where)
 	case n > 0:
-		return fmt.Sprintf("⚠️ vet: %s to review in %s", humanize.Count(n, "cause"), where)
+		return fmt.Sprintf("vet: %s to review in %s", humanize.Count(n, "cause"), where)
 	case len(sec.rest) > 0:
-		return "✅ vet: nothing to review in " + where
+		return "vet: nothing to review in " + where
 	}
-	return "✅ vet: no findings in " + where
+	return "vet: no findings in " + where
 }
 
 // next is the first thing to do: the fix of the first group, with the file,
@@ -361,7 +361,7 @@ func (c *input) progress(b *strings.Builder) {
 	if len(parts) == 0 {
 		parts = []string{"no change"}
 	}
-	line := fmt.Sprintf("**Since the last push:** %s", strings.Join(parts, " · "))
+	line := fmt.Sprintf("**Since the last push:** %s", strings.Join(parts, ", "))
 	if checks, files := gaps(c.view.Diagnostics); len(checks)+len(files) > 0 {
 		line += ". Some checks did not complete, so a finding can show as resolved"
 	}
@@ -381,8 +381,10 @@ func (c *input) baseline() ([]string, bool) {
 	return c.old.Findings, true
 }
 
+// status gives the result of the gate with its counts, then what vet
+// checked, as "**Gate failed**: 1 blocking. Checked 2 packages.".
 func (c *input) status(b *strings.Builder, sec sections) {
-	parts := []string{"**" + gateText(c.trailer.Gate.Outcome) + "**"}
+	var parts []string
 	switch {
 	case sec.blocking:
 		parts = append(parts, fmt.Sprintf("%d blocking", sec.count))
@@ -409,8 +411,11 @@ func (c *input) status(b *strings.Builder, sec sections) {
 	if head := c.head(); head != "" {
 		coverage += " at " + code(head[:min(7, len(head))])
 	}
-	parts = append(parts, coverage+".")
-	b.WriteString(strings.Join(parts, " · ") + "\n\n")
+	gate := "**" + gateText(c.trailer.Gate.Outcome) + "**"
+	if len(parts) > 0 {
+		gate += ": " + strings.Join(parts, ", ")
+	}
+	b.WriteString(gate + ". " + coverage + ".\n\n")
 }
 
 func (c *input) head() string {
@@ -466,7 +471,7 @@ func (c *input) card(b *strings.Builder, g render.Group) {
 	card := render.NewCard(g)
 	head := card.Head
 	if where := c.placeOf(f); where != "" {
-		head += " · " + where
+		head += " " + where
 	}
 	b.WriteString(head + "\n\n")
 	for _, p := range card.Body {
@@ -477,26 +482,35 @@ func (c *input) card(b *strings.Builder, g render.Group) {
 		b.WriteString(strings.Join(card.Members, "\n") + "\n\n")
 		c.close(b)
 	}
-	fmt.Fprintf(b, "[About this control](%s) · [Wrong result?](%s) · %s\n\n", render.ControlURL(c.header.Tool.Version, f.ControlID), c.formURL(f), code(f.ID))
+	fmt.Fprintf(b, "Finding %s: [About this control](%s), [Wrong result?](%s)\n\n", code(f.ID), render.ControlURL(c.header.Tool.Version, f.ControlID), c.formURL(f))
 }
 
-// groupLine writes one group on one line.
+// groupLine writes one group on one line, as "- `high` `pkg` in
+// `go.mod:12`: title. Blocked by policy rule x (`f-123`)".
 func (c *input) groupLine(b *strings.Builder, g render.Group) {
 	f := g.Lead()
-	line := fmt.Sprintf("- %s %s%s: %s · %s", code(g.Kind()), code(render.Subject(f)), g.More(), md(render.Title(f), maxField), code(render.Where(f)))
-	if gr := f.Gate; gr != nil {
-		line += " · " + strings.ToLower(gr.Label()) + " " + md(render.Text(gr.Cause()), maxField)
+	line := fmt.Sprintf("- %s %s%s", code(g.Kind()), code(render.Subject(f)), g.More())
+	if w := render.Where(f); w != render.Subject(f) {
+		line += " in " + code(w)
 	}
-	fmt.Fprintf(b, "%s · %s\n", line, code(f.ID))
+	line += ": " + md(render.Title(f), maxField)
+	if gr := f.Gate; gr != nil {
+		line += ". " + gr.Label() + " " + md(render.Text(gr.Cause()), maxField)
+	}
+	fmt.Fprintf(b, "%s (%s)\n", line, code(f.ID))
 }
 
-// placeOf is the place of a finding with its change in pull request mode.
+// placeOf is the place of a finding, as "in <file>", with its change in
+// pull request mode, as "added in <file>".
 func (c *input) placeOf(f *finding.Finding) string {
 	where := c.where(f)
-	if where != "" && f.Change != "" && c.delta() {
-		where = strings.ToLower(string(f.Change)) + " in " + where
+	switch {
+	case where == "":
+		return ""
+	case f.Change != "" && c.delta():
+		return strings.ToLower(string(f.Change)) + " in " + where
 	}
-	return where
+	return "in " + where
 }
 
 // details lists the findings that the comment does not show as a group,
@@ -540,7 +554,7 @@ func (c *input) details(b *strings.Builder, sec sections, lines int) {
 			break
 		}
 		group := byControl[id]
-		fmt.Fprintf(b, "**%s** · %s\n\n", md(c.header.ControlTitle(id), maxField), code(render.Kind(group[0])))
+		fmt.Fprintf(b, "**%s** (%s)\n\n", md(c.header.ControlTitle(id), maxField), code(render.Kind(group[0])))
 		for _, f := range group {
 			if n == lines {
 				break
@@ -556,21 +570,33 @@ func (c *input) details(b *strings.Builder, sec sections, lines int) {
 	c.close(b)
 }
 
+// footer writes three lines: the version of vet, where the full report
+// is, and the links. The report command ends its line with no full stop,
+// so a copy of it runs as it is.
 func (c *input) footer(b *strings.Builder) {
-	parts := []string{fmt.Sprintf("[vet](%s) %s", render.RepoURL, md(c.header.Tool.Version, maxField)), "open source, by SafeDep"}
-	if c.links.Run != "" {
-		parts = append(parts, fmt.Sprintf("[Full report](%s)", c.links.Run))
+	lines := []string{fmt.Sprintf("[vet](%s) %s, open source by SafeDep", render.RepoURL, md(c.header.Tool.Version, maxField))}
+	var full []string
+	switch {
+	case c.links.Run != "" && c.links.RunID != "":
+		full = append(full, fmt.Sprintf("Full report: [run %s](%s).", md(c.links.RunID, maxField), c.links.Run))
+	case c.links.Run != "":
+		full = append(full, fmt.Sprintf("[Full report](%s).", c.links.Run))
 	}
 	if cmd := c.download(); cmd != "" {
-		parts = append(parts, "Report file: "+code(cmd))
+		full = append(full, "Report file: "+code(cmd))
 	}
+	if len(full) > 0 {
+		lines = append(lines, strings.Join(full, " "))
+	}
+	var links []string
 	if u := c.policyURL(); u != "" {
-		parts = append(parts, fmt.Sprintf("[Policy](%s)", u))
+		links = append(links, fmt.Sprintf("[Policy](%s)", u))
 	}
-	parts = append(parts,
+	links = append(links,
 		fmt.Sprintf("[Wrong result?](%s)", c.formURL(nil)),
 		fmt.Sprintf("[Add vet to your repo](%s/blob/%s/docs/github-action.md)", render.RepoURL, render.DocsRef(c.header.Tool.Version)))
-	c.small(b, strings.Join(parts, " · "))
+	lines = append(lines, strings.Join(links, ", "))
+	c.small(b, lines...)
 	if c.via != "" {
 		c.small(b, c.via)
 	}
@@ -673,12 +699,14 @@ func (c *input) close(b *strings.Builder) {
 	}
 }
 
-func (c *input) small(b *strings.Builder, line string) {
+// small writes lines in small text, or as paragraphs in a dialect with no
+// HTML.
+func (c *input) small(b *strings.Builder, lines ...string) {
 	if c.dialect.HTML {
-		fmt.Fprintf(b, "<sub>%s</sub>\n\n", line)
+		fmt.Fprintf(b, "<sub>%s</sub>\n\n", strings.Join(lines, "<br>"))
 		return
 	}
-	b.WriteString(line + "\n\n")
+	b.WriteString(strings.Join(lines, "\n\n") + "\n\n")
 }
 
 var (
