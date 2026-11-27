@@ -34,8 +34,10 @@ func SetMode(m Mode) { output.SetMode(m) }
 // CurrentMode returns the mode. It detects the mode on the first call.
 func CurrentMode() Mode { return output.CurrentMode() }
 
-// stdoutIsTerminal reports whether stdout is a terminal. Tests replace it.
-var stdoutIsTerminal = func() bool { return term.IsTerminal(int(os.Stdout.Fd())) }
+func isStdoutTerminal() bool { return term.IsTerminal(int(os.Stdout.Fd())) }
+
+// stdoutIsTerminal reports whether stdout is a terminal.
+var stdoutIsTerminal = isStdoutTerminal
 
 // DataMode is the mode of report data and printer data. It is the messaging
 // mode, but plain in place of rich unless the data goes to stdout and stdout
@@ -47,6 +49,25 @@ func DataMode(toStdout bool) Mode {
 		return Plain
 	}
 	return m
+}
+
+// Drawable is the mode that dry/tui can draw: m, but plain in place of rich
+// when the messaging mode is not rich. dry/tui reads the messaging mode, so
+// a rich drawing under a plain messaging mode would mix the two.
+func Drawable(m Mode) Mode {
+	if m == Rich && CurrentMode() != Rich {
+		return Plain
+	}
+	return m
+}
+
+// SetStdoutTerminal replaces the check of whether stdout is a terminal, for
+// tests. Nil restores the check.
+func SetStdoutTerminal(isTerminal func() bool) {
+	if isTerminal == nil {
+		isTerminal = isStdoutTerminal
+	}
+	stdoutIsTerminal = isTerminal
 }
 
 // SetVerbosity sets the verbosity.

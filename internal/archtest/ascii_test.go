@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -41,9 +42,8 @@ var deliberateRunes = map[rune]string{
 // ellipsis character or an emoji is hard to read there.
 //
 // The test reads the value of the literal, so an escape counts as the
-// character that it gives. A literal with a byte escape, such as a byte
-// order mark for a detection, holds bytes and not text: the test reads it
-// as the source writes it.
+// character that it gives. A byte escape, such as the bytes of a byte order
+// mark for a detection, gives a byte and not a character, so it passes.
 func TestOnlyRichChromeWritesUnicode(t *testing.T) {
 	root := repoRoot(t)
 	for path, src := range sourcesOutside(t, richChrome) {
@@ -57,8 +57,8 @@ func TestOnlyRichChromeWritesUnicode(t *testing.T) {
 			if !ok || (lit.Kind != token.STRING && lit.Kind != token.CHAR) {
 				return true
 			}
-			for _, r := range literalText(t, lit.Value) {
-				if r < utf8.RuneSelf || deliberateRunes[r] != "" {
+			for _, r := range literalRunes(t, lit.Value) {
+				if deliberateRunes[r] != "" {
 					continue
 				}
 				assert.Fail(t, "only the rich chrome writes Unicode",
@@ -70,19 +70,29 @@ func TestOnlyRichChromeWritesUnicode(t *testing.T) {
 	}
 }
 
-// byteEscape matches an escape of one byte, as \xEF or \357.
-var byteEscape = regexp.MustCompile(`\\(x[0-9a-fA-F]{2}|[0-7]{3})`)
-
-// literalText is the text of a literal: its value, or the source of a
-// literal with a byte escape.
-func literalText(t *testing.T, src string) string {
+// literalRunes returns the characters outside ASCII that a Go literal
+// gives. A byte escape, as \xEF or \357, gives a byte and no character.
+func literalRunes(t *testing.T, src string) []rune {
 	t.Helper()
-	if byteEscape.MatchString(strings.ReplaceAll(src, `\\`, "")) {
-		return src
+	var out []rune
+	if strings.HasPrefix(src, "`") {
+		for _, r := range src {
+			if r >= utf8.RuneSelf {
+				out = append(out, r)
+			}
+		}
+		return out
 	}
-	v, err := strconv.Unquote(src)
-	require.NoError(t, err, src)
-	return v
+	quote, body := src[0], src[1:len(src)-1]
+	for body != "" {
+		r, multibyte, tail, err := strconv.UnquoteChar(body, quote)
+		require.NoError(t, err, src)
+		if multibyte {
+			out = append(out, r)
+		}
+		body = tail
+	}
+	return out
 }
 
 // embedExcluded are the embedded files that hold detection data outside
@@ -150,6 +160,26 @@ func assertASCII(t *testing.T, path, rel, msg string) error {
 var glyphAllowed = []string{
 	module + "/internal/tui",
 	module + "/internal/view",
+}
+
+// globalModeTUI are the internal/tui packages that draw for the messaging
+// mode, which stderr decides. A report format draws for the mode of its
+// destination with internal/tui/page.
+var globalModeTUI = []string{
+	module + "/internal/tui/style",
+	module + "/internal/tui/section",
+	module + "/internal/tui/stat",
+}
+
+func TestReportFormatsDrawForTheirDestination(t *testing.T) {
+	for _, p := range listPackages(t) {
+		if !under(p.path, module+"/internal/plugins/sinks") {
+			continue
+		}
+		for _, imp := range p.imports {
+			assert.False(t, slices.Contains(globalModeTUI, imp), "package %s imports %s: draw with internal/tui/page", p.path, imp)
+		}
+	}
 }
 
 func TestOnlyTheViewAndTheTUIImportGlyphs(t *testing.T) {

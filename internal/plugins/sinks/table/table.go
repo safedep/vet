@@ -18,8 +18,6 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/internal/render"
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/internal/tui/page"
-	"github.com/safedep/vet/v2/internal/tui/section"
-	"github.com/safedep/vet/v2/internal/tui/stat"
 	"github.com/safedep/vet/v2/internal/tui/table"
 	"github.com/safedep/vet/v2/internal/tui/theme"
 	"github.com/safedep/vet/v2/model"
@@ -169,7 +167,7 @@ func (s Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	if len(caps) > 0 {
 		parts = append(parts, s.capabilityTable(caps, delta)...)
 	}
-	_, err = io.WriteString(w, section.Join(parts...)+"\n")
+	_, err = io.WriteString(w, page.Join(parts...)+"\n")
 	return err
 }
 
@@ -639,18 +637,18 @@ func changeHint(c model.Change) string {
 
 // cards counts the packages and the findings. A pull request scan counts
 // the packages that it changes. An endpoint audit also counts the tools.
-func cards(h *report.Header, t *report.Trailer, packages int) []stat.Card {
+func cards(h *report.Header, t *report.Trailer, packages int) []page.Card {
 	sum := t.Summary
 	crit, high := theme.RoleCritical, theme.RoleHigh
-	var cs []stat.Card
+	var cs []page.Card
 	if h.Scan.Kind == report.ScanKindEndpoint {
-		cs = append(cs, stat.Card{Label: "Tools", Value: strconv.Itoa(sum.Inventory)})
+		cs = append(cs, page.Card{Label: "Tools", Value: strconv.Itoa(sum.Inventory)})
 	}
 	label := "Packages"
 	if h.Scan.Mode == report.ScanModeDelta {
 		label = "Changed"
 	}
-	cs = append(cs, []stat.Card{
+	cs = append(cs, []page.Card{
 		{Label: label, Value: strconv.Itoa(packages)},
 		{Label: "Findings", Value: strconv.Itoa(sum.Findings)},
 		{Label: "Critical", Value: strconv.Itoa(sum.BySeverity[finding.SeverityCritical]), Accent: &crit},
@@ -659,10 +657,10 @@ func cards(h *report.Header, t *report.Trailer, packages int) []stat.Card {
 	switch t.Gate.Outcome {
 	case report.GatePass:
 		pass := theme.RoleSuccess
-		cs = append(cs, stat.Card{Label: "Gate", Value: "PASS", Accent: &pass})
+		cs = append(cs, page.Card{Label: "Gate", Value: "PASS", Accent: &pass})
 	case report.GateFail:
 		fail := theme.RoleError
-		cs = append(cs, stat.Card{Label: "Gate", Value: "FAIL", Accent: &fail})
+		cs = append(cs, page.Card{Label: "Gate", Value: "FAIL", Accent: &fail})
 	}
 	return cs
 }

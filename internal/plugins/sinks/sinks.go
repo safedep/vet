@@ -94,6 +94,8 @@ type moded interface {
 	WithMode(m output.Mode) plugin.Sink
 }
 
+var _ moded = table.Sink{}
+
 // WithMode gives a sink the output mode of its destination. A format that
 // draws no terminal text stays as it is.
 func WithMode(s plugin.Sink, m output.Mode) plugin.Sink {
@@ -150,6 +152,9 @@ func (r Registry) Destinations(out string, reports []string, mode output.Mode) (
 	}
 	return dests, nil
 }
+
+// Stdout reports whether the destination is stdout.
+func (d Destination) Stdout() bool { return d.Path == "" && !d.Publish }
 
 func (r Registry) publishes(format string) bool {
 	i := slices.IndexFunc(r, func(s Spec) bool { return s.Name == format })

@@ -8,14 +8,18 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	lgtable "github.com/charmbracelet/lipgloss/table"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/safedep/dry/tui/output"
 	"github.com/safedep/dry/tui/table"
 
 	"github.com/safedep/vet/v2/internal/tui/glyph"
+	"github.com/safedep/vet/v2/internal/tui/output"
 )
 
 // minColumn is the narrowest width that truncation gives a column.
 const minColumn = 4
+
+// minWrap is the narrowest Wrap column with a line limit that wraps. A
+// narrower column would break each word onto a line of its own.
+const minWrap = 16
 
 // Fit is how a cell fits a column that is narrower than the cell.
 type Fit int
@@ -42,7 +46,8 @@ type Column struct {
 	// by Fit. Zero sets no limit.
 	Max int
 	// Lines is the most lines of a Wrap cell. The last line of a longer
-	// cell ends with an ellipsis. Zero sets no limit.
+	// cell ends with an ellipsis. A column narrower than minWrap cuts the
+	// cell to one line instead. Zero sets no limit.
 	Lines int
 }
 
@@ -59,15 +64,10 @@ type Table struct {
 	empty    string
 }
 
-// New returns an empty table in the messaging mode.
-func New() *Table { return &Table{mode: output.CurrentMode()} }
-
-// Mode sets the output mode of the table. A report that goes to a file or
-// to a pipe sets plain, so that the table is ASCII.
-func (t *Table) Mode(m output.Mode) *Table {
-	t.mode = m
-	return t
-}
+// New returns an empty table in an output mode. A table on stderr takes the
+// messaging mode. A table of data takes the data mode of its destination,
+// so that a file or a pipe gets ASCII.
+func New(m output.Mode) *Table { return &Table{mode: output.Drawable(m)} }
 
 // Headers sets the header row.
 func (t *Table) Headers(h ...string) *Table {
@@ -279,6 +279,9 @@ func fitCell(s string, width int, c Column, ellipsis string) string {
 	case Keep:
 		return s
 	case Wrap:
+		if c.Lines > 0 && width < minWrap {
+			return ansi.Truncate(s, width, ellipsis)
+		}
 		return wrap(s, width, c.Lines, ellipsis)
 	case CutLeft:
 		return cutLeft(s, width, ellipsis)
@@ -289,14 +292,28 @@ func fitCell(s string, width int, c Column, ellipsis string) string {
 
 // wrap breaks s into lines of width cells at most. With n above zero, it
 // keeps n lines, and the last line of a longer text ends with the
-// ellipsis.
+// ellipsis. ansi.Wrap can keep a hyphen past the width, so wrap cuts each
+// line to the width.
 func wrap(s string, width, n int, ellipsis string) string {
 	lines := strings.Split(ansi.Wrap(s, width, ""), "\n")
-	if n <= 0 || len(lines) <= n {
-		return strings.Join(lines, "\n")
+	if n > 0 && len(lines) > n {
+		lines = append(lines[:n-1], lastLine(strings.Join(lines[n-1:], " "), width, ellipsis))
 	}
-	last, _, _ := strings.Cut(ansi.Wrap(strings.Join(lines[n-1:], " "), width-ansi.StringWidth(ellipsis), ""), "\n")
-	return strings.Join(append(lines[:n-1], strings.TrimRight(last, " ")+ellipsis), "\n")
+	for i, l := range lines {
+		lines[i] = ansi.Truncate(l, width, "")
+	}
+	return strings.Join(lines, "\n")
+}
+
+// lastLine cuts s to one line of width cells that ends with the ellipsis.
+// It cuts at a word when it can.
+func lastLine(s string, width int, ellipsis string) string {
+	room := width - ansi.StringWidth(ellipsis)
+	if room <= 0 {
+		return ansi.Truncate(s, width, "")
+	}
+	first, _, _ := strings.Cut(ansi.Wrap(s, room, ""), "\n")
+	return ansi.Truncate(strings.TrimRight(first, " "), room, "") + ellipsis
 }
 
 // cutLeft keeps the end of s in width cells. It starts the cut at a path

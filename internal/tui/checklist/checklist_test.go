@@ -10,11 +10,15 @@ import (
 	"github.com/safedep/vet/v2/internal/tui/output"
 )
 
+// TestLines draws each mode while stderr is a rich terminal, as vet doctor
+// does when stdout goes to a file.
 func TestLines(t *testing.T) {
+	prev := output.CurrentMode()
 	t.Cleanup(func() {
-		output.SetMode(output.Rich)
+		output.SetMode(prev)
 		output.SetWidthOverride(0)
 	})
+	output.SetMode(output.Rich)
 	items := []Item{
 		{Status: Pass, Name: "vet.version", Text: "vet dev (8957dc6)"},
 		{Status: Warn, Name: "install.path", Text: "vet is not on PATH", Fix: "Add the directory to PATH."},
@@ -45,8 +49,7 @@ func TestLines(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			output.SetMode(tc.mode)
-			got := Lines(items)
+			got := Lines(tc.mode, items)
 			for i := range got {
 				got[i] = ansi.Strip(got[i])
 			}
@@ -56,13 +59,14 @@ func TestLines(t *testing.T) {
 }
 
 func TestLinesWrapsInRichMode(t *testing.T) {
+	prev := output.CurrentMode()
 	t.Cleanup(func() {
-		output.SetMode(output.Rich)
+		output.SetMode(prev)
 		output.SetWidthOverride(0)
 	})
 	output.SetMode(output.Rich)
 	output.SetWidthOverride(40)
-	got := Lines([]Item{{Status: Pass, Name: "state.dir", Text: strings.Repeat("word ", 10)}})
+	got := Lines(output.Rich, []Item{{Status: Pass, Name: "state.dir", Text: strings.Repeat("word ", 10)}})
 	lines := strings.Split(ansi.Strip(strings.Join(got, "\n")), "\n")
 	assert.Greater(t, len(lines), 1)
 	for _, l := range lines {

@@ -67,27 +67,45 @@ type Rows struct {
 type Printer struct {
 	w      io.Writer
 	format Format
-	// mode is the mode of the table: rich only on a terminal.
-	mode output.Mode
+	// mode is the mode of the text that the printer draws.
+	mode *output.Mode
+	// toStdout is false when WithWriter replaces stdout.
+	toStdout bool
 }
 
 // Option changes a printer.
 type Option func(*Printer)
 
-// WithWriter replaces stdout.
-func WithWriter(w io.Writer) Option { return func(p *Printer) { p.w = w } }
+// WithWriter replaces stdout. The printer draws plain text to it, unless
+// WithMode sets the mode.
+func WithWriter(w io.Writer) Option { return func(p *Printer) { p.w, p.toStdout = w, false } }
 
-// New returns a printer that writes to stdout.
+// WithMode sets the mode of the text that the printer draws.
+func WithMode(m output.Mode) Option { return func(p *Printer) { p.mode = &m } }
+
+// New returns a printer that writes to stdout in its data mode: rich only
+// on a terminal.
 func New(f Format, opts ...Option) *Printer {
-	p := &Printer{w: output.Stdout(), format: f, mode: output.DataMode(true)}
+	p := &Printer{w: output.Stdout(), format: f, toStdout: true}
 	for _, o := range opts {
 		o(p)
+	}
+	if p.mode == nil {
+		m := output.Plain
+		if p.toStdout {
+			m = output.DataMode(true)
+		}
+		p.mode = &m
 	}
 	return p
 }
 
 // Format returns the format of the printer.
 func (p *Printer) Format() Format { return p.format }
+
+// Mode is the mode of the text that the printer draws. A command that
+// draws text for PrintText draws it in this mode.
+func (p *Printer) Mode() output.Mode { return *p.mode }
 
 // Print writes value as json or jsonl, or rows as table or plain. For jsonl,
 // a slice gives one line for each element.
@@ -103,7 +121,7 @@ func (p *Printer) Print(value any, rows Rows) error {
 	case Plain:
 		return p.plain(rows)
 	default:
-		r := table.New().Mode(p.mode).Headers(rows.Headers...).Rows(rows.Rows...).Columns(rows.Columns...).
+		r := table.New(*p.mode).Headers(rows.Headers...).Rows(rows.Rows...).Columns(rows.Columns...).
 			Title(rows.Title).Footer(rows.Footer)
 		if rows.Empty != "" {
 			r.EmptyMessage(rows.Empty)

@@ -64,9 +64,12 @@ func TestFitCell(t *testing.T) {
 		want     string
 	}{
 		{name: "cut", cell: "abcdefghij", width: 5, fit: Cut, ellipsis: "…", want: "abcd…"},
-		{name: "wrap to two lines", cell: "Malicious package", width: 10, fit: Wrap, lines: 2, ellipsis: "…", want: "Malicious\npackage"},
-		{name: "wrap and cut at a word", cell: "Third-party action is not pinned to a commit", width: 12, fit: Wrap, lines: 2, ellipsis: "…", want: "Third-party\naction is…"},
-		{name: "wrap and cut in ASCII", cell: "Third-party action is not pinned to a commit", width: 12, fit: Wrap, lines: 2, ellipsis: "...", want: "Third-party\naction is..."},
+		{name: "wrap to two lines", cell: "Malicious package for you", width: 16, fit: Wrap, lines: 2, ellipsis: "…", want: "Malicious\npackage for you"},
+		{name: "wrap and cut at a word", cell: "Third-party action is not pinned to a commit", width: 16, fit: Wrap, lines: 2, ellipsis: "…", want: "Third-party\naction is not…"},
+		{name: "wrap and cut in ASCII", cell: "Third-party action is not pinned to a commit", width: 16, fit: Wrap, lines: 2, ellipsis: "...", want: "Third-party\naction is not..."},
+		{name: "a hyphen at the cut keeps the width", cell: "GO-2026-4883: Moby has an Off-by-one error", width: 16, fit: Wrap, lines: 2, ellipsis: "…", want: "GO-2026-4883:\nMoby has an Off…"},
+		{name: "wrap a long word at the last line keeps the width", cell: "aaaa bbbbbbbbbbbbbbbbbbbbbbbb-cccccccc dddd", width: 16, fit: Wrap, lines: 2, ellipsis: "…", want: "aaaa\nbbbbbbbbbbbbbbb…"},
+		{name: "a narrow column cuts to one line", cell: "The file hides a payload", width: 10, fit: Wrap, lines: 2, ellipsis: "…", want: "The file …"},
 		{name: "cut in ASCII", cell: "abcdefghij", width: 5, fit: Cut, ellipsis: "...", want: "ab..."},
 		{name: "cut left at a separator", cell: "/tmp/claude-0/uxreview/projects/npm-app", width: 20, fit: CutLeft, ellipsis: "…", want: "…/projects/npm-app"},
 		{name: "cut left in ASCII", cell: "/tmp/claude-0/uxreview/projects/npm-app", width: 20, fit: CutLeft, ellipsis: "...", want: ".../projects/npm-app"},
@@ -82,28 +85,22 @@ func TestFitCell(t *testing.T) {
 }
 
 func TestRenderTruncatesToWidth(t *testing.T) {
-	output.SetMode(output.Plain)
-	t.Cleanup(func() { output.SetMode(output.Rich) })
-
 	long := "pkg:npm/" + strings.Repeat("very-long-package-name-", 5) + "@1.0.0"
-	out := New().Headers("SEVERITY", "SUBJECT").Row("high", long).MaxWidth(50).Render()
+	out := New(output.Plain).Headers("SEVERITY", "SUBJECT").Row("high", long).MaxWidth(50).Render()
 	for _, line := range strings.Split(out, "\n") {
 		assert.LessOrEqual(t, ansi.StringWidth(line), 50, line)
 	}
 	assert.Contains(t, out, "...")
 	assert.Contains(t, out, "high")
 
-	short := New().Headers("A").Row("b").MaxWidth(50).Render()
+	short := New(output.Plain).Headers("A").Row("b").MaxWidth(50).Render()
 	assert.NotContains(t, short, "...")
 }
 
 func TestRenderFitsColumns(t *testing.T) {
-	output.SetMode(output.Plain)
-	t.Cleanup(func() { output.SetMode(output.Rich) })
-
 	id := "dependency-confusion-internal"
 	desc := strings.Repeat("word ", 20)
-	out := New().Headers("ID", "PLUGIN", "TITLE").Row(id, "reputation", desc).
+	out := New(output.Plain).Headers("ID", "PLUGIN", "TITLE").Row(id, "reputation", desc).
 		Columns(Column{Fit: Keep}, Column{Drop: 1}, Column{Fit: Wrap}).MaxWidth(50).Render()
 	for _, line := range strings.Split(out, "\n") {
 		assert.LessOrEqual(t, ansi.StringWidth(line), 50, line)
@@ -115,11 +112,8 @@ func TestRenderFitsColumns(t *testing.T) {
 }
 
 func TestRenderMeasuresTheWidestLineOfACell(t *testing.T) {
-	output.SetMode(output.Plain)
-	t.Cleanup(func() { output.SetMode(output.Rich) })
-
 	subject := "npm/evil-colors@1.4.1"
-	out := New().Headers("SUBJECT", "FINDING").Row(subject, "Malicious\npackage").MaxWidth(40).Render()
+	out := New(output.Plain).Headers("SUBJECT", "FINDING").Row(subject, "Malicious\npackage").MaxWidth(40).Render()
 	assert.Contains(t, out, subject, "a two-line cell is as wide as its widest line")
 }
 
@@ -127,6 +121,8 @@ func TestRenderMeasuresTheWidestLineOfACell(t *testing.T) {
 // while stderr is a rich terminal, as for a report file. Only the rich mode
 // draws a box-drawing border and an ellipsis character.
 func TestRenderIsASCIIOutsideRichMode(t *testing.T) {
+	prev := output.CurrentMode()
+	t.Cleanup(func() { output.SetMode(prev) })
 	output.SetMode(output.Rich)
 	long := strings.Repeat("very-long-package-name-", 5)
 	cases := []struct {
@@ -139,7 +135,7 @@ func TestRenderIsASCIIOutsideRichMode(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.mode.String(), func(t *testing.T) {
-			out := New().Mode(tc.mode).Headers("SEVERITY", "SUBJECT").Row("high", long).MaxWidth(40).Render()
+			out := New(tc.mode).Headers("SEVERITY", "SUBJECT").Row("high", long).MaxWidth(40).Render()
 			assert.Contains(t, out, "high")
 			isASCII := strings.IndexFunc(out, func(r rune) bool { return r > unicode.MaxASCII }) < 0
 			assert.Equal(t, tc.ascii, isASCII, out)
@@ -150,7 +146,7 @@ func TestRenderIsASCIIOutsideRichMode(t *testing.T) {
 // TestPlainBorderKeepsTheCellText keeps untrusted text as it is. Only the
 // border of a plain table is ASCII.
 func TestPlainBorderKeepsTheCellText(t *testing.T) {
-	out := New().Mode(output.Plain).Headers("TITLE").Row("├── payload").MaxWidth(40).Render()
+	out := New(output.Plain).Headers("TITLE").Row("├── payload").MaxWidth(40).Render()
 	lines := strings.Split(out, "\n")
 	require.Len(t, lines, 5)
 	assert.Equal(t, "+-------------+", lines[0])
@@ -158,7 +154,28 @@ func TestPlainBorderKeepsTheCellText(t *testing.T) {
 }
 
 func TestRenderCapsAColumnAtItsMax(t *testing.T) {
-	out := New().Mode(output.Plain).Headers("NAME", "TAGS").Row(strings.Repeat("x", 30), "llm").
+	out := New(output.Plain).Headers("NAME", "TAGS").Row(strings.Repeat("x", 30), "llm").
 		Columns(Column{Max: 10}).MaxWidth(200).Render()
 	assert.Contains(t, out, "| xxxxxxx... | llm  |")
+}
+
+// TestRenderKeepsEachLineInTheWidth wraps text with a hyphen at the break.
+// ansi.Wrap keeps the hyphen past the width, and a line one cell too wide
+// makes the terminal wrap each row of the table.
+func TestRenderKeepsEachLineInTheWidth(t *testing.T) {
+	title := "GO-2026-4883: Moby has an Off-by-one error in its plugin privilege validation"
+	prev := output.CurrentMode()
+	t.Cleanup(func() { output.SetMode(prev) })
+	output.SetMode(output.Rich)
+	for _, m := range []output.Mode{output.Rich, output.Plain} {
+		for _, limit := range []int{16, 20, 30} {
+			// A table of two columns with FINDING at limit cells is this wide.
+			width := 1 + len("SEVERITY") + 3 + limit + 3
+			out := New(m).Headers("SEVERITY", "FINDING").Row("[HIGH]", title).
+				Columns(Column{}, Column{Fit: Wrap, Max: limit, Lines: 2}).MaxWidth(width).Render()
+			for _, line := range strings.Split(out, "\n") {
+				assert.LessOrEqual(t, ansi.StringWidth(line), width, "%s: %s", m, line)
+			}
+		}
+	}
 }

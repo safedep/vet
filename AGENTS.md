@@ -34,6 +34,7 @@ helper or a list. Each row is the one place for its concern.
 | Concern | Use |
 | --- | --- |
 | Terminal output: messages, tables, panels, progress, prompts, banner | `internal/tui/...`, which wraps `dry/tui`. Look in `dry/tui` first for a missing part. |
+| A report or data output that needs a mode-aware drawing: the table format, a printer table, a list on stdout | `internal/tui/page`, with the mode from `output.DataMode`. A file or a pipe gets ASCII while stderr is rich. |
 | Stderr view of a scan: steps, diagnostics, gate line | `internal/view` |
 | What a person sees first in a report: findings in order, diagnostics, what a change adds | `internal/overview`. The view and the sinks read it. |
 | Stdout data in the `-o` format | `internal/tui/printer` |
